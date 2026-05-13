@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="libFiltre" InternalType="Library" Version="11000">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+    </Plugin>
+    <Plugin Name="CMakePlugin">
+      <![CDATA[[{
+  "name": "Debug",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
+  "name": "Release",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }]]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="Filter">
+    <VirtualDirectory Name="interpolation">
+      <File Name="2PassScale.h"/>
+      <File Name="2PassScale.cpp"/>
+      <File Name="scalingfilter.h"/>
+      <File Name="InterpolationFilters.h"/>
+      <File Name="InpaintFilterParam.h"/>
+      <File Name="avir_opencl.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="Meanshift">
+      <File Name="MeanShift.h"/>
+      <File Name="MeanShift.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="src">
+      <File Name="Wave.cpp"/>
+      <File Name="Selection.cpp"/>
+      <File Name="PerlinNoise.cpp"/>
+      <File Name="MotionBlur.cpp"/>
+      <File Name="Line.cpp"/>
+      <File Name="LensFlare.cpp"/>
+      <File Name="Draw.cpp"/>
+      <File Name="Crop.cpp"/>
+      <File Name="Color.cpp"/>
+      <File Name="circle.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="include">
+      <File Name="Wave.h"/>
+      <File Name="Selection.h"/>
+      <File Name="Rotation.h"/>
+      <File Name="PerlinNoise.h"/>
+      <File Name="MotionBlur.h"/>
+      <File Name="Line.h"/>
+      <File Name="LensFlare.h"/>
+      <File Name="Draw.h"/>
+      <File Name="Crop.h"/>
+      <File Name="Color.h"/>
+      <File Name="circle.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="window">
+    <VirtualDirectory Name="drawing">
+      <File Name="InpaintFilter.h"/>
+      <File Name="InpaintFIlter.cpp"/>
+      <File Name="CropFilter.h"/>
+      <File Name="CropFilter.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="main">
+      <File Name="PenDrawInfo.h"/>
+      <File Name="BitmapDisplay.h"/>
+      <File Name="FiltreUpdate.h"/>
+      <File Name="FilterWindowParam.h"/>
+      <File Name="FilterWindowParam.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="data structure">
+      <File Name="MosaicFilterParameter.h"/>
+      <File Name="LensDistortionEffectParameter.h"/>
+      <File Name="VignetteEffectParameter.h"/>
+      <File Name="CartoonEffectParameter.h"/>
+      <File Name="OilPaintingEffectParameter.h"/>
+      <File Name="BitmapFusionEffectParameter.h"/>
+      <File Name="bm3dEffectParameter.h"/>
+      <File Name="WaveEffectParameter.h"/>
+      <File Name="SwirlEffectParameter.h"/>
+      <File Name="SolarisationEffectParameter.h"/>
+      <File Name="SharpenMaskingParameter.h"/>
+      <File Name="RgbEffectParameter.h"/>
+      <File Name="RedEyeParameter.h"/>
+      <File Name="PosterisationEffectParameter.h"/>
+      <File Name="PhotoFiltreEffectParameter.h"/>
+      <File Name="NlmeansEffectParameter.h"/>
+      <File Name="MotionBlurEffectParameter.h"/>
+      <File Name="LensFlareEffectParameter.h"/>
+      <File Name="GaussianBlurEffectParameter.h"/>
+      <File Name="FreeRotateEffectParameter.h"/>
+      <File Name="DecodeRawParameter.h"/>
+      <File Name="CloudsEffectParameter.h"/>
+      <File Name="BrightAndContrastEffectParameter.h"/>
+      <File Name="BlurEffectParameter.h"/>
+      <File Name="BitmapEffectParameter.h"/>
+      <File Name="BilateralEffectParameter.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="raw">
+      <File Name="DecodeRaw.h"/>
+      <File Name="DecodeRaw.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="video">
+      <File Name="videostream.h"/>
+      <File Name="moviestreaminfo.h"/>
+      <File Name="videostream.cpp"/>
+      <File Name="moviestreaminfo.cpp"/>
+      <File Name="VideoFilter.h"/>
+      <File Name="VideoFilter.cpp"/>
+      <File Name="AudioVideoFilter.h"/>
+      <File Name="AudioVideoFilter.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="picture">
+      <File Name="StylizationParameter.h"/>
+      <File Name="Stylization.h"/>
+      <File Name="Stylization.cpp"/>
+      <File Name="PencilSketchParameter.h"/>
+      <File Name="PencilSketch.h"/>
+      <File Name="PencilSketch.cpp"/>
+      <File Name="panorama.h"/>
+      <File Name="panorama.cpp"/>
+      <File Name="FiltreImplementation.h"/>
+      <File Name="EdgePreservingFilterParameter.h"/>
+      <File Name="EdgePreservingFilter.h"/>
+      <File Name="EdgePreservingFilter.cpp"/>
+      <File Name="DetailEnhanceParameter.h"/>
+      <File Name="DetailEnhance.h"/>
+      <File Name="DetailEnhance.cpp"/>
+      <File Name="BokehEffectParameter.h"/>
+      <File Name="MosaicFilter.h"/>
+      <File Name="MosaicFilter.cpp"/>
+      <File Name="LensDistortion.h"/>
+      <File Name="LensDistortion.cpp"/>
+      <File Name="BokehFilter.h"/>
+      <File Name="BokehFilter.cpp"/>
+      <File Name="VignetteFilter.h"/>
+      <File Name="VignetteFilter.cpp"/>
+      <File Name="CartoonFilter.h"/>
+      <File Name="CartoonFilter.cpp"/>
+      <File Name="OilPaintingFilter.h"/>
+      <File Name="OilPaintingFilter.cpp"/>
+      <File Name="hqdn3dFilter.h"/>
+      <File Name="hqdn3dFilter.cpp"/>
+      <File Name="hqdn3dEffectParameter.h"/>
+      <File Name="GaussianBlurFilter.h"/>
+      <File Name="GaussianBlurFilter.cpp"/>
+      <File Name="ColorBalanceFilter.h"/>
+      <File Name="ColorBalanceFilter.cpp"/>
+      <File Name="WaveFilter.h"/>
+      <File Name="WaveFilter.cpp"/>
+      <File Name="SwirlFilter.h"/>
+      <File Name="SwirlFilter.cpp"/>
+      <File Name="SolarisationFilter.h"/>
+      <File Name="SolarisationFilter.cpp"/>
+      <File Name="SharpenMaskingFilter.h"/>
+      <File Name="SharpenMaskingFilter.cpp"/>
+      <File Name="RotateFreeFilter.h"/>
+      <File Name="RotateFreeFilter.cpp"/>
+      <File Name="PosterisationFilter.h"/>
+      <File Name="PosterisationFilter.cpp"/>
+      <File Name="PhotoFiltreFilter.h"/>
+      <File Name="PhotoFiltreFilter.cpp"/>
+      <File Name="NlmeansFilter.h"/>
+      <File Name="NlmeansFilter.cpp"/>
+      <File Name="MotionBlurFilter.h"/>
+      <File Name="MotionBlurFilter.cpp"/>
+      <File Name="LensFlareFilter.h"/>
+      <File Name="LensFlareFilter.cpp"/>
+      <File Name="CloudsFilter.h"/>
+      <File Name="CloudsFilter.cpp"/>
+      <File Name="BrightAndContrastFilter.h"/>
+      <File Name="BrightAndContrastFilter.cpp"/>
+      <File Name="BlurFilter.h"/>
+      <File Name="BlurFilter.cpp"/>
+      <File Name="bilateralFilter.h"/>
+      <File Name="bilateralFilter.cpp"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <VirtualDirectory Name="interface">
+    <VirtualDirectory Name="src">
+      <File Name="CudaEffect.cpp"/>
+      <File Name="OpenCLEffect.cpp"/>
+      <File Name="FiltreEffetCPU.cpp"/>
+      <File Name="FiltreEffet.cpp"/>
+      <File Name="Filtre.cpp"/>
+      <File Name="FilterData.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="include">
+      <File Name="CudaEffect.h"/>
+      <File Name="OpenCLEffect.h"/>
+      <File Name="FiltreEffetCPU.h"/>
+      <File Name="FiltreEffet.h"/>
+      <File Name="Filtre.h"/>
+      <File Name="FilterData.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Static Library">
+    <GlobalSettings>
+      <Compiler Options="$(shell ../libextern/wxconfig_cpp.sh);-Wall;-pthread;-std=gnu++14;-Wno-narrowing" C_Options=";-Wall;" Assembler="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../include"/>
+        <IncludePath Value="../libCudaEffect"/>
+        <IncludePath Value="../libVideoEffect"/>
+        <IncludePath Value="../libOpenGL"/>
+        <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../libAppleFunction"/>
+        <IncludePath Value="../libextern/glew-2.1.0/include"/>
+        <IncludePath Value="../CxImage"/>
+        <IncludePath Value="../libUtility"/>
+        <IncludePath Value="../libFiltreInterface"/>
+        <IncludePath Value="../libOpenCL"/>
+        <IncludePath Value="../libResource"/>
+        <IncludePath Value="../libControl"/>
+        <IncludePath Value="../Otherlib/wxSVG/include"/>
+        <IncludePath Value="../libPicture"/>
+        <IncludePath Value="../libextern/fftw-3.3.8/api"/>
+        <IncludePath Value="../libextern/libOpenCL/include"/>
+        <IncludePath Value="../libOpenCLEngine"/>
+        <IncludePath Value="../libDeepLearning"/>
+        <IncludePath Value="../libextern/LibRaw-0.20.0"/>
+        <IncludePath Value="../libextern/libRapidXML"/>
+        <IncludePath Value="../libextern/ffmpeg-master"/>
+        <IncludePath Value="../libextern/ffmpeg-master/include"/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-ggdb;-O0" C_Options="-ggdb;-O0" Assembler="" Required="yes" PreCompiledHeader="../include/Debug/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
+        <Preprocessor Value="NDEBUG"/>
+      </Compiler>
+      <Linker Options="-s" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
+</CodeLite_Project>

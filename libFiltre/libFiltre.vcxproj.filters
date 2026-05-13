@@ -1,0 +1,522 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Fichiers de ressources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Filter">
+      <UniqueIdentifier>{fa946c5c-e182-4532-9539-79844f6bf274}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\include">
+      <UniqueIdentifier>{df84431d-357b-42cb-816d-d9c874b17389}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\source">
+      <UniqueIdentifier>{c85f9b29-f254-4e19-8d11-1e46dcc112c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="window">
+      <UniqueIdentifier>{c6ff931b-ae35-4b98-9749-29b2165c8848}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="window\datastructure">
+      <UniqueIdentifier>{bc2a9c9d-c4b1-4acf-bb15-b79064b01300}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="window\main">
+      <UniqueIdentifier>{a02681ba-fb1e-4153-bafd-d0d917a27e41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="window\picture">
+      <UniqueIdentifier>{d40613bc-91c5-49a0-b441-bb35830c00d6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="window\video">
+      <UniqueIdentifier>{490cb10e-01a3-46da-aab7-d4a358c9691b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Drawing">
+      <UniqueIdentifier>{4a61ca38-8a3f-447a-92fe-31482df8721d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="window\Drawing">
+      <UniqueIdentifier>{01302cae-ea1e-4f01-bbd4-ba8a5dc27d55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{712230a6-6eee-4f04-814e-a7e1f37bfab8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\MeanShift">
+      <UniqueIdentifier>{a6f92a84-e7dc-4780-a4c7-85caa8bce14b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\source\interface">
+      <UniqueIdentifier>{2dff8aa1-ace6-453b-9175-ba751f357121}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\source\interface\include">
+      <UniqueIdentifier>{55f44865-d5f8-423e-9d3e-3001d45152e5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\source\interface\source">
+      <UniqueIdentifier>{da7dea52-797c-46e1-9da6-2c647f02b1e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\Panorama">
+      <UniqueIdentifier>{073b904b-375f-46c0-9f95-cf3ae8d94256}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{90fb664c-5e73-44b6-a226-8d53135becfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Filter\Interpolation">
+      <UniqueIdentifier>{398416f1-c42d-490d-bf14-e6ec32d22ba9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Color.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="LensFlare.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionBlur.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="PerlinNoise.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Wave.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="circle.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Crop.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Draw.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Line.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Selection.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterData.h">
+      <Filter>Filter\source\interface\include</Filter>
+    </ClInclude>
+    <ClInclude Include="Filtre.h">
+      <Filter>Filter\source\interface\include</Filter>
+    </ClInclude>
+    <ClInclude Include="BilateralEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="BlurEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="bm3dEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="BrightAndContrastEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="CloudsEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="DecodeRawParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="FreeRotateEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="GaussianBlurEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="LensFlareEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionBlurEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="NlmeansEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="PhotoFiltreEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="PosterisationEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="SharpenMaskingParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="SolarisationEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="SwirlEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="WaveEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="RedEyeParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="RgbEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterWindowParam.h">
+      <Filter>window\main</Filter>
+    </ClInclude>
+    <ClInclude Include="FiltreUpdate.h">
+      <Filter>window\main</Filter>
+    </ClInclude>
+    <ClInclude Include="bilateralFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="BlurFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="BrightAndContrastFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="CloudsFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="ColorBalanceFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="GaussianBlurFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="MotionBlurFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="NlmeansFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="PhotoFiltreFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="PosterisationFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="SharpenMaskingFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="SolarisationFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="SwirlFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="AudioVideoFilter.h">
+      <Filter>window\video</Filter>
+    </ClInclude>
+    <ClInclude Include="LensFlareFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="RotateFreeFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="WaveFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoFilter.h">
+      <Filter>window\video</Filter>
+    </ClInclude>
+    <ClInclude Include="CropFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapDisplay.h">
+      <Filter>window\main</Filter>
+    </ClInclude>
+    <ClInclude Include="FiltreEffet.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="FiltreEffetCPU.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenCLEffect.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="PenDrawInfo.h">
+      <Filter>Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="moviestreaminfo.h">
+      <Filter>window\video</Filter>
+    </ClInclude>
+    <ClInclude Include="videostream.h">
+      <Filter>window\video</Filter>
+    </ClInclude>
+    <ClInclude Include="hqdn3dFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="OilPaintingEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="OilPaintingFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="CartoonEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="CartoonFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="MeanShift.h">
+      <Filter>Filter\MeanShift</Filter>
+    </ClInclude>
+    <ClInclude Include="VignetteFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="VignetteEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="FiltreImplementation.h">
+      <Filter>window</Filter>
+    </ClInclude>
+    <ClInclude Include="BokehEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="BokehFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="hqdn3dEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="DecodeRaw.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="LensDistortion.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="LensDistortionEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="MosaicFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="MosaicFilterParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="panorama.h">
+      <Filter>Filter\Panorama</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\header.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="DetailEnhance.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="DetailEnhanceParameter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="EdgePreservingFilter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="EdgePreservingFilterParameter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="PencilSketch.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="PencilSketchParameter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="Stylization.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="StylizationParameter.h">
+      <Filter>window\picture</Filter>
+    </ClInclude>
+    <ClInclude Include="InpaintFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="InpaintFilterParam.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="CudaEffect.h">
+      <Filter>Main</Filter>
+    </ClInclude>
+    <ClInclude Include="InterpolationFilters.h">
+      <Filter>Filter\Interpolation</Filter>
+    </ClInclude>
+    <ClInclude Include="2PassScale.h">
+      <Filter>Filter\Interpolation</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="circle.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="Color.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="Crop.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="Draw.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="LensFlare.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="Line.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionBlur.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="PerlinNoise.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="Selection.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="Wave.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterData.cpp">
+      <Filter>Filter\source\interface\source</Filter>
+    </ClCompile>
+    <ClCompile Include="Filtre.cpp">
+      <Filter>Filter\source\interface\source</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterWindowParam.cpp">
+      <Filter>window\main</Filter>
+    </ClCompile>
+    <ClCompile Include="bilateralFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="BlurFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="BrightAndContrastFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="CloudsFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="ColorBalanceFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="GaussianBlurFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="MotionBlurFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="NlmeansFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="PhotoFiltreFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="PosterisationFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="SharpenMaskingFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="SolarisationFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="SwirlFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="AudioVideoFilter.cpp">
+      <Filter>window\video</Filter>
+    </ClCompile>
+    <ClCompile Include="LensFlareFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="RotateFreeFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="WaveFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoFilter.cpp">
+      <Filter>window\video</Filter>
+    </ClCompile>
+    <ClCompile Include="CropFilter.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="FiltreEffet.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="FiltreEffetCPU.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenCLEffect.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="moviestreaminfo.cpp">
+      <Filter>window\video</Filter>
+    </ClCompile>
+    <ClCompile Include="videostream.cpp">
+      <Filter>window\video</Filter>
+    </ClCompile>
+    <ClCompile Include="hqdn3dFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="OilPaintingFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="CartoonFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="MeanShift.cpp">
+      <Filter>Filter\MeanShift</Filter>
+    </ClCompile>
+    <ClCompile Include="VignetteFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="BokehFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="DecodeRaw.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="LensDistortion.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="MosaicFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="panorama.cpp">
+      <Filter>Filter\Panorama</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\header.cpp">
+      <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="DetailEnhance.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="EdgePreservingFilter.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="PencilSketch.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="Stylization.cpp">
+      <Filter>window\picture</Filter>
+    </ClCompile>
+    <ClCompile Include="InpaintFIlter.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="CudaEffect.cpp">
+      <Filter>Main</Filter>
+    </ClCompile>
+    <ClCompile Include="avir_opencl.cpp">
+      <Filter>Filter\Interpolation</Filter>
+    </ClCompile>
+    <ClCompile Include="2PassScale.cpp">
+      <Filter>Filter\Interpolation</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

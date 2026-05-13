@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="wxPDFDoc" Version="11000" InternalType="Library">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="wxPoppler">
+    <File Name="include/wx/wxpoppler.h"/>
+    <File Name="src/wxpoppler.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="include">
+    <File Name="include/wx/pdfxml.h"/>
+    <File Name="include/wx/pdfutility.h"/>
+    <File Name="include/wx/pdftemplate.h"/>
+    <File Name="include/wx/pdfspotcolour.h"/>
+    <File Name="include/wx/pdfshape.h"/>
+    <File Name="include/wx/pdfrijndael.h"/>
+    <File Name="include/wx/pdfproperties.h"/>
+    <File Name="include/wx/pdfprint.h"/>
+    <File Name="include/wx/pdfpattern.h"/>
+    <File Name="include/wx/pdfparser.h"/>
+    <File Name="include/wx/pdfobjects.h"/>
+    <File Name="include/wx/pdflinks.h"/>
+    <File Name="include/wx/pdflinestyle.h"/>
+    <File Name="include/wx/pdflayer.h"/>
+    <File Name="include/wx/pdfinfo.h"/>
+    <File Name="include/wx/pdfimage.h"/>
+    <File Name="include/wx/pdfgraphics.h"/>
+    <File Name="include/wx/pdfgradient.h"/>
+    <File Name="include/wx/pdfform.h"/>
+    <File Name="include/wx/pdffontvolt.h"/>
+    <File Name="include/wx/pdffontsubsettruetype.h"/>
+    <File Name="include/wx/pdffontsubsetcff.h"/>
+    <File Name="include/wx/pdffontparsertype1.h"/>
+    <File Name="include/wx/pdffontparsertruetype.h"/>
+    <File Name="include/wx/pdffontparser.h"/>
+    <File Name="include/wx/pdffontmanager.h"/>
+    <File Name="include/wx/pdffontmacosx.h"/>
+    <File Name="include/wx/pdffontextended.h"/>
+    <File Name="include/wx/pdffontdetails.h"/>
+    <File Name="include/wx/pdffontdescription.h"/>
+    <File Name="include/wx/pdffontdatatype1.h"/>
+    <File Name="include/wx/pdffontdatatype0.h"/>
+    <File Name="include/wx/pdffontdatatruetype.h"/>
+    <File Name="include/wx/pdffontdataopentype.h"/>
+    <File Name="include/wx/pdffontdatacore.h"/>
+    <File Name="include/wx/pdffontdata.h"/>
+    <File Name="include/wx/pdffont.h"/>
+    <File Name="include/wx/pdfencrypt.h"/>
+    <File Name="include/wx/pdfencoding.h"/>
+    <File Name="include/wx/pdfdoc_version.h"/>
+    <File Name="include/wx/pdfdocument.h"/>
+    <File Name="include/wx/pdfdocdef.h"/>
+    <File Name="include/wx/pdfdoc.h"/>
+    <File Name="include/wx/pdfdc29.h"/>
+    <File Name="include/wx/pdfdc28.h"/>
+    <File Name="include/wx/pdfdc.h"/>
+    <File Name="include/wx/pdfcorefontdata.h"/>
+    <File Name="include/wx/pdfcoonspatchmesh.h"/>
+    <File Name="include/wx/pdfcolour.h"/>
+    <File Name="include/wx/pdfcjkfontdata.h"/>
+    <File Name="include/wx/pdfcffindex.h"/>
+    <File Name="include/wx/pdfcffdecoder.h"/>
+    <File Name="include/wx/pdfbookmark.h"/>
+    <File Name="include/wx/pdfbarcode.h"/>
+    <File Name="include/wx/pdfarraytypes.h"/>
+    <File Name="include/wx/pdfarraydouble.h"/>
+    <File Name="include/wx/pdfannotation.h"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="src/pdfxml.cpp"/>
+    <File Name="src/pdfutility.cpp"/>
+    <File Name="src/pdftemplate.cpp"/>
+    <File Name="src/pdfrijndael.cpp"/>
+    <File Name="src/pdfprint.cpp"/>
+    <File Name="src/pdfpattern.cpp"/>
+    <File Name="src/pdfparser.cpp"/>
+    <File Name="src/pdfocg.cpp"/>
+    <File Name="src/pdfobjects.cpp"/>
+    <File Name="src/pdflayer.cpp"/>
+    <File Name="src/pdfkernel.cpp"/>
+    <File Name="src/pdfimage.cpp"/>
+    <File Name="src/pdfgraphics.cpp"/>
+    <File Name="src/pdfgradient.cpp"/>
+    <File Name="src/pdfform.cpp"/>
+    <File Name="src/pdffontvolt.cpp"/>
+    <File Name="src/pdffontsubsettruetype.cpp"/>
+    <File Name="src/pdffontsubsetcff.cpp"/>
+    <File Name="src/pdffontparsertype1.cpp"/>
+    <File Name="src/pdffontparsertruetype.cpp"/>
+    <File Name="src/pdffontparser.cpp"/>
+    <File Name="src/pdffontmanager.cpp"/>
+    <File Name="src/pdffontextended.cpp"/>
+    <File Name="src/pdffontdetails.cpp"/>
+    <File Name="src/pdffontdescription.cpp"/>
+    <File Name="src/pdffontdatatype1.cpp"/>
+    <File Name="src/pdffontdatatype0.cpp"/>
+    <File Name="src/pdffontdatatruetype.cpp"/>
+    <File Name="src/pdffontdataopentype.cpp"/>
+    <File Name="src/pdffontdatacore.cpp"/>
+    <File Name="src/pdffontdata.cpp"/>
+    <File Name="src/pdffont.cpp"/>
+    <File Name="src/pdfencrypt.cpp"/>
+    <File Name="src/pdfencoding.cpp"/>
+    <File Name="src/pdfdocument.cpp"/>
+    <File Name="src/pdfdecode.cpp"/>
+    <File Name="src/pdfdc.cpp"/>
+    <File Name="src/pdfcolour.cpp"/>
+    <File Name="src/pdfcffindex.cpp"/>
+    <File Name="src/pdfcffdecoder.cpp"/>
+    <File Name="src/pdfbarcode.cpp"/>
+    <File Name="src/pdfannotation.cpp"/>
+  </VirtualDirectory>
+  <Settings Type="Static Library">
+    <GlobalSettings>
+      <Compiler Options=";-Wall;-std=gnu++14;$(shell ../../libextern/wxconfig_cpp.sh);-pthread;-Wno-narrowing;-fpermissive" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../../include"/>
+        <IncludePath Value="../../libUtility"/>
+        <IncludePath Value="include"/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;-O0;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="../../include/Debug/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
+        <IncludePath Value="."/>
+        <Preprocessor Value="NDEBUG"/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/lib$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
+</CodeLite_Project>

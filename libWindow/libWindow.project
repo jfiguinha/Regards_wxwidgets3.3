@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="libWindow" InternalType="Library" Version="11000">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+    </Plugin>
+    <Plugin Name="CMakePlugin">
+      <![CDATA[[{
+  "name": "Debug",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
+  "name": "Release",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }]]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="Main">
+    <VirtualDirectory Name="interface">
+      <File Name="WindowOpenGLMain.h"/>
+      <File Name="WindowMain.h"/>
+      <File Name="WindowMainPimpl.h"/>
+      <File Name="MainInterface.h"/>
+      <File Name="IBitmapWnd.h"/>
+    </VirtualDirectory>
+    <File Name="GpsEngine.h"/>
+    <File Name="GpsEngine.cpp"/>
+    <File Name="MasterWindow.h"/>
+    <File Name="MasterWindow.cpp"/>
+    <File Name="WindowUtility.h"/>
+    <File Name="WindowUtility.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Render">
+    <VirtualDirectory Name="OpenGLRender">
+      <File Name="RenderVideoOpenGL.cpp"/>
+      <File Name="RenderOpenGL.h"/>
+      <File Name="RenderOpenGL.cpp"/>
+      <File Name="RenderBitmapOpenGL.h"/>
+      <File Name="RenderBitmapOpenGL.cpp"/>
+      <File Name="RenderVideoOpenGL.h"/>
+      <File Name="GLcontext.h"/>
+    </VirtualDirectory>
+    <File Name="IBitmapRenderInterface.h"/>
+    <File Name="BitmapWndRender.h"/>
+    <File Name="BitmapWndRender.cpp"/>
+    <File Name="BitmapWnd3d.h"/>
+    <File Name="BitmapWnd3d.cpp"/>
+    <File Name="BitmapWnd2d.h"/>
+    <File Name="BitmapWnd2d.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Datastructure">
+    <File Name="TreeDataStars.cpp"/>
+    <File Name="TreeDataLink.cpp"/>
+    <File Name="TreeDataKeyWord.cpp"/>
+    <File Name="TreeDataEffect.cpp"/>
+    <File Name="TreeDataCategory.cpp"/>
+    <File Name="TreeData.cpp"/>
+    <File Name="TreeDataStars.h"/>
+    <File Name="TreeDataLink.h"/>
+    <File Name="TreeDataKeyWord.h"/>
+    <File Name="TreeDataEffect.h"/>
+    <File Name="TreeDataCategory.h"/>
+    <File Name="TreeData.h"/>
+    <File Name="Tree.h"/>
+    <File Name="ThumbnailMessage.h"/>
+    <File Name="SliderInterface.h"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="TreeElementStar.cpp"/>
+    <File Name="KeywordDialogBox.cpp"/>
+    <File Name="WindowToAdd.cpp"/>
+    <File Name="WindowManager.cpp"/>
+    <File Name="wxImagePanel.cpp"/>
+    <File Name="TreeWithScrollbar.cpp"/>
+    <File Name="PanelWithClickToolbar.cpp"/>
+    <File Name="ClickToolbar.cpp"/>
+    <File Name="TabWindow.cpp"/>
+    <File Name="EmptyWindow.cpp"/>
+    <File Name="Icone.cpp"/>
+    <File Name="InfosSeparationBar.cpp"/>
+    <File Name="Pane.cpp"/>
+    <File Name="PositionElement.cpp"/>
+    <File Name="ScrollbarHorizontalWnd.cpp"/>
+    <File Name="ScrollbarVerticalWnd.cpp"/>
+    <File Name="ScrollbarWnd.cpp"/>
+    <File Name="SeparationBar.cpp"/>
+    <File Name="Slider.cpp"/>
+    <File Name="Splitter.cpp"/>
+    <File Name="Thumbnail.cpp"/>
+    <File Name="TitleBar.cpp"/>
+    <File Name="ToolbarButton.cpp"/>
+    <File Name="ToolbarElement.cpp"/>
+    <File Name="ToolbarSlide.cpp"/>
+    <File Name="ToolbarTexte.cpp"/>
+    <File Name="ToolbarWindow.cpp"/>
+    <File Name="TreeControl.cpp"/>
+    <File Name="TreeElement.cpp"/>
+    <File Name="TreeElementCheckBox.cpp"/>
+    <File Name="TreeElementDelete.cpp"/>
+    <File Name="TreeElementSlide.cpp"/>
+    <File Name="TreeElementTexte.cpp"/>
+    <File Name="TreeElementTriangle.cpp"/>
+    <File Name="TreeWindow.cpp"/>
+    <File Name="TreeElementTexteClick.cpp"/>
+    <File Name="BitmapInfos.cpp"/>
+    <File Name="BitmapInfosCheckBox.cpp"/>
+    <File Name="BitmapInfosGps.cpp"/>
+    <File Name="CalendarDialogBox.cpp"/>
+    <File Name="CalendarSelect.cpp"/>
+    <File Name="MapDialogBox.cpp"/>
+    <File Name="MapSelect.cpp"/>
+    <File Name="TreeElementListBox.cpp"/>
+    <File Name="IconeList.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="include">
+    <File Name="TreeElementStar.h"/>
+    <File Name="KeywordDialogBox.h"/>
+    <File Name="WindowToAdd.h"/>
+    <File Name="WindowManager.h"/>
+    <File Name="wxImagePanel.h"/>
+    <File Name="TreeWithScrollbar.h"/>
+    <File Name="PanelWithClickToolbar.h"/>
+    <File Name="ClickToolbar.h"/>
+    <File Name="TabWindow.h"/>
+    <File Name="BitmapInterface.h"/>
+    <File Name="EmptyWindow.h"/>
+    <File Name="Icone.h"/>
+    <File Name="IMoveWindow.h"/>
+    <File Name="InfosSeparationBar.h"/>
+    <File Name="Pane.h"/>
+    <File Name="PaneInterface.h"/>
+    <File Name="PositionElement.h"/>
+    <File Name="ScrollbarHorizontalWnd.h"/>
+    <File Name="ScrollbarVerticalWnd.h"/>
+    <File Name="ScrollbarWnd.h"/>
+    <File Name="SeparationBar.h"/>
+    <File Name="Slider.h"/>
+    <File Name="Splitter.h"/>
+    <File Name="StatusBarInterface.h"/>
+    <File Name="Thumbnail.h"/>
+    <File Name="TitleBar.h"/>
+    <File Name="TitleBarInterface.h"/>
+    <File Name="ToolbarButton.h"/>
+    <File Name="ToolbarElement.h"/>
+    <File Name="ToolbarInterface.h"/>
+    <File Name="ToolbarSlide.h"/>
+    <File Name="ToolbarTexte.h"/>
+    <File Name="ToolbarWindow.h"/>
+    <File Name="TreeControl.h"/>
+    <File Name="TreeElement.h"/>
+    <File Name="TreeElementCheckBox.h"/>
+    <File Name="TreeElementControlInterface.h"/>
+    <File Name="TreeElementDelete.h"/>
+    <File Name="TreeElementSlide.h"/>
+    <File Name="TreeElementSlideInterface.h"/>
+    <File Name="TreeElementTexte.h"/>
+    <File Name="TreeElementTriangle.h"/>
+    <File Name="TreeWindow.h"/>
+    <File Name="TreeElementTexteClick.h"/>
+    <File Name="BitmapInfos.h"/>
+    <File Name="BitmapInfosCheckBox.h"/>
+    <File Name="BitmapInfosGps.h"/>
+    <File Name="CalendarDialogBox.h"/>
+    <File Name="CalendarSelect.h"/>
+    <File Name="MapDialogBox.h"/>
+    <File Name="MapSelect.h"/>
+    <File Name="TreeElementListBox.h"/>
+    <File Name="IconeList.h"/>
+  </VirtualDirectory>
+  <Settings Type="Static Library">
+    <GlobalSettings>
+      <Compiler Options="$(shell ../libextern/wxconfig_cpp.sh);-Wall;-pthread;-std=gnu++14;-Wall" C_Options=";-Wall" Assembler="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../include"/>
+        <IncludePath Value="../libVideoThumbnail"/>
+        <IncludePath Value="../libextern/libRapidXML"/>
+        <IncludePath Value="../libFiltre"/>
+        <IncludePath Value="../libFiltreInterface"/>
+        <IncludePath Value="../libGeolocalisation"/>
+        <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../libPicture"/>
+        <IncludePath Value="../libResource"/>
+        <IncludePath Value="../libSqlData"/>
+        <IncludePath Value="../libOpenGL"/>
+        <IncludePath Value="../libOpenCLEngine"/>
+        <IncludePath Value="../libTheme"/>
+        <IncludePath Value="../libUtility"/>
+        <IncludePath Value="../libWindowMain"/>
+        <IncludePath Value="../Otherlib/wxSVG/include"/>
+        <IncludePath Value="../libOpenCL"/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-ggdb;-O0" C_Options="-ggdb;-O0" Assembler="" Required="yes" PreCompiledHeader="../include/Debug/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
+        <Preprocessor Value="NDEBUG"/>
+      </Compiler>
+      <Linker Options="-s" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
+</CodeLite_Project>

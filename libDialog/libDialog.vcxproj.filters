@@ -1,0 +1,222 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Fichiers de ressources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Configuration">
+      <UniqueIdentifier>{948e2cd0-2003-4dc5-a5a0-6ede8766feca}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Export file">
+      <UniqueIdentifier>{0f6f9183-d4b0-41c0-a344-5e120f86eca5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ChangeLabel">
+      <UniqueIdentifier>{289c9075-c58a-4495-b060-027574fe439b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="MoveFace">
+      <UniqueIdentifier>{86d130e8-c54f-4ec1-ad85-ee23d563aeaa}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Pertinence">
+      <UniqueIdentifier>{3b1e8ead-661b-4a4c-b2e6-1e4c75b15dfe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Index Generator">
+      <UniqueIdentifier>{298c6f68-cfed-4a98-8fd6-77592129f443}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SavePicture">
+      <UniqueIdentifier>{67843608-65e6-4ab1-9ed0-76c15e29da16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SelectPage">
+      <UniqueIdentifier>{8ecf6784-0296-4f1b-a77a-bef3bc4aff22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SelectPage\Toolbar">
+      <UniqueIdentifier>{d3c77773-e42f-4a4e-95e1-a372686a6936}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="SelectPage\Thumbnail">
+      <UniqueIdentifier>{1238d3f9-fe9b-47b9-bcd7-2eae4676522a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Association">
+      <UniqueIdentifier>{5f38767f-bec3-4d4b-854c-19ecd32b88ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Intro">
+      <UniqueIdentifier>{b8ab152f-3298-4557-94e2-596ff5da631f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CompressionVideo">
+      <UniqueIdentifier>{2c43ff22-2fe6-4050-81bb-c8104781bfc6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CompressionVideo\Preview">
+      <UniqueIdentifier>{886c2dca-4edc-47db-9598-c720474aa390}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{0d07b559-183a-4edc-92ab-5b4ba56b1f7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DownloadFile">
+      <UniqueIdentifier>{b3a694d2-231a-438a-9d14-6d90c51c9d61}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ConfigRegards.cpp">
+      <Filter>Configuration</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportFile.cpp">
+      <Filter>Export file</Filter>
+    </ClCompile>
+    <ClCompile Include="ChangeLabel.cpp">
+      <Filter>ChangeLabel</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveFaceDialog.cpp">
+      <Filter>MoveFace</Filter>
+    </ClCompile>
+    <ClCompile Include="PertinenceValue.cpp">
+      <Filter>Pertinence</Filter>
+    </ClCompile>
+    <ClCompile Include="IndexGenerator.cpp">
+      <Filter>Index Generator</Filter>
+    </ClCompile>
+    <ClCompile Include="SavePicture.cpp">
+      <Filter>SavePicture</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectPage.cpp">
+      <Filter>SelectPage</Filter>
+    </ClCompile>
+    <ClCompile Include="ValidationToolbar.cpp">
+      <Filter>SelectPage\Toolbar</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailFileSelection.cpp">
+      <Filter>SelectPage\Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailSelection.cpp">
+      <Filter>SelectPage\Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="Association.cpp">
+      <Filter>Association</Filter>
+    </ClCompile>
+    <ClCompile Include="infoAbout.cpp">
+      <Filter>Intro</Filter>
+    </ClCompile>
+    <ClCompile Include="IntroTheme.cpp">
+      <Filter>Intro</Filter>
+    </ClCompile>
+    <ClCompile Include="MyCentralWindowIntro.cpp">
+      <Filter>Intro</Filter>
+    </ClCompile>
+    <ClCompile Include="MyFrameIntro.cpp">
+      <Filter>Intro</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleIntro.cpp">
+      <Filter>Intro</Filter>
+    </ClCompile>
+    <ClCompile Include="CompressVideo.cpp">
+      <Filter>CompressionVideo</Filter>
+    </ClCompile>
+    <ClCompile Include="CompressionAudioVideoOption.cpp">
+      <Filter>CompressionVideo</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderVideoSelection.cpp">
+      <Filter>CompressionVideo</Filter>
+    </ClCompile>
+    <ClCompile Include="ShowPreview.cpp">
+      <Filter>CompressionVideo\Preview</Filter>
+    </ClCompile>
+    <ClCompile Include="PreviewToolbar.cpp">
+      <Filter>CompressionVideo\Preview</Filter>
+    </ClCompile>
+    <ClCompile Include="SliderVideoPreview.cpp">
+      <Filter>CompressionVideo\Preview</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\header.cpp">
+      <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="DownloadFile.cpp">
+      <Filter>DownloadFile</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ConfigRegards.h">
+      <Filter>Configuration</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportFile.h">
+      <Filter>Export file</Filter>
+    </ClInclude>
+    <ClInclude Include="ChangeLabel.h">
+      <Filter>ChangeLabel</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveFaceDialog.h">
+      <Filter>MoveFace</Filter>
+    </ClInclude>
+    <ClInclude Include="PertinenceValue.h">
+      <Filter>Pertinence</Filter>
+    </ClInclude>
+    <ClInclude Include="IndexGenerator.h">
+      <Filter>Index Generator</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\header.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="SavePicture.h">
+      <Filter>SavePicture</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectPage.h">
+      <Filter>SelectPage</Filter>
+    </ClInclude>
+    <ClInclude Include="ValidationToolbar.h">
+      <Filter>SelectPage\Toolbar</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailFileSelection.h">
+      <Filter>SelectPage\Thumbnail</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailSelection.h">
+      <Filter>SelectPage\Thumbnail</Filter>
+    </ClInclude>
+    <ClInclude Include="Association.h">
+      <Filter>Association</Filter>
+    </ClInclude>
+    <ClInclude Include="infoAbout.h">
+      <Filter>Intro</Filter>
+    </ClInclude>
+    <ClInclude Include="IntroTheme.h">
+      <Filter>Intro</Filter>
+    </ClInclude>
+    <ClInclude Include="MyCentralWindowIntro.h">
+      <Filter>Intro</Filter>
+    </ClInclude>
+    <ClInclude Include="MyFrameIntro.h">
+      <Filter>Intro</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleIntro.h">
+      <Filter>Intro</Filter>
+    </ClInclude>
+    <ClInclude Include="CompressVideo.h">
+      <Filter>CompressionVideo</Filter>
+    </ClInclude>
+    <ClInclude Include="CompressionAudioVideoOption.h">
+      <Filter>CompressionVideo</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderVideoSelection.h">
+      <Filter>CompressionVideo</Filter>
+    </ClInclude>
+    <ClInclude Include="ShowPreview.h">
+      <Filter>CompressionVideo\Preview</Filter>
+    </ClInclude>
+    <ClInclude Include="PreviewToolbar.h">
+      <Filter>CompressionVideo\Preview</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderVideoPreview.h">
+      <Filter>CompressionVideo\Preview</Filter>
+    </ClInclude>
+    <ClInclude Include="DownloadFile.h">
+      <Filter>DownloadFile</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

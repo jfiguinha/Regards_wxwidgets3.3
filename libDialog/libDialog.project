@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="libDialog" InternalType="Library" Version="11000">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+    </Plugin>
+    <Plugin Name="CMakePlugin">
+      <![CDATA[[{
+  "name": "Debug",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
+  "name": "Release",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }]]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="Video">
+    <VirtualDirectory Name="Preview">
+      <File Name="PreviewToolbar.cpp"/>
+      <File Name="SliderVideoPreview.h"/>
+      <File Name="ShowPreview.h"/>
+      <File Name="PreviewToolbar.h"/>
+      <File Name="SliderVideoPreview.cpp"/>
+      <File Name="ShowPreview.cpp"/>
+    </VirtualDirectory>
+    <File Name="SliderVideoSelection.h"/>
+    <File Name="CompressVideo.cpp"/>
+    <File Name="CompressVideo.h"/>
+    <File Name="SliderVideoSelection.cpp"/>
+    <File Name="CompressionAudioVideoOption.h"/>
+    <File Name="CompressionAudioVideoOption.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Intro">
+    <File Name="DownloadFile.h"/>
+    <File Name="DownloadFile.cpp"/>
+    <File Name="TitleIntro.h"/>
+    <File Name="MyFrameIntro.h"/>
+    <File Name="MyCentralWindowIntro.h"/>
+    <File Name="IntroTheme.h"/>
+    <File Name="infoAbout.h"/>
+    <File Name="TitleIntro.cpp"/>
+    <File Name="MyFrameIntro.cpp"/>
+    <File Name="MyCentralWindowIntro.cpp"/>
+    <File Name="IntroTheme.cpp"/>
+    <File Name="infoAbout.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="SelectPage">
+    <VirtualDirectory Name="Thumbnail">
+      <File Name="ThumbnailSelection.h"/>
+      <File Name="ThumbnailSelection.cpp"/>
+      <File Name="ThumbnailFileSelection.h"/>
+      <File Name="ThumbnailFileSelection.cpp"/>
+    </VirtualDirectory>
+    <File Name="ValidationToolbar.cpp"/>
+    <File Name="SelectPage.cpp"/>
+    <File Name="ValidationToolbar.h"/>
+    <File Name="SelectPage.h"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="Association.cpp"/>
+    <File Name="ConfigRegards.cpp"/>
+    <File Name="ExportFile.cpp"/>
+    <File Name="ChangeLabel.cpp"/>
+    <File Name="MoveFaceDialog.cpp"/>
+    <File Name="PertinenceValue.cpp"/>
+    <File Name="IndexGenerator.cpp"/>
+    <File Name="SavePicture.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="include">
+    <File Name="SavePicture.h"/>
+    <File Name="Association.h"/>
+    <File Name="ConfigRegards.h"/>
+    <File Name="ExportFile.h"/>
+    <File Name="ChangeLabel.h"/>
+    <File Name="MoveFaceDialog.h"/>
+    <File Name="PertinenceValue.h"/>
+    <File Name="IndexGenerator.h"/>
+  </VirtualDirectory>
+  <Settings Type="Static Library">
+    <GlobalSettings>
+      <Compiler Options="$(shell ../libextern/wxconfig_cpp.sh);-Wall;-pthread;-std=gnu++14" C_Options=";-Wall;" Assembler="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../libVideoEffect"/>
+        <IncludePath Value="../libVideoThumbnail"/>
+        <IncludePath Value="../libWindow"/>
+        <IncludePath Value="../libOpenGL"/>
+        <IncludePath Value="../libTheme"/>
+        <IncludePath Value="../libFiltre"/>
+        <IncludePath Value="../libControl"/>
+        <IncludePath Value="../libWindowMain"/>
+        <IncludePath Value="../libUtility"/>
+        <IncludePath Value="../libResource"/>
+        <IncludePath Value="../libOpenCL"/>
+        <IncludePath Value="../libOpenCLEngine"/>
+        <IncludePath Value="../libPicture"/>
+        <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../include"/>
+        <IncludePath Value="../libSqlData"/>
+        <IncludePath Value="../libAppleFunction"/>
+        <IncludePath Value="../include"/>
+        <IncludePath Value="../Otherlib/libffmpeg"/>
+        <IncludePath Value="../Otherlib/wxSVG/include"/>
+        <IncludePath Value="../libFiltreInterface"/>
+        <IncludePath Value="../libDeepLearning"/>
+        <IncludePath Value="../libGeolocalisation"/>
+        <Preprocessor Value="LIBBPG"/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-ggdb;-O0" C_Options="-ggdb;-O0" Assembler="" Required="yes" PreCompiledHeader="../include/Debug/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
+        <Preprocessor Value="NDEBUG"/>
+      </Compiler>
+      <Linker Options="-s;" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
+</CodeLite_Project>

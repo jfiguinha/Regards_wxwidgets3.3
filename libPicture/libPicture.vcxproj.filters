@@ -1,0 +1,366 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="raw.cpp">
+      <Filter>libraw</Filter>
+    </ClCompile>
+    <ClCompile Include="Heic.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="libPicture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ScaleThumbnail.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RegardsRaw.cpp">
+      <Filter>libraw</Filter>
+    </ClCompile>
+    <ClCompile Include="MetadataExiv2.cpp">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="ImageLoadingFormat.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailDataStorage.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="BmpOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="bpgoption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="ExrOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="GifOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="J2kOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="JpegOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="JxrOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="PDFOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="PngOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="TiffOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="webpOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="CompressionOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
+    <ClCompile Include="PictureData.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="MediaInfo.cpp">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailData.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="hqdn3d.cpp">
+      <Filter>hqdb3d</Filter>
+    </ClCompile>
+    <ClCompile Include="regards_webp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ascii.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="pfm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailVideoExport.cpp">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="videothumb.cpp">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="jxl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\header.cpp">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="wic.cpp">
+      <Filter>wic</Filter>
+    </ClCompile>
+    <ClCompile Include="RGBAQuad.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="RegardsPDF.cpp">
+      <Filter>pdf</Filter>
+    </ClCompile>
+    <ClCompile Include="DiaporamaFusion.cpp">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailDiaporama.cpp">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="DiaporamaMove.cpp">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="DiaporamaTransition.cpp">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClCompile>
+    <ClCompile Include="DecodeRawPicture.cpp">
+      <Filter>libraw</Filter>
+    </ClCompile>
+    <ClCompile Include="OpenCVVideoPlayer.cpp">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="convertmattowxbmp.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="VideoPlayer.cpp">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClCompile>
+    <ClCompile Include="PictureMetadataExiv_new.cpp">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="PictureMetadataExiv.cpp">
+      <Filter>libexif</Filter>
+    </ClCompile>
+    <ClCompile Include="avif.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PictureArray.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="moviedecoder.cpp">
+      <Filter>ThumbnailVideoGenerator\thumbnailgenerator</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="raw.h">
+      <Filter>libraw</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\header.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Heic.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="libPicture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ScaleThumbnail.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yuv420.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="yuv422.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="RegardsRaw.h">
+      <Filter>libraw</Filter>
+    </ClInclude>
+    <ClInclude Include="MetadataExiv2.h">
+      <Filter>libexif</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageLoadingFormat.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailDataStorage.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="BmpOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="bpgoption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="ExrOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="GifOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="J2kOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="JpegOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="JxrOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="PDFOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="PngOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="TiffOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="webpOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="CompressionOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="PictureData.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="StreamInfo.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="MediaInfo.h">
+      <Filter>libexif</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailData.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="Metadata.h">
+      <Filter>libexif</Filter>
+    </ClInclude>
+    <ClInclude Include="RotateByShear.h">
+      <Filter>Rotate</Filter>
+    </ClInclude>
+    <ClInclude Include="RotateByShearRGB.h">
+      <Filter>Rotate</Filter>
+    </ClInclude>
+    <ClInclude Include="hqdn3d.h">
+      <Filter>hqdb3d</Filter>
+    </ClInclude>
+    <ClInclude Include="regards_webp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ascii.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pfm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageVideoThumbnail.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailVideoExport.h">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="videothumb.h">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="jxl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wic.h">
+      <Filter>wic</Filter>
+    </ClInclude>
+    <ClInclude Include="RGBAQuad.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="RegardsPDF.h">
+      <Filter>pdf</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailDiaporama.h">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="DiaporamaFusion.h">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="DiaporamaMove.h">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="DiaporamaTransition.h">
+      <Filter>ThumbnailVideoGenerator\PostEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="DecodeRawPicture.h">
+      <Filter>libraw</Filter>
+    </ClInclude>
+    <ClInclude Include="DecodeRawParameter.h">
+      <Filter>libraw</Filter>
+    </ClInclude>
+    <ClInclude Include="OpenCVVideoPlayer.h">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPlayerInterface.h">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="convertmattowxbmp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoPlayer.h">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClInclude>
+    <ClInclude Include="PictureMetadataExiv_new.h">
+      <Filter>libexif</Filter>
+    </ClInclude>
+    <ClInclude Include="PictureMetadataExiv.h">
+      <Filter>libexif</Filter>
+    </ClInclude>
+    <ClInclude Include="imageinfo.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="avif.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PictureArray.h">
+      <Filter>datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="moviedecoder.h">
+      <Filter>ThumbnailVideoGenerator\thumbnailgenerator</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="libraw">
+      <UniqueIdentifier>{6d304466-c5dd-4fbb-8296-ff7fa45f1a85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{171997b6-0563-426c-a765-ab5ed07e7360}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{95cffec1-0d5c-4c2e-98fe-d6dc70ca6b6a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="libexif">
+      <UniqueIdentifier>{2b18d5d9-c3d8-4e0b-b625-70d40501e1fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="datastructure">
+      <UniqueIdentifier>{637a8849-3739-497d-b628-b0e061cfef4c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Dialog">
+      <UniqueIdentifier>{bdc0c1a0-e7de-486c-a3af-db9eba76d898}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Rotate">
+      <UniqueIdentifier>{1ff0607e-4525-432a-9d3d-5f1118e555a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="hqdb3d">
+      <UniqueIdentifier>{531a7516-7c4b-4759-ad3f-783dd329bc7c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThumbnailVideoGenerator">
+      <UniqueIdentifier>{c208792d-80f5-4021-b146-20e9d88e01be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wic">
+      <UniqueIdentifier>{aba33453-3fa0-4277-a7fa-b47ea6f8a2f7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="pdf">
+      <UniqueIdentifier>{ce966178-15a0-4d77-ae95-7ecd65075539}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThumbnailVideoGenerator\PostEffect">
+      <UniqueIdentifier>{0de571a8-a667-4b06-aca9-424fb418f961}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="avif">
+      <UniqueIdentifier>{c1d69a5c-7064-4351-8906-7564d3a42ba7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThumbnailVideoGenerator\thumbnailgenerator">
+      <UniqueIdentifier>{3e5d9ba8-56e8-4d3e-976e-26a5ba6dfdf9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

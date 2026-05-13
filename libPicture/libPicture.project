@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="libPicture" InternalType="Library" Version="11000">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
+    </Plugin>
+    <Plugin Name="CMakePlugin">
+      <![CDATA[[{
+  "name": "Debug",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }, {
+  "name": "Release",
+  "enabled": false,
+  "buildDirectory": "build",
+  "sourceDirectory": "$(ProjectPath)",
+  "generator": "",
+  "buildType": "",
+  "arguments": [],
+  "parentProject": ""
+ }]]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="pdf">
+    <File Name="RegardsPDF.h"/>
+    <File Name="RegardsPDF.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="VideoThumbnail">
+    <VirtualDirectory Name="MovieDecoder">
+      <File Name="moviedecoder.h"/>
+      <File Name="moviedecoder.cpp"/>
+    </VirtualDirectory>
+    <File Name="aspectratio.h"/>
+    <File Name="OpenCVVideoPlayer.h"/>
+    <File Name="OpenCVVideoPlayer.cpp"/>
+    <File Name="VideoPlayer.cpp"/>
+    <File Name="VideoPlayer.h"/>
+    <File Name="videothumb.cpp"/>
+    <File Name="videothumb.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="VideoDiaporama">
+    <File Name="ThumbnailDiaporama.h"/>
+    <File Name="ThumbnailDiaporama.cpp"/>
+    <VirtualDirectory Name="PostEffect">
+      <File Name="DiaporamaTransition.h"/>
+      <File Name="DiaporamaTransition.cpp"/>
+      <File Name="DiaporamaMove.h"/>
+      <File Name="DiaporamaMove.cpp"/>
+      <File Name="DiaporamaFusion.h"/>
+      <File Name="DiaporamaFusion.cpp"/>
+    </VirtualDirectory>
+    <File Name="ThumbnailVideoExport.h"/>
+    <File Name="ThumbnailVideoExport.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="hqdn3d">
+    <File Name="hqdn3d.h"/>
+    <File Name="hqdn3d.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Rotate">
+    <File Name="RotateByShearRGB.h"/>
+    <File Name="RotateByShear.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="libexif">
+    <File Name="PictureMetadataExiv_new.h"/>
+    <File Name="PictureMetadataExiv_new.cpp"/>
+    <File Name="ThumbnailData.h"/>
+    <File Name="Metadata.h"/>
+    <File Name="MediaInfo.h"/>
+    <File Name="ThumbnailData.cpp"/>
+    <File Name="MediaInfo.cpp"/>
+    <File Name="MetadataExiv2.h"/>
+    <File Name="MetadataExiv2.cpp"/>
+    <File Name="PictureMetadataExiv.h"/>
+    <File Name="PictureMetadataExiv.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Dialog">
+    <File Name="GifOption.h"/>
+    <File Name="GifOption.cpp"/>
+    <File Name="ExrOption.h"/>
+    <File Name="ExrOption.cpp"/>
+    <File Name="CompressionOption.h"/>
+    <File Name="CompressionOption.cpp"/>
+    <File Name="bpgoption.h"/>
+    <File Name="bpgoption.cpp"/>
+    <File Name="BmpOption.h"/>
+    <File Name="BmpOption.cpp"/>
+    <File Name="JxrOption.h"/>
+    <File Name="JxrOption.cpp"/>
+    <File Name="JpegOption.h"/>
+    <File Name="JpegOption.cpp"/>
+    <File Name="J2kOption.h"/>
+    <File Name="J2kOption.cpp"/>
+    <File Name="PDFOption.cpp"/>
+    <File Name="PDFOption.h"/>
+    <File Name="PngOption.cpp"/>
+    <File Name="PngOption.h"/>
+    <File Name="TiffOption.cpp"/>
+    <File Name="TiffOption.h"/>
+    <File Name="webpOption.cpp"/>
+    <File Name="webpOption.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="datastructure">
+    <File Name="PictureArray.h"/>
+    <File Name="PictureArray.cpp"/>
+    <File Name="StreamInfo.h"/>
+    <File Name="BitmapYUV.h"/>
+    <File Name="RGBAQuad.h"/>
+    <File Name="RGBAQuad.cpp"/>
+    <File Name="ThumbnailDataStorage.h"/>
+    <File Name="ThumbnailDataStorage.cpp"/>
+    <File Name="ImageLoadingFormat.h"/>
+    <File Name="ImageLoadingFormat.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Raw">
+    <File Name="DecodeRawPicture.h"/>
+    <File Name="DecodeRawPicture.cpp"/>
+    <File Name="DecodeRawParameter.h"/>
+    <File Name="RegardsRaw.h"/>
+    <File Name="RegardsRaw.cpp"/>
+    <File Name="raw.cpp"/>
+    <File Name="raw.h"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="avif.cpp"/>
+    <File Name="jxl.cpp"/>
+    <File Name="ascii.cpp"/>
+    <File Name="regards_webp.cpp"/>
+    <File Name="PictureData.cpp"/>
+    <File Name="pfm.cpp"/>
+    <File Name="libPicture.cpp"/>
+    <File Name="ScaleThumbnail.cpp"/>
+    <File Name="Heic.cpp"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="include">
+    <File Name="avif.h"/>
+    <File Name="imageinfo.hpp"/>
+    <File Name="jxl.h"/>
+    <File Name="ImageVideoThumbnail.h"/>
+    <File Name="ascii.h"/>
+    <File Name="regards_webp.h"/>
+    <File Name="PictureData.h"/>
+    <File Name="pfm.h"/>
+    <File Name="libPicture.h"/>
+    <File Name="ScaleThumbnail.h"/>
+    <File Name="yuv420.h"/>
+    <File Name="yuv422.h"/>
+    <File Name="Heic.h"/>
+  </VirtualDirectory>
+  <Settings Type="Static Library">
+    <GlobalSettings>
+      <Compiler Options="-Wall;$(shell ../libextern/wxconfig_cpp.sh);-pthread;-std=gnu++14;-Wno-narrowing" C_Options=";-Wall;" Assembler="">
+        <IncludePath Value="."/>
+        <IncludePath Value="../include"/>
+        <IncludePath Value="../libVideoThumbnail"/>
+        <IncludePath Value="../libSqlData"/>
+        <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../libFiltre"/>
+        <IncludePath Value="../libFiltreInterface"/>
+        <IncludePath Value="../libOpenCL"/>
+        <IncludePath Value="../libAppleFunction"/>
+        <IncludePath Value="../libResource"/>
+        <IncludePath Value="../Otherlib/libbpg/Bpg/libRegardsBpg"/>
+        <IncludePath Value="../CxImage"/>
+        <IncludePath Value="../libUtility"/>
+        <IncludePath Value="../Otherlib/libbpg/libRegardsBpg"/>
+        <IncludePath Value="../Otherlib/wxSVG/include"/>
+        <IncludePath Value="../libextern/heif-master/srcs/api/reader"/>
+        <IncludePath Value="../libextern/heif-master/srcs/api/common"/>
+        <IncludePath Value="../Otherlib/libavif/include"/>
+        <IncludePath Value="../Otherlib/wxPDFDoc/include"/>
+        <IncludePath Value="../Otherlib"/>
+        <IncludePath Value="../libDeepLearning"/>
+        <Preprocessor Value="__NEW_JXL__"/>
+        <Preprocessor Value="AVIF_LIBYUV_ENABLED"/>
+        <Preprocessor Value="__NEW_EXIV2__"/>
+        <Preprocessor Value="__FREEIMAGE__"/>
+        <Preprocessor Value="LIBRAW"/>
+        <Preprocessor Value="LIBHEIC"/>
+        <Preprocessor Value="LIBBPG"/>
+        <Preprocessor Value="OPJ_STATIC"/>
+        <Preprocessor Value="FREEIMAGE_LIB"/>
+        <Preprocessor Value="LATEST_GREATEST_FFMPEG"/>
+        <Preprocessor Value="MEDIAINFO_LIBRARY"/>
+        <Preprocessor Value="PIC_STB_DISABLE"/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-ggdb;-O0" C_Options="-ggdb;-O0" Assembler="" Required="yes" PreCompiledHeader="../include/Debug/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
+        <Preprocessor Value="NDEBUG"/>
+      </Compiler>
+      <Linker Options="-s;" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName/>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
+</CodeLite_Project>

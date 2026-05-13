@@ -1,0 +1,477 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Fichiers de ressources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{42ce0cb4-d751-4cc4-a51b-bb27dd8f3900}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{d79d6a29-b792-48b2-b0bc-2f0c8aacab14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main">
+      <UniqueIdentifier>{11d65e60-7b9f-4ef2-965a-d0ebb95c4be0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main\Master">
+      <UniqueIdentifier>{75fd3f62-22e0-4dd5-b3ec-4fbd419b7313}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main\EngineGps">
+      <UniqueIdentifier>{4fd60e31-a98d-4e0d-a44b-90fd8e3ef0d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main\interface">
+      <UniqueIdentifier>{321b2eb9-ab1e-4f57-aa9b-2301b53d3616}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Main\utility">
+      <UniqueIdentifier>{8ac341bc-e7ab-4539-ba19-dc998190d9e0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL">
+      <UniqueIdentifier>{240c669a-049d-4640-abc4-a821358d049b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OpenGL\Render">
+      <UniqueIdentifier>{905f5478-8b9b-4395-8647-236faeb83707}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Fichiers de ressources\Datastructure">
+      <UniqueIdentifier>{b4a78db2-1d2f-4333-9726-03360137dcea}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="BitmapInfos.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapInfosCheckBox.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapInfosGps.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapInterface.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="CalendarDialogBox.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="CalendarSelect.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="EmptyWindow.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Icone.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="IconeList.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="IMoveWindow.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="InfosSeparationBar.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="MapDialogBox.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="MapSelect.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Pane.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="PaneInterface.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="PositionElement.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollbarHorizontalWnd.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollbarVerticalWnd.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrollbarWnd.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="SeparationBar.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Slider.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Splitter.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="StatusBarInterface.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Thumbnail.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleBar.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TitleBarInterface.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolbarButton.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolbarElement.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolbarInterface.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolbarSlide.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolbarTexte.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolbarWindow.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeControl.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElement.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementCheckBox.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementControlInterface.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementDelete.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementListBox.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementSlide.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementSlideInterface.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementTexte.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementTexteClick.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementTriangle.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeWindow.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\header.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="TabWindow.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelWithClickToolbar.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="ClickToolbar.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeWithScrollbar.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="wxImagePanel.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapWnd3d.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowManager.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowToAdd.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeElementStar.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="KeywordDialogBox.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Tree.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeData.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeDataCategory.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeDataEffect.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeDataKeyWord.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeDataLink.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="TreeDataStars.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="SliderInterface.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailMessage.h">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapWndRender.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="IBitmapRenderInterface.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapWnd2d.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="IBitmapWnd.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="GpsEngine.h">
+      <Filter>Main\EngineGps</Filter>
+    </ClInclude>
+    <ClInclude Include="MainInterface.h">
+      <Filter>Main\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="MasterWindow.h">
+      <Filter>Main\Master</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowMain.h">
+      <Filter>Main\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowMainPimpl.h">
+      <Filter>Main\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowOpenGLMain.h">
+      <Filter>Main\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="WindowUtility.h">
+      <Filter>Main\utility</Filter>
+    </ClInclude>
+    <ClInclude Include="GLcontext.h">
+      <Filter>OpenGL</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderBitmapOpenGL.h">
+      <Filter>OpenGL\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderOpenGL.h">
+      <Filter>OpenGL\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderVideoOpenGL.h">
+      <Filter>OpenGL\Render</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadLoadingBitmap.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="BitmapInfos.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapInfosCheckBox.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapInfosGps.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="CalendarDialogBox.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="CalendarSelect.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="EmptyWindow.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Icone.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="IconeList.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="InfosSeparationBar.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="MapDialogBox.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="MapSelect.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Pane.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="PositionElement.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollbarHorizontalWnd.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollbarVerticalWnd.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrollbarWnd.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="SeparationBar.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Slider.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Splitter.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Thumbnail.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TitleBar.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarButton.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarElement.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarSlide.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarTexte.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarWindow.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeControl.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElement.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementCheckBox.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementDelete.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementListBox.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementSlide.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementTexte.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementTexteClick.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementTriangle.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeWindow.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TabWindow.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelWithClickToolbar.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ClickToolbar.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeWithScrollbar.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="wxImagePanel.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapWnd3d.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowManager.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowToAdd.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeElementStar.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="KeywordDialogBox.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeData.cpp">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeDataCategory.cpp">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeDataEffect.cpp">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeDataKeyWord.cpp">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeDataLink.cpp">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="TreeDataStars.cpp">
+      <Filter>Fichiers de ressources\Datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapWndRender.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="BitmapWnd2d.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\header.cpp">
+      <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="GpsEngine.cpp">
+      <Filter>Main\EngineGps</Filter>
+    </ClCompile>
+    <ClCompile Include="MasterWindow.cpp">
+      <Filter>Main\Master</Filter>
+    </ClCompile>
+    <ClCompile Include="WindowUtility.cpp">
+      <Filter>Main\utility</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderBitmapOpenGL.cpp">
+      <Filter>OpenGL\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderOpenGL.cpp">
+      <Filter>OpenGL\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="RenderVideoOpenGL.cpp">
+      <Filter>OpenGL\Render</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

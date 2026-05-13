@@ -1,0 +1,120 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Fichiers sources">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Fichiers d%27en-tête">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Fichiers de ressources">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Thumbnail">
+      <UniqueIdentifier>{2d7d419a-6ae3-4f05-bd55-f0e535d727b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Toolbar">
+      <UniqueIdentifier>{48be0afb-5d41-42d2-b063-6dc3bcaf35c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header">
+      <UniqueIdentifier>{f60f1c79-2798-4a8f-b0c2-828ea6bd1b92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Panel">
+      <UniqueIdentifier>{5c0fea45-d8f9-4bf3-8291-d43d79e2c65d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OCR">
+      <UniqueIdentifier>{4013c5a1-85b2-4a89-9c87-d8062721cc45}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OCR\Tree">
+      <UniqueIdentifier>{87aabcb6-1ac1-4b9e-81c1-6940c6a969c8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OCR\Export">
+      <UniqueIdentifier>{ccc38a5a-8dcc-4284-8882-91c1c118bed0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="OCR\uuid">
+      <UniqueIdentifier>{7b0fa6e4-e494-4160-a693-a8bc3bfb43d7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ToolbarPDF.cpp">
+      <Filter>Toolbar</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailMultiPage.cpp">
+      <Filter>Thumbnail</Filter>
+    </ClCompile>
+    <ClCompile Include="ScannerFrame.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="viewerPDF.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="PanelInfosWnd.cpp">
+      <Filter>Panel</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarInfos.cpp">
+      <Filter>Toolbar</Filter>
+    </ClCompile>
+    <ClCompile Include="CentralWindow.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="OcrWnd.cpp">
+      <Filter>OCR</Filter>
+    </ClCompile>
+    <ClCompile Include="OcrLabel.cpp">
+      <Filter>OCR\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="OcrLabelWnd.cpp">
+      <Filter>OCR\Tree</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportOCr.cpp">
+      <Filter>OCR\Export</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\header.cpp">
+      <Filter>header</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ToolbarPDF.h">
+      <Filter>Toolbar</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailMultiPage.h">
+      <Filter>Thumbnail</Filter>
+    </ClInclude>
+    <ClInclude Include="ScannerFrame.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="viewerPDF.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\header.h">
+      <Filter>header</Filter>
+    </ClInclude>
+    <ClInclude Include="PanelInfosWnd.h">
+      <Filter>Panel</Filter>
+    </ClInclude>
+    <ClInclude Include="ToolbarInfos.h">
+      <Filter>Toolbar</Filter>
+    </ClInclude>
+    <ClInclude Include="CentralWindow.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="OcrWnd.h">
+      <Filter>OCR</Filter>
+    </ClInclude>
+    <ClInclude Include="OcrLabel.h">
+      <Filter>OCR\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="OcrLabelWnd.h">
+      <Filter>OCR\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="BboxText.h">
+      <Filter>OCR\Tree</Filter>
+    </ClInclude>
+    <ClInclude Include="ExportOcr.h">
+      <Filter>OCR\Export</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

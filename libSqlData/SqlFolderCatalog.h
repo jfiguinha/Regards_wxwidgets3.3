@@ -1,0 +1,30 @@
+#pragma once
+#include "SqlExecuteRequest.h"
+
+namespace Regards
+{
+	namespace Sqlite
+	{
+		class CSqlResult;
+
+		class CSqlFolderCatalog : public CSqlExecuteRequest
+		{
+		public:
+			CSqlFolderCatalog();
+			~CSqlFolderCatalog() override;
+			bool InsertFolderCatalog(const int64_t& numCatalog, const wxString& folderPath);
+			int64_t GetFolderCatalogId(const int64_t& numCatalog, const wxString& folderPath);
+			int64_t GetOrInsertFolderCatalog(const int64_t& numCatalog, const wxString& folderPath);
+			bool DeleteFolder(const int64_t& numFolder);
+			bool DeleteCatalog(const int64_t& numCatalog);
+			wxString GetFolderCatalogPath(const int64_t& numFolder);
+
+		private:
+			int TraitementResult(CSqlResult* sqlResult) override;
+			wxString folderPath;
+			int64_t numCatalogId;
+			int64_t numFolderCatalogId;
+			int typeResult;
+		};
+	}
+}
