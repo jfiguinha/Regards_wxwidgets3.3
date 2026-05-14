@@ -16,6 +16,9 @@
     <Filter Include="header">
       <UniqueIdentifier>{79eab594-02fc-4e08-bcfe-ac414a06e272}</UniqueIdentifier>
     </Filter>
+    <Filter Include="OpenCV">
+      <UniqueIdentifier>{484e6d74-60c8-4f5c-9643-1f9384a7f43a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -46,6 +49,12 @@
     </ClCompile>
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Otherlib\OpenCV\opengl.cpp">
+      <Filter>OpenCV</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Otherlib\OpenCV\window.cpp">
+      <Filter>OpenCV</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
