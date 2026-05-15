@@ -50,11 +50,5 @@
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
     </ClCompile>
-    <ClCompile Include="..\Otherlib\OpenCV\opengl.cpp">
-      <Filter>OpenCV</Filter>
-    </ClCompile>
-    <ClCompile Include="..\Otherlib\OpenCV\window.cpp">
-      <Filter>OpenCV</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>

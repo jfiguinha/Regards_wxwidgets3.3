@@ -126,14 +126,14 @@ void wxCheckTree::Init()
 {
 	wxImageList* states;
 
-#ifndef WIN32
+
     wxDisplay display(this);
     printf("Display %u: ppi = %dx%d, scale factor = %G", 
         0, display.GetPPI().x, display.GetPPI().y, display.GetScaleFactor());
         
     double scale_factor = display.GetScaleFactor();
     
-#endif
+
 
     wxBitmap bitmap_0(unchecked2_xpm);
     wxBitmap bitmap_1(unchecked_mo_xpm);
