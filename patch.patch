@@ -1,0 +1,17 @@
+diff --git a/modules/core/src/opencl/runtime/opencl_core.cpp a/modules/core/src/opencl/runtime/opencl_core.cpp
+index 37ab5f1..c10c38b 100644
+--- a/modules/core/src/opencl/runtime/opencl_core.cpp
++++ b/modules/core/src/opencl/runtime/opencl_core.cpp
+@@ -114,6 +114,12 @@ static void* AppleCLGetProcAddress(const char* name)
+ #if defined(_WIN32)
+ #include <windows.h>
+ 
++static clGetGLContextInfoKHR_fn pfn =
++    (clGetGLContextInfoKHR_fn)
++    clGetExtensionFunctionAddressForPlatform(
++        platform,
++        "clGetGLContextInfoKHR");
++
+ static void* WinGetProcAddress(const char* name)
+ {
+     static bool initialized = false;
