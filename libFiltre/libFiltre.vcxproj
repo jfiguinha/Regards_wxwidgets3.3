@@ -356,7 +356,7 @@
     <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)libextern\vcpkg\installed\arm64-windows\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
-    <IncludePath>C:\Program Files\LLVM\include;$(SolutionDir)libextern\ffmpeg-master\include;$(SolutionDir)libextern\vcpkg\installed\arm64-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</IncludePath>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir)libextern\vcpkg\installed\arm64-windows\include</IncludePath>
     <ExecutablePath>C:\Program Files\LLVM\bin;$(LLVMInstallDir)\bin;$(ExecutablePath)</ExecutablePath>
     <LibraryPath>C:\Program Files\LLVM\lib;$(VC_LibraryPath_ARM64);$(WindowsSDK_LibraryPath_ARM64)</LibraryPath>
   </PropertyGroup>
@@ -820,7 +820,6 @@
     <ClInclude Include="ColorBalanceFilter.h" />
     <ClInclude Include="Crop.h" />
     <ClInclude Include="CropFilter.h" />
-    <ClInclude Include="CudaEffect.h" />
     <ClInclude Include="DecodeRaw.h" />
     <ClInclude Include="DecodeRawParameter.h" />
     <ClInclude Include="DetailEnhance.h" />
@@ -918,7 +917,6 @@
     <ClCompile Include="ColorBalanceFilter.cpp" />
     <ClCompile Include="Crop.cpp" />
     <ClCompile Include="CropFilter.cpp" />
-    <ClCompile Include="CudaEffect.cpp" />
     <ClCompile Include="DecodeRaw.cpp" />
     <ClCompile Include="DetailEnhance.cpp" />
     <ClCompile Include="Draw.cpp" />

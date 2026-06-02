@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="libOpenGL" InternalType="Library" Version="11000">
-  <VirtualDirectory Name="OpenGL">
-    <File Name="../Otherlib/OpenCV/window.cpp"/>
-    <File Name="../Otherlib/OpenCV/opengl.cpp"/>
-  </VirtualDirectory>
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -21,8 +17,6 @@
     <File Name="GLSLShader.h"/>
     <File Name="GLTexture.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Static Library">
     <GlobalSettings>
       <Compiler Options=";-std=gnu++14;$(shell ../libextern/wxconfig_cpp.sh);-Wall;-pthread;" C_Options=";-Wall;" Assembler="">
@@ -35,6 +29,7 @@
         <IncludePath Value="../libFiltreInterface"/>
         <IncludePath Value="../libPicture"/>
         <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../Otherlib/OpenCV"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>
@@ -78,7 +73,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Release" CompilerType="intel_wxwidget33" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
@@ -118,4 +113,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

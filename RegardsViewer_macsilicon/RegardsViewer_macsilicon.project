@@ -117,9 +117,11 @@
         <Library Value="Theme"/>
         <Library Value="Parameter"/>
         <Library Value="CxImage"/>
-        <Library Value="wx_osx_cocoau_gl-3.2"/>
+        <Library Value="OpenCV"/>
+        <Library Value="wx_osx_cocoau_gl-3.3"/>
         <Library Value="epoxy"/>
         <Library Value="exiv2"/>
+        <Library Value="intl"/>
         <Library Value="exif"/>
         <Library Value="INIReader"/>
         <Library Value="inih"/>
@@ -163,7 +165,6 @@
         <Library Value="opencv_features2d4"/>
         <Library Value="opencv_imgproc4"/>
         <Library Value="opencv_imgcodecs4"/>
-        <Library Value="opencv_highgui4"/>
         <Library Value="opencv_face4"/>
         <Library Value="opencv_objdetect4"/>
         <Library Value="opencv_tracking4"/>
@@ -172,19 +173,19 @@
         <Library Value="opencv_xphoto4"/>
         <Library Value="opencv_photo4"/>
         <Library Value="opencv_flann4"/>
-        <Library Value="tegra_hal"/>
         <Library Value="x264"/>
         <Library Value="x265"/>
         <Library Value="tiff"/>
         <Library Value="png16"/>
         <Library Value="raw_r"/>
         <Library Value="openjp2"/>
-        <Library Value="Iex-3_3"/>
+        <Library Value="Iex-3_4"/>
         <Library Value="IMath-3_2"/>
-        <Library Value="IlmThread-3_3"/>
-        <Library Value="OpenEXRCore-3_3"/>
-        <Library Value="OpenEXR-3_3"/>
-        <Library Value="OpenEXRUtil-3_3"/>
+        <Library Value="IlmThread-3_4"/>
+        <Library Value="OpenEXRCore-3_4"/>
+        <Library Value="OpenEXR-3_4"/>
+        <Library Value="OpenEXRUtil-3_4"/>
+        <Library Value="openjph"/>
         <Library Value="deflate"/>
         <Library Value="turbojpeg"/>
         <Library Value="webp"/>
@@ -193,7 +194,7 @@
         <Library Value="webpmux"/>
         <Library Value="ffmpeg"/>
         <Library Value="dav1d"/>
-        <Library Value="wx_osx_cocoau_webview-3.2"/>
+        <Library Value="wx_osx_cocoau_webview-3.3"/>
         <Library Value="archive"/>
         <Library Value="ncnn"/>
         <Library Value="protobuf"/>
@@ -226,6 +227,7 @@
         <Library Value="zen"/>
         <Library Value="tinyxml2"/>
         <Library Value="absl_base"/>
+        <Library Value="absl_borrowed_fixup_buffer"/>
         <Library Value="absl_city"/>
         <Library Value="absl_civil_time"/>
         <Library Value="absl_cord_internal"/>
@@ -278,7 +280,6 @@
         <Library Value="absl_log_internal_structured_proto"/>
         <Library Value="absl_log_severity"/>
         <Library Value="absl_log_sink"/>
-        <Library Value="absl_low_level_hash"/>
         <Library Value="absl_malloc_internal"/>
         <Library Value="absl_periodic_sampler"/>
         <Library Value="absl_poison"/>
@@ -302,7 +303,6 @@
         <Library Value="absl_statusor"/>
         <Library Value="absl_str_format_internal"/>
         <Library Value="absl_strerror"/>
-        <Library Value="absl_string_view"/>
         <Library Value="absl_strings_internal"/>
         <Library Value="absl_strings"/>
         <Library Value="absl_symbolize"/>
@@ -348,6 +348,7 @@
         <LibraryPath Value="../libDeepLearning/Debug"/>
         <LibraryPath Value="../libAppleFunction/Debug"/>
         <LibraryPath Value="../Otherlib/wxPDFDoc/Debug"/>
+        <LibraryPath Value="../Otherlib/OpenCV/Debug"/>
         <LibraryPath Value="../Otherlib/libavif/Debug"/>
         <LibraryPath Value="../Otherlib/libheif/Debug"/>
         <LibraryPath Value="../Otherlib/libffmpeg/Debug"/>
@@ -374,7 +375,7 @@
         <Command Enabled="yes">mkdir -p ./Debug/RegardsViewer.app/Contents/Resources</Command>
         <Command Enabled="yes">sed -e "s/IDENTIFIER/`echo . | sed -e 's,\.\./,,g' | sed -e 's,/,.,g'`/" \
 	-e "s/EXECUTABLE/RegardsViewer/" \
-	-e "s/VERSION/2.85.2/" \
+	-e "s/VERSION/2.85.3/" \
 	../Regards/mac/Info.plist.in &gt;./Debug/RegardsViewer.app/Contents/Info.plist</Command>
         <Command Enabled="yes">/bin/echo "APPL????" &gt;./Debug/RegardsViewer.app/Contents/PkgInfo</Command>
         <Command Enabled="yes">ln -f ./Debug/RegardsViewer ./Debug/RegardsViewer.app/Contents/MacOS/RegardsViewer</Command>
@@ -432,6 +433,7 @@
         <LibraryPath Value="../libAppleFunction/Release"/>
         <LibraryPath Value="../Otherlib/wxPDFDoc/Release"/>
         <LibraryPath Value="../libScanner/Release"/>
+        <LibraryPath Value="../Otherlib/OpenCV/Release"/>
         <LibraryPath Value="../Otherlib/libheif/Release"/>
         <LibraryPath Value="../Otherlib/libffmpeg/Release"/>
       </Linker>
@@ -457,7 +459,7 @@
         <Command Enabled="yes">mkdir -p ./Release/RegardsViewer.app/Contents/Resources</Command>
         <Command Enabled="yes">sed -e "s/IDENTIFIER/`echo . | sed -e 's,\.\./,,g' | sed -e 's,/,.,g'`/" \
 	-e "s/EXECUTABLE/RegardsViewer/" \
-	-e "s/VERSION/2.85.2/" \
+	-e "s/VERSION/2.85.3/" \
 	../Regards/mac/Info.plist.in &gt;./Release/RegardsViewer.app/Contents/Info.plist</Command>
         <Command Enabled="yes">/bin/echo "APPL????" &gt;./Release/RegardsViewer.app/Contents/PkgInfo</Command>
         <Command Enabled="yes">ln -f ./Release/RegardsViewer ./Release/RegardsViewer.app/Contents/MacOS/RegardsViewer</Command>

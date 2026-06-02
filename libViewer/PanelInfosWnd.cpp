@@ -24,11 +24,13 @@
 #include <wx/filename.h>
 #include <wx/busyinfo.h>
 #include "ParamInit.h"
+
 using namespace Regards::Picture;
 using namespace Regards::Internet;
 using namespace Regards::Window;
 using namespace Regards::Viewer;
 using namespace Regards::Control;
+
 
 /**
  * \brief 
@@ -274,7 +276,7 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 	}
 
 	toolbarWindow = infosToolbar;
-
+	windowVisible = -1;
 	Connect(wxEVENT_APPLYEFFECT, wxCommandEventHandler(CPanelInfosWnd::ApplyEffect));
 	Connect(wxEVENT_SHOWFILTRE, wxCommandEventHandler(CPanelInfosWnd::ShowFiltreEvent));
 }
@@ -314,8 +316,13 @@ void CPanelInfosWnd::SetAnimationFile(const wxString& filename)
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
 		infosToolbar->SetPictureThumbnailToolbar();
-		infosToolbar->SetInfosActif();
 		infosToolbar->SetMapInactif();
+
+		if (windowVisible != WM_INFOS)
+		{
+			windowVisible = WM_INFOS;
+			this->ClickShowButton(WM_INFOS);
+		}
 		LoadInfo();
 		this->isVideo = false;
 	}
@@ -327,6 +334,10 @@ void CPanelInfosWnd::SetVideoFile(const wxString& filename)
 	{
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
+
+		CFileGeolocation fileGeo("", "");
+		fileGeo.SetFile(filename, "");
+		bool hasGps = fileGeo.HasGps();
 
 		auto fileGeolocalisation = GeolocHelper::CreateAndSetFile(filename);
 
@@ -342,8 +353,16 @@ void CPanelInfosWnd::SetVideoFile(const wxString& filename)
 		}
 
 		delete fileGeolocalisation;
+
+
+		if (windowVisible != WM_INFOS)
+		{
+			windowVisible = WM_INFOS;
+			this->ClickShowButton(WM_INFOS);
+		}
 		LoadInfo();
 		this->isVideo = true;
+		firstTime = false;
 	}
 }
 
@@ -359,19 +378,29 @@ void CPanelInfosWnd::SetBitmapFile(const wxString& filename, const bool& isThumb
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
 
+		CFileGeolocation fileGeo("","");
+		fileGeo.SetFile(filename, "");
+		bool hasGps = fileGeo.HasGps();
+
 		auto fileGeolocalisation = GeolocHelper::CreateAndSetFile(filename);
 
 		GeolocHelper::UpdateGpsStatus(infosToolbar, fileGeolocalisation);
-
-		if (windowVisible == WM_INFOS)
-			infosToolbar->SetInfosActif();
 
 		delete fileGeolocalisation;
 
 		this->isVideo = false;
 
+
+		if (windowVisible != WM_INFOS)
+		{
+			windowVisible = WM_INFOS;
+			this->ClickShowButton(WM_INFOS);
+		}
 		LoadInfo();
+
+		firstTime = false;
 	}
+
 }
 
 void CPanelInfosWnd::ShowFiltreEvent(wxCommandEvent& event)
@@ -525,6 +554,8 @@ void CPanelInfosWnd::LoadInfo()
 
 	case WM_MAPS:
 		{
+			if (!webBrowser->IsShown())
+				webBrowser->Show(true);
 			wxString newUrl = MapsUpdate();
 			if (url != newUrl)
 				DisplayURL(newUrl);
@@ -583,6 +614,8 @@ void CPanelInfosWnd::DisplayURL(const wxString& url)
 {
 	webBrowser->LoadURL(url);
 	infosToolbar->SetMapActif();
+	if(!webBrowser->IsShown())
+		webBrowser->Show(true);
 	Resize();
 }
 

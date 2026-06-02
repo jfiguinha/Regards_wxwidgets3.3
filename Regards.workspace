@@ -16,7 +16,6 @@
       <Project Name="libffmpeg" Path="Otherlib/libffmpeg/libffmpeg.project" Active="No"/>
     </VirtualDirectory>
     <Project Name="CxImage" Path="CxImage/CxImage.project" Active="No"/>
-    <Project Name="libheif" Path="Otherlib/libheif/libheif.project" Active="No"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Database">
     <Project Name="libSqlData" Path="libSqlData/libSqlData.project" Active="No"/>
@@ -40,11 +39,9 @@
   <VirtualDirectory Name="RegardsViewer_exe">
     <Project Name="RegardsViewer" Path="RegardsViewer/RegardsViewer.project" Active="No"/>
     <Project Name="RegardsViewer_linux" Path="RegardsViewer_linux/RegardsViewer_linux.project" Active="Yes"/>
-    <Project Name="RegardsViewer_mac" Path="RegardsViewer_mac/RegardsViewer_mac.project" Active="No"/>
     <Project Name="MacOsLibExplorer" Path="MacOsLibExplorer/MacOsLibExplorer.project" Active="No"/>
     <Project Name="RegardsViewer_macsilicon" Path="RegardsViewer_macsilicon/RegardsViewer_macsilicon.project" Active="No"/>
     <Project Name="RegardsViewer_linux" Path="RegardsViewer_linux_cuda/RegardsViewer_linux_cuda.project" Active="Yes"/>
-    <Project Name="RegardsViewer_linux_cuda" Path="RegardsViewer_linux_cuda/RegardsViewer_linux_cuda.project" Active="No"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Apple">
     <Project Name="libAppleFunction" Path="libAppleFunction/libAppleFunction.project" Active="No"/>
@@ -58,89 +55,12 @@
   <VirtualDirectory Name="OpenCL - OpenGL">
     <Project Name="libOpenCL" Path="libOpenCL/libOpenCL.project" Active="No"/>
     <Project Name="libOpenGL" Path="libOpenGL/libOpenGL.project" Active="No"/>
-    <Project Name="libCudaEffect" Path="libCudaEffect/libCudaEffect.project" Active="No"/>
     <Project Name="libVideoEffect" Path="libVideoEffect/libVideoEffect.project" Active="No"/>
   </VirtualDirectory>
   <VirtualDirectory Name="RegardsVideoConverter">
     <Project Name="libVideoConverter" Path="libVideoConverter/libVideoConverter.project" Active="No"/>
   </VirtualDirectory>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug">
-      <Environment/>
-      <Project Name="Regards" ConfigName="Debug"/>
-      <Project Name="CxImage" ConfigName="Debug"/>
-      <Project Name="libControl" ConfigName="Debug"/>
-      <Project Name="libDialog" ConfigName="Debug"/>
-      <Project Name="libFiltre" ConfigName="Debug"/>
-      <Project Name="libGeolocalisation" ConfigName="Debug"/>
-      <Project Name="libOpenCL" ConfigName="Debug"/>
-      <Project Name="libParameter" ConfigName="Debug"/>
-      <Project Name="libPicture" ConfigName="Debug"/>
-      <Project Name="libResource" ConfigName="Debug"/>
-      <Project Name="libSqlData" ConfigName="Debug"/>
-      <Project Name="libSqlEngine" ConfigName="Debug"/>
-      <Project Name="libTheme" ConfigName="Debug"/>
-      <Project Name="libUtility" ConfigName="Debug"/>
-      <Project Name="libVideoThumbnail" ConfigName="Debug"/>
-      <Project Name="libViewer" ConfigName="Debug"/>
-      <Project Name="libWindow" ConfigName="Debug"/>
-      <Project Name="include" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_Windows" ConfigName="Debug"/>
-      <Project Name="libVideoFFMpeg" ConfigName="Debug"/>
-      <Project Name="libEmail" ConfigName="Debug"/>
-      <Project Name="libExif" ConfigName="Debug"/>
-      <Project Name="libFiltreInterface" ConfigName="Debug"/>
-      <Project Name="libOpenGL" ConfigName="Debug"/>
-      <Project Name="wxCheckTree" ConfigName="Debug"/>
-      <Project Name="libOpenGL" ConfigName="Debug"/>
-      <Project Name="test" ConfigName="Debug"/>
-      <Project Name="FaceRecognition" ConfigName="Debug"/>
-      <Project Name="libJbig" ConfigName="Debug"/>
-      <Project Name="libPsd" ConfigName="Debug"/>
-      <Project Name="libavcodec" ConfigName="Debug"/>
-      <Project Name="libavutil" ConfigName="Debug"/>
-      <Project Name="libbpg" ConfigName="Debug"/>
-      <Project Name="libRegardsBpg" ConfigName="Debug"/>
-      <Project Name="libPsd" ConfigName="Debug"/>
-      <Project Name="FaceRecognition_unix" ConfigName="Debug"/>
-      <Project Name="FaceRecognition_windows" ConfigName="Debug"/>
-      <Project Name="libRegardsBpg_unix" ConfigName="Debug"/>
-      <Project Name="libRegardsBpg_windows" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_mac" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_linux" ConfigName="Debug"/>
-      <Project Name="libAppleFunction" ConfigName="Debug"/>
-      <Project Name="FaceRecognition_mac" ConfigName="Debug"/>
-      <Project Name="libRegardsBpg_mac" ConfigName="Debug"/>
-      <Project Name="FaceRecognition" ConfigName="Debug"/>
-      <Project Name="libavcodec" ConfigName="Debug"/>
-      <Project Name="libGeolocalisation" ConfigName="Debug"/>
-      <Project Name="RawSpeed" ConfigName="Debug"/>
-      <Project Name="wxIA" ConfigName="Debug"/>
-      <Project Name="wxIA" ConfigName="Debug"/>
-      <Project Name="wxPDFDoc" ConfigName="Debug"/>
-      <Project Name="libScanner" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_mac" ConfigName="Debug"/>
-      <Project Name="libDeepLearning" ConfigName="Debug"/>
-      <Project Name="RegardsRaw" ConfigName="Debug"/>
-      <Project Name="libFiltreInterface" ConfigName="Debug"/>
-      <Project Name="libOpenCLEngine" ConfigName="Debug"/>
-      <Project Name="libFiltreInterface" ConfigName="Debug"/>
-      <Project Name="MacOsLibExplorer" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_macsilicon" ConfigName="Debug"/>
-      <Project Name="libffmpeg" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_macsilicon" ConfigName="Debug"/>
-      <Project Name="libVideoThumbnail" ConfigName="Debug"/>
-      <Project Name="libheif" ConfigName="Debug"/>
-      <Project Name="libVideoConverter" ConfigName="Debug"/>
-      <Project Name="RegardsPDF_linux" ConfigName="Debug"/>
-      <Project Name="RegardsVideoConverter_linux" ConfigName="Debug"/>
-      <Project Name="ffplay" ConfigName="Debug"/>
-      <Project Name="libCudaEffect" ConfigName="Debug"/>
-      <Project Name="libVideoEffect" ConfigName="Debug"/>
-      <Project Name="libOpenCVMissingGTK" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_linux" ConfigName="Debug"/>
-      <Project Name="RegardsViewer_linux_cuda" ConfigName="Debug"/>
-    </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Release">
       <Environment/>
       <Project Name="Regards" ConfigName="Release"/>
@@ -178,17 +98,8 @@
       <Project Name="libbpg" ConfigName="Release"/>
       <Project Name="libRegardsBpg" ConfigName="Release"/>
       <Project Name="libPsd" ConfigName="Release"/>
-      <Project Name="FaceRecognition_unix" ConfigName="Release"/>
-      <Project Name="FaceRecognition_windows" ConfigName="Release"/>
-      <Project Name="libRegardsBpg_unix" ConfigName="Release"/>
-      <Project Name="libRegardsBpg_windows" ConfigName="Release"/>
-      <Project Name="RegardsViewer_mac" ConfigName="Release"/>
       <Project Name="RegardsViewer_linux" ConfigName="Release"/>
       <Project Name="libAppleFunction" ConfigName="Release"/>
-      <Project Name="FaceRecognition_mac" ConfigName="Release"/>
-      <Project Name="libRegardsBpg_mac" ConfigName="Release"/>
-      <Project Name="FaceRecognition" ConfigName="Release"/>
-      <Project Name="libavcodec" ConfigName="Release"/>
       <Project Name="libGeolocalisation" ConfigName="Release"/>
       <Project Name="RawSpeed" ConfigName="Release"/>
       <Project Name="wxIA" ConfigName="Release"/>
@@ -207,14 +118,73 @@
       <Project Name="libVideoThumbnail" ConfigName="Release"/>
       <Project Name="libheif" ConfigName="Release"/>
       <Project Name="libVideoConverter" ConfigName="Release"/>
-      <Project Name="RegardsPDF_linux" ConfigName="Release"/>
       <Project Name="RegardsVideoConverter_linux" ConfigName="Release"/>
       <Project Name="ffplay" ConfigName="Release"/>
-      <Project Name="libCudaEffect" ConfigName="Release"/>
       <Project Name="libVideoEffect" ConfigName="Release"/>
-      <Project Name="libOpenCVMissingGTK" ConfigName="Release"/>
       <Project Name="RegardsViewer_linux" ConfigName="Release"/>
-      <Project Name="RegardsViewer_linux_cuda" ConfigName="Release"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Debug">
+      <Environment/>
+      <Project Name="Regards" ConfigName="Debug"/>
+      <Project Name="CxImage" ConfigName="Debug"/>
+      <Project Name="libControl" ConfigName="Debug"/>
+      <Project Name="libDialog" ConfigName="Debug"/>
+      <Project Name="libFiltre" ConfigName="Debug"/>
+      <Project Name="libGeolocalisation" ConfigName="Debug"/>
+      <Project Name="libOpenCL" ConfigName="Debug"/>
+      <Project Name="libParameter" ConfigName="Debug"/>
+      <Project Name="libPicture" ConfigName="Debug"/>
+      <Project Name="libResource" ConfigName="Debug"/>
+      <Project Name="libSqlData" ConfigName="Debug"/>
+      <Project Name="libSqlEngine" ConfigName="Debug"/>
+      <Project Name="libTheme" ConfigName="Debug"/>
+      <Project Name="libUtility" ConfigName="Debug"/>
+      <Project Name="libVideoThumbnail" ConfigName="Debug"/>
+      <Project Name="libViewer" ConfigName="Debug"/>
+      <Project Name="libWindow" ConfigName="Debug"/>
+      <Project Name="include" ConfigName="Debug"/>
+      <Project Name="RegardsViewer_Windows" ConfigName="Debug"/>
+      <Project Name="libVideoFFMpeg" ConfigName="Debug"/>
+      <Project Name="libEmail" ConfigName="Debug"/>
+      <Project Name="libExif" ConfigName="Debug"/>
+      <Project Name="libFiltreInterface" ConfigName="Debug"/>
+      <Project Name="libOpenGL" ConfigName="Debug"/>
+      <Project Name="wxCheckTree" ConfigName="Debug"/>
+      <Project Name="libOpenGL" ConfigName="Debug"/>
+      <Project Name="test" ConfigName="Debug"/>
+      <Project Name="FaceRecognition" ConfigName="Debug"/>
+      <Project Name="libJbig" ConfigName="Debug"/>
+      <Project Name="libPsd" ConfigName="Debug"/>
+      <Project Name="libavcodec" ConfigName="Debug"/>
+      <Project Name="libavutil" ConfigName="Debug"/>
+      <Project Name="libbpg" ConfigName="Debug"/>
+      <Project Name="libRegardsBpg" ConfigName="Debug"/>
+      <Project Name="libPsd" ConfigName="Debug"/>
+      <Project Name="RegardsViewer_linux" ConfigName="Debug"/>
+      <Project Name="libAppleFunction" ConfigName="Debug"/>
+      <Project Name="libGeolocalisation" ConfigName="Debug"/>
+      <Project Name="RawSpeed" ConfigName="Debug"/>
+      <Project Name="wxIA" ConfigName="Debug"/>
+      <Project Name="wxIA" ConfigName="Debug"/>
+      <Project Name="wxPDFDoc" ConfigName="Debug"/>
+      <Project Name="libScanner" ConfigName="Debug"/>
+      <Project Name="RegardsViewer_mac" ConfigName="Debug"/>
+      <Project Name="libDeepLearning" ConfigName="Debug"/>
+      <Project Name="RegardsRaw" ConfigName="Debug"/>
+      <Project Name="libFiltreInterface" ConfigName="Debug"/>
+      <Project Name="libOpenCLEngine" ConfigName="Debug"/>
+      <Project Name="libFiltreInterface" ConfigName="Debug"/>
+      <Project Name="MacOsLibExplorer" ConfigName="Debug"/>
+      <Project Name="RegardsViewer_macsilicon" ConfigName="Debug"/>
+      <Project Name="libffmpeg" ConfigName="Debug"/>
+      <Project Name="RegardsViewer_macsilicon" ConfigName="Debug"/>
+      <Project Name="libVideoThumbnail" ConfigName="Debug"/>
+      <Project Name="libheif" ConfigName="Debug"/>
+      <Project Name="libVideoConverter" ConfigName="Debug"/>
+      <Project Name="RegardsVideoConverter_linux" ConfigName="Debug"/>
+      <Project Name="libVideoEffect" ConfigName="Debug"/>
+      <Project Name="RegardsViewer_linux" ConfigName="Debug"/>
+      <Project Name="OpenCV" ConfigName="Debug"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

@@ -31,15 +31,9 @@
     <File Name="RegardsPDF.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="VideoThumbnail">
-    <VirtualDirectory Name="MovieDecoder">
-      <File Name="moviedecoder.h"/>
-      <File Name="moviedecoder.cpp"/>
-    </VirtualDirectory>
+    <File Name="FFmpegVideoThumb.h"/>
+    <File Name="FFmpegVideoThumb.cpp"/>
     <File Name="aspectratio.h"/>
-    <File Name="OpenCVVideoPlayer.h"/>
-    <File Name="OpenCVVideoPlayer.cpp"/>
-    <File Name="VideoPlayer.cpp"/>
-    <File Name="VideoPlayer.h"/>
     <File Name="videothumb.cpp"/>
     <File Name="videothumb.h"/>
   </VirtualDirectory>
@@ -128,6 +122,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="picture_factory.cpp"/>
     <File Name="avif.cpp"/>
     <File Name="jxl.cpp"/>
     <File Name="ascii.cpp"/>
@@ -139,6 +134,7 @@
     <File Name="Heic.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="picture_factory.h"/>
     <File Name="avif.h"/>
     <File Name="imageinfo.hpp"/>
     <File Name="jxl.h"/>
@@ -153,8 +149,6 @@
     <File Name="yuv422.h"/>
     <File Name="Heic.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Static Library">
     <GlobalSettings>
       <Compiler Options="-Wall;$(shell ../libextern/wxconfig_cpp.sh);-pthread;-std=gnu++14;-Wno-narrowing" C_Options=";-Wall;" Assembler="">
@@ -175,6 +169,7 @@
         <IncludePath Value="../Otherlib/wxSVG/include"/>
         <IncludePath Value="../libextern/heif-master/srcs/api/reader"/>
         <IncludePath Value="../libextern/heif-master/srcs/api/common"/>
+        <IncludePath Value="../Otherlib/OpenCV"/>
         <IncludePath Value="../Otherlib/libavif/include"/>
         <IncludePath Value="../Otherlib/wxPDFDoc/include"/>
         <IncludePath Value="../Otherlib"/>
@@ -234,7 +229,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Release" CompilerType="intel_wxwidget33" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
@@ -274,4 +269,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>

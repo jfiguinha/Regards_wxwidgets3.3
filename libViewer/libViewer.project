@@ -77,6 +77,17 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="WindowModeController.cpp"/>
+    <File Name="ViewerController.cpp"/>
+    <File Name="ThumbnailController.cpp"/>
+    <File Name="SlideshowController.cpp"/>
+    <File Name="MusicController.cpp"/>
+    <File Name="MediaLoader.cpp"/>
+    <File Name="ViewerNavigationController.cpp"/>
+    <File Name="ScannerLauncher.cpp"/>
+    <File Name="PrintService.cpp"/>
+    <File Name="ModelManager.cpp"/>
+    <File Name="FileWatcherService.cpp"/>
     <File Name="PicturePanel.cpp"/>
     <File Name="WaitingWindow.cpp"/>
     <File Name="CentralWindow.cpp"/>
@@ -92,6 +103,17 @@
     <File Name="AnimationToolbar.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="WindowModeController.h"/>
+    <File Name="ViewerController.h"/>
+    <File Name="ThumbnailController.h"/>
+    <File Name="SlideshowController.h"/>
+    <File Name="MusicController.h"/>
+    <File Name="MediaLoader.h"/>
+    <File Name="ViewerNavigationController.h"/>
+    <File Name="ScannerLauncher.h"/>
+    <File Name="PrintService.h"/>
+    <File Name="ModelManager.h"/>
+    <File Name="FileWatcherService.h"/>
     <File Name="window_mode_id.h"/>
     <File Name="TreatmentData.h"/>
     <File Name="StatusText.h"/>
@@ -135,8 +157,6 @@
       <File Name="ThumbnailViewerVideo.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Static Library">
     <GlobalSettings>
       <Compiler Options="$(shell ../libextern/wxconfig_cpp.sh);-Wall;-pthread;-std=gnu++14;-Wall" C_Options=";-Wall" Assembler="">
@@ -220,7 +240,7 @@
         <SearchPaths/>
       </Completion>
     </Configuration>
-    <Configuration Name="Release" CompilerType="intel_wxwidget33" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
@@ -260,4 +280,6 @@
       </Completion>
     </Configuration>
   </Settings>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
 </CodeLite_Project>
