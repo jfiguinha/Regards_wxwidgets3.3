@@ -45,81 +45,95 @@ namespace Regards::Window
 
 	protected:
 		void PaintNow();
+		void DrawElement(wxDC* dc);
+
 		void on_paint(wxPaintEvent& event);
 		void OnMouseMove(wxMouseEvent& event);
 		void OnLButtonDown(wxMouseEvent& event);
 		void OnLButtonUp(wxMouseEvent& event);
 		void OnMouseLeave(wxMouseEvent& event);
 		void OnMouseHover(wxMouseEvent& event);
+		void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
+
 		void OnTimerTriangleTop(wxTimerEvent& event);
 		void OnTimerTriangleBottom(wxTimerEvent& event);
 		void OnTimerPageTop(wxTimerEvent& event);
 		void OnTimerPageBottom(wxTimerEvent& event);
 		void OnTimerStopMoving(wxTimerEvent& event);
-		void OnMouseCaptureLost(wxMouseEvent& event);
 
-		void OnEraseBackground(wxEraseEvent& event) override
-		{
-		};
-		void SendTopPosition(const int& value);
-		void DrawElement(wxDC* dc);
+		void OnEraseBackground(wxEraseEvent& /*event*/) override {}
 
 		void Resize() override;
+
+		void SendTopPosition(int value) const;
+
+		bool FindTopTriangle(int y, int x) const;
+		bool FindBottomTriangle(int y, int x) const;
+		bool FindRectangleBar(int y, int x) const;
+
+		void DrawTopTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& color);
+		void DrawBottomTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& color);
+		void DrawRectangleElement(wxDC* dc, const wxColour& color);
+
+		// Shared implementation for all four Click*() methods
+		void ScrollBy(int delta);
+
+		void MoveBar(int currentPos, const wxColour& color);
+		void SetIsMoving();
 		void CalculBarSize();
 
-
-		bool FindTopTriangle(const int& yPosition, const int& xPosition);
-		bool FindBottomTriangle(const int& yPosition, const int& xPosition);
-		bool FindRectangleBar(const int& yPosition, const int& xPosition);
-
-		void DrawTopTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
-		void DrawBottomTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
-		void DrawRectangleElement(wxDC* dc, const wxColour& colorBar);
-		void MoveBar(const int& diffY, wxColour color);
-		void SetIsMoving();
-		bool TestMaxY();
-		bool TestMinY();
 		void FillRect(wxDC* dc, const wxRect& rc, const wxColour& color);
 
-		int barSize;
-		int barPosY;
-		bool captureBar;
-		int stepSize;
-		bool showEmptyRectangle;
-		int heightSize;
+		void ClampPosition();
 
-		int barStartY;
-		int barEndY;
-		int yPositionStart;
-		int yPositionStartMove;
-		bool moveScrollbar;
+		// Helper methods for clamping (kept for compatibility but functionality merged into ClampPosition)
+		bool TestMaxY();
+		bool TestMinY();
 
-		wxRect rcPosTriangleTop;
-		wxRect rcPosTriangleBottom;
-		wxRect rcPosBar;
+	private:
+			static constexpr int kBarSizeMin = 20;
+			static constexpr int kDefaultLineSize = 5;
+			static constexpr int kDefaultPageSize = 50;
+			static constexpr int kTimerIntervalMs = 100;
+			static constexpr int kStopMovingMs = 1000;
 
-		int pictureHeight;
-		int screenHeight;
-		int pageSize;
-		int lineSize;
-		int pageSizeDefault;
-		int lineSizeDefault;
-		int currentYPos;
+			int yPositionStart = 0;
+			int yPositionStartMove = 0;
 
-		bool m_bTracking;
+			wxRect rcPosTriangleTop{};
+			wxRect rcPosTriangleBottom{};
+			wxRect rcPosBar{};
 
-		bool scrollMoving;
+			int  barSize = 0;
+			int  barPosY = 0;
+			bool captureBar = false;
 
-		wxTimer* triangleTop;
-		wxTimer* triangleBottom;
-		wxTimer* pageTop;
-		wxTimer* pageBottom;
-		wxTimer* stopMoving;
+			int  pictureHeight = 0;
+			int  screenHeight = 0;
+			int  pageSize = kDefaultPageSize;
+			int  lineSize = kDefaultLineSize;
+			int  pageSizeDefault = kDefaultPageSize;
+			int  lineSizeDefault = kDefaultLineSize;
 
-		CThemeScrollBar themeScroll;
+			int  barStartY = 0;
+			int  barEndY = 0;
+			int  currentYPos = 0;
 
-		bool showTriangle = false;
+			bool showEmptyRectangle = false;
+			int  heightSize = 0;
 
-		bool showWindow = true;
+			bool m_bTracking = false;
+			bool scrollMoving = false;
+			bool showTriangle = false;
+			bool showWindow = true;
+
+			// Owned timers – stored by value, no heap allocation
+			wxTimer triangleTopTimer{ this };
+			wxTimer triangleBottomTimer{ this };
+			wxTimer pageTopTimer{ this };
+			wxTimer pageBottomTimer{ this };
+			wxTimer stopMovingTimer{ this };
+
+			CThemeScrollBar themeScroll;
 	};
 }
