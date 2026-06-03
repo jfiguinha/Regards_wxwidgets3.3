@@ -426,9 +426,7 @@ bool MyApp::InitializeDatabase()
 
 void MyApp::LoadPicture(const int& svgWidth, const int& svgHeight)
 {
-	application_context.LoadWxDefaultPicture(CLibResource::GetPhotoCancel());
-	application_context.LoadWxDefaultPictureThumbnail(CLibResource::GetPhotoCancel());
-	application_context.LoadWxDefaultPictureThumbnailVideo(CLibResource::GetPhotoCancel());		
+
 }
 
 
@@ -526,7 +524,10 @@ bool MyApp::InitializeResources()
 	int svgWidth = 256;
 	int svgHeight = 256;
 
-	LoadPicture(svgWidth, svgHeight);	
+	application_context.LoadWxDefaultPicture(CLibResource::GetPhotoCancel());
+	application_context.SetWxDefaultPictureThumbnail(CLibResource::CreatePictureFromSVG("IDB_PHOTOTEMP", svgWidth, svgHeight).ConvertToDisabled());
+	application_context.SetWxDefaultPictureThumbnailVideo(CLibResource::CreatePictureFromSVG("IDB_MOVIE", svgWidth, svgHeight).ConvertToDisabled());
+
 
 	return true;
 }

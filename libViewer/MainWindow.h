@@ -16,7 +16,6 @@ namespace Regards::Viewer
     class CFolderProcess;
     class CThumbnailProcess;
     class CCategoryFolderWindow;
-    class CImageList;
     class CExportDiaporama;
     class CToolbar;
 
