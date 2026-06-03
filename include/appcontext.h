@@ -40,13 +40,13 @@ public:
 		defaultPictureMat = WxToCvMat(defaultPicture);
 	}
 
-	void SetWxDefaultPictureThumbnail(wxImage& picture)
+	void SetWxDefaultPictureThumbnail(wxImage picture)
 	{
 		defaultPictureThumbnailPicture = picture;
 		defaultPictureMatThumbnailPicture = WxToCvMat(defaultPictureThumbnailPicture);
 	}
 
-	void SetWxDefaultPictureThumbnailVideo(wxImage& picture)
+	void SetWxDefaultPictureThumbnailVideo(wxImage picture)
 	{
 		defaultPictureThumbnailVideo = picture;
 		defaultPictureMatThumbnailVideo = WxToCvMat(defaultPictureThumbnailVideo);
