@@ -21,44 +21,48 @@ namespace Regards::Window
 	{
 	public:
 		CScrollbarWnd(wxWindow* parent, CWindowMain* centralWindow, wxWindowID id,
-		              const wxString& windowName = "ScrollBar");
+			const wxString& windowName = "ScrollBar");
 		CScrollbarWnd(wxWindow* parent, CWindowOpenGLMain* centralWindow, wxWindowID id,
-		              const wxString& windowName = "ScrollBar");
+			const wxString& windowName = "ScrollBar");
 		~CScrollbarWnd() override;
 
 		void UpdateScreenRatio() override;
 
-		void SetPageSize(const int& pageSize);
-		void SetLineSize(const int& lineSize);
-
+		void SetPageSize(int pageSize);
+		void SetLineSize(int lineSize);
 
 		void HideVerticalScroll();
 		void HideHorizontalScroll();
 		void ShowVerticalScroll();
 		void ShowHorizontalScroll();
 
+		// [CRITIQUE] GetShowingScrollV/H retournaient int alors que showV/showH sont bool
+		bool GetShowingScrollV() const;
+		bool GetShowingScrollH() const;
 
-		int GetShowingScrollV();
-		int GetShowingScrollH();
-
-		int GetBarWidth();
-		int GetBarHeight();
+		// [QUALITE] Ajout de const sur tous les accesseurs purs
+		int GetBarWidth()   const;
+		int GetBarHeight()  const;
 
 		void Resize() override;
 
 		int GetHeight() override;
-		int GetWidth() override;
+		int GetWidth()  override;
 
-		int GetPosLargeur();
-		int GetPosHauteur();
+		int GetPosLargeur() const;
+		int GetPosHauteur() const;
 
 	private:
 		void DefaultConstructor();
 
+		// [IMPORTANT] Helper pour éviter la duplication des handlers d'événements
+		void ForwardScrollEvent(wxEventType type, int pos);
+
 	protected:
-		void SetPosition(const int& posX, const int& posY);
+		void SetPosition(int posX, int posY);
 		void RefreshData(wxCommandEvent& event);
 		void OnLeftPosition(wxCommandEvent& event);
+		void OnTopPosition(wxCommandEvent& event);
 		void OnControlSize(wxCommandEvent& event);
 		void OnSetPosition(wxCommandEvent& event);
 
@@ -69,24 +73,22 @@ namespace Regards::Window
 
 		void OnScrollMove(wxCommandEvent& event);
 
+		// Owned by wxWidgets window tree via windowManager — do not delete manually
 		CScrollbarHorizontalWnd* scrollHorizontal;
 		CScrollbarVerticalWnd* scrollVertical;
-		void OnTopPosition(wxCommandEvent& event);
 
 		bool showV;
 		bool showH;
-		bool _showV = false;
-		bool _showH = false;
+		// [QUALITE] _showV/_showH supprimés : membres jamais utilisés (fantômes)
 		bool _useScaleFactor = false;
-		//int posHauteur;
-		//int posLargeur;
+
 		int controlHeight;
 		int controlWidth;
 
 		int defaultPageSize;
 		int defaultLineSize;
 
-		wxTimer* loadingTimer;
+		// [QUALITE] loadingTimer supprimé : alloué mais jamais démarré ni géré
 		CWindowManager* windowManager;
 		CWindowToAdd* centralWindow;
 	};
