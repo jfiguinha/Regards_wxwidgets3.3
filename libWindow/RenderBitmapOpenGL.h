@@ -30,8 +30,14 @@ namespace Regards::OpenGL
 		GLSLShader* FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB);
 
 	private:
-		GLTexture* textureArrowRight;
-		GLTexture* textureArrowLeft;
+
+		std::unique_ptr<GLTexture> textureArrowRight;
+		std::unique_ptr<GLTexture> textureArrowLeft;
 		CRenderOpenGL* renderOpenGL = nullptr;
+		GLuint vao_ = 0;
+		GLuint vbo_ = 0;
+
+		void EnsureVAO();
+		void DrawRect(int x, int y, int w, int h);
 	};
 }

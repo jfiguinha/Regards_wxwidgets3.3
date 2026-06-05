@@ -31,16 +31,16 @@ CRenderVideoOpenGL::~CRenderVideoOpenGL()
 	Cleanup();
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  VAO/VBO pour RenderWithInterpolation
+// ═══════════════════════════════════════════════════════════════════════════
+
+
+
+
 void CRenderVideoOpenGL::Cleanup()
 {
-	if (textureVideo != nullptr)
-		delete(textureVideo);
-	textureVideo = nullptr;
-
-	if (textureSubtitle != nullptr)
-		delete(textureSubtitle);
-	textureSubtitle = nullptr;
-
 	if (FFrameBuffer != 0)
 	{
 
@@ -52,208 +52,68 @@ void CRenderVideoOpenGL::Cleanup()
 	FFrameBuffer = 0;
 	widthBuffer = 0;
 	heightBuffer = 0;
-}
 
-bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool& flipH, const bool& flipV, const int& angle, const bool& inverted, const int &interpolation)
+}
+bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool& flipH, const bool& flipV, const int& angle, const bool& inverted, const int& interpolation)
 {
 	GLTexture* glTexture = renderOpenGL->GetGLTexture();
-	GLSLShader* m_pShader = renderOpenGL->FindShader(L"IDR_GLSL_INTERPOLATION");
-    bool isOk = false;
-	if (m_pShader != nullptr)
-	{
-        if(m_pShader->IsOk())
-        {
-            if(m_pShader->EnableShader() && m_pShader->IsOk())
-            {
-                if (!m_pShader->SetTexture("ImageTexture", textureVideo->GetTextureID()))
-                {
-                    //printf("SetTexture ImageTexture failed \n ");
-                }
-                if (!m_pShader->SetParam("widthTex", textureVideo->GetWidth()))
-                {
-                    //printf("SetParam sharpness failed \n ");
-                }
-                if (!m_pShader->SetParam("heightTex", textureVideo->GetHeight()))
-                {
-                    //printf("SetParam sharpness failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("widthIn", widthBuffer))
-                {
-                    //printf("SetParam widthIn failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("heightIn", heightBuffer))
-                {
-                    //printf("SetParam heightIn failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("widthOut", rc.width))
-                {
-                    //printf("SetParam widthOut failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("heightOut", rc.height))
-                {
-                    //printf("SetParam heightOut failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("flipH", flipH))
-                {
-                    //printf("SetParam flipH failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("flipV", flipV))
-                {
-                    //printf("SetParam flipV failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("angle", angle))
-                {
-                    //printf("SetParam angle failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("left", rc.x))
-                {
-                    //printf("SetParam left failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("top", rc.y))
-                {
-                    //printf("SetParam top failed \n ");
-                }
-                if (!m_pShader->SetIntegerParam("interpolation", interpolation))
-                {
-                    //printf("SetParam interpolation failed \n ");
-                }
-                
-                isOk = true;
-            }
-        }
-	}
+	GLSLShader* shader = renderOpenGL->FindShader(L"IDR_GLSL_INTERPOLATION");
+	if (!shader || !shader->IsOk()) return false;
+	if (!shader->EnableShader() || !shader->IsOk()) return false;
 
-    if(isOk)
-    {
-        int left_local = 0;// (glTexture->GetWidth() - widthOut) / 2;
-        int top_local = 0;//(glTexture->GetHeight() - heightOut) / 2;
+	shader->SetTexture("ImageTexture", textureVideo->GetTextureID());
+	shader->SetParam("widthTex", static_cast<float>(textureVideo->GetWidth()));
+	shader->SetParam("heightTex", static_cast<float>(textureVideo->GetHeight()));
+	shader->SetIntegerParam("widthIn", widthBuffer);
+	shader->SetIntegerParam("heightIn", heightBuffer);
+	shader->SetIntegerParam("widthOut", rc.width);
+	shader->SetIntegerParam("heightOut", rc.height);
+	shader->SetIntegerParam("flipH", flipH ? 1 : 0);
+	shader->SetIntegerParam("flipV", flipV ? 1 : 0);
+	shader->SetIntegerParam("angle", angle);
+	shader->SetIntegerParam("left", rc.x);
+	shader->SetIntegerParam("top", rc.y);
+	shader->SetIntegerParam("interpolation", interpolation);
 
-        renderOpenGL->RenderQuad(glTexture->GetWidth(), glTexture->GetHeight(), left_local, top_local, !inverted);
-        
-        m_pShader->DisableShader();
-    }
-	
-    
-    return isOk;
-    
+	renderOpenGL->RenderQuad(glTexture->GetWidth(), glTexture->GetHeight(),
+		0, 0, !inverted);
+	shader->DisableShader();
+	return true;
 }
 
-void CRenderVideoOpenGL::RenderShader(GLSLShader* m_pShader, GLTexture* glTexture, CVideoEffectParameter* effectParameter, const wxFloatRect& rect, const float& iTime)
+
+void CRenderVideoOpenGL::RenderShader(GLSLShader* shader, GLTexture* glTexture, CVideoEffectParameter* ep, const wxFloatRect& rect, const float& iTime)
 {
-	srand(time(nullptr));
-	float timer = rand() % 1000 + 1;
+	srand(static_cast<unsigned>(time(nullptr)));
+	float timer = static_cast<float>(rand() % 1000 + 1);
 
-	int width_local = glTexture->GetWidth();
-	int height_local = glTexture->GetHeight();
-
-	if (!m_pShader->SetTexture("texUnit", glTexture->GetTextureID()))
-	{
-		//printf("SetTexture texUnit failed \n ");
-	}
-	if (!m_pShader->SetParam("fWidth", width_local))
-	{
-		//printf("SetParam sharpness failed \n ");
-	}
-	if (!m_pShader->SetParam("fHeight", height_local))
-	{
-		//printf("SetParam sharpness failed \n ");
-	}
-	if (!m_pShader->SetParam("top", rect.top))
-	{
-		//printf("SetParam top failed \n ");
-	}
-	if (!m_pShader->SetParam("left", rect.left))
-	{
-		//printf("SetParam left failed \n ");
-	}
-	if (!m_pShader->SetParam("right", rect.right))
-	{
-		//printf("SetParam right failed \n ");
-	}
-	if (!m_pShader->SetParam("bottom", rect.bottom))
-	{
-		//printf("SetParam bottom failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("effectenable", effectParameter->effectEnable))
-	{
-		//printf("SetParam effectenable failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("vhsEffect", effectParameter->vhsEnable))
-	{
-		//printf("SetParam vhsEffect failed \n ");
-	}
-	if (!m_pShader->SetParam("iTime", iTime))
-	{
-		//printf("SetParam vhsEffect failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("grayscale", effectParameter->grayEnable))
-	{
-		//printf("SetParam grayscale failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("sepia", effectParameter->sepiaEnable))
-	{
-		//printf("SetParam sepia failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("sharpenMasking", effectParameter->SharpenEnable))
-	{
-		//printf("SetParam sharpenMasking failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("tone", effectParameter->bandcEnable))
-	{
-		//printf("SetParam tone failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("colorboost", effectParameter->ColorBoostEnable))
-	{
-		//printf("SetParam colorboost failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("denoise", effectParameter->openglDenoise))
-	{
-		//printf("SetParam colorboost failed \n ");
-	}
-	if (!m_pShader->SetIntegerParam("filmgrain", effectParameter->filmgrainenable))
-	{
-		//printf("SetParam colorboost failed \n ");
-	}
-	if (!m_pShader->SetParam("sharpness", effectParameter->sharpness))
-	{
-		//printf("SetParam sharpness failed \n ");
-	}
-	if (!m_pShader->SetParam("contrast", effectParameter->contrast))
-	{
-		//printf("SetParam contrast failed \n ");
-	}
-	if (!m_pShader->SetParam("brightness", effectParameter->brightness))
-	{
-		//printf("SetParam brightness failed \n ");
-	}
-	if (!m_pShader->SetParam("red", effectParameter->color_boost[0]))
-	{
-		//printf("SetParam red failed \n ");
-	}
-	if (!m_pShader->SetParam("green", effectParameter->color_boost[1]))
-	{
-		//printf("SetParam green failed \n ");
-	}
-	if (!m_pShader->SetParam("blue", effectParameter->color_boost[2]))
-	{
-		//printf("SetParam blue failed \n ");
-	}
-	if (!m_pShader->SetParam("sigma", effectParameter->uSigma))
-	{
-		//printf("SetParam uSigma failed \n ");
-	}
-	if (!m_pShader->SetParam("threshold", effectParameter->uThreshold / 100.0f))
-	{
-		//printf("SetParam uThreshold failed \n ");
-	}
-	if (!m_pShader->SetParam("kSigma", effectParameter->uKSigma))
-	{
-		//printf("SetParam uKSigma failed \n ");
-	}
-	if (!m_pShader->SetParam("timer", timer))
-	{
-		//printf("SetParam uKSigma failed \n ");
-	}
+	shader->SetTexture("texUnit", glTexture->GetTextureID());
+	shader->SetParam("fWidth", static_cast<float>(glTexture->GetWidth()));
+	shader->SetParam("fHeight", static_cast<float>(glTexture->GetHeight()));
+	shader->SetParam("top", rect.top);
+	shader->SetParam("left", rect.left);
+	shader->SetParam("right", rect.right);
+	shader->SetParam("bottom", rect.bottom);
+	shader->SetIntegerParam("effectenable", ep->effectEnable);
+	shader->SetIntegerParam("vhsEffect", ep->vhsEnable);
+	shader->SetParam("iTime", iTime);
+	shader->SetIntegerParam("grayscale", ep->grayEnable);
+	shader->SetIntegerParam("sepia", ep->sepiaEnable);
+	shader->SetIntegerParam("sharpenMasking", ep->SharpenEnable);
+	shader->SetIntegerParam("tone", ep->bandcEnable);
+	shader->SetIntegerParam("colorboost", ep->ColorBoostEnable);
+	shader->SetIntegerParam("denoise", ep->openglDenoise);
+	shader->SetIntegerParam("filmgrain", ep->filmgrainenable);
+	shader->SetParam("sharpness", ep->sharpness);
+	shader->SetParam("contrast", ep->contrast);
+	shader->SetParam("brightness", ep->brightness);
+	shader->SetParam("red", ep->color_boost[0]);
+	shader->SetParam("green", ep->color_boost[1]);
+	shader->SetParam("blue", ep->color_boost[2]);
+	shader->SetParam("sigma", ep->uSigma);
+	shader->SetParam("threshold", ep->uThreshold / 100.f);
+	shader->SetParam("kSigma", ep->uKSigma);
+	shader->SetParam("timer", timer);
 }
 
 void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatRect& rect, const float& iTime, int& widthOut, const int& heightOut, const bool& flipH, const bool& flipV, const int& angle, wxRect& rc, const bool& inverted)
@@ -360,7 +220,7 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
                 rect.left = (float)((textureVideo->GetWidth() - widthOut) / 2) / (float)textureVideo->GetWidth();
                 rect.right = 1.0f - rect.left;
 
-                RenderShader(m_pShader, textureVideo, effectParameter, rect, iTime);
+                RenderShader(m_pShader, textureVideo.get(), effectParameter, rect, iTime);
             }
 
 		}
@@ -371,10 +231,11 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 		int left_local = (renderOpenGL->GetWidth() - width_local) / 2;
 		int top_local = (renderOpenGL->GetHeight() - height_local) / 2;
 
-		renderOpenGL->RenderQuad(textureVideo, left_local, top_local, inverted);
+		renderOpenGL->RenderQuad(textureVideo.get(), left_local, top_local, inverted);
 	}
 	else
 	{
+		//DrawRect(0, 0, renderOpenGL->GetWidth(), renderOpenGL->GetHeight());
 		RenderWithInterpolation(renderOpenGL->GetWidth(), renderOpenGL->GetHeight(), flipH, flipV, angle, rc, inverted);
 	}
 
@@ -386,18 +247,15 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 }
 
+
 void CRenderVideoOpenGL::RenderWithInterpolation(const int& widthOut, const int& heightOut, const bool& flipH, const bool& flipV, const int &angle, wxRect & rc, const bool& inverted)
-{
-	
+{	
 	glPushMatrix();
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY_EXT);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	bool _flipH = flipH;
 	bool _flipV = flipV;
-
-	//float xFactor = (float)rc.width / (float)textureVideo->GetWidth();
-	//float yFactor = (float)rc.height / (float)textureVideo->GetHeight();
 
 	int left = 0;
 	int top = 0;
@@ -533,11 +391,10 @@ void CRenderVideoOpenGL::RenderWithInterpolation(const int& widthOut, const int&
 
 	glPopMatrix();
 
-	glFlush();
+	
 
 	
 }
-
 
 void CRenderVideoOpenGL::SetSubtitle(cv::Mat& subtitle)
 {
@@ -546,7 +403,7 @@ void CRenderVideoOpenGL::SetSubtitle(cv::Mat& subtitle)
 	//textureSubtitle = nullptr;
 
 	if(textureSubtitle == nullptr)
-		textureSubtitle = new GLTexture();
+		textureSubtitle = std::make_unique<GLTexture>();
         
     Regards::Picture::CPictureArray mat = Regards::Picture::CPictureArray(subtitle);
 	textureSubtitle->SetData(mat);
@@ -563,7 +420,7 @@ void CRenderVideoOpenGL::ShowSubtitle()
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		textureSubtitle->Enable();
-		renderOpenGL->RenderQuad(textureSubtitle, left, top, true);
+		renderOpenGL->RenderQuad(textureSubtitle.get(), left, top, true);
 		textureSubtitle->Disable();
 
 		glDisable(GL_BLEND);
@@ -573,15 +430,15 @@ void CRenderVideoOpenGL::ShowSubtitle()
 GLTexture* CRenderVideoOpenGL::GetVideoTexture(const int& width, const int& height)
 {
 	if (textureVideo == nullptr)
-		textureVideo = new GLTexture();
+		textureVideo = std::make_unique<GLTexture>();
 
-	return textureVideo;
+	return textureVideo.get();
 }
 
 void CRenderVideoOpenGL::SetVideoTexture(Regards::Picture::CPictureArray & pictureArray, const bool &deleteTexture)
 {
 	if (textureVideo == nullptr)
-		textureVideo = new GLTexture();
+		textureVideo = std::make_unique<GLTexture>();
 	if (deleteTexture)
 		textureVideo->Delete();
 	textureVideo->SetData(pictureArray);
@@ -589,5 +446,5 @@ void CRenderVideoOpenGL::SetVideoTexture(Regards::Picture::CPictureArray & pictu
 
 GLTexture* CRenderVideoOpenGL::GetVideoTexturePt()
 {
-	return textureVideo;
+	return textureVideo.get();
 }
