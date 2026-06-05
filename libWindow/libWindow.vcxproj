@@ -856,6 +856,7 @@
     <ClInclude Include="RenderOpenGL.h" />
     <ClInclude Include="RenderVideoOpenGL.h" />
     <ClInclude Include="SliderInterface.h" />
+    <ClInclude Include="SplitterImpl.h" />
     <ClInclude Include="TabWindow.h" />
     <ClInclude Include="Icone.h" />
     <ClInclude Include="IconeList.h" />
@@ -954,6 +955,7 @@
     <ClCompile Include="SeparationBar.cpp" />
     <ClCompile Include="Slider.cpp" />
     <ClCompile Include="Splitter.cpp" />
+    <ClCompile Include="SplitterImpl.cpp" />
     <ClCompile Include="TabWindow.cpp" />
     <ClCompile Include="Thumbnail.cpp" />
     <ClCompile Include="TitleBar.cpp" />

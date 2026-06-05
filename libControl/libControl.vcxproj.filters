@@ -31,9 +31,6 @@
     <ClCompile Include="InfosSeparationBarEffect.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="SplitterWithPanel.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="ModificationManager.cpp">
       <Filter>Datastructure</Filter>
     </ClCompile>

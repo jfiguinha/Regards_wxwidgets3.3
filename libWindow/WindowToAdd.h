@@ -37,6 +37,12 @@ namespace Regards::Window
 
 		wxSize GetSize();
 
+		template<typename T>
+		T* GetAs() const
+		{
+			return dynamic_cast<T*>(window);
+		}
+
 		wxRect rect;
 		wxRect rect_old;
 		Pos position;

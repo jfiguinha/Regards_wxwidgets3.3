@@ -288,6 +288,9 @@
     <ClInclude Include="ThreadLoadingBitmap.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="SplitterImpl.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapInfos.cpp">
@@ -472,6 +475,9 @@
     </ClCompile>
     <ClCompile Include="RenderVideoOpenGL.cpp">
       <Filter>OpenGL\Render</Filter>
+    </ClCompile>
+    <ClCompile Include="SplitterImpl.cpp">
+      <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

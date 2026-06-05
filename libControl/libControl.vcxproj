@@ -949,7 +949,6 @@
     <ClCompile Include="ShowElement.cpp" />
     <ClCompile Include="SliderVideo.cpp" />
     <ClCompile Include="SlideToolbar.cpp" />
-    <ClCompile Include="SplitterWithPanel.cpp" />
     <ClCompile Include="ThumbnailEffect.cpp" />
     <ClCompile Include="ThumbnailHorizontal.cpp" />
     <ClCompile Include="ThumbnailVertical.cpp" />
