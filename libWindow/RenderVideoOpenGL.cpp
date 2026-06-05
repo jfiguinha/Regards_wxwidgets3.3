@@ -31,14 +31,6 @@ CRenderVideoOpenGL::~CRenderVideoOpenGL()
 	Cleanup();
 }
 
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  VAO/VBO pour RenderWithInterpolation
-// ═══════════════════════════════════════════════════════════════════════════
-
-
-
-
 void CRenderVideoOpenGL::Cleanup()
 {
 	if (FFrameBuffer != 0)
@@ -52,33 +44,6 @@ void CRenderVideoOpenGL::Cleanup()
 	FFrameBuffer = 0;
 	widthBuffer = 0;
 	heightBuffer = 0;
-
-}
-bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool& flipH, const bool& flipV, const int& angle, const bool& inverted, const int& interpolation)
-{
-	GLTexture* glTexture = renderOpenGL->GetGLTexture();
-	GLSLShader* shader = renderOpenGL->FindShader(L"IDR_GLSL_INTERPOLATION");
-	if (!shader || !shader->IsOk()) return false;
-	if (!shader->EnableShader() || !shader->IsOk()) return false;
-
-	shader->SetTexture("ImageTexture", textureVideo->GetTextureID());
-	shader->SetParam("widthTex", static_cast<float>(textureVideo->GetWidth()));
-	shader->SetParam("heightTex", static_cast<float>(textureVideo->GetHeight()));
-	shader->SetIntegerParam("widthIn", widthBuffer);
-	shader->SetIntegerParam("heightIn", heightBuffer);
-	shader->SetIntegerParam("widthOut", rc.width);
-	shader->SetIntegerParam("heightOut", rc.height);
-	shader->SetIntegerParam("flipH", flipH ? 1 : 0);
-	shader->SetIntegerParam("flipV", flipV ? 1 : 0);
-	shader->SetIntegerParam("angle", angle);
-	shader->SetIntegerParam("left", rc.x);
-	shader->SetIntegerParam("top", rc.y);
-	shader->SetIntegerParam("interpolation", interpolation);
-
-	renderOpenGL->RenderQuad(glTexture->GetWidth(), glTexture->GetHeight(),
-		0, 0, !inverted);
-	shader->DisableShader();
-	return true;
 }
 
 
@@ -114,6 +79,38 @@ void CRenderVideoOpenGL::RenderShader(GLSLShader* shader, GLTexture* glTexture, 
 	shader->SetParam("threshold", ep->uThreshold / 100.f);
 	shader->SetParam("kSigma", ep->uKSigma);
 	shader->SetParam("timer", timer);
+}
+
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  RenderShaderInterpolation
+// ═══════════════════════════════════════════════════════════════════════════
+
+bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool& flipH, const bool& flipV, const int& angle, const bool& inverted, const int& interpolation)
+{
+	GLTexture* glTexture = renderOpenGL->GetGLTexture();
+	GLSLShader* shader = renderOpenGL->FindShader(L"IDR_GLSL_INTERPOLATION");
+	if (!shader || !shader->IsOk()) return false;
+	if (!shader->EnableShader() || !shader->IsOk()) return false;
+
+	shader->SetTexture("ImageTexture", textureVideo->GetTextureID());
+	shader->SetParam("widthTex", static_cast<float>(textureVideo->GetWidth()));
+	shader->SetParam("heightTex", static_cast<float>(textureVideo->GetHeight()));
+	shader->SetIntegerParam("widthIn", widthBuffer);
+	shader->SetIntegerParam("heightIn", heightBuffer);
+	shader->SetIntegerParam("widthOut", rc.width);
+	shader->SetIntegerParam("heightOut", rc.height);
+	shader->SetIntegerParam("flipH", flipH ? 1 : 0);
+	shader->SetIntegerParam("flipV", flipV ? 1 : 0);
+	shader->SetIntegerParam("angle", angle);
+	shader->SetIntegerParam("left", rc.x);
+	shader->SetIntegerParam("top", rc.y);
+	shader->SetIntegerParam("interpolation", interpolation);
+
+	renderOpenGL->RenderQuad(glTexture->GetWidth(), glTexture->GetHeight(),
+		0, 0, !inverted);
+	shader->DisableShader();
+	return true;
 }
 
 void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatRect& rect, const float& iTime, int& widthOut, const int& heightOut, const bool& flipH, const bool& flipV, const int& angle, wxRect& rc, const bool& inverted)
@@ -235,7 +232,6 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 	}
 	else
 	{
-		//DrawRect(0, 0, renderOpenGL->GetWidth(), renderOpenGL->GetHeight());
 		RenderWithInterpolation(renderOpenGL->GetWidth(), renderOpenGL->GetHeight(), flipH, flipV, angle, rc, inverted);
 	}
 
@@ -247,117 +243,18 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 }
 
-static inline void FillTexCoords(
-	GLfloat* tex,
-	bool inverted,
-	bool flipH,
-	bool flipV)
-{
-	float left = flipH ? 1.0f : 0.0f;
-	float right = flipH ? 0.0f : 1.0f;
-	float top = flipV ? 1.0f : 0.0f;
-	float bottom = flipV ? 0.0f : 1.0f;
-
-	if (inverted)
-		std::swap(top, bottom);
-
-	tex[0] = left;  tex[1] = top;
-	tex[2] = right; tex[3] = top;
-	tex[4] = right; tex[5] = bottom;
-	tex[6] = left;  tex[7] = bottom;
-}
-
-static inline void RotateTexCoords(
-	GLfloat* tex,
-	int angle)
-{
-	if (angle != 90 &&
-		angle != 180 &&
-		angle != 270)
-	{
-		return;
-	}
-
-	GLfloat rotated[8];
-
-	int offset = 0;
-
-	switch (angle)
-	{
-	case 90:
-		offset = 3;
-		break;
-
-	case 180:
-		offset = 2;
-		break;
-
-	case 270:
-		offset = 1;
-		break;
-	}
-
-	for (int i = 0; i < 4; i++)
-	{
-		int src = (i + offset) % 4;
-
-		rotated[i * 2] = tex[src * 2];
-		rotated[i * 2 + 1] = tex[src * 2 + 1];
-	}
-
-	memcpy(tex, rotated, sizeof(rotated));
-}
-
-wxPoint CRenderVideoOpenGL::ComputeOffset(
-	const wxRect& rc)
-{
-	int left;
-	int top;
-
-	if (renderOpenGL->GetWidth() > rc.width)
-		left = (renderOpenGL->GetWidth() - rc.width) / 2;
-	else
-		left = -rc.x;
-
-	if (renderOpenGL->GetHeight() > rc.height)
-		top = (renderOpenGL->GetHeight() - rc.height) / 2;
-	else
-		top = rc.y - (rc.height - renderOpenGL->GetHeight());
-
-	return wxPoint(left, top);
-}
-
 void CRenderVideoOpenGL::RenderWithInterpolation(const int& widthOut, const int& heightOut, const bool& flipH, const bool& flipV, const int &angle, wxRect & rc, const bool& inverted)
-{	
+{
 
-	GLfloat texVertices[8];
-
-	FillTexCoords(
-		texVertices,
-		inverted,
-		flipH,
-		flipV);
-
-	RotateTexCoords(
-		texVertices,
-		angle);
-
-	wxPoint offset = ComputeOffset(rc);
-
-	renderOpenGL->RenderQuad(
-		rc.width,
-		rc.height,
-		offset.x,
-		offset.y,
-		texVertices);
-
-	/*
 	glPushMatrix();
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY_EXT);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
 	bool _flipH = flipH;
 	bool _flipV = flipV;
+
+	//float xFactor = (float)rc.width / (float)textureVideo->GetWidth();
+	//float yFactor = (float)rc.height / (float)textureVideo->GetHeight();
 
 	int left = 0;
 	int top = 0;
@@ -492,11 +389,8 @@ void CRenderVideoOpenGL::RenderWithInterpolation(const int& widthOut, const int&
 	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
 	glPopMatrix();
-
-	
-	*/
-	
 }
+
 
 void CRenderVideoOpenGL::SetSubtitle(cv::Mat& subtitle)
 {
