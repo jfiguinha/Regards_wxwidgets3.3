@@ -247,9 +247,111 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 }
 
+static inline void FillTexCoords(
+	GLfloat* tex,
+	bool inverted,
+	bool flipH,
+	bool flipV)
+{
+	float left = flipH ? 1.0f : 0.0f;
+	float right = flipH ? 0.0f : 1.0f;
+	float top = flipV ? 1.0f : 0.0f;
+	float bottom = flipV ? 0.0f : 1.0f;
+
+	if (inverted)
+		std::swap(top, bottom);
+
+	tex[0] = left;  tex[1] = top;
+	tex[2] = right; tex[3] = top;
+	tex[4] = right; tex[5] = bottom;
+	tex[6] = left;  tex[7] = bottom;
+}
+
+static inline void RotateTexCoords(
+	GLfloat* tex,
+	int angle)
+{
+	if (angle != 90 &&
+		angle != 180 &&
+		angle != 270)
+	{
+		return;
+	}
+
+	GLfloat rotated[8];
+
+	int offset = 0;
+
+	switch (angle)
+	{
+	case 90:
+		offset = 3;
+		break;
+
+	case 180:
+		offset = 2;
+		break;
+
+	case 270:
+		offset = 1;
+		break;
+	}
+
+	for (int i = 0; i < 4; i++)
+	{
+		int src = (i + offset) % 4;
+
+		rotated[i * 2] = tex[src * 2];
+		rotated[i * 2 + 1] = tex[src * 2 + 1];
+	}
+
+	memcpy(tex, rotated, sizeof(rotated));
+}
+
+wxPoint CRenderVideoOpenGL::ComputeOffset(
+	const wxRect& rc)
+{
+	int left;
+	int top;
+
+	if (renderOpenGL->GetWidth() > rc.width)
+		left = (renderOpenGL->GetWidth() - rc.width) / 2;
+	else
+		left = -rc.x;
+
+	if (renderOpenGL->GetHeight() > rc.height)
+		top = (renderOpenGL->GetHeight() - rc.height) / 2;
+	else
+		top = rc.y - (rc.height - renderOpenGL->GetHeight());
+
+	return wxPoint(left, top);
+}
 
 void CRenderVideoOpenGL::RenderWithInterpolation(const int& widthOut, const int& heightOut, const bool& flipH, const bool& flipV, const int &angle, wxRect & rc, const bool& inverted)
 {	
+
+	GLfloat texVertices[8];
+
+	FillTexCoords(
+		texVertices,
+		inverted,
+		flipH,
+		flipV);
+
+	RotateTexCoords(
+		texVertices,
+		angle);
+
+	wxPoint offset = ComputeOffset(rc);
+
+	renderOpenGL->RenderQuad(
+		rc.width,
+		rc.height,
+		offset.x,
+		offset.y,
+		texVertices);
+
+	/*
 	glPushMatrix();
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY_EXT);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -392,7 +494,7 @@ void CRenderVideoOpenGL::RenderWithInterpolation(const int& widthOut, const int&
 	glPopMatrix();
 
 	
-
+	*/
 	
 }
 
