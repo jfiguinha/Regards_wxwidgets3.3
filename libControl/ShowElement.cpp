@@ -82,6 +82,7 @@ CShowElement::CShowElement(wxWindow* parent,
     bitmapInterface = bitmapInterfaceIn;
     configRegards   = CParamInit::getInstance();
     windowMain      = static_cast<CWindowMain*>(FindWindowById(mainViewerId));
+    tempImage = nullptr;
 
     // --- Thèmes ---
     CThemeSlider     themeSlider;
@@ -432,8 +433,7 @@ void CShowElement::TransitionEnd()
     transitionEnd = true;
     if (tempImage)
     {
-        bitmapWindow->SetBitmap(tempImage.get());
-        tempImage.reset();
+        bitmapWindow->SetBitmap(tempImage);
         if (pictureToolbar)
             pictureToolbar->SetTrackBarPosition(bitmapWindow->GetPosRatio());
     }
@@ -467,7 +467,9 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
 
     // On ne garde plus l'ancienne tempImage si ce n'est pas une miniature
     if (!isThumbnail)
-        tempImage.reset();
+    {
+        tempImage = nullptr;
+    }
 
     SendPreviewButtonEvents(this,
         isThumbnail ? wxEVENT_HIDESAVEBUTTON   : wxEVENT_SHOWSAVEBUTTON,
@@ -532,13 +534,12 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
         }
         if (needReload)
         {
-            tempImage = std::make_unique<CImageLoadingFormat>();
-            *tempImage = *bitmap;
+            tempImage = bitmap;
         }
     }
     else
     {
-        tempImage.reset();
+		tempImage = nullptr;
     }
 
     if (pictureToolbar)

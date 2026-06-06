@@ -5,159 +5,96 @@
 #include "SqlResult.h"
 using namespace Regards::Sqlite;
 
+// ── RAII lock/unlock ────────────────────────────────────────────────────────
+// Évite tout unlock() manquant, même en cas de return anticipé
+struct LibLockGuard
+{
+    CSqlLib& lib;
+    bool     owns;
+
+    LibLockGuard(CSqlLib& l, bool shouldLock)
+        : lib(l), owns(shouldLock)
+    {
+        if (owns) lib.lock();
+    }
+
+    ~LibLockGuard()
+    {
+        if (owns) lib.unlock();
+    }
+};
+
+// ── Constructeur ────────────────────────────────────────────────────────────
 
 CSqlExecuteRequest::CSqlExecuteRequest(const wxString& databaseName)
+    : m_databaseName(databaseName)
+{}
+
+// ── Helper central : supprime toute la duplication ──────────────────────────
+
+bool CSqlExecuteRequest::withLib(const std::function<void(CSqlLib&)>& fn)
 {
-	_sqlLibTransaction = nullptr;
-	useTransaction = false;
-	this->databaseName = databaseName;
+    if (m_useTransaction)
+    {
+        // Déjà locké par BeginTransaction
+        if (!m_transaction) return false;
+        fn(*m_transaction);
+        return true;
+    }
+
+    CSqlLib* lib = CSqlEngine::getInstance(m_databaseName);
+    if (!lib) return false;
+
+    LibLockGuard guard(*lib, true);  // lock → unlock garanti à la sortie
+    fn(*lib);
+    return true;
 }
 
 
-CSqlExecuteRequest::~CSqlExecuteRequest()
+// ── Requêtes ────────────────────────────────────────────────────────────────
+
+int CSqlExecuteRequest::ExecuteRequest(const wxString& sql)
 {
+    int nbResult = 0;
+
+    withLib([&](CSqlLib& lib)
+        {
+            CSqlResult sqlResult;
+            if (lib.ExecuteSQLSelect(sql, &sqlResult))
+            {
+                nbResult = TraitementResult(&sqlResult);
+                // Release() uniquement si CSqlResult ne gère pas lui-même son stmt
+                lib.Release();
+            }
+        });
+
+    return nbResult;
 }
 
-
-bool CSqlExecuteRequest::ExecuteInsertBlobData(const wxString& requestSQL, const int& numCol, const void* zBlob,
-                                               const int& nBlob)
+int CSqlExecuteRequest::ExecuteRequestWithNoResult(const wxString& sql)
 {
-	//	int nbResult = 0;			// Error code reporting
+    int nbResult = 0;
 
-	if (useTransaction)
-	{
-		CSqlResult sqlResult;
-		bool hr = _sqlLibTransaction->ExecuteSQLBlobInsert(requestSQL, numCol, zBlob, nBlob, &sqlResult);
+    withLib([&](CSqlLib& lib)
+        {
+            nbResult = lib.ExecuteSQLWithNoResult(sql);
+        });
 
-		if (hr)
-		{
-			_sqlLibTransaction->Release();
-			return hr;
-		}
-	}
-	else
-	{
-		CSqlResult sqlResult;
-		CSqlLib* _sqlLib = CSqlEngine::getInstance(databaseName);
-		_sqlLib->lock();
-		bool hr = _sqlLib->ExecuteSQLBlobInsert(requestSQL, numCol, zBlob, nBlob, &sqlResult);
-
-		if (hr)
-		{
-			_sqlLib->Release();
-			_sqlLib->unlock();
-			return hr;
-		}
-		_sqlLib->unlock();
-	}
-	return false;
+    return nbResult;
 }
 
-//-------------------------------------------------------------------------------------------------
-// Execution d'une requete qui n'attend pas de résultat
-//-------------------------------------------------------------------------------------------------
-int CSqlExecuteRequest::ExecuteRequestWithNoResult(const wxString& requestSQL)
+bool CSqlExecuteRequest::ExecuteInsertBlobData(const wxString& sql, int numCol,
+    const void* blob, int blobSize)
 {
-	//  wxString query;
-	//query.append(requestSQL.begin(), requestSQL.end());
+    bool success = false;
 
-	int nbResult = 0; // Error code reporting
-	if (useTransaction)
-	{
-		nbResult = _sqlLibTransaction->ExecuteSQLWithNoResult(requestSQL);
-	}
-	else
-	{
-		CSqlLib* _sqlLib = CSqlEngine::getInstance(databaseName);
-		if (_sqlLib != nullptr)
-		{
-			_sqlLib->lock();
-			nbResult = _sqlLib->ExecuteSQLWithNoResult(requestSQL);
-			_sqlLib->unlock();
-		}
-	}
-	return nbResult;
-}
+    withLib([&](CSqlLib& lib)
+        {
+            CSqlResult sqlResult;
+            success = lib.ExecuteSQLBlobInsert(sql, numCol, blob, blobSize, &sqlResult);
+            if (success)
+                lib.Release();
+        });
 
-void CSqlExecuteRequest::BeginTransaction()
-{
-#ifdef USE_TRANSACTION
-	_sqlLibTransaction = CSqlEngine::getInstance(databaseName);
-	_sqlLibTransaction->BeginTransaction();
-	_sqlLibTransaction->lock();
-	useTransaction = true;
-#endif
-}
-
-void CSqlExecuteRequest::CommitTransection()
-{
-#ifdef USE_TRANSACTION
-	_sqlLibTransaction->CommitTransection();
-	useTransaction = false;
-	_sqlLibTransaction->unlock();
-#endif
-}
-
-/*
-int64_t CSqlExecuteRequest::GetLastId()
-{
-	int64_t value;
-	if (useTransaction)
-	{
-		value = _sqlLibTransaction->GetLastId();
-	}
-	else
-	{
-		CSqlLib* _sqlLib = CSqlEngine::getInstance(databaseName);
-		if (_sqlLib != nullptr)
-		{
-			_sqlLib->lock();
-			value = _sqlLib->GetLastId();
-			_sqlLib->unlock();
-		}
-		else
-		{
-			//wxString database_error = CLibResource::LoadStringFromResource(L"DatabaseCorrupt",1);
-			wxString infos = CLibResource::LoadStringFromResource("LBLDATABASEERROR", 1);
-			wxMessageBox(infos);
-			exit(1);
-		}
-	}
-	return value;
-}
-*/
-int CSqlExecuteRequest::ExecuteRequest(const wxString& requestSQL)
-{
-	if (useTransaction)
-	{
-		CSqlResult sqlResult;
-		bool hr = _sqlLibTransaction->ExecuteSQLSelect(requestSQL, &sqlResult);
-
-		if (hr)
-		{
-			int nbResult = TraitementResult(&sqlResult);
-			_sqlLibTransaction->Release();
-			return nbResult;
-		}
-	}
-	else
-	{
-		CSqlResult sqlResult;
-		CSqlLib* _sqlLib = CSqlEngine::getInstance(databaseName);
-		if (_sqlLib != nullptr)
-		{
-			_sqlLib->lock();
-			bool hr = _sqlLib->ExecuteSQLSelect(requestSQL, &sqlResult);
-
-			if (hr)
-			{
-				int nbResult = TraitementResult(&sqlResult);
-				_sqlLib->Release();
-				_sqlLib->unlock();
-				return nbResult;
-			} //throw("Erreur SQL");
-			_sqlLib->unlock();
-		}
-	}
-	return 0;
+    return success;
 }

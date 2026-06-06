@@ -172,7 +172,7 @@ namespace Regards
             CWindowMain* windowMain = nullptr;
 
             // tempImage : propriété claire, géré via unique_ptr
-            std::unique_ptr<CImageLoadingFormat> tempImage;
+            CImageLoadingFormat * tempImage;
 
             CSlideToolbar *     slideToolbar = nullptr;
             CSliderVideo *      videoSlider   = nullptr;

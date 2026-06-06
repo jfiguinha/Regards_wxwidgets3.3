@@ -12,11 +12,11 @@
 #include <ConvertUtility.h>
 using namespace Regards::Sqlite;
 
-CSqlVersion::CSqlVersion(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
+CSqlVersion::CSqlVersion(CSqlLib* m_transaction, const bool& m_useTransaction)
 	: CSqlExecuteRequest(L"RegardsDB")
 {
-	this->_sqlLibTransaction = _sqlLibTransaction;
-	this->useTransaction = useTransaction;
+	this->m_transaction = m_transaction;
+	this->m_useTransaction = m_useTransaction;
 	typeResult = 0;
 	result = "";
 }

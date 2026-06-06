@@ -26,7 +26,7 @@ namespace Regards
 		class CSqlPhotoGPS : public CSqlExecuteRequest
 		{
 		public:
-			CSqlPhotoGPS(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
+			CSqlPhotoGPS(CSqlLib* m_transaction = nullptr, const bool& m_useTransaction = false);
 			~CSqlPhotoGPS() override;
 			bool InsertPhoto(const int& numPhoto, const wxString& filepath, const int& numFolderId);
 			bool DeletePhoto(const int64_t& numPhoto);

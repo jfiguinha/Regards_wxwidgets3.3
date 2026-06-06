@@ -101,11 +101,11 @@ strftime('%w', REPLACE(CreateDate, '.', '-')) as DayOfWeek FROM PHOTOSSEARCHCRIT
 
 
 
-CSqlLibExplorer::CSqlLibExplorer(const bool& readOnly, const wxString& libelleNotGeo, const bool& load_inmemory)
+CSqlLibExplorer::CSqlLibExplorer(const bool& readOnly, const wxString& libelleNotGeo, const bool& m_loadInMemory)
 	: CSqlLib()
 {
-	this->readonly = readOnly;
-	this->load_inmemory = load_inmemory;
+	this->m_readonly = readOnly;
+	this->m_loadInMemory = m_loadInMemory;
 	this->libelleNotGeo = libelleNotGeo;
 }
 
@@ -164,11 +164,11 @@ bool CSqlLibExplorer::InitDatabase(const wxString& lpFilename)
 
 	if (!wxFileExists(lpFilename))
 	{
-		hr = CreateDatabase(lpFilename, load_inmemory);
+		hr = CreateDatabase(lpFilename, m_loadInMemory);
 	}
 	else
 	{
-		OpenConnection(lpFilename, false, load_inmemory);
+		OpenConnection(lpFilename, false, m_loadInMemory);
 		//ExecuteSQLWithNoResult("VACUUM;");
 		hr = ExecuteSQLWithNoResult("PRAGMA auto_vacuum = FULL;");
 		hr = ExecuteSQLWithNoResult("PRAGMA journal_mode = WAL;");
@@ -471,12 +471,12 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 // Returns: NOERROR if succesfull
 //
 ////////////////////////////////////////////////////////////////////////////////
-bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& load_inmemory)
+bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m_loadInMemory)
 {
 	wxString libelle;
 	wxString query;
 
-	if (!OpenConnection(databasePath, false, load_inmemory))
+	if (!OpenConnection(databasePath, false, m_loadInMemory))
 		return false;
 
 	int hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOFOLDER_TABLE);
@@ -553,7 +553,7 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& l
 		goto Exit;
 	}
 
-	CommitTransection();
+	CommitTransaction();
 
 	// Create CATEGORIE table
 	//
@@ -715,7 +715,7 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& l
 		goto Exit;
 	}
 
-	CommitTransection();
+	CommitTransaction();
 
 
 	// Create CATEGORIE table
@@ -1299,7 +1299,7 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& l
 	hr = ExecuteSQLWithNoResult(
 		"INSERT INTO COUNTRY (NumCountry, CodeCountry, LibelleContinent, LibelleCountry) VALUES (248,'ZW','Africa','Zimbabwe');");
 
-	CommitTransection();
+	CommitTransaction();
 
 	// Create CATALOG ICONEFILE table
 	//

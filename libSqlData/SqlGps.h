@@ -19,7 +19,7 @@ namespace Regards
 		class CSqlGps : public CSqlExecuteRequest
 		{
 		public:
-			CSqlGps(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
+			CSqlGps(CSqlLib* m_transaction = nullptr, const bool& m_useTransaction = false);
 			~CSqlGps() override;
 			bool InsertGps(const wxString& filepath, const wxString& latitude, const wxString& longitude);
 			bool UpdateGps(const wxString& filepath, const wxString& latitude, const wxString& longitude);

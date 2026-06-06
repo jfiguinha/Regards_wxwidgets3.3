@@ -24,7 +24,7 @@ namespace Regards
 
 
 		private:
-			static vector<DataBase> _listOfBase;
+			static std::unordered_map<wxString, std::unique_ptr<CSqlLib>> _bases;
 		};
 	}
 }

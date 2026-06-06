@@ -6,7 +6,7 @@
 using namespace Regards::Sqlite;
 
 // Initialisation du singleton à nullptr
-vector<CSqlEngine::DataBase> CSqlEngine::_listOfBase;
+std::unordered_map<wxString, std::unique_ptr<CSqlLib>> CSqlEngine::_bases;
 
 CSqlEngine::CSqlEngine()
 {
@@ -20,89 +20,44 @@ CSqlEngine::~CSqlEngine()
 
 CSqlLib* CSqlEngine::getInstance(const wxString& baseName)
 {
-	auto i = std::find_if(_listOfBase.begin(),
-	                      _listOfBase.end(),
-	                      [&](const auto& val) { return val.baseName == baseName; });
-
-	if (i != _listOfBase.end())
-	{
-		return (*i)._singleton;
-	}
-	//for (DataBase db : _listOfBase)
-	//	if (db.baseName == baseName)
-	//		return db._singleton;
-	return nullptr;
+	auto it = _bases.find(baseName);
+	return (it != _bases.end()) ? it->second.get() : nullptr;
 }
 
 
 bool CSqlEngine::Initialize(const wxString& filename, const wxString& baseName, CSqlLib* sqlLib)
 {
-	auto i = std::find_if(_listOfBase.begin(),
-	                      _listOfBase.end(),
-	                      [&](const auto& val) { return val.baseName == baseName; });
-	if (i != _listOfBase.end())
+	auto i = _bases.find(baseName);
+	if (i != _bases.end())
 		return false;
 
-	//for (DataBase db : _listOfBase)
-	//	if (db.baseName == baseName)
-	//		return;
+	std::unique_ptr<CSqlLib> lib(sqlLib);
 
-	DataBase db;
-	db._singleton = sqlLib;
-	db.baseName = baseName;
-	bool hr = db._singleton->InitDatabase(filename);
-	if (!(hr))
+	if (lib->InitDatabase(filename))
 	{
-		// Tenter la récupération sur le fichier
-		bool ok = db._singleton->RecoverDatabaseFile(filename);
-
-		// Reouvrir la connexion (non readonly et sans load_inmemory ici)
-		if (ok)
-		{
-			ok = db._singleton->OpenConnection(filename, false, false);
-			if (ok)
-				db._singleton->CheckVersion(filename);
-		}
-		else
-			return false;
-	}
-	else
-	{
-		_listOfBase.push_back(db);
-		db._singleton->CheckVersion(filename);
+		lib->CheckVersion(filename);
+		_bases.emplace(baseName, std::move(lib));
+		return true;
 	}
 
+	// Tentative de récupération
+	if (!lib->RecoverDatabaseFile(filename))
+		return false;
+
+	if (!lib->OpenConnection(filename, false, false))
+		return false;
+
+	lib->CheckVersion(filename);
+	_bases.emplace(baseName, std::move(lib));
 	return true;
 }
 
 void CSqlEngine::kill(const wxString& baseName)
 {
-	auto i = std::find_if(_listOfBase.begin(),
-	                      _listOfBase.end(),
-	                      [&](const auto& val) { return val.baseName == baseName; });
+	auto it = _bases.find(baseName);
+	if (it == _bases.end())
+		return;
 
-	if (i != _listOfBase.end())
-	{
-		DataBase db = *i;
-		db._singleton->CloseConnection();
-		delete db._singleton;
-		db._singleton = nullptr;
-	}
-
-	/*
-	for (DataBase db : _listOfBase)
-	{
-		if (db.baseName == baseName)
-		{
-			if (nullptr != db._singleton)
-			{
-				db._singleton->CloseConnection();
-
-				delete db._singleton;
-				db._singleton = nullptr;
-			}
-			break;
-		}
-	}
-	*/
+	it->second->CloseConnection();
+	_bases.erase(it); // unique_ptr détruit automatiquement l'objet
 }

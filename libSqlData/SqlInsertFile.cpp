@@ -5,6 +5,7 @@
 #include "SqlResult.h"
 #include <algorithm>
 #include <mutex>
+#include "SqlTransaction.h"
 using namespace Regards::Picture;
 using namespace Regards::Sqlite;
 
@@ -77,7 +78,7 @@ int CSqlInsertFile::GetNbPhotos()
 
 void CSqlInsertFile::ImportFileFromFolder(const vector<wxString>& listFile, const int& idFolder)
 {
-	BeginTransaction();
+	CSqlTransaction sqlTransaction;
 	CLibPicture libPicture;
 
 	for (wxString filename : listFile)
@@ -112,14 +113,14 @@ void CSqlInsertFile::ImportFileFromFolder(const vector<wxString>& listFile, cons
 	}
 	//ExecuteRequestWithNoResult("INSERT INTO PHOTOSSEARCHCRITERIA (NumPhoto,FullPath) SELECT NumPhoto, FullPath FROM PHOTOS WHERE NumFolderCatalog = " + to_string(idFolder) + " and NumPhoto not in (SELECT NumPhoto FROM PHOTOSSEARCHCRITERIA)");
 
-	CommitTransection();
+	sqlTransaction.commit();
 }
 
 
 void CSqlInsertFile::InsertPhotoFolderToRefresh(const wxString& folder)
 {
 	CLibPicture libPicture;
-	BeginTransaction();
+	CSqlTransaction sqlTransaction;
 
 	ExecuteRequestWithNoResult("DELETE FROM PHOTOFOLDER");
 
@@ -137,7 +138,7 @@ void CSqlInsertFile::InsertPhotoFolderToRefresh(const wxString& folder)
 			ExecuteRequestWithNoResult("INSERT INTO PHOTOFOLDER (FullPath) VALUES ('" + file + "')");
 		}
 	}
-	CommitTransection();
+	sqlTransaction.commit();
 }
 
 bool CSqlInsertFile::GetPhotoToAdd(vector<wxString>* listFile)
@@ -177,7 +178,7 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 {
 	if (files.size() > 0)
 	{
-		BeginTransaction();
+		CSqlTransaction sqlTransaction;
 		auto s_mutex = new std::mutex();
 
 		tbb::parallel_for(0, static_cast<int>(files.size()), 1, [=](int i)
@@ -201,7 +202,7 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 			}
 		});
 
-		CommitTransection();
+		sqlTransaction.commit();
 
 		delete s_mutex;
 
@@ -227,7 +228,7 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 int CSqlInsertFile::ImportFileFromFolder(const wxString& folder, const int& idFolder, wxString& firstFile)
 {
 	CLibPicture libPicture;
-	BeginTransaction();
+	CSqlTransaction sqlTransaction;
 
 	int i = 0;
 	wxArrayString files;
@@ -263,7 +264,7 @@ int CSqlInsertFile::ImportFileFromFolder(const wxString& folder, const int& idFo
 			i++;
 		}
 	}
-	CommitTransection();
+	sqlTransaction.commit();
 	return i;
 }
 

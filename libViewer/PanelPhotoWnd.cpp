@@ -323,8 +323,7 @@ void CPanelPhotoWnd::RemoveFolder(const wxString& folder)
 		int64_t idFolder = sqlFolderCatalog.GetFolderCatalogId(NUMCATALOGID, folder);
 		if (idFolder != -1)
 		{
-			CSQLRemoveData sqlRemoveData;
-			sqlRemoveData.DeleteFolder(idFolder);
+			CSQLRemoveData::DeleteFolder(idFolder);
 		}
 
 		SetStopProcess(false);

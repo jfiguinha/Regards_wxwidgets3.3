@@ -12,11 +12,11 @@ using namespace std;
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;
 
-CSqlResource::CSqlResource(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
+CSqlResource::CSqlResource(CSqlLib* m_transaction, const bool& m_useTransaction)
 	: CSqlExecuteRequest(L"ResourceDB"), typeResult(0), memFile(nullptr), id(0)
 {
-	this->_sqlLibTransaction = _sqlLibTransaction;
-	this->useTransaction = useTransaction;
+	this->m_transaction = m_transaction;
+	this->m_useTransaction = m_useTransaction;
 }
 
 

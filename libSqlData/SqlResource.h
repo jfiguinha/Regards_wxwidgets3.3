@@ -12,7 +12,7 @@ namespace Regards
 		class CSqlResource : public CSqlExecuteRequest
 		{
 		public:
-			CSqlResource(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
+			CSqlResource(CSqlLib* m_transaction = nullptr, const bool& m_useTransaction = false);
 			~CSqlResource() override;
 
 			CPictureData* GetBitmap(const wxString& idName);

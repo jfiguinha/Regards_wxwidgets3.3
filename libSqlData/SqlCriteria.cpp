@@ -3,13 +3,10 @@
 #include "SqlCriteria.h"
 using namespace Regards::Sqlite;
 
-CSqlCriteria::CSqlCriteria(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
+CSqlCriteria::CSqlCriteria()
 	: CSqlExecuteRequest(L"RegardsDB")
 {
 	criteriaId = -1;
-
-	this->_sqlLibTransaction = _sqlLibTransaction;
-	this->useTransaction = useTransaction;
 }
 
 

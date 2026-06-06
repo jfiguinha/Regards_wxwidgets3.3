@@ -3,6 +3,7 @@
 #include "SqlCriteria.h"
 #include "SqlPhotos.h"
 #include <ConvertUtility.h>
+#include <SqlTransaction.h>
 using namespace Regards::Sqlite;
 
 CSqlPhotoCriteria::CSqlPhotoCriteria()
@@ -18,9 +19,9 @@ CSqlPhotoCriteria::~CSqlPhotoCriteria()
 bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPhotoCriteria, bool& isNew,
                                                 bool criteriaUpdate, const int& numFolder)
 {
-	BeginTransaction();
-	CSqlPhotos sqlPhoto(this->_sqlLibTransaction, this->useTransaction);
-	CSqlCriteria sqlCriteria(this->_sqlLibTransaction, this->useTransaction);
+	CSqlTransaction sqlTransaction;
+	CSqlPhotos sqlPhoto;
+	CSqlCriteria sqlCriteria;
 
 	for (auto it = listPhotoCriteria.listCriteria.begin(); it != listPhotoCriteria.listCriteria.end(); ++it)
 	{
@@ -57,7 +58,7 @@ bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPh
 	if (criteriaUpdate)
 		sqlPhoto.UpdatePhotoCriteria(listPhotoCriteria.numPhotoId);
 
-	CommitTransection();
+	sqlTransaction.commit();
 
 	return true;
 }
@@ -122,7 +123,7 @@ bool CSqlPhotoCriteria::DeleteCatalogCriteria(const int64_t& numCatalog)
 }
 
 
-void CSqlPhotoCriteria::DeletePhotoCriteria()
+bool CSqlPhotoCriteria::DeletePhotoCriteria()
 {
-	ExecuteRequestWithNoResult("DELETE FROM PHOTOSCRITERIA");
+	return ExecuteRequestWithNoResult("DELETE FROM PHOTOSCRITERIA");
 }

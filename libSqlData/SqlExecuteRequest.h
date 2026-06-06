@@ -7,27 +7,36 @@ namespace Regards
 		class CSqlResult;
 		class CSqlLib;
 
-		class CSqlExecuteRequest
-		{
-		public:
-			CSqlExecuteRequest(const wxString& databaseName);
-			virtual ~CSqlExecuteRequest();
-			int ExecuteRequestWithNoResult(const wxString& requestSQL);
-			int ExecuteRequest(const wxString& requestSQL);
-			bool ExecuteInsertBlobData(const wxString& requestSQL, const int& numCol, const void* zBlob,
-			                           const int& nBlob);
-			//virtual int64_t GetLastId();
+        class CSqlResult;
+        class CSqlLib;
 
-			static void BeginTransaction();
-			static void CommitTransection();
+        class CSqlExecuteRequest
+        {
+        public:
+            explicit CSqlExecuteRequest(const wxString& databaseName);
+            virtual ~CSqlExecuteRequest() = default;
 
-		protected:
-			bool useTransaction;
-			CSqlLib* _sqlLibTransaction;
-			wxString databaseName;
+            // Non-copiable (possède un état de transaction)
+            CSqlExecuteRequest(const CSqlExecuteRequest&) = delete;
+            CSqlExecuteRequest& operator=(const CSqlExecuteRequest&) = delete;
 
-		private:
-			virtual int TraitementResult(CSqlResult* sqlResult) = 0;
-		};
+            int  ExecuteRequest(const wxString& sql);
+            int  ExecuteRequestWithNoResult(const wxString& sql);
+            bool ExecuteInsertBlobData(const wxString& sql, int numCol,
+                const void* blob, int blobSize);
+
+        protected:
+            wxString   m_databaseName;
+            CSqlLib* m_transaction = nullptr; // non-null uniquement entre Begin/Commit
+            bool     m_useTransaction = false;
+        private:
+            // Récupère le CSqlLib actif (transaction ou singleton)
+            // et exécute fn(lib) sous lock si nécessaire.
+            // Retourne false si lib est introuvable.
+            bool withLib(const std::function<void(CSqlLib&)>& fn);
+
+            virtual int TraitementResult(CSqlResult* result) = 0;
+
+        };
 	}
 }

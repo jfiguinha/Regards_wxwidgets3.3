@@ -17,7 +17,7 @@ namespace Regards
 		class CSqlVersion : public CSqlExecuteRequest
 		{
 		public:
-			CSqlVersion(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
+			CSqlVersion(CSqlLib* m_transaction = nullptr, const bool& m_useTransaction = false);
 			~CSqlVersion() override;
 			bool InsertVersion(const wxString& version);
 			bool UpdateVersion(const wxString& version, const wxString& oldValue);

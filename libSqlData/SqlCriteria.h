@@ -8,10 +8,10 @@ namespace Regards
 	{
 		class CSqlResult;
 
-		class CSqlCriteria final : public CSqlExecuteRequest
+		class CSqlCriteria : public CSqlExecuteRequest
 		{
 		public:
-			CSqlCriteria(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
+			CSqlCriteria();
 			~CSqlCriteria() override;
 			bool DeleteCriteria(const int& numCriteria, const int& numCategory);
 			int64_t GetCriteriaId(const int& numCriteria, const int& numFolder);
