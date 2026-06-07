@@ -354,75 +354,62 @@ void CToolbarWindow::GenerateNavigatorButton(wxDC* deviceContext)
 	}
 }
 
-void CToolbarWindow::on_paint(wxPaintEvent& event)
+
+// ---------------------------------------------------------------------------
+// Layout recalculation (separated from paint so it runs only when needed)
+// ---------------------------------------------------------------------------
+
+void CToolbarWindow::RecalcLayout()
 {
-	wxBufferedPaintDC dc(this);
-
-	DrawBackground(&dc);
-
-	int navigatorWidth = GetNavigatorWidth();
-	int navigatorHeight = GetNavigatorHeight();
+	const int navW = GetNavigatorWidth();   // also fills m_cachedNavHeight
+	const int navH = GetNavigatorHeight();
 
 	if (isVertical)
 	{
-		int xStart = (GetWindowWidth() - navigatorWidth) / 2;
+		int xStart = (GetWindowWidth() - navW) / 2;
 		int yStart = 0;
 
 		switch (themeToolbar.position)
 		{
-		case NAVIGATOR_LEFT:
-			yStart = 0;
-			break;
-		case NAVIGATOR_CENTER:
-			yStart = (GetWindowHeight() - navigatorHeight) / 2;
-			break;
-		case NAVIGATOR_RIGHT:
-			yStart = GetWindowHeight() - navigatorHeight;
-			break;
-		default: ;
+		case NAVIGATOR_CENTER: yStart = (GetWindowHeight() - navH) / 2; break;
+		case NAVIGATOR_RIGHT:  yStart = GetWindowHeight() - navH;        break;
+		default:               yStart = 0;                               break;
 		}
 
-		for (CToolbarElement* nav : navElement)
+		for (auto& nav : navElement)
 		{
-			if (nav->IsVisible())
-			{
-				//nav->Resize(navigatorWidth, nav->GetHeight());
-				// nav->SetBackgroundBitmap(backPicture);
-				nav->SetPosition(xStart, yStart);
-				yStart += themeToolbar.GetMargeY() + nav->GetHeight();
-			}
+			if (!nav->IsVisible()) continue;
+			nav->SetPosition(xStart, yStart);
+			yStart += themeToolbar.GetMargeY() + nav->GetHeight();
 		}
 	}
 	else
 	{
 		int xStart = 0;
-		int yStart = (GetWindowHeight() - navigatorHeight) / 2;
+		int yStart = (GetWindowHeight() - navH) / 2;
 
 		switch (themeToolbar.position)
 		{
-		case NAVIGATOR_LEFT:
-			xStart = 0;
-			break;
-		case NAVIGATOR_CENTER:
-			xStart = (GetWindowWidth() - navigatorWidth) / 2;
-			break;
-		case NAVIGATOR_RIGHT:
-			xStart = GetWindowWidth() - navigatorWidth;
-			break;
-		default: ;
+		case NAVIGATOR_CENTER: xStart = (GetWindowWidth() - navW) / 2; break;
+		case NAVIGATOR_RIGHT:  xStart = GetWindowWidth() - navW;        break;
+		default:               xStart = 0;                              break;
 		}
 
-		for (CToolbarElement* nav : navElement)
+		for (auto& nav : navElement)
 		{
-			if (nav->IsVisible())
-			{
-				//nav->Resize(nav->GetWidth(), navigatorHeight);
-				// nav->SetBackgroundBitmap(backPicture);
-				nav->SetPosition(xStart, yStart);
-				xStart += themeToolbar.GetMargeX() + nav->GetWidth();
-			}
+			if (!nav->IsVisible()) continue;
+			nav->SetPosition(xStart, yStart);
+			xStart += themeToolbar.GetMargeX() + nav->GetWidth();
 		}
 	}
+}
 
+
+void CToolbarWindow::on_paint(wxPaintEvent& event)
+{
+	wxBufferedPaintDC dc(this);
+
+	DrawBackground(&dc);
+	RecalcLayout();
 	GenerateNavigatorButton(&dc);
 }

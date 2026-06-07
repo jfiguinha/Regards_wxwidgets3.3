@@ -36,6 +36,7 @@ namespace Regards::Window
 		{
 		};
 
+		void RecalcLayout();
 		void DrawBackground(wxDC* deviceContext);
 		void DrawBackground(wxDC* deviceContext, const wxRect& rc);
 		void GenerateNavigatorButton(wxDC* deviceContext);
