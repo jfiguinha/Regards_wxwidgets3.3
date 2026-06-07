@@ -21,38 +21,38 @@ CThumbnailFaceToolBar::CThumbnailFaceToolBar(wxWindow* parent, wxWindowID id, co
 	wxString copy_label = CLibResource::LoadStringFromResource(L"LBLCOPY", 1);
 	wxString add_label = CLibResource::LoadStringFromResource(L"LBLFACEADD", 1);
 
-	auto add = new CToolbarButton(themeToolbar.button);
+	add = std::make_unique<CToolbarButton>(themeToolbar.button);
 	add->SetButtonResourceId(L"IDB_PLUS");
 	add->SetCommandId(WM_ADD);
 	add->SetLibelleTooltip(add_label);
-	navElement.push_back(add);
+	navElement.push_back(add.get());
 
-	auto copy = new CToolbarButton(themeToolbar.button);
+	copy = std::make_unique<CToolbarButton>(themeToolbar.button);
 	copy->SetButtonResourceId(L"IDB_MULTIPLESELECT");
 	copy->SetCommandId(WM_COPY);
 	copy->SetLibelleTooltip(copy_label);
-	navElement.push_back(copy);
+	navElement.push_back(copy.get());
 
-	auto moins = new CToolbarButton(themeToolbar.button);
+	moins = std::make_unique<CToolbarButton>(themeToolbar.button);
 	moins->SetButtonResourceId(L"IDB_ZOOMMOINS");
 	moins->SetCommandId(WM_ZOOMOUT);
 	moins->SetLibelleTooltip(zoomoff);
-	navElement.push_back(moins);
+	navElement.push_back(moins.get());
 
-	slide = new CToolbarSlide(themeToolbar.slider, this);
-	navElement.push_back(slide);
+	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
+	navElement.push_back(slide.get());
 
-	auto plus = new CToolbarButton(themeToolbar.button);
+	plus = std::make_unique<CToolbarButton>(themeToolbar.button);
 	plus->SetButtonResourceId(L"IDB_ZOOMPLUS");
 	plus->SetCommandId(WM_ZOOMON);
 	plus->SetLibelleTooltip(zoomon);
-	navElement.push_back(plus);
+	navElement.push_back(plus.get());
 
-	auto refreshButton = new CToolbarButton(themeToolbar.button);
+	refreshButton = std::make_unique<CToolbarButton>(themeToolbar.button);
 	refreshButton->SetButtonResourceId(L"IDB_FOLDER_REFRESH");
 	refreshButton->SetCommandId(WM_REFRESH);
 	refreshButton->SetLibelleTooltip(refresh);
-	navElement.push_back(refreshButton);
+	navElement.push_back(refreshButton.get());
 }
 
 CThumbnailFaceToolBar::~CThumbnailFaceToolBar()

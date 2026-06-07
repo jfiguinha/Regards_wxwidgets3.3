@@ -31,8 +31,13 @@ namespace Regards::Control
 
 	private:
 		void EventManager(const int& id) override;
-		CToolbarButton* email;
-		CToolbarSlide* slide;
+		std::unique_ptr<CToolbarButton> email;
+		std::unique_ptr<CToolbarButton> printer;
+		std::unique_ptr<CToolbarButton> shrink;
+		std::unique_ptr<CToolbarButton> moins;
+		std::unique_ptr<CToolbarButton> plus;
+		std::unique_ptr<CToolbarSlide> slide;
+
 		wxWindowID parentId;
 		bool exportPicture;
 	};

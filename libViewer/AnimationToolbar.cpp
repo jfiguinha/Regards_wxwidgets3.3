@@ -26,32 +26,32 @@ CAnimationToolbar::CAnimationToolbar(wxWindow* parent, wxWindowID id, const CThe
 	wxString libelleNext = CLibResource::LoadStringFromResource(L"LBLNEXT", 1);
 
 
-	auto imagePrec = new CToolbarButton(themeToolbar.button);
+	imagePrec = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imagePrec->SetButtonResourceId(L"IDB_ARROWLPNG");
 	imagePrec->SetLibelle(libellePrevious);
 	imagePrec->SetCommandId(WM_IMAGES_PRCDENTE);
 	imagePrec->SetRepeatable(true);
-	navElement.push_back(imagePrec);
+	navElement.push_back(imagePrec.get());
 
-	imagePlayDiaporama = new CToolbarButton(themeToolbar.button);
+	imagePlayDiaporama = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imagePlayDiaporama->SetButtonResourceId(L"IDB_PLAY");
 	imagePlayDiaporama->SetCommandId(WM_DIAPORAMA_PLAY);
 	imagePlayDiaporama->SetLibelle(libellePlay);
-	navElement.push_back(imagePlayDiaporama);
+	navElement.push_back(imagePlayDiaporama.get());
 
-	imageStopDiaporama = new CToolbarButton(themeToolbar.button);
+	imageStopDiaporama = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageStopDiaporama->SetButtonResourceId(L"IDB_STOP");
 	imageStopDiaporama->SetCommandId(WM_DIAPORAMA_STOP);
 	imageStopDiaporama->SetLibelle(libelleStop);
 	imageStopDiaporama->SetVisible(false);
-	navElement.push_back(imageStopDiaporama);
+	navElement.push_back(imageStopDiaporama.get());
 
-	auto imageSuiv = new CToolbarButton(themeToolbar.button);
+	imageSuiv = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageSuiv->SetButtonResourceId(L"IDB_ARROWRPNG");
 	imageSuiv->SetCommandId(WM_IMAGES_SUIVANTE);
 	imageSuiv->SetRepeatable(true);
 	imageSuiv->SetLibelle(libelleNext);
-	navElement.push_back(imageSuiv);
+	navElement.push_back(imageSuiv.get());
 
 	this->toolbarInterface = toolbarInterface;
 }

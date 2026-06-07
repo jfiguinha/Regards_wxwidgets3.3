@@ -39,17 +39,17 @@ namespace Regards::Viewer
 	private:
 		void Resize() override;
 		void EventManager(const int& id) override;
-		void DisablePush();
+
 		CToolbarInterface* toolbarInterface;
 		bool isVideo;
-		CToolbarTexte* infos;
-		CToolbarTexte* history;
-		CToolbarTexte* effect;
-		CToolbarTexte* audiovideo;
-		CToolbarTexte* videoeffect;
-		CToolbarTexte* map;
-		CToolbarTexte* effectParameter;
-		CToolbarTexte* criteria;
-		CToolbarTexte* histogramParameter;
+		std::unique_ptr<CToolbarTexte> infos;
+		std::unique_ptr<CToolbarTexte> history;
+		std::unique_ptr<CToolbarTexte> effect;
+		std::unique_ptr<CToolbarTexte> audiovideo;
+		std::unique_ptr<CToolbarTexte> videoeffect;
+		std::unique_ptr<CToolbarTexte> map;
+		std::unique_ptr<CToolbarTexte> effectParameter;
+		std::unique_ptr<CToolbarTexte> criteria;
+		std::unique_ptr<CToolbarTexte> histogramParameter;
 	};
 }

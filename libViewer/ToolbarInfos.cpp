@@ -28,139 +28,109 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
 	//L"Effect Parameter";
 	wxString histogram_label = "Histogram"; // CLibResource::LoadStringFromResource(L"LBLHISTOGRAM", 1);
 
-	infos = new CToolbarTexte(themeToolbar.texte);
+	infos = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	infos->SetCommandId(WM_INFOS);
 	infos->SetLibelle(infos_label);
-	navElement.push_back(infos);
+	navElement.push_back(infos.get());
 
-	history = new CToolbarTexte(themeToolbar.texte);
+	history = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	history->SetCommandId(WM_HISTORY);
 	history->SetLibelle(history_label);
-	navElement.push_back(history);
+	navElement.push_back(history.get());
 
-	effect = new CToolbarTexte(themeToolbar.texte);
+	effect = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	effect->SetCommandId(WM_EFFECT);
 	effect->SetLibelle(effect_label);
-	navElement.push_back(effect);
+	navElement.push_back(effect.get());
 
-	map = new CToolbarTexte(themeToolbar.texte);
+	map = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	map->SetCommandId(WM_MAPS);
 	map->SetLibelle(maps_label);
-	navElement.push_back(map);
+	navElement.push_back(map.get());
 
-	audiovideo = new CToolbarTexte(themeToolbar.texte);
+	audiovideo = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	audiovideo->SetCommandId(WM_AUDIOVIDEO);
 	audiovideo->SetLibelle(audiovideo_label);
-	navElement.push_back(audiovideo);
+	navElement.push_back(audiovideo.get());
 
-	videoeffect = new CToolbarTexte(themeToolbar.texte);
+	videoeffect = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	videoeffect->SetCommandId(WM_VIDEOEFFECT);
 	videoeffect->SetLibelle(videoeffect_label);
-	navElement.push_back(videoeffect);
+	navElement.push_back(videoeffect.get());
 
 	wxString libelleCriteria = CLibResource::LoadStringFromResource(L"LBLCRITERIA", 1);
-	criteria = new CToolbarTexte(themeToolbar.texte);
+	criteria = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	criteria->SetCommandId(WM_CRITERIA);
 	criteria->SetLibelle(libelleCriteria);
-	navElement.push_back(criteria);
+	navElement.push_back(criteria.get());
 
-	effectParameter = new CToolbarTexte(themeToolbar.texte);
+	effectParameter = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	effectParameter->SetCommandId(WM_EFFECTPARAMETER);
 	effectParameter->SetLibelle(effectParameter_label);
-	navElement.push_back(effectParameter);
+	navElement.push_back(effectParameter.get());
 
-	histogramParameter = new CToolbarTexte(themeToolbar.texte);
+	histogramParameter = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	histogramParameter->SetCommandId(WM_HISTOGRAM);
 	histogramParameter->SetLibelle(histogram_label);
-	navElement.push_back(histogramParameter);
+	navElement.push_back(histogramParameter.get());
 }
 
 CToolbarInfos::~CToolbarInfos()
 {
 }
 
-void CToolbarInfos::DisablePush()
-{
-	infos->SetPush(false);
-	history->SetPush(false);
-	effect->SetPush(false);
-	audiovideo->SetPush(false);
-	videoeffect->SetPush(false);
-	map->SetPush(false);
-	effectParameter->SetPush(false);
-	criteria->SetPush(false);
-	histogramParameter->SetPush(false);
-
-	infos->SetInactif();
-	history->SetInactif();
-	effect->SetInactif();
-	audiovideo->SetInactif();
-	videoeffect->SetInactif();
-	map->SetInactif();
-	effectParameter->SetInactif();
-	criteria->SetInactif();
-	histogramParameter->SetInactif();
-
-}
-
 void CToolbarInfos::SetHistogramPush()
 {
-	DisablePush();
 	histogramParameter->SetPush(true);
 }
 
 void CToolbarInfos::SetInfosPush()
 {
-	DisablePush();
 	infos->SetPush(true);
 }
 
 void CToolbarInfos::SetMapPush()
-{	
-	DisablePush();
+{
 	map->SetPush(true);
 }
 
 void CToolbarInfos::SetAudioVideoPush()
 {
-	DisablePush();
 	audiovideo->SetPush(true);
 }
 
 void CToolbarInfos::SetVideoEffectPush()
 {
-	DisablePush();
 	videoeffect->SetPush(true);
 }
 
 void CToolbarInfos::SetEffectPush()
 {
-	DisablePush();
 	effect->SetPush(true);
 }
 
 void CToolbarInfos::SetHistoryPush()
 {
-	DisablePush();
 	history->SetPush(true);
 }
 
 void CToolbarInfos::SetEffectParameterPush()
 {
-	DisablePush();
 	effectParameter->SetPush(true);
 }
 
 
+
 void CToolbarInfos::SetInfosActif()
 {
-	//infos->SetActif();
+	SetAllDisable();
 	infos->SetVisible(true);
 	toolbarInterface->ClickShowButton(WM_INFOS);
 }
 
 void CToolbarInfos::SetMapActif()
 {
+	SetAllDisable();
 	map->SetVisible(true);
 	needToRefresh = true;
 }
@@ -173,6 +143,7 @@ void CToolbarInfos::SetMapInactif()
 
 void CToolbarInfos::SetEffectActif()
 {
+	SetAllDisable();
 	effect->SetVisible(true);
 	needToRefresh = true;
 }
@@ -197,13 +168,12 @@ void CToolbarInfos::SetEffectParameterInactif()
 
 void CToolbarInfos::SetEffectParameterActif(const wxString& libelle)
 {
+
 	if (libelle != "")
 	{
 		effectParameter->SetVisible(true);
 		effectParameter->SetLibelle(libelle);
 		effectParameter->SetLibelleTooltip(libelle);
-		if (navPush != nullptr)
-			navPush->SetInactif();
 		effectParameter->SetActif();
 		needToRefresh = true;
 	}
@@ -249,7 +219,7 @@ void CToolbarInfos::Resize()
 	int nbElement = static_cast<int>(navElement.size());
 	themeToolbar.texte.SetTailleX(GetWindowWidth() / nbElement);
 
-	for (CToolbarElement* nav : navElement)
+	for (auto& nav : navElement)
 	{
 		nav->Resize(themeToolbar.texte.GetTailleX(), themeToolbar.texte.GetTailleY());
 	}

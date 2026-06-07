@@ -31,6 +31,14 @@ namespace Regards::Viewer
 	private:
 		void EventManager(const int& id) override;
 
-		CToolbarSlide* slide;
+		std::unique_ptr<CToolbarSlide> slide;
+		std::unique_ptr<CToolbarButton> indexButton = nullptr;
+		std::unique_ptr<CToolbarButton> exportButton = nullptr;
+		std::unique_ptr<CToolbarButton> dateButton = nullptr;
+		std::unique_ptr<CToolbarButton> geoButton = nullptr;
+		std::unique_ptr<CToolbarButton> deleteButton = nullptr;
+		std::unique_ptr<CToolbarButton> copy = nullptr;
+		std::unique_ptr<CToolbarButton> moins = nullptr;
+		std::unique_ptr<CToolbarButton> plus = nullptr;
 	};
 }

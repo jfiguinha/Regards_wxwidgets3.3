@@ -26,57 +26,57 @@ CThumbnailToolBar::CThumbnailToolBar(wxWindow* parent, wxWindowID id, const CThe
 	wxString zoomon = CLibResource::LoadStringFromResource(L"LBLZOOMON", 1);
 	wxString zoomoff = CLibResource::LoadStringFromResource(L"LBLZOOMOFF", 1);
 
-	auto indexButton = new CToolbarButton(themeToolbar.button);
+	indexButton = std::make_unique<CToolbarButton>(themeToolbar.button);
 	indexButton->SetButtonResourceId(L"IDB_PHOTOINDEX");
 	indexButton->SetCommandId(WM_INDEX);
 	indexButton->SetLibelleTooltip(index);
-	navElement.push_back(indexButton);
+	navElement.push_back(indexButton.get());
 
-	auto exportButton = new CToolbarButton(themeToolbar.button);
+	exportButton = std::make_unique<CToolbarButton>(themeToolbar.button);
 	exportButton->SetButtonResourceId(L"IDB_EXPORT");
 	exportButton->SetCommandId(WM_EXPORT);
 	exportButton->SetLibelleTooltip(export_label);
-	navElement.push_back(exportButton);
+	navElement.push_back(exportButton.get());
 
-	auto dateButton = new CToolbarButton(themeToolbar.button);
+	dateButton = std::make_unique<CToolbarButton>(themeToolbar.button);
 	dateButton->SetButtonResourceId(L"IDB_CALENDAR");
 	dateButton->SetCommandId(WM_CALENDAR);
 	dateButton->SetLibelleTooltip(date_label);
-	navElement.push_back(dateButton);
+	navElement.push_back(dateButton.get());
 
-	auto geoButton = new CToolbarButton(themeToolbar.button);
+	geoButton = std::make_unique<CToolbarButton>(themeToolbar.button);
 	geoButton->SetButtonResourceId(L"IDB_MAPLOCATION");
 	geoButton->SetCommandId(WM_GEOLOCALISE);
 	geoButton->SetLibelleTooltip(geo_label);
-	navElement.push_back(geoButton);
+	navElement.push_back(geoButton.get());
 
-	auto deleteButton = new CToolbarButton(themeToolbar.button);
+	deleteButton = std::make_unique<CToolbarButton>(themeToolbar.button);
 	deleteButton->SetButtonResourceId(L"IDB_DELETE");
 	deleteButton->SetCommandId(WM_CLEAR);
 	deleteButton->SetLibelleTooltip(delete_label);
-	navElement.push_back(deleteButton);
+	navElement.push_back(deleteButton.get());
 
 
-	auto copy = new CToolbarButton(themeToolbar.button);
+	copy = std::make_unique<CToolbarButton>(themeToolbar.button);
 	copy->SetButtonResourceId(L"IDB_MULTIPLESELECT");
 	copy->SetCommandId(WM_COPY);
 	copy->SetLibelleTooltip(copy_label);
-	navElement.push_back(copy);
+	navElement.push_back(copy.get());
 
-	auto moins = new CToolbarButton(themeToolbar.button);
+	moins = std::make_unique<CToolbarButton>(themeToolbar.button);
 	moins->SetButtonResourceId(L"IDB_ZOOMMOINS");
 	moins->SetCommandId(WM_ZOOMOUT);
 	moins->SetLibelleTooltip(zoomoff);
-	navElement.push_back(moins);
+	navElement.push_back(moins.get());
 
-	slide = new CToolbarSlide(themeToolbar.slider, this);
-	navElement.push_back(slide);
+	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
+	navElement.push_back(slide.get());
 
-	auto plus = new CToolbarButton(themeToolbar.button);
+	 plus = std::make_unique<CToolbarButton>(themeToolbar.button);
 	plus->SetButtonResourceId(L"IDB_ZOOMPLUS");
 	plus->SetCommandId(WM_ZOOMON);
 	plus->SetLibelleTooltip(zoomon);
-	navElement.push_back(plus);
+	navElement.push_back(plus.get());
 }
 
 CThumbnailToolBar::~CThumbnailToolBar()

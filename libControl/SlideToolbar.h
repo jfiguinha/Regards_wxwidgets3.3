@@ -34,10 +34,13 @@ namespace Regards::Video
 
 	private:
 		void EventManager(const int& id) override;
-		CToolbarButton* speaker;
-		CToolbarButton* zoom;
-		CToolbarSlide* slide;
-		CToolbarButton* shrink;
+		std::unique_ptr<CToolbarButton> speaker;
+		std::unique_ptr<CToolbarButton> zoom;
+		std::unique_ptr<CToolbarSlide> slide;
+		std::unique_ptr<CToolbarButton> shrink;
+		std::unique_ptr<CToolbarButton> moins;
+		std::unique_ptr<CToolbarButton> plus;
+		std::unique_ptr<CToolbarButton> cross;
 		int positionTrackBar;
 		int id;
 	};

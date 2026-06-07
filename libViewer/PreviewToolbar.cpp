@@ -45,92 +45,92 @@ CPreviewToolbar::CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeTo
     wxString export_label = CLibResource::LoadStringFromResource(L"LBLEXPORT", 1);
     wxString lblEditor = CLibResource::LoadStringFromResource(L"LBLEDITORMODE", 1);
     
-	fullscreen = new CToolbarButton(themeToolbar.button);
+	fullscreen = std::make_unique<CToolbarButton>(themeToolbar.button);
 	fullscreen->SetButtonResourceId(L"IDB_SCREENPNG");
 	fullscreen->SetCommandId(IDM_SETFULLSCREEN);
 	fullscreen->SetLibelle(libelleFullscreen);
-	navElement.push_back(fullscreen);
+	navElement.push_back(fullscreen.get());
 
-	save = new CToolbarButton(themeToolbar.button);
+	save = std::make_unique<CToolbarButton>(themeToolbar.button);
 	save->SetButtonResourceId("IDB_SAVE");
 	save->SetCommandId(WM_SAVE);
 	save->SetLibelle(saveLibelle);
-	navElement.push_back(save);
+	navElement.push_back(save.get());
     
-	auto editor = new CToolbarButton(themeToolbar.button);
+	editor = std::make_unique<CToolbarButton>(themeToolbar.button);
 	editor->SetButtonResourceId(L"IDB_OPEN");
 	editor->SetLibelle(lblEditor);
 	editor->SetCommandId(IDM_EDIT);
-	navElement.push_back(editor);
+	navElement.push_back(editor.get());
     
-    exportFile= new CToolbarButton(themeToolbar.button);
+    exportFile= std::make_unique<CToolbarButton>(themeToolbar.button);
 	exportFile->SetButtonResourceId("IDB_EXPORT");
 	exportFile->SetCommandId(IDM_EXPORT);
 	exportFile->SetLibelle(export_label);
-	navElement.push_back(exportFile);
+	navElement.push_back(exportFile.get());
 
-	imageFirst = new CToolbarButton(themeToolbar.button);
+	imageFirst = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageFirst->SetButtonResourceId(L"IDB_ARROWTRACKLPNG");
 	imageFirst->SetLibelle(libelleFirst);
 	imageFirst->SetCommandId(WM_IMAGES_FIRST);
-	navElement.push_back(imageFirst);
+	navElement.push_back(imageFirst.get());
 
-	imagePrec = new CToolbarButton(themeToolbar.button);
+	imagePrec = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imagePrec->SetButtonResourceId(L"IDB_ARROWLPNG");
 	imagePrec->SetLibelle(libellePrevious);
 	imagePrec->SetCommandId(WM_IMAGES_PRCDENTE);
 	imagePrec->SetRepeatable(true);
-	navElement.push_back(imagePrec);
+	navElement.push_back(imagePrec.get());
 
-	auto rotate90 = new CToolbarButton(themeToolbar.button);
+	rotate90 = std::make_unique<CToolbarButton>(themeToolbar.button);
 	rotate90->SetButtonResourceId(L"IDB_ROTATION90");
 	rotate90->SetCommandId(WM_ROTATE90);
 	rotate90->SetLibelle(libelleRotate90);
-	navElement.push_back(rotate90);
+	navElement.push_back(rotate90.get());
 
-	auto rotate180 = new CToolbarButton(themeToolbar.button);
+	rotate180 = std::make_unique<CToolbarButton>(themeToolbar.button);
 	rotate180->SetButtonResourceId(L"IDB_ROTATION270");
 	rotate180->SetCommandId(WM_ROTATE270);
 	rotate180->SetLibelle(libelleRotate270);
-	navElement.push_back(rotate180);
+	navElement.push_back(rotate180.get());
 
-	imagePlayDiaporama = new CToolbarButton(themeToolbar.button);
+	imagePlayDiaporama = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imagePlayDiaporama->SetButtonResourceId(L"IDB_PLAY");
 	imagePlayDiaporama->SetCommandId(WM_DIAPORAMA_PLAY);
 	imagePlayDiaporama->SetLibelle(libellePlay);
-	navElement.push_back(imagePlayDiaporama);
+	navElement.push_back(imagePlayDiaporama.get());
 
-	imageStopDiaporama = new CToolbarButton(themeToolbar.button);
+	imageStopDiaporama = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageStopDiaporama->SetButtonResourceId(L"IDB_STOP");
 	imageStopDiaporama->SetCommandId(WM_DIAPORAMA_STOP);
 	imageStopDiaporama->SetLibelle(libelleStop);
 	imageStopDiaporama->SetVisible(false);
-	navElement.push_back(imageStopDiaporama);
+	navElement.push_back(imageStopDiaporama.get());
 
-	auto flipVertical = new CToolbarButton(themeToolbar.button);
+	flipVertical = std::make_unique<CToolbarButton>(themeToolbar.button);
 	flipVertical->SetButtonResourceId(L"IDB_FLIPVERT");
 	flipVertical->SetCommandId(WM_FLIPVERTICAL);
 	flipVertical->SetLibelle(libelleFlipVertical);
-	navElement.push_back(flipVertical);
+	navElement.push_back(flipVertical.get());
 
-	auto flipHorizontal = new CToolbarButton(themeToolbar.button);
+	flipHorizontal = std::make_unique<CToolbarButton>(themeToolbar.button);
 	flipHorizontal->SetButtonResourceId(L"IDB_FLIPHORZ");
 	flipHorizontal->SetCommandId(WM_FLIPHORIZONTAL);
 	flipHorizontal->SetLibelle(libelleFlipHorizontal);
-	navElement.push_back(flipHorizontal);
+	navElement.push_back(flipHorizontal.get());
 
-	imageSuiv = new CToolbarButton(themeToolbar.button);
+	imageSuiv = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageSuiv->SetButtonResourceId(L"IDB_ARROWRPNG");
 	imageSuiv->SetCommandId(WM_IMAGES_SUIVANTE);
 	imageSuiv->SetRepeatable(true);
 	imageSuiv->SetLibelle(libelleNext);
-	navElement.push_back(imageSuiv);
+	navElement.push_back(imageSuiv.get());
 
-	imageEnd = new CToolbarButton(themeToolbar.button);
+	imageEnd = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageEnd->SetButtonResourceId(L"IDB_ARROWTRACKRPNG");
 	imageEnd->SetCommandId(WM_IMAGES_END);
 	imageEnd->SetLibelle(libelleEnd);
-	navElement.push_back(imageEnd);
+	navElement.push_back(imageEnd.get());
 	this->toolbarInterface = toolbarInterface;
 }
 

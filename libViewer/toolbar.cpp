@@ -38,118 +38,55 @@ CToolbar::CToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, 
 	wxString lblInfos = CLibResource::LoadStringFromResource(L"LBLINFOS", 1);
 	wxString lblQuit = CLibResource::LoadStringFromResource(L"LBLQUIT", 1);
 	wxString lblPrint = CLibResource::LoadStringFromResource(L"LBLPRINT", 1);
-
-
-
 	wxString lblScanner = CLibResource::LoadStringFromResource(L"LBLSCANNER", 1);
-
-	/*
-
-	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
-	if (regardsParam != nullptr)
-	{
-		faceDetection = regardsParam->GetFaceDetection();
-	}
-
-	wxString lblListFace = CLibResource::LoadStringFromResource(L"LBLFACELIST", 1);
-	wxString lblExplorerMode = CLibResource::LoadStringFromResource(L"LBLEXPLORERMODE", 1);
-	wxString lblViewerMode = CLibResource::LoadStringFromResource(L"LBLVIEWERMODE", 1);
-	wxString lblPictureMode = CLibResource::LoadStringFromResource(L"LBLPICTUREMODE", 1);
-	*/
 	wxString lblEditor = CLibResource::LoadStringFromResource(L"LBLEDITORMODE", 1);
 	wxString lblNewVersion = CLibResource::LoadStringFromResource(L"LBLUPDATE", 1);
 
-	/*
-	CToolbarButton * screen = new CToolbarButton(themeToolbar.button);
-	screen->SetButtonResourceId(L"IDB_FOLDER");
-	screen->SetCommandId(IDM_WINDOWSEARCH);
-	screen->SetLibelle(lblOpenFolder);
-	navElement.push_back(screen);
-
-	CToolbarButton* infos = new CToolbarButton(themeToolbar.button);
-	infos->SetButtonResourceId(L"IDB_INFOS");
-	infos->SetLibelle(lblInfos);
-	infos->SetCommandId(IDM_SHOWINFOS);
-	navElement.push_back(infos);
-	*/
-
-	/*
-	if (faceDetection)
-	{
-		auto thumbnailFace = new CToolbarButton(themeToolbar.button);
-		thumbnailFace->SetButtonResourceId(L"IDB_PEOPLE_FACE");
-		thumbnailFace->SetLibelle(lblListFace);
-		thumbnailFace->SetCommandId(IDM_THUMBNAILFACE);
-		navElement.push_back(thumbnailFace);
-	}
-
-	auto explorer = new CToolbarButton(themeToolbar.button);
-	explorer->SetButtonResourceId(L"IDB_SEARCH");
-	explorer->SetLibelle(lblExplorerMode);
-	explorer->SetCommandId(IDM_EXPLORERMODE);
-	navElement.push_back(explorer);
-
-	auto viewer = new CToolbarButton(themeToolbar.button);
-	viewer->SetButtonResourceId(L"IDB_THUMBNAILPNG");
-	viewer->SetLibelle(lblViewerMode);
-	viewer->SetCommandId(IDM_VIEWERMODE);
-	navElement.push_back(viewer);
-
-	auto picture = new CToolbarButton(themeToolbar.button);
-	picture->SetButtonResourceId(L"IDB_PHOTOVIEWERPNG");
-	picture->SetLibelle(lblPictureMode);
-	picture->SetCommandId(IDM_PICTUREMODE);
-	navElement.push_back(picture);
-	*/
-
-	auto scanner = new CToolbarButton(themeToolbar.button);
+	scanner = std::make_unique<CToolbarButton>(themeToolbar.button);
 	scanner->SetButtonResourceId(L"IDB_SCANNER");
 	scanner->SetLibelle(lblScanner);
 	scanner->SetCommandId(IDM_SCANNER);
-	navElement.push_back(scanner);
+	navElement.push_back(scanner.get());
 
-	auto print = new CToolbarButton(themeToolbar.button);
+	print = std::make_unique<CToolbarButton>(themeToolbar.button);
 	print->SetButtonResourceId(L"IDB_PRINTERPNG");
 	print->SetLibelle(lblPrint);
 	print->SetCommandId(IDM_PRINT);
-	navElement.push_back(print);
+	navElement.push_back(print.get());
 
 
-	auto editor = new CToolbarButton(themeToolbar.button);
+	editor = std::make_unique<CToolbarButton>(themeToolbar.button);
 	editor->SetButtonResourceId(L"IDB_OPEN");
 	editor->SetLibelle(lblEditor);
 	editor->SetCommandId(IDM_EDIT);
-	navElement.push_back(editor);
+	navElement.push_back(editor.get());
 
-	auto export_button = new CToolbarButton(themeToolbar.button);
+	export_button = std::make_unique<CToolbarButton>(themeToolbar.button);
 	export_button->SetButtonResourceId("IDB_EXPORT");
 	export_button->SetLibelle(export_label);
 	export_button->SetCommandId(IDM_EXPORT);
 	export_button->SetLibelleTooltip(export_label);
-	navElement.push_back(export_button);
+	navElement.push_back(export_button.get());
 
-	auto export_diaporama_button = new CToolbarButton(themeToolbar.button);
+	export_diaporama_button = std::make_unique<CToolbarButton>(themeToolbar.button);
 	export_diaporama_button->SetButtonResourceId("IDB_MOVIE");
 	export_diaporama_button->SetLibelle(export_diaporama);
 	export_diaporama_button->SetCommandId(IDM_EXPORT_DIAPORAMA);
 	export_diaporama_button->SetLibelleTooltip(export_diaporama);
-	navElement.push_back(export_diaporama_button);
+	navElement.push_back(export_diaporama_button.get());
 
-	imageNewVersion = new CToolbarButton(themeToolbar.button);
+	imageNewVersion = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageNewVersion->SetButtonResourceId(L"IDB_REFRESH");
 	imageNewVersion->SetLibelle(lblNewVersion);
 	imageNewVersion->SetVisible(false);
 	imageNewVersion->SetCommandId(IDM_NEWVERSION);
-	navElement.push_back(imageNewVersion);
+	navElement.push_back(imageNewVersion.get());
 
-	
-	
-
-	auto imageFirst = new CToolbarButton(themeToolbar.button);
+	imageFirst = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageFirst->SetButtonResourceId(L"IDB_EXIT");
 	imageFirst->SetLibelle(lblQuit);
 	imageFirst->SetCommandId(IDM_QUITTER);
-	navElement.push_back(imageFirst);
+	navElement.push_back(imageFirst.get());	
 	
 }
 

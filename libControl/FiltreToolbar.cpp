@@ -14,17 +14,17 @@ CFiltreToolbar::CFiltreToolbar(wxWindow* parent, wxWindowID id, const CThemeTool
 	wxString libelleOk = CLibResource::LoadStringFromResource(L"IDS_LBLOK", 1);
 	wxString libelleCancel = CLibResource::LoadStringFromResource(L"IDS_LBLCANCEL", 1);
 
-	auto ok = new CToolbarButton(themeToolbar.button);
+	ok = std::make_unique<CToolbarButton>(themeToolbar.button);
 	ok->SetButtonResourceId(L"IDB_OK");
 	ok->SetCommandId(WM_OK);
 	ok->SetLibelle(libelleOk);
-	navElement.push_back(ok);
+	navElement.push_back(ok.get());
 
-	auto cancel = new CToolbarButton(themeToolbar.button);
+	cancel = std::make_unique<CToolbarButton>(themeToolbar.button);
 	cancel->SetButtonResourceId(L"IDB_CANCEL");
 	cancel->SetCommandId(WM_CANCEL);
 	cancel->SetLibelle(libelleCancel);
-	navElement.push_back(cancel);
+	navElement.push_back(cancel.get());
 }
 
 

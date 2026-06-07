@@ -16,15 +16,15 @@ CToolbarPhoto::CToolbarPhoto(wxWindow* parent, wxWindowID id, const CThemeToolba
 	wxString folder_label = CLibResource::LoadStringFromResource(L"LBLFOLDER", 1); // L"Folder";
 	wxString criteria_label = CLibResource::LoadStringFromResource(L"LBLCRITERIA", 1); //L"Criteria";
 
-	folder = new CToolbarTexte(themeToolbar.texte);
+	folder = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	folder->SetCommandId(WM_FOLDER);
 	folder->SetLibelle(folder_label);
-	navElement.push_back(folder);
+	navElement.push_back(folder.get());
 
-	criteria = new CToolbarTexte(themeToolbar.texte);
+	criteria = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	criteria->SetCommandId(WM_CRITERIA);
 	criteria->SetLibelle(criteria_label);
-	navElement.push_back(criteria);
+	navElement.push_back(criteria.get());
 }
 
 CToolbarPhoto::~CToolbarPhoto()
@@ -51,7 +51,7 @@ void CToolbarPhoto::Resize()
 	int nbElement = static_cast<int>(navElement.size());
 	themeToolbar.texte.SetTailleX(GetWindowWidth() / nbElement);
 
-	for (CToolbarElement* nav : navElement)
+	for (auto& nav : navElement)
 	{
 		nav->Resize(themeToolbar.texte.GetTailleX(), themeToolbar.texte.GetTailleY());
 	}

@@ -48,16 +48,21 @@ namespace Regards
 			void EventManager(const int& id) override;
 
 			CToolbarInterface* toolbarInterface;
-			CToolbarButton* imagePlayDiaporama;
-			CToolbarButton* imageStopDiaporama;
-			CToolbarButton* fullscreen;
-			CToolbarButton* imageEnd;
-			CToolbarButton* imageSuiv;
-			CToolbarButton* imageFirst;
-			CToolbarButton* imagePrec;
-			CToolbarButton* save;
-            CToolbarButton* exportFile;
-            CToolbarButton* editFile;
+			std::unique_ptr<CToolbarButton> imagePlayDiaporama;
+			std::unique_ptr<CToolbarButton> imageStopDiaporama;
+			std::unique_ptr<CToolbarButton> fullscreen;
+			std::unique_ptr<CToolbarButton> imageEnd;
+			std::unique_ptr<CToolbarButton> imageSuiv;
+			std::unique_ptr<CToolbarButton> imageFirst;
+			std::unique_ptr<CToolbarButton> imagePrec;
+			std::unique_ptr<CToolbarButton> save;
+            std::unique_ptr<CToolbarButton> exportFile;
+            std::unique_ptr<CToolbarButton> editFile;
+			std::unique_ptr<CToolbarButton> editor;
+			std::unique_ptr<CToolbarButton> rotate90;
+			std::unique_ptr<CToolbarButton> rotate180;
+			std::unique_ptr<CToolbarButton> flipVertical;
+			std::unique_ptr<CToolbarButton> flipHorizontal;
 			bool navigationButtonEnable = true;
 		};
 	}

@@ -5,7 +5,7 @@
 #include <window_id.h>
 #include <SqlCriteria.h>
 #include <KeywordDialogBox.h>
-#include <ToolbarTexte.h>
+
 using namespace Regards::Viewer;
 using namespace Regards::Window;
 using namespace Regards::Sqlite;
@@ -20,24 +20,24 @@ CToolbarKeyword::CToolbarKeyword(wxWindow* parent, wxWindowID id, const CThemeTo
 	wxString addkeyword = CLibResource::LoadStringFromResource(L"LBLADDKEYWORD", 1); //L"History";
 	//wxString removekeyword = CLibResource::LoadStringFromResource(L"LBLREMOVEKEYWORD",1);
 
-	auto add = new CToolbarButton(themeToolbar.button);
+	add = std::make_unique<CToolbarButton>(themeToolbar.button);
 	add->SetButtonResourceId(L"IDB_PLUS");
 	add->SetCommandId(WM_ADDKEYWORD);
 	add->SetLibelleTooltip(addkeyword);
-	navElement.push_back(add);
+	navElement.push_back(add.get());
 
-	auto libelle = new CToolbarTexte(themeToolbar.texte);
+	libelle = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	libelle->SetLibelle(addkeyword);
 	libelle->SetCommandId(WM_ADDKEYWORD);
 	libelle->SetLibelleTooltip(addkeyword);
-	navElement.push_back(libelle);
+	navElement.push_back(libelle.get());
 
 	/*
-	CToolbarButton * moins = new CToolbarButton(themeToolbar.button);
+	CToolbarButton * moins = std::make_unique<CToolbarButton>(themeToolbar.button);
 	moins->SetButtonResourceId(L"IDB_MINUS");
 	moins->SetCommandId(WM_REMOVEKEYWORD);
     moins->SetLibelleTooltip(removekeyword);
-	navElement.push_back(moins);
+	navElement.push_back((moins);
 	*/
 }
 

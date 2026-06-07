@@ -16,7 +16,7 @@ CToolbarWindow::CToolbarWindow(wxWindow* parent, wxWindowID id, const CThemeTool
 	m_bIconeOn = false;
 	numButtonActif = -1;
 	navPush = nullptr;
-	pushButton = new wxTimer(this, TIMER_PUSHID);
+	pushButton = std::make_unique<wxTimer>(this, TIMER_PUSHID);
 	themeToolbar = theme;
 	Connect(wxEVT_PAINT, wxPaintEventHandler(CToolbarWindow::on_paint));
 	Connect(wxEVT_MOTION, wxMouseEventHandler(CToolbarWindow::OnMouseMove));
@@ -52,7 +52,6 @@ CToolbarWindow::~CToolbarWindow()
 		pushButton->Stop();
 	}
 	EmptyNavigator();
-	delete(pushButton);
 }
 
 
@@ -67,11 +66,6 @@ void CToolbarWindow::OnTimerPushButton(wxTimerEvent& event)
 
 void CToolbarWindow::EmptyNavigator()
 {
-	for (CToolbarElement* nav : navElement)
-	{
-		delete(nav);
-	}
-
 	navElement.clear();
 }
 
@@ -220,7 +214,9 @@ void CToolbarWindow::RedrawElement(wxDC* dc, CToolbarElement* nav)
 
 void CToolbarWindow::DrawButton(wxDC* dc, CToolbarElement* nav)
 {
-	wxBitmap pictureBuffer(nav->GetWidth(), nav->GetHeight());
+	if(pictureBuffer.GetWidth() != nav->GetWidth() || pictureBuffer.GetHeight() != nav->GetHeight())
+		pictureBuffer.Create(nav->GetWidth(), nav->GetHeight());
+
 	wxMemoryDC memDC(pictureBuffer);
 
 	wxRect rc;
@@ -286,10 +282,6 @@ void CToolbarWindow::OnLButtonDown(wxMouseEvent& event)
 void CToolbarWindow::OnMouseLeave(wxMouseEvent& event)
 {
 	wxClientDC dc(this);
-
-	//if (pushButton->IsRunning())
-	//	pushButton->Stop();
-
 	m_bMouseOver = false;
 	if (HasCapture())
 		ReleaseMouse();
@@ -313,42 +305,48 @@ bool CToolbarWindow::IsMouseOver()
 	return m_bMouseOver;
 }
 
-void CToolbarWindow::DrawBackground(wxDC* deviceContext, const wxRect& rc)
+void CToolbarWindow::SetAllDisable()
 {
-	if (isVertical)
-		deviceContext->GradientFillLinear(rc, themeToolbar.colorTop, themeToolbar.colorBottom);
-	else
-		deviceContext->GradientFillLinear(rc, themeToolbar.colorTop, themeToolbar.colorBottom, wxNORTH);
-
-
-	if (showLine)
+	for (CToolbarElement* nav : navElement)
 	{
-		CThemeToolbarTexte theme;
-		wxPen penTop(theme.rectTop, theme.GetRectangleSize(), wxPENSTYLE_SOLID);
-		deviceContext->SetPen(penTop);
-		deviceContext->DrawLine(0, GetWindowHeight(), GetWindowWidth(), GetWindowHeight());
-		//dc->DrawLine(rc.x, rc.height, rc.x, rc.y);
-		deviceContext->SetPen(wxNullPen);
+		nav->SetInactif();
 	}
 }
 
 
-void CToolbarWindow::DrawBackground(wxDC* deviceContext)
+void CToolbarWindow::DrawBackground(wxDC* dc, const wxRect& rc)
 {
-	if (GetWindowWidth() > 0 && GetWindowHeight() > 0)
+	const wxDirection dir = isVertical ? wxEAST : wxNORTH;
+	dc->GradientFillLinear(rc, themeToolbar.colorTop, themeToolbar.colorBottom, dir);
+
+	if (showLine)
 	{
-		background.Create(GetWindowWidth(), GetWindowHeight());
-		wxMemoryDC memDC(background);
-		wxRect rc = GetWindowRect();
-		DrawBackground(&memDC, rc);
-		//CWindowMain::FillRect(&memDC, rc, themeToolbar.colorTop);
-		memDC.SelectObject(wxNullBitmap);
-
-
-
-		backPicture = background.ConvertToImage();
-		deviceContext->DrawBitmap(background, 0, 0);
+		wxPen penTop(themeTexte.rectTop, themeTexte.GetRectangleSize(), wxPENSTYLE_SOLID);
+		dc->SetPen(penTop);
+		dc->DrawLine(0, GetWindowHeight(), GetWindowWidth(), GetWindowHeight());
+		dc->SetPen(wxNullPen);
 	}
+}
+
+
+void CToolbarWindow::DrawBackground(wxDC* dc)
+{
+	const int winW = GetWindowWidth();
+	const int winH = GetWindowHeight();
+	if (winW <= 0 || winH <= 0) return;
+
+	// Only reallocate the off-screen bitmap when the window is resized
+	if (background.GetWidth() != winW || background.GetHeight() != winH)
+		background.Create(winW, winH);
+
+	{
+		wxMemoryDC memDC(background);
+		DrawBackground(&memDC, GetWindowRect());
+		memDC.SelectObject(wxNullBitmap);
+	}
+
+	backPicture = background.ConvertToImage();
+	dc->DrawBitmap(background, 0, 0);
 }
 
 

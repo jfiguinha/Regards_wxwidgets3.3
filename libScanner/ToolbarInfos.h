@@ -35,11 +35,11 @@ namespace Regards::Scanner
 		void EventManager(const int& id) override;
 
 		CToolbarInterface* toolbarInterface;
-		CToolbarTexte* infos;
-		CToolbarTexte* ocrText;
-		CToolbarTexte* history;
-		CToolbarTexte* effect;
-		CToolbarTexte* editorParam;
-		CToolbarTexte* effectParameter;
+		std::unique_ptr<CToolbarTexte> infos;
+		std::unique_ptr<CToolbarTexte> ocrText;
+		std::unique_ptr<CToolbarTexte> history;
+		std::unique_ptr<CToolbarTexte> effect;
+		std::unique_ptr<CToolbarTexte> editorParam;
+		std::unique_ptr<CToolbarTexte> effectParameter;
 	};
 }

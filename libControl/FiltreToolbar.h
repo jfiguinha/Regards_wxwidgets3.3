@@ -12,8 +12,10 @@ namespace Regards::Control
 		void SetNumFiltre(const int& numFiltre);
 
 	private:
+
 		void EventManager(const int& id) override;
 		int numFiltre;
-		//wxWindow * wxWindowPanel;
+		std::unique_ptr<CToolbarButton> ok;
+		std::unique_ptr<CToolbarButton> cancel;
 	};
 }

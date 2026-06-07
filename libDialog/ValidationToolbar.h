@@ -13,5 +13,8 @@ namespace Regards::Scanner
 	private:
 		void EventManager(const int& id) override;
 		wxWindow* parent;
+		std::unique_ptr<CToolbarButton> ok;
+		std::unique_ptr<CToolbarButton> cancel;
+
 	};
 }

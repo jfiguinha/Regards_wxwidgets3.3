@@ -22,8 +22,8 @@ namespace Regards::Viewer
 		void EventManager(const int& id) override;
 
 		CToolbarInterface* toolbarInterface;
-		CToolbarTexte* folder;
-		CToolbarTexte* facelist;
-		CToolbarTexte* criteria;
+		std::unique_ptr<CToolbarTexte> folder;
+		std::unique_ptr<CToolbarTexte> facelist;
+		std::unique_ptr<CToolbarTexte> criteria;
 	};
 }

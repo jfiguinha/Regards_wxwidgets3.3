@@ -22,7 +22,7 @@ namespace Regards::Window
 
 	private:
 		void EventManager(const int& id) override;
-		CToolbarButton* screen;
+		std::unique_ptr<CToolbarButton> screen;
 		CToolbarInterface* interfaceToolbar;
 		int idObject;
 	};

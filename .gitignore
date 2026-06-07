@@ -377,3 +377,4 @@ libUtility/libUtility.txt
 libVideoEffect/libVideoEffect.txt
 /libPicture/Release
 /.cache/clangd/index
+/libWindow/bak

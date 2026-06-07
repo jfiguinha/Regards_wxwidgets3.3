@@ -40,13 +40,14 @@ namespace Regards::Window
 		void DrawBackground(wxDC* deviceContext, const wxRect& rc);
 		void GenerateNavigatorButton(wxDC* deviceContext);
 		void RedrawElement(wxDC* dc, CToolbarElement* nav);
-
+		void SetAllDisable();
 
 		wxBitmap hbmNavigator;
 
 		VectorNavigatorElement navElement;
 		CToolbarElement* navPush;
 		CThemeToolbar themeToolbar;
+		CThemeToolbarTexte themeTexte;
 		bool saveLastPush;
 		bool isVertical;
 		bool showLine = false;
@@ -59,8 +60,9 @@ namespace Regards::Window
 		bool m_bMouseMove;
 		bool m_bMouseOver;
 
+		std::unique_ptr<wxTimer> pushButton;
+		wxBitmap pictureBuffer;
 		wxBitmap background;
 		wxImage backPicture;
-		wxTimer* pushButton;
 	};
 }

@@ -28,38 +28,38 @@ CPreviewToolbar::CPreviewToolbar(wxWindow* parent, wxWindowID id, wxWindowID vie
 	wxString oldPictureLable = CLibResource::LoadStringFromResource("LBLORIGINALLABEL", 1);
 	wxString newPictureLable = CLibResource::LoadStringFromResource("LBLNEWLABEL", 1);
 
-	auto newPicture = new CToolbarButton(themeToolbar.button);
+	newPicture = std::make_unique<CToolbarButton>(themeToolbar.button);
 	newPicture->SetButtonResourceId("IDB_NEWPICTURE");
 	newPicture->SetCommandId(IDM_NEWPICTURE);
 	newPicture->SetLibelleTooltip(newPictureLable);
-	navElement.push_back(newPicture);
+	navElement.push_back(newPicture.get());
 
-	auto oldPicture = new CToolbarButton(themeToolbar.button);
+	oldPicture = std::make_unique<CToolbarButton>(themeToolbar.button);
 	oldPicture->SetButtonResourceId("IDB_OLDPICTURE");
 	oldPicture->SetCommandId(IDM_OLDPICTURE);
 	oldPicture->SetLibelleTooltip(oldPictureLable);
-	navElement.push_back(oldPicture);
+	navElement.push_back(oldPicture.get());
 
-	auto shrink = new CToolbarButton(themeToolbar.button);
+	shrink = std::make_unique<CToolbarButton>(themeToolbar.button);
 	shrink->SetButtonResourceId("IDB_SHRINK");
 	shrink->SetCommandId(IDM_SETSHRINK);
 	shrink->SetLibelleTooltip(shrinkLibelle);
-	navElement.push_back(shrink);
+	navElement.push_back(shrink.get());
 
-	auto moins = new CToolbarButton(themeToolbar.button);
+	moins = std::make_unique<CToolbarButton>(themeToolbar.button);
 	moins->SetButtonResourceId("IDB_ZOOMMOINS");
 	moins->SetCommandId(WM_ZOOMOUT);
 	moins->SetLibelleTooltip(zoomOff);
-	navElement.push_back(moins);
+	navElement.push_back(moins.get());
 
-	slide = new CToolbarSlide(themeToolbar.slider, this);
-	navElement.push_back(slide);
+	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
+	navElement.push_back(std::move(slide).get());
 
-	auto plus = new CToolbarButton(themeToolbar.button);
+	plus = std::make_unique<CToolbarButton>(themeToolbar.button);
 	plus->SetButtonResourceId("IDB_ZOOMPLUS");
 	plus->SetCommandId(WM_ZOOMON);
 	plus->SetLibelleTooltip(zoomOn);
-	navElement.push_back(plus);
+	navElement.push_back(std::move(plus).get());
 }
 
 CPreviewToolbar::~CPreviewToolbar()

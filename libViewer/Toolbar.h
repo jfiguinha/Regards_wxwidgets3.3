@@ -17,6 +17,12 @@ namespace Regards::Viewer
 		void EventManager(const int& id) override;
 
 		
-		CToolbarButton * imageNewVersion = nullptr;
+		std::unique_ptr<CToolbarButton> imageNewVersion = nullptr;
+		std::unique_ptr<CToolbarButton> scanner = nullptr;
+		std::unique_ptr<CToolbarButton> print = nullptr;
+		std::unique_ptr<CToolbarButton> editor = nullptr;
+		std::unique_ptr<CToolbarButton> export_button = nullptr;
+		std::unique_ptr<CToolbarButton> export_diaporama_button = nullptr;
+		std::unique_ptr<CToolbarButton> imageFirst = nullptr;
 	};
 }

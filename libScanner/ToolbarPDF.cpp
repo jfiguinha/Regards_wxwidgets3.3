@@ -35,54 +35,48 @@ CToolbarPDF::CToolbarPDF(wxWindow* parent, wxWindowID id, const CThemeToolbar& t
 	wxString lblSave = CLibResource::LoadStringFromResource(L"LBLSAVE", 1);
 	wxString lblExtract = CLibResource::LoadStringFromResource(L"LBLEXTRACT", 1);
 
-	auto screen = new CToolbarButton(themeToolbar.button);
+	screen = std::make_unique<CToolbarButton>(themeToolbar.button);
 	screen->SetButtonResourceId(L"IDB_FOLDER");
 	screen->SetCommandId(IDM_OPENFILE);
 	screen->SetLibelle(lblOpenFolder);
-	navElement.push_back(screen);
+	navElement.push_back(screen.get());
 
-	auto save = new CToolbarButton(themeToolbar.button);
+	save = std::make_unique<CToolbarButton>(themeToolbar.button);
 	save->SetButtonResourceId(L"IDB_SAVE");
 	save->SetLibelle(lblSave);
 	save->SetCommandId(IDM_SAVE);
-	navElement.push_back(save);
+	navElement.push_back(save.get());
 
-	auto addpage = new CToolbarButton(themeToolbar.button);
+	addpage = std::make_unique<CToolbarButton>(themeToolbar.button);
 	addpage->SetButtonResourceId(L"IDB_PLUS");
 	addpage->SetLibelle(lblAddPages);
 	addpage->SetCommandId(IDM_ADDPAGE);
-	navElement.push_back(addpage);
+	navElement.push_back(addpage.get());
 
-	auto deletepage = new CToolbarButton(themeToolbar.button);
+	deletepage = std::make_unique<CToolbarButton>(themeToolbar.button);
 	deletepage->SetButtonResourceId(L"IDB_DELETE");
 	deletepage->SetLibelle(lblDeletePages);
 	deletepage->SetCommandId(IDM_DELETEPAGE);
-	navElement.push_back(deletepage);
-	/*
-	CToolbarButton* infos = new CToolbarButton(themeToolbar.button);
-	infos->SetButtonResourceId(L"IDB_SCANNER");
-	infos->SetLibelle(lblScanner);
-	infos->SetCommandId(IDM_SCANNER);
-	navElement.push_back(infos);
-	*/
-	auto print = new CToolbarButton(themeToolbar.button);
+	navElement.push_back(deletepage.get());
+
+	print = std::make_unique<CToolbarButton>(themeToolbar.button);
 	print->SetButtonResourceId(L"IDB_PRINTERPNG");
 	print->SetLibelle(lblPrint);
 	print->SetCommandId(IDM_PRINT);
-	navElement.push_back(print);
+	navElement.push_back(print.get());
 
-	auto extract = new CToolbarButton(themeToolbar.button);
+	extract = std::make_unique<CToolbarButton>(themeToolbar.button);
 	extract->SetButtonResourceId(L"IDB_EXTRACT");
 	extract->SetLibelle(lblExtract);
 	extract->SetCommandId(IDM_EXTRACT);
-	navElement.push_back(extract);
+	navElement.push_back(extract.get());
 
 
-	auto imageFirst = new CToolbarButton(themeToolbar.button);
+	imageFirst = std::make_unique<CToolbarButton>(themeToolbar.button);
 	imageFirst->SetButtonResourceId(L"IDB_EXIT");
 	imageFirst->SetLibelle(lblQuit);
 	imageFirst->SetCommandId(IDM_QUITTER);
-	navElement.push_back(imageFirst);
+	navElement.push_back(imageFirst.get());
 }
 
 CToolbarPDF::~CToolbarPDF()

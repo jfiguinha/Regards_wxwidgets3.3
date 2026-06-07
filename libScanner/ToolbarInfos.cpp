@@ -23,36 +23,36 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
 	//L"Effect Parameter";
 	wxString editor_label = "EDITOR";
 
-	infos = new CToolbarTexte(themeToolbar.texte);
+	infos = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	infos->SetCommandId(WM_INFOS);
 	infos->SetLibelle(infos_label);
-	navElement.push_back(infos);
+	navElement.push_back(infos.get());
 
-	ocrText = new CToolbarTexte(themeToolbar.texte);
+	ocrText = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	ocrText->SetCommandId(WM_OCR);
 	ocrText->SetLibelle(ocr_label);
-	navElement.push_back(ocrText);
+	navElement.push_back(ocrText.get());
 
-	history = new CToolbarTexte(themeToolbar.texte);
+	history = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	history->SetCommandId(WM_HISTORY);
 	history->SetLibelle(history_label);
-	navElement.push_back(history);
+	navElement.push_back(history.get());
 
-	effect = new CToolbarTexte(themeToolbar.texte);
+	effect = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	effect->SetCommandId(WM_EFFECT);
 	effect->SetLibelle(effect_label);
-	navElement.push_back(effect);
+	navElement.push_back(effect.get());
 
-	effectParameter = new CToolbarTexte(themeToolbar.texte);
+	effectParameter = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	effectParameter->SetCommandId(WM_EFFECTPARAMETER);
 	effectParameter->SetLibelle(effectParameter_label);
-	navElement.push_back(effectParameter);
+	navElement.push_back(effectParameter.get());
 
 	/*
-	editorParam = new CToolbarTexte(themeToolbar.texte);
+	editorParam = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	editorParam->SetCommandId(WM_HTMLEDITOR);
 	editorParam->SetLibelle(editor_label);
-	navElement.push_back(editorParam);
+	navElement.push_back((editorParam);
 	*/
 }
 
@@ -134,7 +134,7 @@ void CToolbarInfos::Resize()
 	int nbElement = static_cast<int>(navElement.size());
 	themeToolbar.texte.SetTailleX(GetWindowWidth() / nbElement);
 
-	for (CToolbarElement* nav : navElement)
+	for (auto& nav : navElement)
 	{
 		nav->Resize(themeToolbar.texte.GetTailleX(), themeToolbar.texte.GetTailleY());
 	}

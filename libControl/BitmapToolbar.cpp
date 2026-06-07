@@ -28,52 +28,52 @@ CBitmapToolbar::CBitmapToolbar(wxWindow* parent, wxWindowID id, wxWindowID viewe
 	const wxString zoomOff = CLibResource::LoadStringFromResource("LBLZOOMOFF", 1); // "Zoom Off";
 
 	/*
-	export_button = new CToolbarButton(themeToolbar.button);
+	export_button = std::make_unique<CToolbarButton>(themeToolbar.button);
 	export_button->SetButtonResourceId("IDB_SAVE");
 	export_button->SetCommandId(WM_EXPORT);
 	export_button->SetLibelleTooltip(exportLibelle);
 	navElement.push_back(export_button);
 	*/
-	email = new CToolbarButton(themeToolbar.button);
+	email = std::make_unique<CToolbarButton>(themeToolbar.button);
 	email->SetButtonResourceId("IDB_EMAIL");
 	email->SetCommandId(WM_EMAIL);
 	email->SetLibelleTooltip(emailLibelle);
-	navElement.push_back(email);
+	navElement.push_back(email.get());
 
-	auto printer = new CToolbarButton(themeToolbar.button);
+	printer = std::make_unique<CToolbarButton>(themeToolbar.button);
 	printer->SetButtonResourceId("IDB_PRINTERPNG");
 	printer->SetCommandId(WM_IMPRIMER);
 	printer->SetLibelleTooltip(printLibelle);
-	navElement.push_back(printer);
+	navElement.push_back(printer.get());
 
 	/*
-	crop = new CToolbarButton(themeToolbar.button);
+	crop = std::make_unique<CToolbarButton>(themeToolbar.button);
 	crop->SetButtonResourceId("IDB_CROP");
 	crop->SetCommandId(WM_CROP);
 	crop->SetLibelleTooltip(cropLibelle);
 	navElement.push_back(crop);
 	*/
 
-	auto shrink = new CToolbarButton(themeToolbar.button);
+	shrink = std::make_unique<CToolbarButton>(themeToolbar.button);
 	shrink->SetButtonResourceId("IDB_SHRINK");
 	shrink->SetCommandId(IDM_SETSHRINK);
 	shrink->SetLibelleTooltip(shrinkLibelle);
-	navElement.push_back(shrink);
+	navElement.push_back(shrink.get());
 
-	auto moins = new CToolbarButton(themeToolbar.button);
+	moins = std::make_unique<CToolbarButton>(themeToolbar.button);
 	moins->SetButtonResourceId("IDB_ZOOMMOINS");
 	moins->SetCommandId(WM_ZOOMOUT);
 	moins->SetLibelleTooltip(zoomOff);
-	navElement.push_back(moins);
+	navElement.push_back(moins.get());
 
-	slide = new CToolbarSlide(themeToolbar.slider, this);
-	navElement.push_back(slide);
+	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
+	navElement.push_back(slide.get());
 
-	auto plus = new CToolbarButton(themeToolbar.button);
+	plus = std::make_unique<CToolbarButton>(themeToolbar.button);
 	plus->SetButtonResourceId("IDB_ZOOMPLUS");
 	plus->SetCommandId(WM_ZOOMON);
 	plus->SetLibelleTooltip(zoomOn);
-	navElement.push_back(plus);
+	navElement.push_back(plus.get());
 }
 
 CBitmapToolbar::~CBitmapToolbar()

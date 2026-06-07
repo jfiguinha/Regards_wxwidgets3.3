@@ -43,32 +43,32 @@ CToolbarViewerMode::CToolbarViewerMode(wxWindow* parent, wxWindowID id, const CT
 
 	if (faceDetection)
 	{
-		facemode = new CToolbarTexte(themeToolbar.texte);
+		facemode = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 		facemode->SetCommandId(WINDOW_FACE);
 		facemode->SetLibelle(facemode_label);
-		navElement.push_back(facemode);
+		navElement.push_back(facemode.get());
 	}
 
-	explorermode = new CToolbarTexte(themeToolbar.texte);
+	explorermode = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	explorermode->SetCommandId(WINDOW_EXPLORER);
 	explorermode->SetLibelle(explorermode_label);
-	navElement.push_back(explorermode);
+	navElement.push_back(explorermode.get());
 
-	viewermode = new CToolbarTexte(themeToolbar.texte);
+	viewermode = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	viewermode->SetCommandId(WINDOW_VIEWER);
 	viewermode->SetLibelle(viewermode_label);
-	navElement.push_back(viewermode);
+	navElement.push_back(viewermode.get());
 
-	picturemode = new CToolbarTexte(themeToolbar.texte);
+	picturemode = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	picturemode->SetCommandId(WINDOW_PICTURE);
 	picturemode->SetLibelle(picturemode_label);
-	navElement.push_back(picturemode);
+	navElement.push_back(picturemode.get());
     
-    imageNewVersion = new CToolbarTexte(themeToolbar.texte);
+    imageNewVersion = std::make_unique<CToolbarTexte>(themeToolbar.texte);
 	imageNewVersion->SetLibelle(lblNewVersion);
 	imageNewVersion->SetVisible(false);
 	imageNewVersion->SetCommandId(IDM_NEWVERSION);
-	navElement.push_back(imageNewVersion);
+	navElement.push_back(imageNewVersion.get());
     
     if (!faceDetection && windowMode == WINDOW_FACE)
     {
