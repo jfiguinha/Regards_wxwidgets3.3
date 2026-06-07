@@ -3,7 +3,12 @@
 #include <wx/dcbuffer.h>
 using namespace Regards::Window;
 
-#define TIMER_PUSHID 1
+namespace
+{
+	constexpr int TIMER_PUSHID = 1;
+	constexpr int TIMER_PUSH_DELAY = 500; // ms before repeat fires
+}
+
 
 
 CToolbarWindow::CToolbarWindow(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical) :
@@ -120,92 +125,42 @@ int CToolbarWindow::GetNavigatorWidth()
 	return size;
 }
 
+
 void CToolbarWindow::OnMouseMove(wxMouseEvent& event)
 {
-   // printf("CToolbarWindow::OnMouseMove \n");
+	const int xPos = event.GetX();
+	const int yPos = event.GetY();
 	bool needToRedraw = false;
-	int xPos = event.GetX();
-	int yPos = event.GetY();
-	wxClientDC dc(this);
-	int i = 0;
+	int  i = 0;
 
-	for (CToolbarElement* nav : navElement)
+	for (auto& nav : navElement)
 	{
-		if (nav != nullptr)
+		if (!nav || !nav->IsVisible()) { ++i; continue; }
+
+		if (nav->FindElement(xPos, yPos))
 		{
-			if (nav->IsVisible())
+			// Only create DC when we actually need to draw
+			wxClientDC dc(this);
+			if (nav->MouseOver(&dc, xPos, yPos)) needToRedraw = true;
+			if (nav->SetActif())                 needToRedraw = true;
+
+			if (numButtonActif != i)
 			{
-				if (nav->FindElement(xPos, yPos))
-				{
-					if (nav->MouseOver(&dc, xPos, yPos))
-						needToRedraw = true;
-
-					if (nav->SetActif())
-						needToRedraw = true;
-
-					//findActif = true;
-					if (numButtonActif != i)
-					{
-						this->SetToolTip(nav->GetLibelleTooltip());
-						numButtonActif = i;
-					}
-				}
-				else
-				{
-					if (nav->SetInactif())
-						needToRedraw = true;
-				}
+				SetToolTip(nav->GetLibelleTooltip());
+				numButtonActif = i;
 			}
 		}
-		i++;
+		else
+		{
+			if (nav->SetInactif()) needToRedraw = true;
+		}
+		++i;
 	}
 
 	if (needToRedraw)
-    {
-        //printf("CToolbarWindow::OnMouseMove needToRedraw \n");
 		needToRefresh = true;
-    }
-    
-
 }
 
-
-void CToolbarWindow::OnLButtonUp(wxMouseEvent& event)
-{
-	wxClientDC dc(this);
-	int xPos = event.GetX();
-	int yPos = event.GetY();
-
-	for (CToolbarElement* nav : navElement)
-	{
-		if (nav->IsVisible())
-		{
-			if (nav->FindElement(xPos, yPos))
-			{
-				nav->UnclickElement(this, xPos, yPos);
-				if (!saveLastPush)
-					nav->SetPush(false);
-				break;
-			}
-		}
-	}
-
-	if (pushButton != nullptr)
-	{
-		if (pushButton->IsRunning())
-			pushButton->Stop();
-	}
-	if (navPush != nullptr)
-	{
-		if (navPush->GetRepeatable())
-		{
-			EventManager(navPush->GetCommandId());
-			navPush = nullptr;
-		}
-	}
-
-	needToRefresh = true;
-}
 
 void CToolbarWindow::RedrawElement(wxDC* dc, CToolbarElement* nav)
 {
@@ -237,57 +192,81 @@ void CToolbarWindow::DrawButton(wxDC* dc, CToolbarElement* nav)
 
 void CToolbarWindow::OnLButtonDown(wxMouseEvent& event)
 {
-	wxClientDC dc(this);
-	this->SetFocus();
-	int xPos = event.GetX();
-	int yPos = event.GetY();
+	SetFocus();
+	const int xPos = event.GetX();
+	const int yPos = event.GetY();
 	bool repeatable = false;
 
-	for (CToolbarElement* nav : navElement)
+	wxClientDC dc(this);
+
+	for (auto& nav : navElement)
 	{
-		if (nav->IsVisible())
+		if (!nav->IsVisible()) continue;
+
+		if (nav->FindElement(xPos, yPos))
 		{
-			if (nav->FindElement(xPos, yPos))
+			nav->ClickElement(this, xPos, yPos);
+			nav->SetPush(true);
+			RedrawElement(&dc, nav);
+			navPush = nav;
+
+			if (navPush->GetRepeatable())
 			{
-				nav->ClickElement(this, xPos, yPos);
-				nav->SetPush(true);
-				RedrawElement(&dc, nav);
-				navPush = nav;
-
-				if (navPush->GetRepeatable())
-				{
-					if (pushButton->IsRunning())
-						pushButton->Stop();
-
-					pushButton->Start(500);
-
-					repeatable = true;
-				}
+				if (pushButton->IsRunning())
+					pushButton->Stop();
+				pushButton->Start(TIMER_PUSH_DELAY);
+				repeatable = true;
 			}
-			else
-			{
-				nav->SetPush(false);
-				RedrawElement(&dc, nav);
-			}
+		}
+		else
+		{
+			nav->SetPush(false);
+			RedrawElement(&dc, nav);
 		}
 	}
 
-	if (!repeatable)
-		if (navPush != nullptr)
-			EventManager(navPush->GetCommandId());
+	if (!repeatable && navPush)
+		EventManager(navPush->GetCommandId());
+}
 
-	//Refresh();
+void CToolbarWindow::OnLButtonUp(wxMouseEvent& event)
+{
+	const int xPos = event.GetX();
+	const int yPos = event.GetY();
+
+	for (auto& nav : navElement)
+	{
+		if (!nav->IsVisible()) continue;
+
+		if (nav->FindElement(xPos, yPos))
+		{
+			nav->UnclickElement(this, xPos, yPos);
+			if (!saveLastPush)
+				nav->SetPush(false);
+			break;
+		}
+	}
+
+	if (pushButton && pushButton->IsRunning())
+		pushButton->Stop();
+
+	if (navPush && navPush->GetRepeatable())
+	{
+		EventManager(navPush->GetCommandId());
+		navPush = nullptr;
+	}
+
+	needToRefresh = true;
 }
 
 void CToolbarWindow::OnMouseLeave(wxMouseEvent& event)
 {
-	wxClientDC dc(this);
 	m_bMouseOver = false;
 	if (HasCapture())
 		ReleaseMouse();
 
-	for (CToolbarElement* nav : navElement)
-
+	wxClientDC dc(this);
+	for (auto& nav : navElement)
 	{
 		if (nav->SetInactif())
 			RedrawElement(&dc, nav);
@@ -300,11 +279,24 @@ void CToolbarWindow::OnMouseHover(wxMouseEvent& event)
 	m_bMouseOver = true;
 }
 
+
+
 bool CToolbarWindow::IsMouseOver()
 {
 	return m_bMouseOver;
 }
 
+/*
+std::unique_ptr<CToolbarButton> CToolbarWindow::AddButton(wxString idElement, int idEvenement, wxString e)
+{
+	wxString libelle = CLibResource::LoadStringFromResource(e, 1);
+	std::unique_ptr<CToolbarButton> element = std::make_unique<CToolbarButton>(themeToolbar.button);
+	element->SetButtonResourceId(idElement);
+	element->SetCommandId(idEvenement);
+	element->SetLibelleTooltip(libelle);
+	return element;
+}
+*/
 void CToolbarWindow::SetAllDisable()
 {
 	for (CToolbarElement* nav : navElement)

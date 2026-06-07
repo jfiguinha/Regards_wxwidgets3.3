@@ -80,6 +80,8 @@ CBitmapToolbar::~CBitmapToolbar()
 {
 }
 
+
+
 void CBitmapToolbar::ZoomPos(const int& position)
 {
 	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(this->FindWindowById(parentId));

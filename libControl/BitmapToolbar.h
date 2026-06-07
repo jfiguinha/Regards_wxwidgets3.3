@@ -31,6 +31,7 @@ namespace Regards::Control
 
 	private:
 		void EventManager(const int& id) override;
+
 		std::unique_ptr<CToolbarButton> email;
 		std::unique_ptr<CToolbarButton> printer;
 		std::unique_ptr<CToolbarButton> shrink;

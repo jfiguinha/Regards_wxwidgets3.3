@@ -41,6 +41,7 @@ namespace Regards::Window
 		void GenerateNavigatorButton(wxDC* deviceContext);
 		void RedrawElement(wxDC* dc, CToolbarElement* nav);
 		void SetAllDisable();
+		//std::unique_ptr<CToolbarButton> AddButton(wxString idElement, int idEvenement, wxString e);
 
 		wxBitmap hbmNavigator;
 
