@@ -17,28 +17,8 @@ CToolbarKeyword::CToolbarKeyword(wxWindow* parent, wxWindowID id, const CThemeTo
 	: CToolbarWindow(parent, id, theme, vertical)
 {
 	themeToolbar = theme;
-	wxString addkeyword = CLibResource::LoadStringFromResource(L"LBLADDKEYWORD", 1); //L"History";
-	//wxString removekeyword = CLibResource::LoadStringFromResource(L"LBLREMOVEKEYWORD",1);
-
-	add = std::make_unique<CToolbarButton>(themeToolbar.button);
-	add->SetButtonResourceId(L"IDB_PLUS");
-	add->SetCommandId(WM_ADDKEYWORD);
-	add->SetLibelleTooltip(addkeyword);
-	navElement.push_back(add.get());
-
-	libelle = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	libelle->SetLibelle(addkeyword);
-	libelle->SetCommandId(WM_ADDKEYWORD);
-	libelle->SetLibelleTooltip(addkeyword);
-	navElement.push_back(libelle.get());
-
-	/*
-	CToolbarButton * moins = std::make_unique<CToolbarButton>(themeToolbar.button);
-	moins->SetButtonResourceId(L"IDB_MINUS");
-	moins->SetCommandId(WM_REMOVEKEYWORD);
-    moins->SetLibelleTooltip(removekeyword);
-	navElement.push_back((moins);
-	*/
+	add = CreateButton(L"IDB_PLUS", L"LBLADDKEYWORD", WM_ADDKEYWORD);
+	libelle = CreateTexte(L"LBLADDKEYWORD", WM_ADDKEYWORD);
 }
 
 CToolbarKeyword::~CToolbarKeyword()

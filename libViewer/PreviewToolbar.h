@@ -60,7 +60,7 @@ namespace Regards
             std::unique_ptr<CToolbarButton> editFile;
 			std::unique_ptr<CToolbarButton> editor;
 			std::unique_ptr<CToolbarButton> rotate90;
-			std::unique_ptr<CToolbarButton> rotate180;
+			std::unique_ptr<CToolbarButton> rotate270;
 			std::unique_ptr<CToolbarButton> flipVertical;
 			std::unique_ptr<CToolbarButton> flipHorizontal;
 			bool navigationButtonEnable = true;

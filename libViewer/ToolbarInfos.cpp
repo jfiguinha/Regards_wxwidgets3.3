@@ -9,70 +9,18 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
                              CToolbarInterface* toolbarInterface, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical)
 {
-	isVideo = false;
-	infos = nullptr;
-	history = nullptr;
-	effect = nullptr;
-	map = nullptr;
-	effectParameter = nullptr;
-	criteria = nullptr;
 	this->toolbarInterface = toolbarInterface;
 	saveLastPush = true;
-	wxString infos_label = CLibResource::LoadStringFromResource(L"LBLINFOS", 1); // L"Infos";
-	wxString history_label = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1); //L"History";
-	wxString effect_label = CLibResource::LoadStringFromResource(L"LBLEFFECT", 1); //L"Effect";
-	wxString maps_label = CLibResource::LoadStringFromResource(L"LBLMAPS", 1); //L"Maps";
-	wxString audiovideo_label = CLibResource::LoadStringFromResource(L"LBLAUDIOVIDEO", 1); //L"Effect Parameter";
-	wxString videoeffect_label = CLibResource::LoadStringFromResource(L"LBLVIDEOEFFECT", 1); //L"Effect Parameter";
-	wxString effectParameter_label = CLibResource::LoadStringFromResource(L"LBLEFFECTPARAMETER", 1);
-	//L"Effect Parameter";
-	wxString histogram_label = "Histogram"; // CLibResource::LoadStringFromResource(L"LBLHISTOGRAM", 1);
 
-	infos = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	infos->SetCommandId(WM_INFOS);
-	infos->SetLibelle(infos_label);
-	navElement.push_back(infos.get());
-
-	history = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	history->SetCommandId(WM_HISTORY);
-	history->SetLibelle(history_label);
-	navElement.push_back(history.get());
-
-	effect = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	effect->SetCommandId(WM_EFFECT);
-	effect->SetLibelle(effect_label);
-	navElement.push_back(effect.get());
-
-	map = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	map->SetCommandId(WM_MAPS);
-	map->SetLibelle(maps_label);
-	navElement.push_back(map.get());
-
-	audiovideo = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	audiovideo->SetCommandId(WM_AUDIOVIDEO);
-	audiovideo->SetLibelle(audiovideo_label);
-	navElement.push_back(audiovideo.get());
-
-	videoeffect = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	videoeffect->SetCommandId(WM_VIDEOEFFECT);
-	videoeffect->SetLibelle(videoeffect_label);
-	navElement.push_back(videoeffect.get());
-
-	wxString libelleCriteria = CLibResource::LoadStringFromResource(L"LBLCRITERIA", 1);
-	criteria = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	criteria->SetCommandId(WM_CRITERIA);
-	criteria->SetLibelle(libelleCriteria);
-	navElement.push_back(criteria.get());
-
-	effectParameter = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	effectParameter->SetCommandId(WM_EFFECTPARAMETER);
-	effectParameter->SetLibelle(effectParameter_label);
-	navElement.push_back(effectParameter.get());
-
-	histogramParameter = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	histogramParameter->SetCommandId(WM_HISTOGRAM);
-	histogramParameter->SetLibelle(histogram_label);
-	navElement.push_back(histogramParameter.get());
+	infos = CreateTexte("LBLINFOS", WM_INFOS);
+	history = CreateTexte("LBLHISTORY", WM_HISTORY);
+	effect = CreateTexte("LBLEFFECT", WM_EFFECT);
+	map = CreateTexte("LBLMAPS", WM_MAPS);
+	audiovideo = CreateTexte("LBLAUDIOVIDEO", WM_AUDIOVIDEO);
+	videoeffect = CreateTexte("LBLVIDEOEFFECT", WM_VIDEOEFFECT);
+	criteria = CreateTexte("LBLCRITERIA", WM_CRITERIA);
+	effectParameter = CreateTexte("LBLEFFECTPARAMETER", WM_EFFECTPARAMETER);
+	histogramParameter = CreateTexte("LBLHISTOGRAM", WM_HISTOGRAM);
 }
 
 CToolbarInfos::~CToolbarInfos()

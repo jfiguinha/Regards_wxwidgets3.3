@@ -1,5 +1,6 @@
 #pragma once
 #include "ToolbarButton.h"
+#include "ToolbarTexte.h"
 #include "WindowMain.h"
 
 namespace Regards::Window
@@ -42,7 +43,13 @@ namespace Regards::Window
 		void GenerateNavigatorButton(wxDC* deviceContext);
 		void RedrawElement(wxDC* dc, CToolbarElement* nav);
 		void SetAllDisable();
-		//std::unique_ptr<CToolbarButton> AddButton(wxString idElement, int idEvenement, wxString e);
+		std::unique_ptr<CToolbarButton> CreateButton(
+			const wxString& icon,
+			const wxString& label,
+			int commandId);
+		std::unique_ptr<CToolbarTexte> CreateTexte(
+			const wxString& label,
+			int commandId);
 
 		wxBitmap hbmNavigator;
 

@@ -1,6 +1,7 @@
 #include "header.h"
 #include "ToolbarWindow.h"
 #include <wx/dcbuffer.h>
+#include <LibResource.h>
 using namespace Regards::Window;
 
 namespace
@@ -23,6 +24,8 @@ CToolbarWindow::CToolbarWindow(wxWindow* parent, wxWindowID id, const CThemeTool
 	navPush = nullptr;
 	pushButton = std::make_unique<wxTimer>(this, TIMER_PUSHID);
 	themeToolbar = theme;
+
+
 	Connect(wxEVT_PAINT, wxPaintEventHandler(CToolbarWindow::on_paint));
 	Connect(wxEVT_MOTION, wxMouseEventHandler(CToolbarWindow::OnMouseMove));
 	Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CToolbarWindow::OnLButtonDown));
@@ -259,6 +262,36 @@ void CToolbarWindow::OnLButtonUp(wxMouseEvent& event)
 	needToRefresh = true;
 }
 
+std::unique_ptr<CToolbarTexte> CToolbarWindow::CreateTexte(
+	const wxString& label,
+	int commandId)
+{
+	auto btn = std::make_unique<CToolbarTexte>(themeToolbar.texte);
+	const wxString libelle = CLibResource::LoadStringFromResource(label, 1);
+
+	btn->SetCommandId(commandId);
+	btn->SetLibelle(libelle);
+	btn->SetLibelleTooltip(libelle);
+	navElement.push_back(btn.get());
+	return btn;
+}
+
+std::unique_ptr<CToolbarButton> CToolbarWindow::CreateButton(
+	const wxString& icon,
+	const wxString& label,
+	int commandId)
+{
+	auto btn = std::make_unique<CToolbarButton>(themeToolbar.button);
+	const wxString libelle = CLibResource::LoadStringFromResource(label, 1);
+	btn->SetButtonResourceId(icon);
+	btn->SetLibelle(libelle);
+	btn->SetCommandId(commandId);
+	btn->SetLibelleTooltip(libelle);
+	navElement.push_back(btn.get());
+
+	return btn;
+}
+
 void CToolbarWindow::OnMouseLeave(wxMouseEvent& event)
 {
 	m_bMouseOver = false;
@@ -286,17 +319,7 @@ bool CToolbarWindow::IsMouseOver()
 	return m_bMouseOver;
 }
 
-/*
-std::unique_ptr<CToolbarButton> CToolbarWindow::AddButton(wxString idElement, int idEvenement, wxString e)
-{
-	wxString libelle = CLibResource::LoadStringFromResource(e, 1);
-	std::unique_ptr<CToolbarButton> element = std::make_unique<CToolbarButton>(themeToolbar.button);
-	element->SetButtonResourceId(idElement);
-	element->SetCommandId(idEvenement);
-	element->SetLibelleTooltip(libelle);
-	return element;
-}
-*/
+
 void CToolbarWindow::SetAllDisable()
 {
 	for (CToolbarElement* nav : navElement)

@@ -40,16 +40,16 @@ namespace Regards::Viewer
 		void Resize() override;
 		void EventManager(const int& id) override;
 
-		CToolbarInterface* toolbarInterface;
-		bool isVideo;
-		std::unique_ptr<CToolbarTexte> infos;
-		std::unique_ptr<CToolbarTexte> history;
-		std::unique_ptr<CToolbarTexte> effect;
-		std::unique_ptr<CToolbarTexte> audiovideo;
-		std::unique_ptr<CToolbarTexte> videoeffect;
-		std::unique_ptr<CToolbarTexte> map;
-		std::unique_ptr<CToolbarTexte> effectParameter;
-		std::unique_ptr<CToolbarTexte> criteria;
-		std::unique_ptr<CToolbarTexte> histogramParameter;
+		CToolbarInterface* toolbarInterface = nullptr;
+
+		std::unique_ptr<CToolbarTexte> infos = nullptr;
+		std::unique_ptr<CToolbarTexte> history = nullptr;
+		std::unique_ptr<CToolbarTexte> effect = nullptr;
+		std::unique_ptr<CToolbarTexte> audiovideo = nullptr;
+		std::unique_ptr<CToolbarTexte> videoeffect = nullptr;
+		std::unique_ptr<CToolbarTexte> map = nullptr;
+		std::unique_ptr<CToolbarTexte> effectParameter = nullptr;
+		std::unique_ptr<CToolbarTexte> criteria = nullptr;
+		std::unique_ptr<CToolbarTexte> histogramParameter = nullptr;
 	};
 }

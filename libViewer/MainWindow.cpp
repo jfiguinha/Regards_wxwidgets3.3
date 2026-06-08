@@ -1,7 +1,6 @@
 #include <header.h>
 #include "MainWindow.h"
 #include <LibResource.h>
-#include "ExportDiaporama.h"
 #include "ViewerParamInit.h"
 #include "ViewerParam.h"
 #include <libPicture.h>
@@ -9,9 +8,7 @@
 #include <ImageLoadingFormat.h>
 #include <SqlFaceRecognition.h>
 #include "ThumbnailBuffer.h"
-#include "SqlFindPhotos.h"
 #include <BitmapWndViewer.h>
-#include "Toolbar.h"
 #include "ToolbarViewerMode.h"
 #include <StatusBarInterface.h>
 #include "CentralWindow.h"

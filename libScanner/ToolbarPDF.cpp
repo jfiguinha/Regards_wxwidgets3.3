@@ -7,8 +7,6 @@
 using namespace Regards::Window;
 using namespace Regards::Scanner;
 
-
-//
 #define IDM_OPENFILE 152
 #define IDM_THUMBNAILFACE 153
 #define IDM_VIEWERMODE 154
@@ -24,59 +22,13 @@ using namespace Regards::Scanner;
 CToolbarPDF::CToolbarPDF(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical)
 {
-	wxString export_label = CLibResource::LoadStringFromResource(L"LBLEXPORT", 1);
-	wxString lblOpenFolder = CLibResource::LoadStringFromResource(L"LBLSELECTFILE", 1);
-	//wxString lblScanner = CLibResource::LoadStringFromResource(L"LBLSCANNER", 1);
-	wxString lblInfos = CLibResource::LoadStringFromResource(L"LBLINFOS", 1);
-	wxString lblQuit = CLibResource::LoadStringFromResource(L"LBLQUIT", 1);
-	wxString lblPrint = CLibResource::LoadStringFromResource(L"LBLPRINT", 1);
-	wxString lblAddPages = CLibResource::LoadStringFromResource(L"LBLADDPAGE", 1);
-	wxString lblDeletePages = CLibResource::LoadStringFromResource(L"LBLDELETEPAGES", 1);
-	wxString lblSave = CLibResource::LoadStringFromResource(L"LBLSAVE", 1);
-	wxString lblExtract = CLibResource::LoadStringFromResource(L"LBLEXTRACT", 1);
-
-	screen = std::make_unique<CToolbarButton>(themeToolbar.button);
-	screen->SetButtonResourceId(L"IDB_FOLDER");
-	screen->SetCommandId(IDM_OPENFILE);
-	screen->SetLibelle(lblOpenFolder);
-	navElement.push_back(screen.get());
-
-	save = std::make_unique<CToolbarButton>(themeToolbar.button);
-	save->SetButtonResourceId(L"IDB_SAVE");
-	save->SetLibelle(lblSave);
-	save->SetCommandId(IDM_SAVE);
-	navElement.push_back(save.get());
-
-	addpage = std::make_unique<CToolbarButton>(themeToolbar.button);
-	addpage->SetButtonResourceId(L"IDB_PLUS");
-	addpage->SetLibelle(lblAddPages);
-	addpage->SetCommandId(IDM_ADDPAGE);
-	navElement.push_back(addpage.get());
-
-	deletepage = std::make_unique<CToolbarButton>(themeToolbar.button);
-	deletepage->SetButtonResourceId(L"IDB_DELETE");
-	deletepage->SetLibelle(lblDeletePages);
-	deletepage->SetCommandId(IDM_DELETEPAGE);
-	navElement.push_back(deletepage.get());
-
-	print = std::make_unique<CToolbarButton>(themeToolbar.button);
-	print->SetButtonResourceId(L"IDB_PRINTERPNG");
-	print->SetLibelle(lblPrint);
-	print->SetCommandId(IDM_PRINT);
-	navElement.push_back(print.get());
-
-	extract = std::make_unique<CToolbarButton>(themeToolbar.button);
-	extract->SetButtonResourceId(L"IDB_EXTRACT");
-	extract->SetLibelle(lblExtract);
-	extract->SetCommandId(IDM_EXTRACT);
-	navElement.push_back(extract.get());
-
-
-	imageFirst = std::make_unique<CToolbarButton>(themeToolbar.button);
-	imageFirst->SetButtonResourceId(L"IDB_EXIT");
-	imageFirst->SetLibelle(lblQuit);
-	imageFirst->SetCommandId(IDM_QUITTER);
-	navElement.push_back(imageFirst.get());
+	screen = CreateButton(L"IDB_FOLDER", L"LBLSELECTFILE", IDM_OPENFILE);
+	save = CreateButton(L"IDB_SAVE", L"LBLSAVE", IDM_SAVE);
+	addpage = CreateButton(L"IDB_PLUS", L"LBLADDPAGE", IDM_ADDPAGE);
+	deletepage = CreateButton(L"IDB_DELETE", L"LBLDELETEPAGES", IDM_DELETEPAGE);
+	print = CreateButton(L"IDB_PRINTERPNG", L"LBLPRINT", IDM_PRINT);
+	extract = CreateButton(L"IDB_EXTRACT", L"LBLEXTRACT", IDM_EXTRACT);
+	imageFirst = CreateButton(L"IDB_EXIT", L"LBLQUIT", IDM_QUITTER);
 }
 
 CToolbarPDF::~CToolbarPDF()

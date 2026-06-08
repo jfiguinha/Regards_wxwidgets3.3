@@ -9,51 +9,14 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
                              CToolbarInterface* toolbarInterface, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical), editorParam(nullptr)
 {
-	infos = nullptr;
-	history = nullptr;
-	effect = nullptr;
-	effectParameter = nullptr;
 	this->toolbarInterface = toolbarInterface;
 	saveLastPush = true;
-	wxString infos_label = CLibResource::LoadStringFromResource(L"LBLINFOS", 1); // L"Infos";
-	wxString ocr_label = "OCR";
-	wxString history_label = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1); //L"History";
-	wxString effect_label = CLibResource::LoadStringFromResource(L"LBLEFFECT", 1); //L"Effect";
-	wxString effectParameter_label = CLibResource::LoadStringFromResource(L"LBLEFFECTPARAMETER", 1);
-	//L"Effect Parameter";
-	wxString editor_label = "EDITOR";
 
-	infos = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	infos->SetCommandId(WM_INFOS);
-	infos->SetLibelle(infos_label);
-	navElement.push_back(infos.get());
-
-	ocrText = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	ocrText->SetCommandId(WM_OCR);
-	ocrText->SetLibelle(ocr_label);
-	navElement.push_back(ocrText.get());
-
-	history = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	history->SetCommandId(WM_HISTORY);
-	history->SetLibelle(history_label);
-	navElement.push_back(history.get());
-
-	effect = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	effect->SetCommandId(WM_EFFECT);
-	effect->SetLibelle(effect_label);
-	navElement.push_back(effect.get());
-
-	effectParameter = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	effectParameter->SetCommandId(WM_EFFECTPARAMETER);
-	effectParameter->SetLibelle(effectParameter_label);
-	navElement.push_back(effectParameter.get());
-
-	/*
-	editorParam = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	editorParam->SetCommandId(WM_HTMLEDITOR);
-	editorParam->SetLibelle(editor_label);
-	navElement.push_back((editorParam);
-	*/
+	infos = CreateTexte("LBLINFOS", WM_INFOS);
+	ocrText = CreateTexte("LBLOCR", WM_OCR);
+	history = CreateTexte("LBLHISTORY", WM_HISTORY);
+	effect = CreateTexte("LBLEFFECT", WM_EFFECT);
+	effectParameter = CreateTexte("LBLEFFECTPARAMETER", WM_EFFECTPARAMETER);
 }
 
 CToolbarInfos::~CToolbarInfos()

@@ -25,18 +25,15 @@ CCriteriaWindow::CCriteriaWindow(wxWindow* parent, wxWindowID id,
 
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
-		criteriaTreeWnd = new CCriteriaTreeWnd(this, CRITERIATREEWINDOWID, MAINVIEWERWINDOWID, themeTree, themeScroll);
+		criteriaTreeWnd = std::make_unique<CCriteriaTreeWnd>(this, CRITERIATREEWINDOWID, MAINVIEWERWINDOWID, themeTree, themeScroll);
 	}
 
-	if (viewerTheme != nullptr)
-	{
-		keywordWnd = new CKeywordWndToolbar(this, KEYWORDTOOLBARWINDOWID);
-		keywordWnd->Show(true);
-	}
+	keywordWnd = std::make_unique<CKeywordWndToolbar>(this, KEYWORDTOOLBARWINDOWID);
+	keywordWnd->Show(true);
 
 	SetHorizontal(horizontal);
 	this->SetWindow1FixPosition(true, 160);
-	this->SetWindow(criteriaTreeWnd, keywordWnd);
+	this->SetWindow(criteriaTreeWnd.get(), keywordWnd.get());
 }
 
 
@@ -52,11 +49,6 @@ void CCriteriaWindow::SetFile(const wxString& filename)
 
 CCriteriaWindow::~CCriteriaWindow()
 {
-	if (criteriaTreeWnd != nullptr)
-		delete(criteriaTreeWnd);
-
-	if (keywordWnd != nullptr)
-		delete(keywordWnd);
 }
 
 

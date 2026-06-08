@@ -13,18 +13,8 @@ CToolbarPhoto::CToolbarPhoto(wxWindow* parent, wxWindowID id, const CThemeToolba
 	criteria = nullptr;
 	this->toolbarInterface = toolbarInterface;
 	saveLastPush = true;
-	wxString folder_label = CLibResource::LoadStringFromResource(L"LBLFOLDER", 1); // L"Folder";
-	wxString criteria_label = CLibResource::LoadStringFromResource(L"LBLCRITERIA", 1); //L"Criteria";
-
-	folder = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	folder->SetCommandId(WM_FOLDER);
-	folder->SetLibelle(folder_label);
-	navElement.push_back(folder.get());
-
-	criteria = std::make_unique<CToolbarTexte>(themeToolbar.texte);
-	criteria->SetCommandId(WM_CRITERIA);
-	criteria->SetLibelle(criteria_label);
-	navElement.push_back(criteria.get());
+	folder = CreateTexte(L"LBLFOLDER", WM_FOLDER);
+	criteria = CreateTexte(L"LBLCRITERIA", WM_CRITERIA);
 }
 
 CToolbarPhoto::~CToolbarPhoto()
