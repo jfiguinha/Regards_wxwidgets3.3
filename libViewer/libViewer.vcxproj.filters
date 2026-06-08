@@ -117,9 +117,6 @@
     <ClInclude Include="..\include\header.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="Toolbar.h">
-      <Filter>Toolbar\include</Filter>
-    </ClInclude>
     <ClInclude Include="ToolbarInfos.h">
       <Filter>Toolbar\include</Filter>
     </ClInclude>
@@ -298,9 +295,6 @@
     </ClCompile>
     <ClCompile Include="PreviewWnd.cpp">
       <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="toolbar.cpp">
-      <Filter>Toolbar\source</Filter>
     </ClCompile>
     <ClCompile Include="ToolbarInfos.cpp">
       <Filter>Toolbar\source</Filter>

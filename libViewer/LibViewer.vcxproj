@@ -927,7 +927,6 @@
     <ClInclude Include="ThumbnailToolBarZoom.h" />
     <ClInclude Include="ThumbnailViewerPicture.h" />
     <ClInclude Include="ThumbnailViewerVideo.h" />
-    <ClInclude Include="Toolbar.h" />
     <ClInclude Include="ToolbarInfos.h" />
     <ClInclude Include="ToolbarKeyword.h" />
     <ClInclude Include="ToolbarPhoto.h" />
@@ -996,7 +995,6 @@
     <ClCompile Include="ThumbnailToolBarZoom.cpp" />
     <ClCompile Include="ThumbnailViewerPicture.cpp" />
     <ClCompile Include="ThumbnailViewerVideo.cpp" />
-    <ClCompile Include="toolbar.cpp" />
     <ClCompile Include="ToolbarInfos.cpp" />
     <ClCompile Include="ToolbarKeyword.cpp" />
     <ClCompile Include="ToolbarPhoto.cpp" />
