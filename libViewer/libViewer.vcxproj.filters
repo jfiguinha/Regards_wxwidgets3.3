@@ -249,6 +249,21 @@
     <ClInclude Include="CategoryTreeStatePersistence.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="FileSystemValidator.h">
+      <Filter>FolderProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="SqlBatchOps.h">
+      <Filter>FolderProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="ThreadPool.h">
+      <Filter>FolderProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailProcess.h">
+      <Filter>FolderProcess</Filter>
+    </ClInclude>
+    <ClInclude Include="UIEventBatcher.h">
+      <Filter>FolderProcess</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ViewerFrame.cpp">
@@ -412,6 +427,15 @@
     </ClCompile>
     <ClCompile Include="CategoryTreeStatePersistence.cpp">
       <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="FileSystemValidator.cpp">
+      <Filter>FolderProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="SqlBatchOps.cpp">
+      <Filter>FolderProcess</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailProcess.cpp">
+      <Filter>FolderProcess</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

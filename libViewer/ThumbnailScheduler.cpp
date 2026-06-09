@@ -75,7 +75,7 @@ bool ThumbnailScheduler::Tick(int nbProcesseur, int nbElementInIconeList)
                 wxQueueEvent(eventSink, evt);
 
                 int nb = nbProcess.load();
-                thumbnailProcess->ProcessThumbnail(path, 0, 0, nb);
+                thumbnailProcess->EnqueueThumbnail(path, 0, 0);
                 nbProcess.store(nb);
 
                 hasPendingWork = true;

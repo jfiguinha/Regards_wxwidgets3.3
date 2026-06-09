@@ -139,8 +139,5 @@ bool CSQLRemoveData::DeleteListPhoto(const std::vector<int>& listPhoto,
 
 bool CSQLRemoveData::DeletePhoto(int idPhoto)
 {
-    CSqlTransaction sqlTransaction;
-    bool ok = DeleteListPhoto({ idPhoto }, nullptr);
-    sqlTransaction.commit();
-    return ok;
+    return DeleteListPhoto({ idPhoto }, nullptr);
 }

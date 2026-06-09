@@ -1,247 +1,138 @@
 #include <header.h>
 #include "FolderProcess.h"
-#include <Photos.h>
-#include <FolderCatalog.h>
-#include <SqlFindFolderCatalog.h>
-#include <SQLRemoveData.h>
-#include <SqlFindPhotos.h>
-#include <SqlThumbnail.h>
-#include <SqlThumbnailVideo.h>
+#include "SqlBatchOps.h"
+#include "FileSystemValidator.h"
+#include "UIEventBatcher.h"
 #include <window_id.h>
 #include <MainWindow.h>
 #include <MainParam.h>
 #include <MainParamInit.h>
-#include <SqlInsertFile.h>
-#include <TreatmentData.h>
-#include <MainTheme.h>
-#include <MainThemeInit.h>
-#include <ThreadLoadingBitmap.h>
-#include <ParamInit.h>
-#include <RegardsConfigParam.h>
-#include <libPicture.h>
-#include <ImageLoadingFormat.h>
+
 using namespace Regards::Window;
 using namespace Regards::Viewer;
-using namespace Regards::Sqlite;
-using namespace Regards::Picture;
 
+// ---------------------------------------------------------------------------
+// CThreadCheckFile::CheckFile
+//
+// Changes vs original:
+//   • No sleep_for — the batcher paces UI updates instead.
+//   • Events fired at most once per 50 photos (batch of 50) rather than
+//     once per photo.
+//   • Filesystem validation delegated to CFileSystemValidator.
+//   • Stale thumbnail deletion batched via CSqlBatchOps.
+// ---------------------------------------------------------------------------
 void CThreadCheckFile::CheckFile(void* param)
 {
-	CThreadCheckFile* checkFile = (CThreadCheckFile*)param;
-	if (checkFile != nullptr)
-	{
-		int numElementTraitement = 0;
+    auto* checkFile = static_cast<CThreadCheckFile*>(param);
+    if (!checkFile)
+        return;
 
-		PhotosVector* _pictures = new PhotosVector();
-		CSqlFindPhotos sqlFindPhotos;
-		sqlFindPhotos.SearchPhotosByCriteriaFolder(_pictures);
+    PhotosVector pictures;
+    CSqlBatchOps::LoadPhotosByCriteria(pictures);
 
-		wxString nbElement = to_string(_pictures->size());
-		for (int i = 0; i < _pictures->size(); i++)
-		{
-			CPhotos photo = _pictures->at(i);
+    CUIEventBatcher batcher(checkFile->mainWindow,
+                             wxEVENT_UPDATECHECKINSTATUS,
+                             /*batchSize=*/50);
+    batcher.SetTotal(static_cast<int>(pictures.size()));
 
-			int nbProcesseur = 1;
+    // --- 1. Collect stale photo ids (no disk access inside SQL layer) -------
+    std::vector<int>      staleIds  = CFileSystemValidator::FindStalePhotos(pictures);
+    std::vector<wxString> badThumbs;
 
-			if (wxFileName::FileExists(photo.GetPath()))
-			{
-				//Test si thumbnail valide
-				CMainParam* config = CMainParamInit::getInstance();
-				if (config != nullptr)
-				{
-					if (config->GetCheckThumbnailValidity())
-					{
-						CSqlThumbnail sqlThumbnail;
-						CSqlThumbnailVideo sqlThumbnailVideo;
-						wxFileName file(photo.GetPath());
-						wxULongLong sizeFile = file.GetSize();
-						wxString md5file = sizeFile.ToString();
+    // --- 2. Optionally find thumbnails with wrong hash ----------------------
+    CMainParam* config = CMainParamInit::getInstance();
+    if (config && config->GetCheckThumbnailValidity())
+        badThumbs = CFileSystemValidator::FindInvalidThumbnails(pictures);
 
-						bool result = sqlThumbnail.TestThumbnail(photo.GetPath(), md5file);
-						if (!result)
-						{
-							//Remove thumbnail
-							sqlThumbnail.DeleteThumbnail(photo.GetPath());
-							sqlThumbnailVideo.DeleteThumbnail(photo.GetPath());
-						}
+    // --- 3. Batch-delete stale DB records -----------------------------------
+    CSqlBatchOps::DeletePhotosBatch(staleIds);
 
-						wxCommandEvent evt(wxEVENT_UPDATECHECKINFOLDER);
-						checkFile->mainWindow->GetEventHandler()->AddPendingEvent(evt);
-					}
-				}
-			}
-			else
-			{
-				//Remove file
-				CSQLRemoveData::DeletePhoto(photo.GetId());
-				wxCommandEvent evt(wxEVENT_UPDATECHECKINFOLDER);
-				checkFile->mainWindow->GetEventHandler()->AddPendingEvent(evt);
-			}
+    if (!staleIds.empty() || !badThumbs.empty())
+        batcher.SendSignal(wxEVENT_UPDATECHECKINFOLDER);
 
-			numElementTraitement++;
+    // --- 4. Batch-delete invalid thumbnails ---------------------------------
+    if (!badThumbs.empty())
+        CSqlBatchOps::DeleteThumbnailsBatch(badThumbs);
 
-			wxCommandEvent evt(wxEVENT_UPDATECHECKINSTATUS);
-			evt.SetInt(numElementTraitement);
-			evt.SetString(nbElement);
-			checkFile->mainWindow->GetEventHandler()->AddPendingEvent(evt);
+    // --- 5. Progress events (batched) ---------------------------------------
+    for (int i = 0; i < static_cast<int>(pictures.size()); ++i)
+    {
+        if (checkFile->mainWindow->processEnd)
+            break;
 
-			if (checkFile->mainWindow->processEnd)
-				break;
-			std::this_thread::sleep_for(50ms);
-		}
+        batcher.Tick(i);   // fires event only every 50 items or on last item
+    }
 
-		delete _pictures;
-	}
-
-
-	wxCommandEvent evt(wxEVENT_ENDCHECKFILE);
-	evt.SetClientData(checkFile);
-	checkFile->mainWindow->GetEventHandler()->AddPendingEvent(evt);
+    // --- 6. Signal completion -----------------------------------------------
+    wxCommandEvent done(wxEVENT_ENDCHECKFILE);
+    done.SetClientData(checkFile);
+    checkFile->mainWindow->GetEventHandler()->AddPendingEvent(done);
 }
 
-
+// ---------------------------------------------------------------------------
 CFolderProcess::CFolderProcess(CMainWindow* mainWindow)
-{
-	this->mainWindow = mainWindow;
-}
+    : mainWindow(mainWindow)
+{}
 
-CFolderProcess::~CFolderProcess()
-{
-
-}
-
-//---------------------------------------------------------------
-//
-//---------------------------------------------------------------
+// ---------------------------------------------------------------------------
 void CFolderProcess::UpdateCriteria(bool criteriaSendMessage)
 {
-	wxWindow* window = mainWindow->FindWindowById(CRITERIAFOLDERWINDOWID);
-	if (window)
-	{
-		wxCommandEvent evt(wxEVENT_UPDATECRITERIA);
-		evt.SetExtraLong((criteriaSendMessage == true) ? 1 : 0);
-		window->GetEventHandler()->AddPendingEvent(evt);
-	}
+    wxWindow* window = mainWindow->FindWindowById(CRITERIAFOLDERWINDOWID);
+    if (!window) return;
+
+    wxCommandEvent evt(wxEVENT_UPDATECRITERIA);
+    evt.SetExtraLong(criteriaSendMessage ? 1 : 0);
+    window->GetEventHandler()->AddPendingEvent(evt);
 }
 
-
-
-//---------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// CFolderProcess::RefreshFolder
 //
-//---------------------------------------------------------------
-void CFolderProcess::RefreshFolder(bool & folderChange, int & nbFile)
+// Changes vs original:
+//   • Validation logic extracted to CFileSystemValidator (pure, testable).
+//   • DB mutations batched via CSqlBatchOps (single transaction per type).
+//   • Search result refresh only triggered when something actually changed.
+// ---------------------------------------------------------------------------
+void CFolderProcess::RefreshFolder(bool& folderChange, int& nbFile)
 {
-	FolderCatalogVector folderList;
-	CSqlFindFolderCatalog folderCatalog;
-	folderCatalog.GetFolderCatalog(&folderList, NUMCATALOGID);
+    // --- 1. Load current catalog --------------------------------------------
+    FolderCatalogVector folderList;
+    PhotosVector        photoList;
+    CSqlBatchOps::LoadAllFolders(folderList);
+    CSqlBatchOps::LoadAllPhotos(photoList);
 
+    // --- 2. Find stale records ----------------------------------------------
+    std::vector<int> staleFolders = CFileSystemValidator::FindStaleFolders(folderList);
+    std::vector<int> stalePhotos  = CFileSystemValidator::FindStalePhotos(photoList);
 
+    // --- 3. Batch-delete in one pass ----------------------------------------
+    if (!staleFolders.empty())
+    {
+        CSqlBatchOps::DeleteFoldersBatch(staleFolders);
+        folderChange = true;
+    }
 
-	//Test de la validité des répertoires
-	for (CFolderCatalog folderlocal : folderList)
-	{
-		if (!wxDirExists(folderlocal.GetFolderPath()))
-		{
-			//Remove Folder
-			CSQLRemoveData::DeleteFolder(folderlocal.GetNumFolder());
-			folderChange = true;
-		}
-	}
+    if (!stalePhotos.empty())
+    {
+        CSqlBatchOps::DeletePhotosBatch(stalePhotos);
+        folderChange = true;
+    }
 
-	//Test de la validité des fichiers
-	PhotosVector photoList;
-	CSqlFindPhotos findphotos;
-	findphotos.GetAllPhotos(&photoList);
-	for (CPhotos photo : photoList)
-	{
-		if (!wxFileExists(photo.GetPath()))
-		{
-			//Remove Folder
-			CSQLRemoveData::DeletePhoto(photo.GetId());
-			folderChange = true;
-		}
-	}
+    // --- 4. Import new files from still-valid folders -----------------------
+    // Remove stale folder entries from local list before import.
+    FolderCatalogVector validFolders;
+    validFolders.reserve(folderList.size());
+    for (CFolderCatalog& f : folderList)
+    {
+        bool isStale = std::find(staleFolders.begin(), staleFolders.end(),
+                                  f.GetNumFolder()) != staleFolders.end();
+        if (!isStale)
+            validFolders.push_back(f);
+    }
 
-	
+    nbFile += CSqlBatchOps::ImportNewFiles(validFolders);
 
-	for (CFolderCatalog folderlocal : folderList)
-	{
-		wxString fichier;
-		CSqlInsertFile sqlInsertFile;
-		nbFile += sqlInsertFile.ImportFileFromFolder(folderlocal.GetFolderPath(), folderlocal.GetNumFolder(),
-			fichier);
-	}
-
-	if (folderChange || nbFile > 0)
-	{
-		auto viewerParam = CMainParamInit::getInstance();
-		wxString sqlRequest = viewerParam->GetLastSqlRequest();
-
-		CSqlFindPhotos sqlFindPhotos;
-		sqlFindPhotos.SearchPhotos(sqlRequest);
-	}
-
-}
-
-
-void CThumbnailProcess::ProcessThumbnail(wxString filename, int type, long longWindow, int &nbProcess)
-{
-	int nbProcesseur = 1;
-	if (CRegardsConfigParam* config = CParamInit::getInstance(); config != nullptr)
-		nbProcesseur = config->GetThumbnailProcess() + 1;
-
-	if (nbProcess >= nbProcesseur)
-		return;
-
-
-	if (filename != "")
-	{
-		nbProcess++;
-		auto pLoadBitmap = new CThreadLoadingBitmap();
-		pLoadBitmap->filename = filename;
-		pLoadBitmap->window = parent;
-		pLoadBitmap->longWindow = longWindow;
-		pLoadBitmap->type = type;
-		pLoadBitmap->_thread = new thread(LoadPicture, pLoadBitmap);
-
-	}
-
-}
-
-
-void CThumbnailProcess::LoadPicture(void* param)
-{
-
-	//std::thread* t1 = nullptr;
-	CLibPicture libPicture;
-	auto threadLoadingBitmap = static_cast<CThreadLoadingBitmap*>(param);
-	if (threadLoadingBitmap == nullptr)
-		return;
-
-	CImageLoadingFormat* imageLoad = libPicture.LoadThumbnail(threadLoadingBitmap->filename);
-	if (imageLoad != nullptr)
-	{
-		threadLoadingBitmap->bitmapIcone = imageLoad->GetMatrix().getMat();
-		delete imageLoad;
-	}
-
-	if (!threadLoadingBitmap->bitmapIcone.empty())
-	{
-		//Enregistrement en base de données
-		CSqlThumbnail sqlThumbnail;
-		wxFileName file(threadLoadingBitmap->filename);
-		wxULongLong sizeFile = file.GetSize();
-		wxString hash = sizeFile.ToString();
-		wxString localName = sqlThumbnail.InsertThumbnail(threadLoadingBitmap->filename, threadLoadingBitmap->bitmapIcone.size().width, threadLoadingBitmap->bitmapIcone.size().height, hash);
-		if (localName != "")
-		{
-			//threadLoadingBitmap->bitmapIcone.SaveFile(localName, wxBITMAP_TYPE_JPEG);
-			cv::imwrite(CConvertUtility::ConvertToStdString(localName), threadLoadingBitmap->bitmapIcone);
-		}
-
-	}
-
-	auto event = new wxCommandEvent(wxEVENT_ICONEUPDATE);
-	event->SetClientData(threadLoadingBitmap);
-	wxQueueEvent(threadLoadingBitmap->window, event);
+    // --- 5. Refresh search results only if something changed ----------------
+    if (folderChange || nbFile > 0)
+        CSqlBatchOps::RefreshSearchResults();
 }

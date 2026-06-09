@@ -1,109 +1,86 @@
 #pragma once
 #include "MainWindow.h"
+#include "ThumbnailProcess.h"
 #include "InfosSeparationBarExplorer.h"
 #include "TreatmentData.h"
+#include <thread>
+#include <atomic>
+#include <memory>
 
 using namespace Regards::Window;
 
-
 namespace Regards::Viewer
 {
-	class CMainWindow;
+    class CMainWindow;
 
+    // -----------------------------------------------------------------------
+    // Thread context for the "check existing files" background scan.
+    // Previously embedded sleep + per-file events; now uses CUIEventBatcher.
+    // -----------------------------------------------------------------------
+    class CThreadCheckFile
+    {
+    public:
+        CThreadCheckFile() : mainWindow(nullptr) {}
+        ~CThreadCheckFile() = default;
 
-	class CThreadCheckFile
-	{
-	public:
-		CThreadCheckFile()
-		{
-			mainWindow = nullptr;
-		}
+        static void CheckFile(void* param);
 
-		~CThreadCheckFile()
-		{
-		};
+        std::unique_ptr<std::thread> checkFile;
+        CMainWindow* mainWindow = nullptr;
+    };
 
-		static void CheckFile(void* param);
+    // -----------------------------------------------------------------------
+    // Helpers kept for compatibility with other translation units.
+    // -----------------------------------------------------------------------
+    class CFolderFiles
+    {
+    public:
+        std::vector<wxString> pictureFiles;
+        wxString              folderName;
+    };
 
-		std::unique_ptr<std::thread> checkFile;
-		CMainWindow* mainWindow;
+    class CThreadVideoData
+    {
+    public:
+        CMainWindow* mainWindow = nullptr;
+        wxString     video;
+    };
 
-	};
+    class CThreadPhotoLoading
+    {
+    public:
+        CThreadPhotoLoading()
+            : _pictures(new PhotosVector())
+            , _listSeparator(new InfosSeparationBarVector())
+        {}
+        ~CThreadPhotoLoading() = default;
 
-	class CFolderFiles
-	{
-	public:
-		vector<wxString> pictureFiles;
-		wxString folderName;
-	};
+        Regards::Viewer::CMainWindow* mainWindow       = nullptr;
+        CIconeList*                   iconeListLocal    = nullptr;
+        InfosSeparationBarVector*     _listSeparator;
+        CIconeList*                   iconeListThumbnail = nullptr;
+        int                           typeAffichage      = 0;
+        PhotosVector*                 _pictures;
+    };
 
-	class CThreadVideoData
-	{
-	public:
-		CThreadVideoData()
-		{
-			mainWindow = nullptr;
-		}
+    // -----------------------------------------------------------------------
+    // Orchestrates folder refresh: delegates SQL to CSqlBatchOps,
+    // filesystem checks to CFileSystemValidator, UI events to CUIEventBatcher.
+    // -----------------------------------------------------------------------
+    class CFolderProcess
+    {
+    public:
+        explicit CFolderProcess(CMainWindow* mainWindow);
+        ~CFolderProcess() = default;
 
-		~CThreadVideoData()
-		{
-		};
+        void UpdateCriteria(bool criteriaSendMessage);
 
-		CMainWindow* mainWindow;
-		wxString video;
-	};
+        // Scans watched folders, removes stale records, imports new files.
+        // Sets folderChange=true if any record was added or removed.
+        void RefreshFolder(bool& folderChange, int& nbFile);
 
-	class CThreadPhotoLoading
-	{
-	public:
-		CThreadPhotoLoading()
-		{
-			_pictures = new PhotosVector();
-			_listSeparator = new InfosSeparationBarVector();
-		}
-
-		~CThreadPhotoLoading() {};
-		
-
-		Regards::Viewer::CMainWindow* mainWindow;
-		CIconeList* iconeListLocal;
-		InfosSeparationBarVector* _listSeparator;
-		CIconeList* iconeListThumbnail;
-		int typeAffichage;
-		PhotosVector* _pictures;
-	};
-
-	class CFolderProcess
-	{
-	public:
-		CFolderProcess(CMainWindow* mainWindow);
-		~CFolderProcess();
-		void UpdateCriteria(bool criteriaSendMessage);
-		void RefreshFolder(bool& folderChange, int& nbFile);
-
-	private:
-		CMainWindow* mainWindow;
-		//void UpdateFolder(CThreadPhotoLoading* threadData);
-
-		wxString oldRequest = "";
-	};
-
-	class CThumbnailProcess
-	{
-	public:
-		CThumbnailProcess(CMainWindow* parent)
-		{
-			this->parent = parent;
-		}
-		~CThumbnailProcess()
-		{
-		};
-
-
-		void ProcessThumbnail(wxString filename, int type, long longWindow, int& nbProcess);
-
-	private:
-		static void LoadPicture(void* param);
-		CMainWindow* parent = nullptr;
-	};
+    private:
+        CMainWindow* mainWindow;
+        wxString     m_oldRequest;
+    };
 }

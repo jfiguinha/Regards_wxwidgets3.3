@@ -891,6 +891,7 @@
     <ClInclude Include="CriteriaWindow.h" />
     <ClInclude Include="ExportDiaporama.h" />
     <ClInclude Include="FaceInfosUpdate.h" />
+    <ClInclude Include="FileSystemValidator.h" />
     <ClInclude Include="FileWatcherService.h" />
     <ClInclude Include="FolderProcess.h" />
     <ClInclude Include="FolderRefreshService.h" />
@@ -916,12 +917,15 @@
     <ClInclude Include="PrintService.h" />
     <ClInclude Include="ScannerLauncher.h" />
     <ClInclude Include="SlideshowController.h" />
+    <ClInclude Include="SqlBatchOps.h" />
     <ClInclude Include="StatusText.h" />
+    <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="ThumbnailController.h" />
     <ClInclude Include="ThumbnailFace.h" />
     <ClInclude Include="ThumbnailFacePertinenceToolBar.h" />
     <ClInclude Include="ThumbnailFaceToolBar.h" />
     <ClInclude Include="ThumbnailFolder.h" />
+    <ClInclude Include="ThumbnailProcess.h" />
     <ClInclude Include="ThumbnailScheduler.h" />
     <ClInclude Include="ThumbnailToolBar.h" />
     <ClInclude Include="ThumbnailToolBarZoom.h" />
@@ -932,6 +936,7 @@
     <ClInclude Include="ToolbarPhoto.h" />
     <ClInclude Include="ToolbarViewerMode.h" />
     <ClInclude Include="TreatmentData.h" />
+    <ClInclude Include="UIEventBatcher.h" />
     <ClInclude Include="ViewerController.h" />
     <ClInclude Include="ViewerFrame.h" />
     <ClInclude Include="ViewerNavigationController.h" />
@@ -963,6 +968,7 @@
     <ClCompile Include="CentralWindow.cpp" />
     <ClCompile Include="CriteriaWindow.cpp" />
     <ClCompile Include="ExportDiaporama.cpp" />
+    <ClCompile Include="FileSystemValidator.cpp" />
     <ClCompile Include="FileWatcherService.cpp" />
     <ClCompile Include="FolderProcess.cpp" />
     <ClCompile Include="FolderRefreshService.cpp" />
@@ -985,11 +991,13 @@
     <ClCompile Include="PrintService.cpp" />
     <ClCompile Include="ScannerLauncher.cpp" />
     <ClCompile Include="SlideshowController.cpp" />
+    <ClCompile Include="SqlBatchOps.cpp" />
     <ClCompile Include="ThumbnailController.cpp" />
     <ClCompile Include="ThumbnailFace.cpp" />
     <ClCompile Include="ThumbnailFacePertinenceToolBar.cpp" />
     <ClCompile Include="ThumbnailFaceToolBar.cpp" />
     <ClCompile Include="ThumbnailFolder.cpp" />
+    <ClCompile Include="ThumbnailProcess.cpp" />
     <ClCompile Include="ThumbnailScheduler.cpp" />
     <ClCompile Include="ThumbnailToolBar.cpp" />
     <ClCompile Include="ThumbnailToolBarZoom.cpp" />
