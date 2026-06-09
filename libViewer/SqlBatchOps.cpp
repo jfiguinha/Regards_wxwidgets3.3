@@ -37,13 +37,8 @@ int CSqlBatchOps::DeletePhotosBatch(const std::vector<int>& ids)
 {
     // Execute inside a single transaction for performance.
     // CSQLRemoveData is expected to support a batch overload; fall back to loop if not.
-    int deleted = 0;
-    for (int id : ids)
-    {
-        CSQLRemoveData::DeletePhoto(id);
-        ++deleted;
-    }
-    return deleted;
+    CSQLRemoveData::DeleteListPhoto(ids, nullptr);
+	return static_cast<int>(ids.size());
 }
 
 int CSqlBatchOps::DeleteFoldersBatch(const std::vector<int>& folderIds)
