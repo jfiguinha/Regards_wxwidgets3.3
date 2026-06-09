@@ -1,86 +1,95 @@
 #pragma once
 #include "MainWindow.h"
-#include "ThumbnailProcess.h"
 #include "InfosSeparationBarExplorer.h"
 #include "TreatmentData.h"
-#include <thread>
-#include <atomic>
-#include <memory>
 
 using namespace Regards::Window;
 
+
 namespace Regards::Viewer
 {
-    class CMainWindow;
+	class CMainWindow;
 
-    // -----------------------------------------------------------------------
-    // Thread context for the "check existing files" background scan.
-    // Previously embedded sleep + per-file events; now uses CUIEventBatcher.
-    // -----------------------------------------------------------------------
-    class CThreadCheckFile
-    {
-    public:
-        CThreadCheckFile() : mainWindow(nullptr) {}
-        ~CThreadCheckFile() = default;
 
-        static void CheckFile(void* param);
+	class CFolderFiles
+	{
+	public:
+		vector<wxString> pictureFiles;
+		wxString folderName;
+	};
 
-        std::unique_ptr<std::thread> checkFile;
-        CMainWindow* mainWindow = nullptr;
-    };
+	class CThreadVideoData
+	{
+	public:
+		CThreadVideoData()
+		{
+			mainWindow = nullptr;
+		}
 
-    // -----------------------------------------------------------------------
-    // Helpers kept for compatibility with other translation units.
-    // -----------------------------------------------------------------------
-    class CFolderFiles
-    {
-    public:
-        std::vector<wxString> pictureFiles;
-        wxString              folderName;
-    };
+		~CThreadVideoData();
 
-    class CThreadVideoData
-    {
-    public:
-        CMainWindow* mainWindow = nullptr;
-        wxString     video;
-    };
+		CMainWindow* mainWindow;
+		wxString video;
+	};
 
-    class CThreadPhotoLoading
-    {
-    public:
-        CThreadPhotoLoading()
-            : _pictures(new PhotosVector())
-            , _listSeparator(new InfosSeparationBarVector())
-        {}
-        ~CThreadPhotoLoading() = default;
+	class CThreadCheckFile
+	{
+	public:
+		CThreadCheckFile()
+		{
+			mainWindow = nullptr;
+		}
 
-        Regards::Viewer::CMainWindow* mainWindow       = nullptr;
-        CIconeList*                   iconeListLocal    = nullptr;
-        InfosSeparationBarVector*     _listSeparator;
-        CIconeList*                   iconeListThumbnail = nullptr;
-        int                           typeAffichage      = 0;
-        PhotosVector*                 _pictures;
-    };
+		~CThreadCheckFile()
+		{
+		};
 
-    // -----------------------------------------------------------------------
-    // Orchestrates folder refresh: delegates SQL to CSqlBatchOps,
-    // filesystem checks to CFileSystemValidator, UI events to CUIEventBatcher.
-    // -----------------------------------------------------------------------
-    class CFolderProcess
-    {
-    public:
-        explicit CFolderProcess(CMainWindow* mainWindow);
-        ~CFolderProcess() = default;
+		static void CheckFile(void* param);
 
-        void UpdateCriteria(bool criteriaSendMessage);
 
-        // Scans watched folders, removes stale records, imports new files.
-        // Sets folderChange=true if any record was added or removed.
-        void RefreshFolder(bool& folderChange, int& nbFile);
+		std::unique_ptr<std::thread> checkFile = nullptr;
+		CMainWindow* mainWindow;
+		int pictureSize;
+		int numFile;
+	};
 
-    private:
-        CMainWindow* mainWindow;
-        wxString     m_oldRequest;
-    };
+
+
+	class CThreadPhotoLoading
+	{
+	public:
+		CThreadPhotoLoading()
+		{
+			_pictures = new PhotosVector();
+			_listSeparator = new InfosSeparationBarVector();
+		}
+
+		~CThreadPhotoLoading() {};
+
+		Regards::Viewer::CMainWindow* mainWindow;
+		CIconeList* iconeListLocal;
+		InfosSeparationBarVector* _listSeparator;
+		CIconeList* iconeListThumbnail;
+		int typeAffichage;
+		PhotosVector* _pictures;
+	};
+
+	class CFolderProcess
+	{
+	public:
+		CFolderProcess(CMainWindow* mainWindow);
+		~CFolderProcess();
+		void RefreshFolder(bool& folderChange, int& nbFile);
+		//void UpdateFolderStatic();
+
+
+	private:
+		CMainWindow* mainWindow;
+		//void UpdateFolder(CThreadPhotoLoading* threadData);
+
+		wxString oldRequest = "";
+	};
+
+
+	
 }

@@ -959,14 +959,6 @@ void CVideoControlSoft::StopVideoThread(wxCommandEvent& event)
 
 CVideoControlSoft::~CVideoControlSoft()
 {
-    /*
-	if (_threadVideo != nullptr)
-	{
-		_threadVideo->join();
-		delete _threadVideo;
-	}
-    */
-
 	if (assSubtitleTimer->IsRunning())
 		assSubtitleTimer->Stop();
 

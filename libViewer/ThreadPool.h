@@ -48,6 +48,32 @@ namespace Regards::Viewer
         }
 
         template<class F, class... Args>
+        auto Dequeue(F&& f, Args&&... args) -> std::future<decltype(f(args...))>
+        {
+            using ReturnType = decltype(f(args...));
+            std::unique_lock<std::mutex> lock(m_queueMutex);
+            auto task = std::make_shared<std::packaged_task<ReturnType()>>(
+                std::bind(std::forward<F>(f), std::forward<Args>(args)...)
+            );
+            std::future<ReturnType> result = task->get_future();
+            {
+                m_condition.wait(lock, [this]
+                    {
+                        return m_stop || !m_tasks.empty();
+                    });
+
+                if (m_stop && m_tasks.empty())
+                    return result;
+
+                std::move(m_tasks.front());
+                m_tasks.pop();
+            }
+
+
+            return result;
+        }
+
+        template<class F, class... Args>
         auto Enqueue(F&& f, Args&&... args) -> std::future<decltype(f(args...))>
         {
             using ReturnType = decltype(f(args...));

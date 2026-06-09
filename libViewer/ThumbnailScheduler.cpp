@@ -1,10 +1,9 @@
 #include <header.h>
 #include "ThumbnailScheduler.h"
-#include "FolderProcess.h"          // CThumbnailProcess
 #include <SqlPhotosWithoutThumbnail.h> // CSqlPhotosWithoutThumbnail
 #include <window_id.h>
 #include <wx/event.h>
-
+#include "ThumbnailProcess.h"
 using namespace Regards::Viewer;
 using namespace Regards::Sqlite;
 
@@ -75,9 +74,8 @@ bool ThumbnailScheduler::Tick(int nbProcesseur, int nbElementInIconeList)
                 wxQueueEvent(eventSink, evt);
 
                 int nb = nbProcess.load();
-                thumbnailProcess->EnqueueThumbnail(path, 0, 0);
+                thumbnailProcess->ProcessThumbnail(path, 0, 0, nb);
                 nbProcess.store(nb);
-
                 hasPendingWork = true;
             }
         }

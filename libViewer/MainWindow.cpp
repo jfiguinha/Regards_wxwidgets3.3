@@ -33,6 +33,7 @@
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
 
+#include "ThumbnailProcess.h"
 
 using namespace Regards::Picture;
 using namespace Regards::Control;

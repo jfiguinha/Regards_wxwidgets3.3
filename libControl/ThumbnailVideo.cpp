@@ -207,7 +207,7 @@ void CThumbnailVideo::GenerateThumbnail(const wxString& szFileName)
 		auto pLoadBitmap = new CThreadLoadingBitmap();
 		pLoadBitmap->filename = szFileName;
 		pLoadBitmap->window = this;
-		pLoadBitmap->_thread = new thread(LoadVideoThumbnail, pLoadBitmap);
+		pLoadBitmap->_thread = std::make_unique<std::thread>(LoadVideoThumbnail, pLoadBitmap);
 
 		process_end = false;
 

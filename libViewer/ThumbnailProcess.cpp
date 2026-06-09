@@ -14,11 +14,9 @@ using namespace Regards::Sqlite;
 using namespace Regards::Picture;
 using namespace Regards::Viewer;
 
-// ---------------------------------------------------------------------------
-CThumbnailProcess::CThumbnailProcess(CMainWindow* parent,
-                                     int maxConcurrent)
-    : m_parent(parent)
+CThumbnailProcess::CThumbnailProcess(CMainWindow* parent, int maxConcurrent)
 {
+    this->parent = parent;
     if (maxConcurrent <= 0)
     {
         int cfg = 1;
@@ -30,82 +28,66 @@ CThumbnailProcess::CThumbnailProcess(CMainWindow* parent,
     {
         m_maxConcurrent = maxConcurrent;
     }
-
-    // Pool sized to the allowed concurrency so the OS scheduler does the work.
-    m_pool = std::make_unique<CThreadPool>(static_cast<size_t>(m_maxConcurrent));
 }
 
-// ---------------------------------------------------------------------------
-bool CThumbnailProcess::EnqueueThumbnail(const wxString& filename, int type,
-                                          long longWindow)
+CThumbnailProcess::~CThumbnailProcess()
 {
+}
+
+void CThumbnailProcess::ProcessThumbnail(wxString filename, int type, long longWindow, int& nbProcess)
+{
+    if (nbProcess >= m_maxConcurrent)
+        return;
+
     if (filename.empty())
-        return false;
+        return;
 
-    if (m_inFlight >= m_maxConcurrent)
-        return false;
+    
+    auto pLoadBitmap = new CThreadLoadingBitmap();
+    pLoadBitmap->filename = filename;
+    pLoadBitmap->window = parent;
+    pLoadBitmap->longWindow = longWindow;
+    pLoadBitmap->type = type;
+    pLoadBitmap->_thread = std::make_unique<std::thread>(LoadPicture, pLoadBitmap);
 
-    ++m_inFlight;
-
-    auto task      = new CThreadLoadingBitmap();
-    task->filename  = filename;
-    task->window    = m_parent;
-    task->longWindow = longWindow;
-    task->type      = type;
-
-    m_pool->Enqueue([this, task]() mutable
-    {
-        LoadPicture(task);
-        --m_inFlight;
-    });
-
-    return true;
+    nbProcess++;
 }
 
-// ---------------------------------------------------------------------------
-void CThumbnailProcess::CancelAll()
+void CThumbnailProcess::LoadPicture(void* param)
 {
-    m_pool->RequestStop();
-}
 
-// ---------------------------------------------------------------------------
-size_t CThumbnailProcess::ActiveCount() const
-{
-    return static_cast<size_t>(m_inFlight.load());
-}
-
-// ---------------------------------------------------------------------------
-/*static*/
-void CThumbnailProcess::LoadPicture(CThreadLoadingBitmap * task)
-{
+    //std::thread* t1 = nullptr;
     CLibPicture libPicture;
+    auto threadLoadingBitmap = static_cast<CThreadLoadingBitmap*>(param);
+    if (threadLoadingBitmap == nullptr)
+        return;
 
-    CImageLoadingFormat* imageLoad = libPicture.LoadThumbnail(task->filename);
+    CImageLoadingFormat* imageLoad = libPicture.LoadThumbnail(threadLoadingBitmap->filename);
     if (imageLoad != nullptr)
     {
-        task->bitmapIcone = imageLoad->GetMatrix().getMat();
+        threadLoadingBitmap->bitmapIcone = imageLoad->GetMatrix().getMat();
         delete imageLoad;
     }
 
-    if (!task->bitmapIcone.empty())
+    if (!threadLoadingBitmap->bitmapIcone.empty())
     {
         CSqlThumbnail sqlThumbnail;
-        wxFileName    file(task->filename);
+        wxFileName    file(threadLoadingBitmap->filename);
         wxULongLong   sizeFile = file.GetSize();
-        wxString      hash     = sizeFile.ToString();
+        wxString      hash = sizeFile.ToString();
 
         wxString localName = sqlThumbnail.InsertThumbnail(
-            task->filename,
-            task->bitmapIcone.size().width,
-            task->bitmapIcone.size().height,
+            threadLoadingBitmap->filename,
+            threadLoadingBitmap->bitmapIcone.size().width,
+            threadLoadingBitmap->bitmapIcone.size().height,
             hash);
 
         if (!localName.empty())
-            cv::imwrite(CConvertUtility::ConvertToStdString(localName), task->bitmapIcone);
+            cv::imwrite(CConvertUtility::ConvertToStdString(localName), threadLoadingBitmap->bitmapIcone);
     }
 
     // Notify UI — ownership of CThumbnailTask transferred to the event.
     auto event = new wxCommandEvent(wxEVENT_ICONEUPDATE);
-    event->SetClientData(task); // caller must keep task alive; use shared_ptr refcount
-    wxQueueEvent(task->window, event);
+    event->SetClientData(threadLoadingBitmap); // caller must keep task alive; use shared_ptr refcount
+    wxQueueEvent(threadLoadingBitmap->window, event);
 }

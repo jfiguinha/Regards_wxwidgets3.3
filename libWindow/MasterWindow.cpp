@@ -162,6 +162,11 @@ void CMasterWindow::SetEndProgram()
 	endProgram = true;
 }
 
+bool CMasterWindow::GetEndProgram()
+{
+	return endProgram;
+}
+
 void CMasterWindow::SetStopProcess(const bool& state)
 {
 	stopProcess = state;
