@@ -45,6 +45,27 @@ namespace Regards::Window
 		void CreateElement();
 		void CreateChildTree(tree<CTreeData*>::sibling_iterator& parent);
 
+		CPositionElement* RenderSlide(
+			CTreeData* data,
+			int& xPos,
+			int& yPos,
+			bool visible,
+			RenderMode mode);
+
+		CPositionElement* RenderCheckbox(
+			CTreeData* dataEffect,
+			int& xPos,
+			int& yPos,
+			bool visible,
+			RenderMode mode);
+
+		CPositionElement* RenderList(
+			CTreeData* dataEffect,
+			int& xPos,
+			int& yPos,
+			bool visible,
+			RenderMode mode);
+
 		int filtre;
 
 		int yPos;

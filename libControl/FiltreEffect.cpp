@@ -213,6 +213,121 @@ void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* pos
 	}
 }
 
+CPositionElement* CFiltreEffect::RenderSlide(
+	CTreeData* dataEffect,
+	int& xPos,
+	int& yPos,
+	bool visible,
+	RenderMode mode)
+{
+	CPositionElement* posElement = nullptr;
+	auto data = static_cast<CTreeDataEffect*>(dataEffect);
+
+	if (mode == RenderMode::Update)
+		posElement = GetElement(data, ELEMENT_SLIDE);
+
+	if (posElement == nullptr)
+	{
+		CTreeElementSlide* treeElementSlide = CreateSlideElement(
+			themeTree.GetRowWidth(), themeTree.GetRowHeight(),
+			data->GetInitValue(), data->GetVectorValue(),
+			data->GetExifKey());
+		treeElementSlide->SetVisible(visible);
+		posElement = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
+			themeTree.GetRowHeight(), ELEMENT_SLIDE, treeElementSlide,
+			data);
+	}
+	else
+	{
+		auto* slide = static_cast<CTreeElementSlide*>(posElement->GetTreeElement());
+
+		slide->SetVisible(visible);
+		slide->SetElementPos(xPos, yPos);
+
+		posElement->SetX(xPos);
+		posElement->SetY(yPos);
+	}
+
+	return posElement;
+}
+
+CPositionElement* CFiltreEffect::RenderCheckbox(
+	CTreeData* dataEffect,
+	int& xPos,
+	int& yPos,
+	bool visible,
+	RenderMode mode)
+{
+	CPositionElement* posElement = nullptr;
+	auto data = static_cast<CTreeDataEffect*>(dataEffect);
+
+	if (mode == RenderMode::Update)
+		posElement = GetElement(data, ELEMENT_CHECKBOX);
+
+	if (posElement == nullptr)
+	{
+		CTreeElementCheckBox* treeElementCheckbox = CreateCheckBoxElement(
+			themeTree.GetRowWidth(), themeTree.GetRowHeight(),
+			data->GetBoolValue());
+		treeElementCheckbox->SetVisible(visible);
+		posElement = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
+			themeTree.GetRowHeight(), ELEMENT_CHECKBOX, treeElementCheckbox,
+			data);
+	}
+	else
+	{
+		auto* checkbox = static_cast<CTreeElementCheckBox*>(posElement->GetTreeElement());
+
+		checkbox->SetVisible(visible);
+		checkbox->SetElementPos(xPos, yPos);
+
+		posElement->SetX(xPos);
+		posElement->SetY(yPos);
+	}
+
+	return posElement;
+}
+
+
+CPositionElement* CFiltreEffect::RenderList(
+	CTreeData* dataEffect,
+	int& xPos,
+	int& yPos,
+	bool visible,
+	RenderMode mode)
+{
+	CPositionElement* posElement = nullptr;
+	auto data = static_cast<CTreeDataEffect*>(dataEffect);
+
+	if (mode == RenderMode::Update)
+		posElement = GetElement(data, ELEMENT_LISTBOX);
+
+	if (posElement == nullptr)
+	{
+		CTreeElementListBox* treeElementListBox = CreateListBoxElement(
+			themeTree.GetRowWidth(), themeTree.GetRowHeight(),
+			data->GetMetadataValue(), data->GetIndex(),
+			data->GetExifKey());
+		treeElementListBox->SetVisible(visible);
+		posElement = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
+			themeTree.GetRowHeight(), ELEMENT_LISTBOX, treeElementListBox,
+			data); 
+	}
+	else
+	{
+		auto* checkbox = static_cast<CTreeElementListBox*>(posElement->GetTreeElement());
+
+		checkbox->SetVisible(visible);
+		checkbox->SetElementPos(xPos, yPos);
+
+		posElement->SetX(xPos);
+		posElement->SetY(yPos);
+	}
+
+	return posElement;
+}
+
+
 void CFiltreEffect::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 {
 	CPositionElement* pos_element;
@@ -231,12 +346,15 @@ void CFiltreEffect::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 			int xPos = widthPosition * profondeur;
 			int widthElementColumn2 = 0;
 
+			/*
 			CTreeElementTexte* treeElementTexte = CreateTexteElement(themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 			                                                         data->GetKey());
 			treeElementTexte->SetVisible(isVisible);
 			pos_element = CreatePositionElement(xPos, yPos, nbRow, 0, themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 			                                    ELEMENT_TEXTE, treeElementTexte, data, false);
+			*/
 
+			pos_element = RenderText(data, xPos, yPos, isVisible, RenderMode::Create, false);
 			int widthElementColumn1 = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
 
 			if (data->HasValue())
@@ -244,6 +362,12 @@ void CFiltreEffect::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 				xPos = themeTree.GetMargeX();
 				if (data->GetType() == TYPE_SLIDE)
 				{
+					pos_element = RenderSlide(
+						data,
+						xPos, yPos,
+						isVisible,
+						RenderMode::Create);
+					/*
 					CTreeElementSlide* treeElementSlide = CreateSlideElement(
 						themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 						data->GetInitValue(), data->GetVectorValue(),
@@ -252,10 +376,12 @@ void CFiltreEffect::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 					pos_element = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
 					                                    themeTree.GetRowHeight(), ELEMENT_SLIDE, treeElementSlide,
 					                                    data);
+					*/
 					widthElementColumn2 = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
 				}
 				else if (data->GetType() == TYPE_CHECKBOX)
 				{
+					/*
 					CTreeElementCheckBox* treeElementCheckbox = CreateCheckBoxElement(
 						themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 						data->GetBoolValue());
@@ -263,10 +389,17 @@ void CFiltreEffect::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 					pos_element = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
 					                                    themeTree.GetRowHeight(), ELEMENT_CHECKBOX, treeElementCheckbox,
 					                                    data);
+					*/
+					pos_element = RenderCheckbox(
+						data,
+						xPos, yPos,
+						isVisible,
+						RenderMode::Create);
 					widthElementColumn2 = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
 				}
 				else if (data->GetType() == TYPE_LISTBOX)
 				{
+					/*
 					CTreeElementListBox* treeElementListbox = CreateListBoxElement(
 						themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 						data->GetMetadataValue(), data->GetIndex(),
@@ -274,7 +407,13 @@ void CFiltreEffect::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 					treeElementListbox->SetVisible(isVisible);
 					pos_element = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
 					                                    themeTree.GetRowHeight(), ELEMENT_LISTBOX, treeElementListbox,
-					                                    data);
+					                                    data);*/
+
+					pos_element = RenderList(
+						data,
+						xPos, yPos,
+						isVisible,
+						RenderMode::Create);
 					widthElementColumn2 = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
 				}
 			}
@@ -295,20 +434,35 @@ void CFiltreEffect::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 		{
 			int xPos = widthPosition * profondeur;
 
+			pos_element = RenderTriangle(
+				data,
+				xPos, yPos,
+				isVisible,
+				RenderMode::Create);
+
+			/*
 			CTreeElementTriangle* treeElementTriangle = CreateTriangleElement(
 				themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 				true);
 			treeElementTriangle->SetVisible(isVisible);
 			pos_element = CreatePositionElement(xPos, yPos, nbRow, 0, themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 			                                    ELEMENT_TRIANGLE, treeElementTriangle, data);
-
+			*/
 			xPos += pos_element->GetWidth() + themeTree.GetMargeX();
+
+			pos_element = RenderText(
+				data,
+				xPos, yPos,
+				isVisible,
+				RenderMode::Create);
+
+			/*
 			CTreeElementTexte* treeElementTexte = CreateTexteElement(themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 			                                                         data->GetKey());
 			treeElementTexte->SetVisible(isVisible);
 			pos_element = CreatePositionElement(xPos, yPos, nbRow, 0, themeTree.GetRowWidth(), themeTree.GetRowHeight(),
 			                                    ELEMENT_TEXTE, treeElementTexte, data, false);
-
+			*/
 
 			int widthElement = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
 			yPos += themeTree.GetRowHeight();
