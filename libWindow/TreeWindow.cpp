@@ -19,28 +19,16 @@ CTreeWindow::CTreeWindow(wxWindow* parent, wxWindowID id, const CThemeTree& them
 	oldPosHauteur = 0;
 	controlWidth = 0;
 	controlHeight = 0;
-	//defaultPageSize = 50;
-	//defaultLineSize = 5;
 	posHauteur = 0;
 	posLargeur = 0;
 	themeTree = theme;
-	//defaultPageSize = 50;
 
-	//Buffer
-	/*
-	controlWidthBuffer = 0;
-	controlHeightBuffer = 0;
-	posLargeurBuffer = 0;
-	posHauteurBuffer = 0;         
-	widthBuffer = 0;
-	heightBuffer = 0;     
-	*/
-	//defaultLineSize = themeTree.GetRowHeight();
 	themeTree.themeTriangle.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeCheckbox.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeDelete.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeSlide.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
+
 	Connect(wxEVT_PAINT, wxPaintEventHandler(CTreeWindow::on_paint));
 	Connect(wxEVT_MOTION, wxMouseEventHandler(CTreeWindow::OnMouseMove));
 	Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CTreeWindow::OnLButtonDown));
@@ -159,22 +147,6 @@ void CTreeWindow::MoveRight()
 	}
 }
 
-/*
-void CTreeWindow::UpdateElement(CTreeElement * treeElement)
-{
-    
-	wxClientDC dc(this);
-	int xPos = 0;
-	if (treeElement->GetRow() > 0)
-		xPos = treeControl->GetWidthRow(treeElement->GetRow() - 1);
-	
-
-	//treeElement->DrawElement(&dc, treeElement->GetPosX() + xPos, treeElement->GetPosY());
-    
-	//GenerateScreenBuffer();
-	//this->Refresh();
-}
-*/
 CTreeWindow::~CTreeWindow()
 {
 }
@@ -320,15 +292,6 @@ void CTreeWindow::Resize()
 {
 	GenerateScreenBuffer();
 	needToRefresh = true;
-	/*
-	wxClientDC dc(this);
-	if (backgroundBuffer.IsOk())
-	{
-
-		printf("CTreeWindow::OnPaint not bufferUpdate \n");
-		dc.DrawBitmap(backgroundBuffer, 0, 0);
-	}
-	*/
 }
 
 void CTreeWindow::OnMouseMove(wxMouseEvent& event)

@@ -919,8 +919,6 @@
     <ClInclude Include="SlideshowController.h" />
     <ClInclude Include="SqlBatchOps.h" />
     <ClInclude Include="StatusText.h" />
-    <ClInclude Include="ThreadPool.h" />
-    <ClInclude Include="ThumbnailController.h" />
     <ClInclude Include="ThumbnailFace.h" />
     <ClInclude Include="ThumbnailFacePertinenceToolBar.h" />
     <ClInclude Include="ThumbnailFaceToolBar.h" />
@@ -992,7 +990,6 @@
     <ClCompile Include="ScannerLauncher.cpp" />
     <ClCompile Include="SlideshowController.cpp" />
     <ClCompile Include="SqlBatchOps.cpp" />
-    <ClCompile Include="ThumbnailController.cpp" />
     <ClCompile Include="ThumbnailFace.cpp" />
     <ClCompile Include="ThumbnailFacePertinenceToolBar.cpp" />
     <ClCompile Include="ThumbnailFaceToolBar.cpp" />

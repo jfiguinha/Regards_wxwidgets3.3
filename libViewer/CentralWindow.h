@@ -113,7 +113,6 @@ namespace Regards::Viewer
 
         // ── Sub-controllers ─────────────────────────────────────────────
         std::unique_ptr<CMusicController>        musicController      = nullptr;
-        std::unique_ptr<CThumbnailController>    thumbnailController  = nullptr;
         std::unique_ptr<CMediaLoader>            mediaLoader          = nullptr;
         std::unique_ptr<CViewerController>      viewerController     = nullptr;
         std::unique_ptr<CSlideshowController>    slideshowController  = nullptr;

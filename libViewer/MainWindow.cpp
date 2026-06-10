@@ -32,7 +32,7 @@
 #include <wx/mimetype.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
-
+#include "ListFace.h"
 #include "ThumbnailProcess.h"
 
 using namespace Regards::Picture;
@@ -157,61 +157,7 @@ void CMainWindow::InitUI(IStatusBarInterface* statusbar)
         statusBar, progressBar,
         statusBarViewer, this);
 }
-/*
-void CMainWindow::BindEvents()
-{
-    Bind(wxEVT_MENU,
-        &CMainWindow::OnShowToolbar,
-        this,
-        TOOLBAR_UPDATE_ID);
-    Bind(wxEVT_TIMER,
-        &CMainWindow::OnOpenFile,
-        this,
-        TIMER_LOADPICTURESTART);
 
-    //Bind<wxCommandEvent>(wxEVENT_FACEINFOSUPDATE, &CMainWindow::OnFaceInfosUpdate, this);
-
-    Bind(wxEVENT_SETSCREEN, &CMainWindow::SetScreenEvent, this);
-    Bind(wxEVENT_INFOS, &CMainWindow::OnUpdateInfos, this);
-    Bind(wxEVENT_REFRESHFOLDERLIST, &CMainWindow::RefreshFolderList, this);
-    Bind(wxEVT_MENU, &CMainWindow::OnShowToolbar, this, TOOLBAR_UPDATE_ID);
-    Bind(wxEVENT_ENDCHECKFILE, &CMainWindow::OnEndCheckFile, this);
-    Bind(wxEVENT_UPDATEFOLDER, &CMainWindow::OnUpdateFolder, this);
-    Bind(wxEVENT_ONPICTURECLICK, &CMainWindow::OnPictureClick, this);
-    Bind(wxEVT_CRITERIACHANGE, &CMainWindow::CriteriaChange, this);
-    Bind(wxEVENT_PICTUREVIDEOCLICK, &CMainWindow::PictureVideoClick, this);
-    Bind(wxEVENT_REFRESHFOLDER, &CMainWindow::InitPictures, this);
-    Bind(wxEVENT_REFRESHPICTURE, &CMainWindow::OnRefreshPicture, this);
-    Bind(wxEVENT_SETSTATUSTEXT, &CMainWindow::OnStatusSetText, this);
-    Bind(wxEVT_EXIT, &CMainWindow::OnExit, this);
-    Bind(wxEVENT_SETRANGEPROGRESSBAR, &CMainWindow::OnSetRangeProgressBar, this);
-    Bind(wxEVENT_PRINTPICTURE, &CMainWindow::PrintPreview, this);
-    Bind(wxEVENT_CRITERIAPHOTOUPDATE, &CMainWindow::OnCriteriaUpdate, this);
-    Bind(wxEVENT_UPDATESTATUSBARMESSAGE, &CMainWindow::UpdateStatusBarMessage, this);
-    Bind(wxEVENT_FACEADD, &CMainWindow::OnFaceAdd, this);
-    Bind(wxEVENT_PRINT, &CMainWindow::OnPrint, this);
-    Bind(wxEVENT_SETVALUEPROGRESSBAR, &CMainWindow::OnSetValueProgressBar, this);
-    Bind(wxEVENT_SHOWSCANNER, &CMainWindow::OnScanner, this);
-    Bind(wxEVENT_OPENFILEORFOLDER, &CMainWindow::OnOpenFileOrFolder, this);
-    Bind(wxEVENT_EDITFILE, &CMainWindow::OnEditFile, this);
-    Bind(wxEVENT_EXPORTFILE, &CMainWindow::OnExportFile, this);
-    Bind(wxEVENT_UPDATETHUMBNAILEXIF, &CMainWindow::OnUpdateExifThumbnail, this);
-    Bind(wxEVENT_EXPORTDIAPORAMA, &CMainWindow::OnExportDiaporama, this);
-    Bind(wxEVENT_DELETEFACE, &CMainWindow::OnDeleteFace, this);
-    Bind(wxEVENT_ICONEUPDATE, &CMainWindow::UpdateThumbnailIcone, this);
-    Bind(wxVERSION_UPDATE_EVENT, &CMainWindow::OnVersionUpdate, this);
-    Bind(wxEVENT_UPDATEMESSAGE, &CMainWindow::UpdateMessage, this);
-    Bind(wxEVENT_REFRESHTHUMBNAIL, &CMainWindow::OnRefreshThumbnail, this);
-    Bind(wxEVENT_ICONETHUMBNAILGENERATION, &CMainWindow::OnProcessThumbnail, this);
-    Bind(wxEVENT_UPDATECHECKINSTATUS, &CMainWindow::OnCheckInUpdateStatus, this);
-    Bind(wxEVENT_UPDATECHECKINFOLDER, &CMainWindow::OnRemoveFileFromCheckIn, this);
-
-    Connect(TIMER_LOADPICTURESTART, wxEVT_TIMER,
-        wxTimerEventHandler(CMainWindow::OnOpenFile),
-        nullptr, this);
-    
-}
-*/
 
 void CMainWindow::BindEvents()
 {
@@ -633,9 +579,19 @@ void CMainWindow::OnRefreshThumbnail(wxCommandEvent& /*event*/)
 void CMainWindow::UpdateThumbnailIcone(wxCommandEvent& event)
 {
     scheduler->OnThumbnailDone();
+
+    auto* threadLoadingBitmap = static_cast<CThreadLoadingBitmap*>(event.GetClientData());
+    if (threadLoadingBitmap == nullptr)
+        return;
+
+    wxString* filename = new wxString(threadLoadingBitmap->filename);
     auto* localevent = new wxCommandEvent(wxEVENT_ICONEUPDATE);
-    localevent->SetClientData(event.GetClientData());
+    localevent->SetClientData(filename);
+    localevent->SetExtraLong(threadLoadingBitmap->longWindow);
     wxQueueEvent(centralWnd, localevent);
+
+    delete threadLoadingBitmap;
+
 }
 
 void CMainWindow::OnCriteriaUpdate(wxCommandEvent& /*event*/)

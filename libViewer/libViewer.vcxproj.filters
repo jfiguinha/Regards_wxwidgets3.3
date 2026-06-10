@@ -216,9 +216,6 @@
     <ClInclude Include="SlideshowController.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="ThumbnailController.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="ViewerController.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -253,9 +250,6 @@
       <Filter>FolderProcess</Filter>
     </ClInclude>
     <ClInclude Include="SqlBatchOps.h">
-      <Filter>FolderProcess</Filter>
-    </ClInclude>
-    <ClInclude Include="ThreadPool.h">
       <Filter>FolderProcess</Filter>
     </ClInclude>
     <ClInclude Include="ThumbnailProcess.h">
@@ -393,9 +387,6 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="SlideshowController.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="ThumbnailController.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="ViewerController.cpp">

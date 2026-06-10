@@ -58,15 +58,13 @@ void CTreeElementCheckBox::DrawBitmap(wxDC* deviceContext, const int& xPos, cons
 	if (checked)
 	{
 		imageScale = CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_ON", checkWidth, checkHeight);
-		int y = yPos + (themeTreeCheckBox.GetHeight() - imageScale.GetHeight()) / 2;
-		int x = xPos + (themeTreeCheckBox.GetWidth() - imageScale.GetWidth()) / 2;
-		deviceContext->DrawBitmap(imageScale, x, y);
 	}
 	else
 	{
 		imageScale = CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_OFF", checkWidth, checkHeight);
-		int y = yPos + (themeTreeCheckBox.GetHeight() - imageScale.GetHeight()) / 2;
-		int x = xPos + (themeTreeCheckBox.GetWidth() - imageScale.GetWidth()) / 2;
-		deviceContext->DrawBitmap(imageScale, x, y);
 	}
+
+	int y = yPos + (themeTreeCheckBox.GetHeight() - imageScale.GetHeight()) / 2;
+	int x = xPos + (themeTreeCheckBox.GetWidth() - imageScale.GetWidth()) / 2;
+	deviceContext->DrawBitmap(imageScale, x, y);
 }

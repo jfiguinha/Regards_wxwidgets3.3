@@ -15,7 +15,7 @@ namespace Regards::Window
 		CTreeWithScrollbar(const wxString& windowName, wxWindow* parent, wxWindowID id,
 		                   const CThemeScrollBar& themeScroll, const CThemeTree& theme, const wxString& label = "",
 		                   const bool& showTitle = false);
-		~CTreeWithScrollbar(void) override;
+		~CTreeWithScrollbar(void) {};
 		void UpdateScreenRatio() override;
 
 		void ClosePane() override
@@ -30,8 +30,8 @@ namespace Regards::Window
 	protected:
 		void Resize() override;
 		bool showTitle = false;
-		CScrollbarWnd* scrollWindow;
-		CTreeWindow* treeWindow;
-		CTitleBar* titleBar;
+		std::unique_ptr<CScrollbarWnd> scrollWindow;
+		std::unique_ptr<CTreeWindow> treeWindow;
+		std::unique_ptr<CTitleBar> titleBar;
 	};
 }

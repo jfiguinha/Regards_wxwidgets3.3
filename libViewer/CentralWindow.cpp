@@ -24,12 +24,12 @@
 
 // ── Sub-controllers ──────────────────────────────────────────────────────────
 #include "MusicController.h"
-#include "ThumbnailController.h"
+
 #include "MediaLoader.h"
 #include "ViewerController.h"
 #include "SlideshowController.h"
 #include "WindowModeController.h"
-
+#include "ThumbnailFace.h"
 #include "window_mode_id.h"
 
 using namespace Regards::Picture;
@@ -155,8 +155,6 @@ CCentralWindow::CCentralWindow(wxWindow* parent, wxWindowID id,
 
     // ── Sub-controllers ───────────────────────────────────────────────
     musicController = std::make_unique<CMusicController>(this);
-
-    thumbnailController = std::make_unique<CThumbnailController>(thumbnailPicture, thumbnailVideo,listPicture, listFace);
 
     mediaLoader = std::make_unique<CMediaLoader>(this, previewWindow, panelInfosWindow,thumbnailPicture, thumbnailVideo, musicController.get());
     
@@ -370,14 +368,87 @@ void CCentralWindow::SetMode(wxCommandEvent& e)
 
 void CCentralWindow::UpdateThumbnailIcone(wxCommandEvent& e)
 {
-    thumbnailController->UpdateThumbnailIcone(e);
-    // Type-30 dispatch: forward to the specific window after the controller ran
+    auto* filename = static_cast<wxString*>(e.GetClientData());
+    if (filename == nullptr)
+        return;
+
+    const long longWindow = e.GetExtraLong();
+
+    auto refreshFolder = [&]()
+        {
+            if (listPicture != nullptr)
+            {
+                CThumbnailFolder* ptFolder = listPicture->GetPtThumbnailFolder();
+                if (ptFolder->IsShown())
+                    ptFolder->Refresh();
+            }
+        };
+    auto refreshFace = [&]()
+        {
+            if (listFace != nullptr)
+            {
+                CThumbnailFace* ptListFace = listFace->GetThumbnailFace();
+                if (ptListFace->IsShown())
+                    ptListFace->Refresh();
+            }
+        };
+    auto refreshPicture = [&]()
+        {
+            if (thumbnailPicture != nullptr && thumbnailPicture->IsShown())
+                thumbnailPicture->Refresh();
+        };
+    auto refreshVideo = [&]()
+        {
+            if (thumbnailVideo != nullptr)
+            {
+                thumbnailVideo->UpdateVideoThumbnail(*filename);
+                if (thumbnailVideo->IsShown())
+                    thumbnailVideo->Refresh();
+            }
+        };
+
+    if (longWindow == 0)
+    {
+        refreshFolder();
+        refreshFace();
+        refreshPicture();
+        refreshVideo();
+    }
+    else
+    {
+        switch (longWindow)
+        {
+        case THUMBNAILVIDEOWINDOW:
+            refreshVideo();
+            break;
+        case LISTPICTUREID:
+            refreshFolder();
+            break;
+        case LISTFACEID:
+            refreshFace();
+            break;
+        case THUMBNAILVIEWERPICTURE:
+            refreshPicture();
+            if (thumbnailVideo != nullptr &&
+                thumbnailVideo->GetFilename() == *filename)
+                refreshVideo();
+            break;
+        default:
+            break;
+        }
+    }
+
+    delete filename;
 }
 void CCentralWindow::UpdateThumbnailIconeSize(wxCommandEvent& e)
 {
     windowModeController->UpdateThumbnailIconeSize(e);
 }
-void CCentralWindow::OnRefreshThumbnail(wxCommandEvent& e)    { thumbnailController->OnRefreshThumbnail(e); }
+void CCentralWindow::OnRefreshThumbnail(wxCommandEvent& e)   
+{ 
+    if (thumbnailPicture != nullptr && thumbnailPicture->IsShown())
+        thumbnailPicture->Refresh();
+}
 
 void CCentralWindow::ChangeTypeAffichage(wxCommandEvent& event)
 {
