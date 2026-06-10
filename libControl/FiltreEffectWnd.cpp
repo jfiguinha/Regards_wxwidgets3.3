@@ -268,6 +268,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 		default: ;
 		}
 	}
+	this->Resize();
 }
 
 

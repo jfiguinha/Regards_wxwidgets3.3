@@ -41,10 +41,24 @@ void CTreeWithScrollbar::UpdateScreenRatio()
 
 void CTreeWithScrollbar::Resize()
 {
+	if (titleBar == nullptr)
+	{
+		scrollWindow->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
+		return;
+	}
+
+	if (showTitle && !titleBar->IsShown())
+		titleBar->Show(true);
+	else if (!showTitle && titleBar->IsShown())
+		titleBar->Show(false);
+
+
 	if (scrollWindow != nullptr)
 	{
 		if (!showTitle)
+		{		
 			scrollWindow->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
+		}
 		else
 		{
 			titleBar->SetSize(0, 0, GetWindowWidth(), titleBar->GetHeight());
