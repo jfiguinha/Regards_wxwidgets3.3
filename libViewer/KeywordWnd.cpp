@@ -15,6 +15,7 @@
 #include <theme.h>
 #include <SqlPhotoCriteria.h>
 #include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 using namespace Regards::Window;

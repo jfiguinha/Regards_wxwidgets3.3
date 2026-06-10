@@ -141,9 +141,6 @@ namespace Regards::Window
 
 		wxColour GetBackgroundColour(const int& yPos);
 
-		void AddTreeInfos(const wxString& exifKey, const wxString& exifValue, const int& index,
-			tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child);
-
 		//Tree Window
 		tree<CTreeData*>::iterator FindKey(const wxString& key, tree<CTreeData*>::iterator& parent);
 		tree<CTreeData*>::iterator FindKey(const wxString& key);

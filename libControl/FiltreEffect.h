@@ -37,14 +37,13 @@ namespace Regards::Window
 		                    const int& posLargeur, const int& posHauteur) override;
 		void UnclickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
 		                      const int& posLargeur, const int& posHauteur) override;
-
+		void AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value, int typeValue,
+			const int& index, tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child,
+			const int& type);
 		void UpdateElement();
 		void UpdateChildTree(tree<CTreeData*>::sibling_iterator& parent);
 		void CreateElement();
 		void CreateChildTree(tree<CTreeData*>::sibling_iterator& parent);
-		void AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value, int typeValue,
-		                  const int& index, tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child,
-		                  const int& type);
 
 		int filtre;
 

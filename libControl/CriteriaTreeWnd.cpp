@@ -27,6 +27,8 @@
 #include <CalendarSelect.h>
 #include <ParamInit.h>
 #include <GpsEngine.h>
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::exiv2;
 using namespace Regards::Sqlite;
 using namespace Regards::Window;
@@ -216,7 +218,7 @@ CCriteriaTreeWnd::~CCriteriaTreeWnd(void)
 
 void CCriteriaTreeWnd::UpdateTreeData()
 {
-	auto criteriaTree = new CCriteriaTree(treeWindow->GetTheme(), treeWindow);
+	auto criteriaTree = new CCriteriaTree(treeWindow->GetTheme(), treeWindow.get());
 	criteriaTree->SetFile(filename, numPhotoId);
 	//criteriaTree->CreateElement();
 	treeWindow->SetTreeControl(criteriaTree);

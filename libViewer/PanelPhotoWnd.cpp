@@ -13,7 +13,8 @@
 #include <wx/busyinfo.h>
 #include "SqlFolderCatalog.h"
 #include "SQLRemoveData.h"
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 namespace Regards::Viewer
 {
 	class CListFace;

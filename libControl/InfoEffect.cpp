@@ -169,30 +169,25 @@ void CInfoEffect::SetActifElement(const wxString& key)
 
 void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 {
+	wchar_t seps[] = L".";
+	int item = 0;
+	wchar_t* next_token1 = nullptr;
+	wchar_t informations[1024];
+
 	//Récupération des catégories principales
 	numEvent += 2;
 	wxString localLibelle = libelle;
 	localLibelle.Replace("@99", ".");
+
+
 	auto treeData = new CTreeData();
 	treeData->SetIsParent(true);
 	treeData->SetKey(localLibelle);
 	treeData->SetExifKey(key);
 
-	//FindKey(const wxString & key)
-	//child = tr.insert_after(child, treeData);
-
-	wchar_t seps[] = L".";
-	int item = 0;
-	wchar_t* next_token1 = nullptr;
-	wchar_t informations[1024];
 	wcscpy(informations, libelle.c_str());
 
-	// Establish string and get the first token:
-#if defined(WIN32) && _MSC_VER < 1900
-	wchar_t * token = wcstok(informations, seps); // C4996
-#else
 	wchar_t* token = wcstok(informations, seps, &next_token1); // C4996
-#endif
 
 	// Note: strtok is deprecated; consider using strtok_s instead
 	while (token != nullptr)
@@ -201,11 +196,7 @@ void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 		wxString value = token;
 		value.Replace("@99", ".");
 		tree_data->SetKey(value);
-#if defined(WIN32) && _MSC_VER < 1900
-		token = wcstok(nullptr, seps); // C4996
-#else
 		token = wcstok(nullptr, seps, &next_token1); // C4996
-#endif
 
 		if (token != nullptr)
 		{
@@ -213,31 +204,19 @@ void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 
 			if (index > 0)
 			{
+				tree<CTreeData*>::iterator it;
+				//Recherche de la clé
 				if (item == 0)
-				{
-					tree<CTreeData*>::iterator it;
-					//Recherche de la clé
-					it = FindKey(tree_data->GetKey());
-					if (it != nullptr)
-					{
-						child = it;
-						item++;
-						delete(tree_data);
-						continue;
-					}
-				}
+					it = FindKey(treeData->GetKey());
 				else
+					it = FindKey(treeData->GetKey(), child);
+
+				if (it != nullptr)
 				{
-					tree<CTreeData*>::iterator it;
-					//Recherche de la clé
-					it = FindKey(tree_data->GetKey(), child);
-					if (it != nullptr)
-					{
-						child = it;
-						item++;
-						delete(tree_data);
-						continue;
-					}
+					child = it;
+					item++;
+					delete(treeData);
+					continue;
 				}
 			}
 

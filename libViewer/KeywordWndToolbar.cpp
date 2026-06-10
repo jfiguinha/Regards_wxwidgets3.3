@@ -1,11 +1,11 @@
 #include <header.h>
 #include "KeywordWndToolbar.h"
-
-
 #include "KeywordManagementWindow.h"
 #include "ToolbarKeyword.h"
 #include "MainTheme.h"
 #include "ViewerThemeInit.h"
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace std;
 using namespace Regards::Window;
 using namespace Regards::Viewer;

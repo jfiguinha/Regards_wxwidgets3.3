@@ -12,6 +12,8 @@
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <ThumbnailBuffer.h>
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 #define TIMER_FPS 0x10001
 
 

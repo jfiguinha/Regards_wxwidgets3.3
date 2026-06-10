@@ -17,6 +17,8 @@
 #include <ThumbnailMessage.h>
 #include "ViewerController.h"   // for CBitmapReturn & EVENT_SHOWPICTURE
 #include <appcontext.h>
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 extern AppContext application_context;
 
 #define DELAY_ANIMATION 20

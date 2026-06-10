@@ -20,7 +20,8 @@
 #include <Draw.h>
 #include <wx/filefn.h>
 #include <ConvertUtility.h>
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 
 //#include "ExportOdt.h"
 #ifdef __APPLE__

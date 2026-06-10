@@ -13,6 +13,8 @@
 #include <wx/animate.h>
 #include "PanelInfosWnd.h"
 #include <ShowElement.h>
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Video;
 using namespace Regards::Control;
 using namespace Regards::Internet;

@@ -7,7 +7,8 @@
 #include "ViewerParam.h"
 #include "ViewerParamInit.h"
 #include <window_id.h>
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Viewer;
 using namespace Regards::Sqlite;
 

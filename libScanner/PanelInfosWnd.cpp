@@ -17,6 +17,8 @@
 #include <ShowElement.h>
 #include "ScannerParam.h"
 #include "ScannerParamInit.h"
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Internet;
 using namespace Regards::Window;
 using namespace Regards::Scanner;

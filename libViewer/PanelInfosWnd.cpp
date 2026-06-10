@@ -24,7 +24,8 @@
 #include <wx/filename.h>
 #include <wx/busyinfo.h>
 #include "ParamInit.h"
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Picture;
 using namespace Regards::Internet;
 using namespace Regards::Window;

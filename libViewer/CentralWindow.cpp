@@ -21,7 +21,7 @@
 #include <ParamInit.h>
 #include <RegardsConfigParam.h>
 #include <ThumbnailFolder.h>
-
+#include <TreeWindow.h>
 // ── Sub-controllers ──────────────────────────────────────────────────────────
 #include "MusicController.h"
 

@@ -160,26 +160,15 @@ void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* pos
 	int item = 0;
 	wchar_t informations[TAILLEMAX];
 	wchar_t* next_token1 = nullptr;
-
 	wcscpy(informations, exifKey.c_str());
-
-	// Establish string and get the first token:
-#if defined(WIN32) && _MSC_VER < 1900
-	wchar_t * token = wcstok(informations, seps ); // C4996
-#else
 	wchar_t* token = wcstok(informations, seps, &next_token1); // C4996
-#endif
 
 	// Note: strtok is deprecated; consider using strtok_s instead
 	while (token != nullptr)
 	{
 		auto treeData = new CTreeDataEffect();
 		treeData->SetKey(token);
-#if defined(WIN32) && _MSC_VER < 1900
-		token = wcstok(nullptr, seps); // C4996
-#else
 		token = wcstok(nullptr, seps, &next_token1); // C4996
-#endif
 
 		if (token != nullptr)
 		{
@@ -187,31 +176,18 @@ void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* pos
 
 			if (index > 0)
 			{
+				tree<CTreeData*>::iterator it;
 				if (item == 0)
-				{
-					tree<CTreeData*>::iterator it;
-					//Recherche de la clé
 					it = FindKey(treeData->GetKey());
-					if (it != nullptr)
-					{
-						child = it;
-						item++;
-						delete(treeData);
-						continue;
-					}
-				}
 				else
-				{
-					tree<CTreeData*>::iterator it;
-					//Recherche de la clé
 					it = FindKey(treeData->GetKey(), child);
-					if (it != nullptr)
-					{
-						child = it;
-						item++;
-						delete(treeData);
-						continue;
-					}
+
+				if (it != nullptr)
+				{
+					child = it;
+					item++;
+					delete(treeData);
+					continue;
 				}
 			}
 

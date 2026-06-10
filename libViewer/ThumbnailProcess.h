@@ -1,5 +1,4 @@
 #pragma once
-#include "ThreadPool.h"
 #include <MainWindow.h>
 #include <ThreadLoadingBitmap.h>
 namespace Regards::Viewer

@@ -1,8 +1,7 @@
 #include <header.h>
 #include "InfosFileWnd.h"
-
-
 #include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 #include <window_id.h>
 
 
@@ -55,7 +54,7 @@ void CInfosFileWnd::InfosUpdate(const wxString& filename)
 	if (filename != this->filename)
 	{
 		this->filename = filename;
-		auto infosFileWnd = new CInfosFile(treeWindow->GetTheme(), treeWindow);
+		auto infosFileWnd = new CInfosFile(treeWindow->GetTheme(), treeWindow.get());
 		auto threadInfos = new CThreadLoadInfos();
 		threadInfos->infosFileWnd = infosFileWnd;
 		threadInfos->panelInfos = this;

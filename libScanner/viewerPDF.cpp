@@ -17,7 +17,8 @@
 #include "ScannerFrame.h"
 #include <FileUtility.h>
 #include "OcrWnd.h"
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Picture;
 using namespace Regards::Window;
 using namespace Regards::Scanner;

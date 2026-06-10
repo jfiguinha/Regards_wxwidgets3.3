@@ -5,7 +5,8 @@
 #include "MainTheme.h"
 #include "MainThemeInit.h"
 #include <window_id.h>
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Window;
 using namespace Regards::Viewer;
 using namespace Regards::Control;

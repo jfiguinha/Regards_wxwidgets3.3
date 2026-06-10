@@ -9,7 +9,8 @@
 #include "window_mode_id.h"
 #include <ViewerParamInit.h>
 #include <ViewerParam.h>
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Viewer;
 using namespace Regards::Window;
 

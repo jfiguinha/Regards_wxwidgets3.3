@@ -100,42 +100,25 @@ void CCriteriaTree::AddTreeInfos(const wxString& exifKey, const wxString& exifVa
 
 			if (index > 0)
 			{
+				tree<CTreeData*>::iterator it;
 				if (item == 0)
-				{
-					tree<CTreeData*>::iterator it;
-					//Recherche de la clé
 					it = FindKey(treeData->GetKey());
-					if (it != nullptr)
-					{
-						child = it;
-						item++;
-						delete(treeData);
-						continue;
-					}
-				}
 				else
-				{
-					tree<CTreeData*>::iterator it;
-					//Recherche de la clé
 					it = FindKey(treeData->GetKey(), child);
-					if (it != nullptr)
-					{
-						child = it;
-						item++;
-						delete(treeData);
-						continue;
-					}
+
+				if (it != nullptr)
+				{
+					child = it;
+					item++;
+					delete(treeData);
+					continue;
 				}
 			}
 
 			if (item > 0)
-			{
 				child = tr.append_child(child, treeData);
-			}
 			else
-			{
 				child = tr.insert(top, treeData);
-			}
 		}
 		else
 		{

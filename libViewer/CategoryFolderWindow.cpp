@@ -21,6 +21,7 @@
 #include <TreeWindow.h>
 #include <GpsEngine.h>
 #include <Photos.h>
+#include <ScrollbarWnd.h>
 using namespace std;
 using namespace Regards::Window;
 using namespace Regards::Viewer;
@@ -263,7 +264,7 @@ void CCategoryFolderWindow::UpdateCriteria(const bool& need_to_send_message)
 	auto windowMain = static_cast<CWindowMain*>(this->FindWindowById(MAINVIEWERWINDOWID));
 	if (windowMain != nullptr && treeWindow != nullptr)
 	{
-		auto catalogWnd = new CCategoryWnd(windowMain, treeWindow->GetTheme(), treeWindow);
+		auto catalogWnd = new CCategoryWnd(windowMain, treeWindow->GetTheme(), treeWindow.get());
 		catalogWnd->Init();
 		treeWindow->SetTreeControl(catalogWnd);
         

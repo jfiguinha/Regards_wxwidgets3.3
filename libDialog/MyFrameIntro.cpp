@@ -2,7 +2,8 @@
 #include "MyFrameIntro.h"
 #include "IntroTheme.h"
 #include "TitleIntro.h"
-
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace Regards::Introduction;
 
 

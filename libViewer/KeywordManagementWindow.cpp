@@ -1,7 +1,8 @@
 #include <header.h>
 #include "KeywordManagementWindow.h"
 #include "KeywordWnd.h"
-#include "TreeWindow.h"
+#include <TreeWindow.h>
+#include <ScrollbarWnd.h>
 using namespace std;
 using namespace Regards::Window;
 using namespace Regards::Viewer;
@@ -28,7 +29,7 @@ void CKeywordManagementWindow::UpdateKeyword(wxCommandEvent& event)
 void CKeywordManagementWindow::Init(const wxString& filename)
 {
 	this->filename = filename;
-	auto keyword = new CKeywordWnd(this, treeWindow->GetTheme(), treeWindow);
+	auto keyword = new CKeywordWnd(this, treeWindow->GetTheme(), treeWindow.get());
 	keyword->Init(filename);
 	treeWindow->SetTreeControl(keyword);
 	delete(keywordWndOld);

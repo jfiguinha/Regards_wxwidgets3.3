@@ -16,7 +16,7 @@ CTreeWithScrollbar::CTreeWithScrollbar(const wxString& windowName, wxWindow* par
 	treeWindow = std::make_unique<CTreeWindow>(this, wxID_ANY, theme);
 	if (showTitle)
 	{
-		titleBar = std::make_unique<CTitleBar>(this, wxID_ANY, this);
+		titleBar = new CTitleBar(this, wxID_ANY, this);
 		titleBar->SetTitle(label);
 		titleBar->SetClosable(false);
 		titleBar->SetRefresh(false);
@@ -24,7 +24,7 @@ CTreeWithScrollbar::CTreeWithScrollbar(const wxString& windowName, wxWindow* par
 	}
 	else
 		titleBar = nullptr;
-	scrollWindow = std::make_unique<CScrollbarWnd>(this, treeWindow, wxID_ANY);
+	scrollWindow = std::make_unique<CScrollbarWnd>(this, treeWindow.get(), wxID_ANY);
 }
 
 void CTreeWithScrollbar::SetLabel(const wxString& label)
