@@ -14,6 +14,8 @@ class CRegardsBitmap;
 
 namespace Regards::Window
 {
+	class CTreeDataEffect;
+
 	class CFiltreEffect : public CTreeControl, public IFiltreEffectInterface
 	{
 	public:
@@ -40,10 +42,12 @@ namespace Regards::Window
 		void AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value, int typeValue,
 			const int& index, tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child,
 			const int& type);
-		void UpdateElement();
-		void UpdateChildTree(tree<CTreeData*>::sibling_iterator& parent);
-		void CreateElement();
-		void CreateChildTree(tree<CTreeData*>::sibling_iterator& parent);
+		//void UpdateElement();
+
+		void RenderElement(RenderMode mode);
+		void UpdateElement(tree<CTreeData*>::sibling_iterator& parent, RenderMode mode);
+		void UpdateElementChild(tree<CTreeData*>::sibling_iterator& it, CTreeDataEffect* data, int widthPosition, int profondeur, bool isVisible, RenderMode mode);
+		void CreateElementChild(tree<CTreeData*>::sibling_iterator& it, CTreeDataEffect* data, int widthPosition, int profondeur, bool isVisible, RenderMode mode);
 
 		CPositionElement* RenderSlide(
 			CTreeData* data,
