@@ -61,15 +61,6 @@ void CFiltreData::CreateFilterList()
 	filterList.insert(std::make_pair(IDM_FILTRE_AUDIOVIDEO, CreateEffectPointer(IDM_FILTRE_AUDIOVIDEO)));
 }
 
-CFiltreData::CFiltreData()
-{
-}
-
-CFiltreData::~CFiltreData()
-{
-}
-
-
 int CFiltreData::RenderEffect(const int& numEffect, CFiltreEffet* filtreEffet, CEffectParameter* effectParameter,
                               const bool& preview)
 {

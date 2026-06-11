@@ -252,18 +252,17 @@ void CBitmapWndViewer::SetParent(wxWindow* parent)
 	const double scale_factor = 1.0f;
 #endif
 
-	transitionTimer = new wxTimer(parentRender, TIMER_TRANSITION);
-	clickTimer = new wxTimer(parentRender, TIMER_CLICK);
+	transitionTimer = std::make_unique<wxTimer>(parentRender, TIMER_TRANSITION);
+	clickTimer = std::make_unique<wxTimer>(parentRender, TIMER_CLICK);
+
 
 	arrowPrevious.x = 0;
 	arrowPrevious.y = 0;
 	arrowPrevious.width = 32 * scale_factor;
 	arrowPrevious.height = 32 * scale_factor;
 
-	arrowNext.x = 0;
-	arrowNext.y = 0;
-	arrowNext.width = 32 * scale_factor;
-	arrowNext.height = 32 * scale_factor;
+	arrowNext = arrowPrevious;
+
 }
 
 void CBitmapWndViewer::OnTimer(wxTimerEvent& event)
@@ -286,9 +285,6 @@ vector<int> CBitmapWndViewer::GetListTimer()
 	listTimer.push_back(TIMER_CLICK);
 	return listTimer;
 }
-
-//parentRender->Connect(TIMER_TRANSITION, wxEVT_TIMER, wxTimerEventHandler(CBitmapWndViewer::OnTransition), nullptr, parentRender);
-//parentRender->Connect(TIMER_CLICK, wxEVT_TIMER, wxTimerEventHandler(CBitmapWndViewer::OnClick), nullptr, parentRender);
 
 void CBitmapWndViewer::OnClick(wxTimerEvent& event)
 {
@@ -351,11 +347,6 @@ CBitmapWndViewer::~CBitmapWndViewer()
 		delete(afterEffect);
 		afterEffect = nullptr;
 	}
-
-	//delete(openclEffectVideo);
-	delete(transitionTimer);
-	delete(clickTimer);
-	delete(m_cDessin);
 }
 
 void CBitmapWndViewer::AfterSetBitmap()
@@ -432,7 +423,7 @@ void CBitmapWndViewer::SetDessinRatio()
 	if (heightOutput < rc2.height)
 	{
 		rc.y = (rc2.height - heightOutput) / 2;
-		rc.height = widthOutput;
+		rc.height = heightOutput;
 	}
 	else
 	{
@@ -448,8 +439,6 @@ void CBitmapWndViewer::SetBitmapPreviewEffect(const int& effect)
 {
 	preview = effect;
 	isInUse = true;
-	if (m_cDessin != nullptr)
-		delete(m_cDessin);
 
 	m_cDessin = CFiltreData::GetDrawingPt(effect);
 	if (m_cDessin != nullptr)
@@ -537,14 +526,6 @@ void CBitmapWndViewer::StopTransition()
 
 void CBitmapWndViewer::EndTransition()
 {
-	/*
-	if (isDiaporama)
-	{
-		SetBitmap(nextPicture, false);
-		nextPicture = nullptr;
-	}
-	*/
-
 	startTransition = false;
 	bitmapInterface->TransitionEnd();
 }

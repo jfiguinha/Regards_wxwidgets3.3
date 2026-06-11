@@ -16,8 +16,8 @@ class CEffectParameter;
 class CFiltreData
 {
 public:
-	CFiltreData();
-	~CFiltreData();
+	CFiltreData() {};
+	~CFiltreData() {};
 
 	static void CreateFilterList();
 	static CFilterWindowParam* CreateEffectPointer(const int& numFilter);

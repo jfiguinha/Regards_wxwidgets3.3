@@ -123,7 +123,7 @@ namespace Regards::Control
 		int oldTransNumEffect = -1;
 		wxRect arrowPrevious;
 		wxRect arrowNext;
-		wxTimer* transitionTimer;
-		wxTimer* clickTimer;
+		std::unique_ptr<wxTimer> transitionTimer;
+		std::unique_ptr<wxTimer> clickTimer;
 	};
 }
