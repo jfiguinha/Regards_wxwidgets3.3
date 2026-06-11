@@ -46,6 +46,7 @@ namespace Regards
 			Exiv2::Image::UniquePtr exif;
 			bool isExif;
 			wxString filename;
+			std::vector<uint8_t> cachedMetadataBuffer;
 		};
 	}
 }

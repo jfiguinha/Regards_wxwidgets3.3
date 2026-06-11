@@ -115,37 +115,6 @@ CSqlLibExplorer::~CSqlLibExplorer()
 }
 
 
-void CSqlLibExplorer::LoadAndRotate(const wxString& filePath, const int& rotate)
-{
-	if (!wxFileExists(filePath))
-	{
-		return;
-	}
-
-	Mat src = imread(CConvertUtility::ConvertToStdString(filePath));
-	if (src.empty())
-		return;
-
-	if (rotate == 90)
-	{
-		// Rotate clockwise 270 degrees
-		transpose(src, src);
-		flip(src, src, 0);
-	}
-	else if (rotate == 180)
-	{
-		// Rotate clockwise 180 degrees
-		flip(src, src, -1);
-	}
-	else if (rotate == 270)
-	{
-		// Rotate clockwise 90 degrees
-		transpose(src, src);
-		flip(src, src, 1);
-	}
-	imwrite(CConvertUtility::ConvertToStdString(filePath), src);
-	src.release();
-}
 
 ////////////////////////////////////////////////////////////////////////////////
 // Function: InitDatabase()

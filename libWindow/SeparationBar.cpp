@@ -105,11 +105,7 @@ void CSeparationBar::on_paint(wxPaintEvent& event)
 
 	wxPaintDC dc(this);
 	wxRect rc = GetWindowRect();
-
-	if (horizontal)
-		dc.GradientFillLinear(rc, theme.secondColor, theme.firstColor, wxSOUTH);
-	else
-		dc.GradientFillLinear(rc, theme.secondColor, theme.firstColor, wxEAST);
+	dc.GradientFillLinear(rc, theme.secondColor, theme.firstColor, horizontal ? wxDirection::wxSOUTH : wxEAST);
 }
 
 void CSeparationBar::OnLButtonUp(wxMouseEvent& event)

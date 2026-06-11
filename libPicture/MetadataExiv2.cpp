@@ -105,14 +105,6 @@ void CMetadataExiv2::SetGpsInfos(const wxString& latitudeRef, const wxString& lo
 		metaExiv->SetGpsInfos(latitudeRef, longitudeRef, latitude, longitude);
 }
 
-/*
-void CMetadataExiv2::ReadVideo(bool & hasGps, bool & hasDataTime, wxString & dateTimeInfos, wxString & latitude, wxString & longitude)
-{
-	metaExiv->ReadVideo(hasGps, hasDataTime, dateTimeInfos, latitude, longitude);
-
-}
-*/
-
 void CMetadataExiv2::ReadPicture(bool& hasGps, bool& hasDataTime, wxString& dateTimeInfos, wxString& latitude,
                                  wxString& longitude)
 {

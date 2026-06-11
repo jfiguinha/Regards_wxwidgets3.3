@@ -9,6 +9,7 @@
 #include <MainParam.h>
 #include <MainParamInit.h>
 #include <window_id.h>
+#include <MediaInfo.h>
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 
@@ -60,6 +61,7 @@ void CSqlBatchOps::DeleteThumbnailsBatch(const std::vector<wxString>& paths)
     {
         sqlThumb.DeleteThumbnail(path);
         sqlThumbVideo.DeleteThumbnail(path);
+       
     }
 }
 

@@ -21,6 +21,7 @@ public:
 	static void GetVideoDimensions(const wxString& filename, int & width, int & height);
 	static int64_t GetVideoDuration(const wxString& filename);
 	static AspectRatio GetVideoAspectRatio(const wxString& filename);
-
+	static void ClearCache();
+	static void ReleaseFile(const wxString& filename);
      
 };

@@ -34,7 +34,7 @@
 #include <wx/dir.h>
 #include "ListFace.h"
 #include "ThumbnailProcess.h"
-
+#include <MediaInfo.h>
 using namespace Regards::Picture;
 using namespace Regards::Control;
 using namespace Regards::Viewer;
@@ -623,6 +623,21 @@ void CMainWindow::OnUpdateFolder(wxCommandEvent& event)
         else if (typeId == wxEVENT_REMOVEFOLDER)
         {
             statusBarViewer->RemoveFSEntry(*newPath);
+            //Get File from folder
+            wxDir localDir(*newPath);
+
+            if (!localDir.IsOpened())
+                return;
+
+            wxString filename;
+            bool cont = localDir.GetFirst(&filename);
+
+            while (cont)
+            {
+                wxString fullPath = *newPath + wxFILE_SEP_PATH + filename;
+                CMediaInfo::ReleaseFile(fullPath);
+                cont = localDir.GetNext(&filename);
+            }
             isDelete = true;
         }
     }
