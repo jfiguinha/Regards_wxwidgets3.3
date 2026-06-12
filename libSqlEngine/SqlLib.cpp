@@ -3,6 +3,7 @@
 #include "SqlResult.h"
 #include <ConvertUtility.h>
 #include "sqlite3recover.h"
+#include "SqlParameter.h"
 using namespace std;
 using namespace Regards::Sqlite;
 using namespace Regards::Sqlite;
@@ -200,6 +201,111 @@ int CSqlLib::ExecuteSQLWithNoResult(const wxString& query)
     return sqlite3_total_changes(pCon);
 }
 
+wxString CSqlLib::escapeSqlite(const wxString& str)
+{
+    wxString result;
+
+    for (wxChar c : str)
+    {
+        result += c;
+        if (c == '\'')
+            result += '\'';
+    }
+
+    return result;
+}
+
+bool CSqlLib::ExecuteSqlWithStatement(
+    const wxString& query,
+    std::vector<CSqlParameter*>& parameters)
+{
+    sqlite3_stmt* stmt = nullptr;
+
+    int rc = sqlite3_prepare_v2(
+        pCon,
+        query.ToUTF8().data(),
+        -1,
+        &stmt,
+        nullptr);
+
+    if (rc != SQLITE_OK)
+    {
+        wxLogError(
+            "sqlite3_prepare_v2 failed : %s",
+            sqlite3_errmsg(pCon));
+
+        return false;
+    }
+
+    int num_param = 1;
+
+    for (CSqlParameter* param : parameters)
+    {
+        switch (param->type)
+        {
+        case TYPE_INT:
+        {
+            auto* data = static_cast<CSqlInt*>(param);
+
+            rc = sqlite3_bind_int64(
+                stmt,
+                num_param,
+                data->value);
+
+            break;
+        }
+
+        case TYPE_STRING:
+        {
+            auto* data = static_cast<CSqlString*>(param);
+            wxCharBuffer utf8 = data->value.ToUTF8();
+            rc = sqlite3_bind_text(
+                stmt,
+                num_param,
+                utf8.data(),
+                -1,
+                SQLITE_TRANSIENT);
+
+            break;
+        }
+
+        default:
+            rc = SQLITE_MISUSE;
+            break;
+        }
+
+        if (rc != SQLITE_OK)
+        {
+            wxLogError(
+                "sqlite3_bind failed (param %d) : %s",
+                num_param,
+                sqlite3_errmsg(pCon));
+
+            sqlite3_finalize(stmt);
+            return false;
+        }
+
+        ++num_param;
+    }
+
+    rc = sqlite3_step(stmt);
+
+    bool success =
+        (rc == SQLITE_DONE || rc == SQLITE_ROW);
+
+    if (!success)
+    {
+        wxLogError(
+            "sqlite3_step failed : %s",
+            sqlite3_errmsg(pCon));
+    }
+
+    sqlite3_finalize(stmt);
+
+    return success;
+}
+
+
 bool CSqlLib::ExecuteSQLSelect(const wxString& query, CSqlResult* result)
 {
     if (!isConnected() || !result) return false;
@@ -214,7 +320,7 @@ bool CSqlLib::ExecuteSQLSelect(const wxString& query, CSqlResult* result)
         return false;
     }
     result->SetStatement(stmt); // CSqlResult prend ownership
-    return true;
+    return sqlite3_total_changes(pCon);
 }
 
 bool CSqlLib::ExecuteSQLBlobInsert(const wxString& query, int /*numCol*/,

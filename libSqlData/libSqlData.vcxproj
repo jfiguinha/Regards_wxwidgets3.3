@@ -902,7 +902,6 @@
     <ClCompile Include="FolderCatalog.cpp" />
     <ClCompile Include="PhotoCatalog.cpp" />
     <ClCompile Include="PhotoCategorie.cpp" />
-    <ClCompile Include="PhotoCriteria.cpp" />
     <ClCompile Include="PhotoGps.cpp" />
     <ClCompile Include="Photos.cpp" />
     <ClCompile Include="SqlCatalog.cpp" />

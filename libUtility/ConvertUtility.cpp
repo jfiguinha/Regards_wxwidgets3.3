@@ -67,17 +67,7 @@ const std::string CConvertUtility::ConvertToStdString(const wxString& fileName)
 
 const char* CConvertUtility::ConvertToUTF8(const wxString& s)
 {
-	/*
-#ifdef __WXGTK__    
-	const char* str = (const char*)s.mb_str(wxConvUTF8);
-	return s.ToUTF8();
-#else
-	return s.mb_str(wxConvUTF8);
-#endif
- * */
-
-
-	return s.ToUTF8();
+	return s.ToUTF8().data();
 }
 
 

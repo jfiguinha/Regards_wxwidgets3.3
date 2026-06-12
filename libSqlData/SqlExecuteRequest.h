@@ -7,9 +7,8 @@ namespace Regards
 		class CSqlResult;
 		class CSqlLib;
 
-        class CSqlResult;
-        class CSqlLib;
-
+        class CSqlParameter;
+      
         class CSqlExecuteRequest
         {
         public:
@@ -19,7 +18,7 @@ namespace Regards
             // Non-copiable (possède un état de transaction)
             CSqlExecuteRequest(const CSqlExecuteRequest&) = delete;
             CSqlExecuteRequest& operator=(const CSqlExecuteRequest&) = delete;
-
+            int  ExecuteSqlWithStatement(const wxString& query, std::vector<CSqlParameter*>& parameter);
             int  ExecuteRequest(const wxString& sql);
             int  ExecuteRequestWithNoResult(const wxString& sql);
             bool ExecuteInsertBlobData(const wxString& sql, int numCol,

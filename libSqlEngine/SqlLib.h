@@ -8,6 +8,7 @@ namespace Regards
 	namespace Sqlite
 	{
         class CSqlResult;
+        class CSqlParameter;
 
         // Callback pour les erreurs, évite wxMessageBox dans la logique métier
         using ErrorCallback = std::function<void(const std::string& message)>;
@@ -29,7 +30,7 @@ namespace Regards
             virtual bool CheckVersion(const wxString& filename) { return false; }
 
             bool RecoverDatabaseFile(const wxString& filename);
-
+            bool ExecuteSqlWithStatement(const wxString& query, std::vector<CSqlParameter *>& parameter);
             int  ExecuteSQLWithNoResult(const wxString& query);
             bool ExecuteSQLSelect(const wxString& query, CSqlResult* result);
             bool ExecuteSQLBlobInsert(const wxString& query, int numCol,
@@ -49,6 +50,7 @@ namespace Regards
             int  LoadOrSaveDb(sqlite3* pInMemory, const char* zFilename, int isSave);
             int  recoverDatabase(sqlite3* db);
             void reportError(const std::string& msg);
+            wxString escapeSqlite(const wxString& str);
 
             ErrorCallback  m_onError;
             wxString       m_dbPath;

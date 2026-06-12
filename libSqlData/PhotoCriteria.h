@@ -3,18 +3,18 @@
 class CPhotoCriteria
 {
 public:
-	CPhotoCriteria();
-	~CPhotoCriteria();
+    CPhotoCriteria() : numPhotoId(0), numCriteriaId(0) {}
+    ~CPhotoCriteria() = default;
 
-	void SetPhotoId(const int& numPhotoId);
-	int GetPhotoId();
+    void SetPhotoId(int numId) { numPhotoId = numId; }
+    int GetPhotoId() const { return numPhotoId; }
 
-	void SetCriteriaId(const int& numCriteriaId);
-	int GetCriteriaId();
+    void SetCriteriaId(int numId) { numCriteriaId = numId; }
+    int GetCriteriaId() const { return numCriteriaId; }
 
 private:
-	int numPhotoId;
-	int numCriteriaId;
+    int numPhotoId;
+    int numCriteriaId;
 };
 
 using PhotoCriteriaVector = std::vector<CPhotoCriteria>;

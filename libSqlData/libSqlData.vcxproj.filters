@@ -284,9 +284,6 @@
     <ClCompile Include="PhotoGps.cpp">
       <Filter>datastructure</Filter>
     </ClCompile>
-    <ClCompile Include="PhotoCriteria.cpp">
-      <Filter>datastructure</Filter>
-    </ClCompile>
     <ClCompile Include="PhotoCategorie.cpp">
       <Filter>datastructure</Filter>
     </ClCompile>

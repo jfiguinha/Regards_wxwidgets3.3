@@ -3,6 +3,7 @@
 #include "SqlLib.h"
 #include "SqlEngine.h"
 #include "SqlResult.h"
+#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 // ── RAII lock/unlock ────────────────────────────────────────────────────────
@@ -66,6 +67,18 @@ int CSqlExecuteRequest::ExecuteRequest(const wxString& sql)
                 // Release() uniquement si CSqlResult ne gère pas lui-même son stmt
                 lib.Release();
             }
+        });
+
+    return nbResult;
+}
+
+int CSqlExecuteRequest::ExecuteSqlWithStatement(const wxString& query, std::vector<CSqlParameter*>& parameter)
+{
+    int nbResult = 0;
+
+    withLib([&](CSqlLib& lib)
+        {
+            nbResult = lib.ExecuteSqlWithStatement(query, parameter);
         });
 
     return nbResult;

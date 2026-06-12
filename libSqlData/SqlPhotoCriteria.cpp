@@ -4,6 +4,7 @@
 #include "SqlPhotos.h"
 #include <ConvertUtility.h>
 #include <SqlTransaction.h>
+#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 CSqlPhotoCriteria::CSqlPhotoCriteria()
@@ -71,11 +72,34 @@ bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPh
 
 bool CSqlPhotoCriteria::InsertPhotoCriteria(const int64_t& numPhoto, const int64_t& numCriteria)
 {
+	/*
+	std::vector<CSqlParameter*> parameter;
+	CSqlInt* sqlInt1 = new CSqlInt();
+	sqlInt1->value = numCriteria;
+	parameter.push_back(sqlInt1);
+
+	CSqlInt* sqlInt2 = new CSqlInt();
+	sqlInt2->value = numPhoto;
+	parameter.push_back(sqlInt2);
+
+	bool result = (ExecuteSqlWithStatement("INSERT INTO PHOTOSCRITERIA (NumCriteria, NumPhoto) VALUES (?,?)", parameter) != -1)
+	? true
+	: false;
+
+	for(CSqlParameter * element : parameter)
+	{
+		delete element;
+	}
+
+	return result;
+	*/
+
 	return (ExecuteRequestWithNoResult(
 		       "INSERT INTO PHOTOSCRITERIA (NumCriteria, NumPhoto) VALUES (" + to_string(numCriteria) + "," +
 		       to_string(numPhoto) + ")") != -1)
 		       ? true
 		       : false;
+	
 }
 
 /////////////////////////////////////////////////////////////////////////////

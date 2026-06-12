@@ -834,6 +834,7 @@
     <ClInclude Include="sqlite3recover.h" />
     <ClInclude Include="SqlLib.h" />
     <ClInclude Include="SqlLibResource.h" />
+    <ClInclude Include="SqlParameter.h" />
     <ClInclude Include="SqlResult.h" />
     <ClInclude Include="SqlTransaction.h" />
   </ItemGroup>
