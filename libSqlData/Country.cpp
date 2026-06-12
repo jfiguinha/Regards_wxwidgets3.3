@@ -1,6 +1,6 @@
 #include <header.h>
 #include "Country.h"
-
+#include <SqlResult.h>
 
 CCountry::CCountry(): numId(0)
 {
@@ -9,6 +9,16 @@ CCountry::CCountry(): numId(0)
 
 CCountry::~CCountry()
 {
+}
+
+CCountry CCountry::Read(Regards::Sqlite::CSqlResult* result)
+{
+	CCountry country;//NumCountry, CodeCountry, LibelleContinent, LibelleCountry
+	country.SetId(result->GetInt("NumCountry"));
+	country.SetCode(result->GetText("CodeCountry"));
+	country.SetContinent(result->GetText("LibelleContinent"));
+	country.SetLibelle(result->GetText("LibelleCountry"));
+	return country;
 }
 
 

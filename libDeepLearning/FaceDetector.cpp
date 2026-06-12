@@ -23,7 +23,6 @@ using namespace cv;
 using namespace dnn;
 using namespace Regards::OpenCV;
 using namespace Regards::Sqlite;
-using namespace std;
 using namespace face;
 using namespace std;
 
@@ -44,10 +43,10 @@ static Ptr<Facemark> facemark;
 static Ptr<FaceRecognizerSF> faceRecognizer;
 static Net ageNet;
 static Net genderNet;
-static RealESRGAN * real_net = nullptr;
-static GFPGAN* gfpgan = nullptr;
-static CColorisationNCNN* colorreal_net = nullptr;
-static CColorization * color_net = nullptr;
+static std::unique_ptr<RealESRGAN>  real_net = nullptr;
+static std::unique_ptr<GFPGAN> gfpgan = nullptr;
+static std::unique_ptr<CColorisationNCNN> colorreal_net = nullptr;
+static std::unique_ptr<CColorization> color_net = nullptr;
 
 static bool isRealESRGAN_load = false;
 static bool isGFPGAN_load = false;
@@ -65,14 +64,12 @@ void CFaceDetector::CleanBase()
 
 CFaceDetector::CFaceDetector(const bool& fastDetection)
 {
-	detectFace = new CDetectFace();
-	detectFacePCN = new CDetectFacePCN();
+	detectFace = std::make_unique<CDetectFace>();
+	detectFacePCN = std::make_unique<CDetectFacePCN>();
 }
 
 CFaceDetector::~CFaceDetector()
 {
-	delete detectFace;
-	delete detectFacePCN;
 }
 
 static void LoadRealESRGAN()
@@ -89,7 +86,7 @@ static void LoadRealESRGAN()
 
 	if (!isRealESRGAN_load)
 	{
-		real_net = new RealESRGAN();
+		real_net = std::make_unique<RealESRGAN>();
 		real_net->load(esrgan_param.ToStdString(), esrgan_bin.ToStdString());
 	}
 	isRealESRGAN_load = true;
@@ -119,7 +116,7 @@ static void LoadGFPGAN()
 
 	if (!isGFPGAN_load)
 	{
-		gfpgan = new GFPGAN();
+		gfpgan = std::make_unique<GFPGAN>();
 		gfpgan->load(gfpgan_param.ToStdString(), gfpgan_bin.ToStdString(), gfpgan_stylebin.ToStdString());
 		ageNet = readNet(CConvertUtility::ConvertToStdString(age_net), CConvertUtility::ConvertToStdString(age_deploy));
 		genderNet = readNet(CConvertUtility::ConvertToStdString(gender_net), CConvertUtility::ConvertToStdString(gender_deploy));
@@ -143,7 +140,7 @@ static void LoadColorisationNCNN()
 
 	if (!isColorisation_load)
 	{
-		colorreal_net = new CColorisationNCNN();
+		colorreal_net = std::make_unique<CColorisationNCNN>();
 		colorreal_net->load(siggraph17_param.ToStdString(), siggraph17_bin.ToStdString());
 	}
 	isColorisation_load = true;
@@ -165,7 +162,7 @@ static void LoadColorisation()
 
 	if (!isColorisation_load)
 	{
-		color_net = new CColorization();
+		color_net = std::make_unique<CColorization>();
 		color_net->load(ncnn_param.ToStdString(), ncnn_bin.ToStdString());
 	}
 	isColorisation_load = true;
@@ -227,9 +224,16 @@ int CFaceDetector::DectectOrientationByFaceDetector(const Mat& pBitmap)
 	std::vector<Rect> pointOfFace;
 	bool faceFound = false;
 	bool isLoading = false;
-	muLoading.lock();
-	isLoading = isload;
-	muLoading.unlock();
+	try
+	{
+		std::lock_guard<std::mutex> lock(muLoading);
+		isLoading = isload;
+	}
+	catch(...)
+	{
+
+	}
+
 	int selectAngle = 0;
 	Mat Source;
 	pBitmap.copyTo(Source);
@@ -690,9 +694,8 @@ void CFaceDetector::DetectEyes(const Mat& pBitmap)
 
 							try
 							{
-								muFaceMark.lock();
+								std::lock_guard<std::mutex> lock(muFaceMark);
 								facemark->fit(faceColor, faces, shapes);
-								muFaceMark.unlock();
 							}
 							catch (Exception& e)
 							{
@@ -854,7 +857,9 @@ double GetNumFaceCompatibleScore(const int& numFace, vector<CFaceRecognitionData
 			nbElement++;
 		}
 	}
-	return score / nbElement;
+	if(nbElement > 0)
+		return score / nbElement;
+	return 0;
 }
 
 int CFaceDetector::FaceRecognition(const int& numFace)

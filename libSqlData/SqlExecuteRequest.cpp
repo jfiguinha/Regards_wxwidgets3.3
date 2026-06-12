@@ -72,7 +72,20 @@ int CSqlExecuteRequest::ExecuteRequest(const wxString& sql)
     return nbResult;
 }
 
-int CSqlExecuteRequest::ExecuteSqlWithStatement(const wxString& query, std::vector<CSqlParameter*>& parameter)
+bool CSqlExecuteRequest::ExecuteSqlWithStatementBool(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter)
+{
+    int nbResult = 0;
+
+    withLib([&](CSqlLib& lib)
+        {
+            nbResult = lib.ExecuteSqlWithStatement(query, parameter);
+        });
+
+    return nbResult != -1 ? true : false;
+}
+
+
+int CSqlExecuteRequest::ExecuteSqlWithStatement(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter)
 {
     int nbResult = 0;
 
@@ -95,6 +108,8 @@ int CSqlExecuteRequest::ExecuteRequestWithNoResult(const wxString& sql)
 
     return nbResult;
 }
+
+
 
 bool CSqlExecuteRequest::ExecuteInsertBlobData(const wxString& sql, int numCol,
     const void* blob, int blobSize)

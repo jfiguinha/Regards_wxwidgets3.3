@@ -217,7 +217,7 @@ wxString CSqlLib::escapeSqlite(const wxString& str)
 
 bool CSqlLib::ExecuteSqlWithStatement(
     const wxString& query,
-    std::vector<CSqlParameter*>& parameters)
+    std::vector<std::unique_ptr<CSqlParameter>>& parameters)
 {
     sqlite3_stmt* stmt = nullptr;
 
@@ -239,40 +239,9 @@ bool CSqlLib::ExecuteSqlWithStatement(
 
     int num_param = 1;
 
-    for (CSqlParameter* param : parameters)
+    for (auto& param : parameters)
     {
-        switch (param->type)
-        {
-        case TYPE_INT:
-        {
-            auto* data = static_cast<CSqlInt*>(param);
-
-            rc = sqlite3_bind_int64(
-                stmt,
-                num_param,
-                data->value);
-
-            break;
-        }
-
-        case TYPE_STRING:
-        {
-            auto* data = static_cast<CSqlString*>(param);
-            wxCharBuffer utf8 = data->value.ToUTF8();
-            rc = sqlite3_bind_text(
-                stmt,
-                num_param,
-                utf8.data(),
-                -1,
-                SQLITE_TRANSIENT);
-
-            break;
-        }
-
-        default:
-            rc = SQLITE_MISUSE;
-            break;
-        }
+        rc = param->Bind(stmt, num_param);
 
         if (rc != SQLITE_OK)
         {

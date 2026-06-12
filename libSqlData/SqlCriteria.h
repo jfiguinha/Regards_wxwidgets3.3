@@ -32,6 +32,7 @@ namespace Regards
 		private:
 			int TraitementResult(CSqlResult* sqlResult) override;
 			int64_t criteriaId;
+			int type = 0;
 		};
 	}
 }

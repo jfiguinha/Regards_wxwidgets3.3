@@ -38,8 +38,8 @@ namespace Regards
 			cv::Mat RotateAndExtractFace(const double& angle, const cv::Rect& faceLocation, const cv::Mat& image);
 			cv::Mat FaceDesriptor(const cv::Mat& face);
 			void RotateAndCrop(CFace* face, cv::Mat& Source);
-			CDetectFacePCN* detectFacePCN;
-			CDetectFace* detectFace;
+			std::unique_ptr<CDetectFacePCN> detectFacePCN;
+			std::unique_ptr<CDetectFace> detectFace;
 			static bool isload;
 			
 			static std::mutex muFaceMark;

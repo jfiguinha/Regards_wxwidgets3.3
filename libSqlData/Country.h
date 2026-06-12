@@ -1,10 +1,18 @@
 #pragma once
-
+namespace Regards
+{
+	namespace Sqlite
+	{
+		class CSqlResult;
+	}
+}
 class CCountry
 {
 public:
 	CCountry();
 	~CCountry();
+
+	static CCountry Read(Regards::Sqlite::CSqlResult* result);
 
 	void SetId(const int& numId);
 	int GetId();

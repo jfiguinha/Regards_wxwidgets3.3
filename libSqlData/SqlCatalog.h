@@ -21,6 +21,7 @@ namespace Regards
 		private:
 			int TraitementResult(CSqlResult* sqlResult) override;
 
+			int type = 0;
 			wxString libelle;
 			int64_t numCatalogId;
 		};

@@ -72,33 +72,19 @@ bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPh
 
 bool CSqlPhotoCriteria::InsertPhotoCriteria(const int64_t& numPhoto, const int64_t& numCriteria)
 {
+	
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numCriteria));
+	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
+	return ExecuteSqlWithStatementBool("INSERT INTO PHOTOSCRITERIA (NumCriteria, NumPhoto) VALUES (?,?)", parameter);
+
 	/*
-	std::vector<CSqlParameter*> parameter;
-	CSqlInt* sqlInt1 = new CSqlInt();
-	sqlInt1->value = numCriteria;
-	parameter.push_back(sqlInt1);
-
-	CSqlInt* sqlInt2 = new CSqlInt();
-	sqlInt2->value = numPhoto;
-	parameter.push_back(sqlInt2);
-
-	bool result = (ExecuteSqlWithStatement("INSERT INTO PHOTOSCRITERIA (NumCriteria, NumPhoto) VALUES (?,?)", parameter) != -1)
-	? true
-	: false;
-
-	for(CSqlParameter * element : parameter)
-	{
-		delete element;
-	}
-
-	return result;
-	*/
-
 	return (ExecuteRequestWithNoResult(
 		       "INSERT INTO PHOTOSCRITERIA (NumCriteria, NumPhoto) VALUES (" + to_string(numCriteria) + "," +
 		       to_string(numPhoto) + ")") != -1)
 		       ? true
 		       : false;
+	*/
 	
 }
 
@@ -107,10 +93,16 @@ bool CSqlPhotoCriteria::InsertPhotoCriteria(const int64_t& numPhoto, const int64
 /////////////////////////////////////////////////////////////////////////////
 bool CSqlPhotoCriteria::DeleteCriteria(const int64_t& numCriteria)
 {
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numCriteria));
+	return ExecuteSqlWithStatementBool("DELETE FROM PHOTOSCRITERIA WHERE NumCriteria = ?", parameter);
+
+	/*
 	return (ExecuteRequestWithNoResult("DELETE FROM PHOTOSCRITERIA WHERE NumCriteria = " + to_string(numCriteria)) != -
 		       1)
 		       ? true
 		       : false;
+	*/
 }
 
 bool CSqlPhotoCriteria::DeletePhoto(const int64_t& numPhoto)
