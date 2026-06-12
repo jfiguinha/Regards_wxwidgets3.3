@@ -47,8 +47,6 @@ CFiltreEffect::CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInt
 
 CFiltreEffect::~CFiltreEffect(void)
 {
-	if (filterEffect != nullptr)
-		delete filterEffect;
 }
 
 void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value,
@@ -76,9 +74,6 @@ void CFiltreEffect::Init(CEffectParameter* effectParameter, cv::Mat source, cons
 	top = tr.begin();
 	child = top;
 
-	if (filterEffect != nullptr)
-		delete filterEffect;
-
 	filterEffect = CFiltreData::CreateEffectPointer(filtre);
 	if (filterEffect != nullptr)
 	{
@@ -91,7 +86,7 @@ void CFiltreEffect::Init(CEffectParameter* effectParameter, cv::Mat source, cons
 	}
 
 	if (bitmapViewer != nullptr && CFiltreData::NeedPreview(filtre))
-		bitmapViewer->SetListener(filterEffect);
+		bitmapViewer->SetListener(filterEffect.get());
 
 	if (bitmapViewer != nullptr)
 		bitmapViewer->UpdateFiltre(effectParameter);

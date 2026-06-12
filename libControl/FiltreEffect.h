@@ -81,7 +81,7 @@ namespace Regards::Window
 		int widthPosition;
 
 		CEffectParameter* effectParameter;
-		CFilterWindowParam* filterEffect;
+		std::unique_ptr<CFilterWindowParam> filterEffect;
 
 		cv::Mat source;
 		IFiltreUpdate* bitmapViewer;

@@ -18,6 +18,7 @@ namespace Regards
 
 		private:
 			wxString libelleNotGeo;
+			void LoadAndRotate(const wxString& filePath, const int& rotate);
 			bool CreateDatabase(const wxString& databasePath, const bool& m_loadInMemory);
 		};
 	}
