@@ -13,10 +13,10 @@ using namespace Regards::Internet;
 
 struct url_data
 {
-    size_t size;
-    char* data;
+    std::string data;
 };
 
+/*
 size_t write_data(void* ptr,
     size_t size,
     size_t nmemb,
@@ -58,6 +58,20 @@ size_t write_data(void* ptr,
 
     return bytesToCopy;
 }
+*/
+size_t write_data(void* ptr,
+    size_t size,
+    size_t nmemb,
+    struct url_data* data)
+{
+    const size_t bytes = size * nmemb;
+
+    data->data.append(
+        static_cast<char*>(ptr),
+        bytes);
+
+    return bytes;
+}
 
 wxString CHttpRequest::ExecuteRequest(const wxString& url)
 {
@@ -71,16 +85,6 @@ wxString CHttpRequest::ExecuteRequest(const wxString& url)
     }
 
     url_data data{};
-    data.size = 0;
-    data.data = static_cast<char*>(malloc(1));
-
-    if (data.data == nullptr)
-    {
-        curl_easy_cleanup(curl);
-        fprintf(stderr, "Memory allocation failed\n");
-        return "";
-    }
-
     data.data[0] = '\0';
 
     curl_easy_setopt(
@@ -110,7 +114,6 @@ wxString CHttpRequest::ExecuteRequest(const wxString& url)
             "curl_easy_perform failed: %s\n",
             curl_easy_strerror(res));
 
-        free(data.data);
         curl_easy_cleanup(curl);
 
         return "";
@@ -129,15 +132,13 @@ wxString CHttpRequest::ExecuteRequest(const wxString& url)
             "HTTP Error: %ld\n",
             httpCode);
 
-        free(data.data);
         curl_easy_cleanup(curl);
 
         return "";
     }
 
-    xml = wxString(data.data, wxConvUTF8);
+    xml = wxString(data.data.c_str(), wxConvUTF8);
 
-    free(data.data);
     curl_easy_cleanup(curl);
 
     return xml;

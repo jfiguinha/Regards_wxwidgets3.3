@@ -54,7 +54,7 @@ CRegardsConfigParam::CRegardsConfigParam()
 	isDetectRotation = 0;
     useCuda = 0;
     openGLOutputColor = "RGBA";
-    videoEffectParameter = new CVideoEffectParameter();
+    videoEffectParameter = std::make_unique<CVideoEffectParameter>();
 
 }
 
@@ -70,12 +70,18 @@ void CRegardsConfigParam::SetDetectRotation(const int& isDetectRotation)
 
 CVideoEffectParameter * CRegardsConfigParam::GetVideoEffectParameter()
 {
-    return videoEffectParameter;
+    return videoEffectParameter.get();
 }
 
 void CRegardsConfigParam::SetVideoEffectParameter(const CVideoEffectParameter * videoEffect)
 {
-    *videoEffectParameter = *videoEffect;
+	if (videoEffect == nullptr)
+	{
+		videoEffectParameter.reset();
+		return;
+	}
+
+	videoEffectParameter = std::make_unique<CVideoEffectParameter>(*videoEffect);
 }
 
 wxString CRegardsConfigParam::GetOpenGLOutputColor()
@@ -1018,16 +1024,19 @@ void CRegardsConfigParam::LoadParameter()
 	xml_node<>* root_node;
 	//long nodeSize = 0;
 	root_node = doc.first_node("Parameter");
+	if (root_node == nullptr)
+	{
+		wxMessageBox("Invalid configuration file : missing Parameter node");
+		return;
+	}
 
-	xml_node<>* child_node = root_node->first_node("ImageLibrary");
-	if (child_node != nullptr)
-		GetImageLibrary(child_node);
+	if (auto* child = root_node->first_node("ImageLibrary"))
+		GetImageLibrary(child);
 
-	child_node = root_node->first_node("VideoLibrary");
-	if (child_node != nullptr)
+	if (auto* child_node = root_node->first_node("VideoLibrary"))
 		GetVideoLibrary(child_node);
 
-	child_node = root_node->first_node("EffectLibrary");
+	auto * child_node = root_node->first_node("EffectLibrary");
 	if (child_node != nullptr)
 		GetEffectLibrary(child_node);
 

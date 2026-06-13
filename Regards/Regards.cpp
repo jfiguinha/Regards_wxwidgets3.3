@@ -473,9 +473,7 @@ bool MyApp::InitializeResources()
 #endif
 
 	//Chargement des paramËtres de l'application
-	regardsParam = new CRegardsConfigParam();
-	CParamInit::Initialize(regardsParam);
-
+	regardsParam = CParamInit::getInstance();
 
 	bool dataInMemory = regardsParam->GetDatabaseInMemory();
 

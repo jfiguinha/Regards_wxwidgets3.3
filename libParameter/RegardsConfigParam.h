@@ -242,5 +242,5 @@ protected:
 	int bufferSize;
 	int isThumbnailOpenCV = 1;
     wxString openGLOutputColor = "RGBA";
-    CVideoEffectParameter * videoEffectParameter = nullptr;
+    std::unique_ptr<CVideoEffectParameter> videoEffectParameter = nullptr;
 };
