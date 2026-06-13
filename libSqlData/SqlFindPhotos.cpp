@@ -249,7 +249,7 @@ wxString CSqlFindPhotos::GenerateSqlRequest(const int& numCatalog, vector<int>& 
 		}
 
 		reqSQIn += ") Group By NumPhoto";
-		//printf("Requete Photos Search Criteria : %s \n", CConvertUtility::ConvertToUTF8(reqSQIn));
+		//printf("Requete Photos Search Criteria : %s \n", CConvertUtility::ConvertToStdString(reqSQIn));
 		//ExecuteRequest(reqSQIn);
 		return reqSQIn;
 	}

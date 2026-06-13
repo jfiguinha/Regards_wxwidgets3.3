@@ -1443,7 +1443,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
         #else
             double scale_factor = 1.0f;
         #endif
-			renderOpenGL->Print(0, 1, scale_factor, CConvertUtility::ConvertToUTF8(msgFrame));
+			renderOpenGL->Print(0, 1, scale_factor, CConvertUtility::ConvertToStdString(msgFrame).c_str());
 		}
 
 #ifdef _DEBUG

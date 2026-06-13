@@ -90,9 +90,9 @@ void CDownloadFile::DownloadFile(wxProgressDialog * dlg, const wxString& outputF
 	/* init the curl session */
 	curl = curl_easy_init();
 
-	curl_easy_setopt(curl, CURLOPT_URL, CConvertUtility::ConvertToUTF8(httpAdress));
+	curl_easy_setopt(curl, CURLOPT_URL, CConvertUtility::ConvertToStdString(httpAdress));
 	//curl_easy_setopt(curl, CURLOPT_CAINFO, "./ca-bundle.crt");
-	curl_easy_setopt(curl, CURLOPT_CAINFO, CConvertUtility::ConvertToUTF8(crtFile));
+	curl_easy_setopt(curl, CURLOPT_CAINFO, CConvertUtility::ConvertToStdString(crtFile));
 	curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, false);
 	curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, true);

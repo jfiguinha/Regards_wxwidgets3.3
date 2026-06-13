@@ -103,7 +103,7 @@ bool MyApp::OnCmdLineParsed(wxCmdLineParser& parser)
 	wxArrayString files;
 	for (auto i = 0; i < parser.GetParamCount(); i++)
 	{
-		//printf("Files to show : %s \n", CConvertUtility::ConvertToUTF8(parser.GetParam(i)));
+		//printf("Files to show : %s \n", CConvertUtility::ConvertToStdString(parser.GetParam(i)));
 		files.Add(parser.GetParam(i));
 		break;
 	}
@@ -384,7 +384,7 @@ bool MyApp::InitializeDirectories()
 	cout << "Program Path : " << programPath << endl;
 
 	wxString regardsdb_path = CFileUtility::GetResourcesFolderPathWithExt("regards.db");
-	wxString regardsdocumentdb_path = CFileUtility::GetDocumentFolderPathWithExt("regards.db");
+	wxString regardsdocumentdb_path = CFileUtility::GetDocumentFolderPathWithFilename("regards.db");
 
 	if (!LocaleMakeDir("Thumbnail"))
 	{
@@ -508,17 +508,21 @@ bool MyApp::InitializeResources()
 	CheckGeolocalisationServiceAvailability();
 
 
-	wxString toto = CLibResource::GetOpenGLShaderFromDB("IDR_GLSL_SHADER_BILINEAR");
+	wxString numIdLang;
+	numIdLang = wxFILE_SEP_PATH;
+	numIdLang.append(to_string(regardsParam->GetNumLanguage()));
+	numIdLang += wxFILE_SEP_PATH;
 
 #ifdef WIN32
-	wxString numIdLang = "\\" + to_string(regardsParam->GetNumLanguage()) + "\\msw";
+	numIdLang += "msw";
 #else
 #ifdef __APPLE__
-	wxString numIdLang = "/" + to_string(regardsParam->GetNumLanguage()) + "/osx";
+	numIdLang += "osx";
 #else
-	wxString numIdLang = "/" + to_string(regardsParam->GetNumLanguage()) + "/linux";
+	numIdLang += "linux";
 #endif
 #endif
+
 	wxXmlResource::Get()->LoadAllFiles(resourcePath + numIdLang);
 
 	int svgWidth = 256;

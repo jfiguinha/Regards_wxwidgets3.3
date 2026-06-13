@@ -300,7 +300,7 @@ void CMainParam::SaveParameter()
 	root->append_node(sectionCriteria);
 
 	// save the xml data to a file (could equally well use any other ostream)
-	ofstream file(CConvertUtility::ConvertToStdString(filename));
+	ofstream file(CConvertUtility::ConvertToStdString(filename).c_str());
 	if (file.is_open())
 	{
 		file << doc;

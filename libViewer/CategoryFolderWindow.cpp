@@ -321,7 +321,7 @@ void CCategoryFolderWindow::ProcessIdle()
         CPhotos photo = pimpl->m_photosVector[0];
         
 		//printf("CCategoryFolderWindow::ProcessIdle : Nb Photo : %d Path : %s \n", nbPhotos,
-		 //printf("error CImageVideoThumbnail creation\n");      CConvertUtility::ConvertToUTF8(photo.GetPath()));
+		 //printf("error CImageVideoThumbnail creation\n");      CConvertUtility::ConvertToStdString(photo.GetPath()));
 
 		if (photo.GetId() != -1)
 		{
@@ -611,14 +611,14 @@ void CCategoryFolderWindow::FindGPSPhotoCriteria(CFindPhotoCriteria* findPhotoCr
 	listCriteriaPhoto.numPhotoId = findPhotoCriteria->numPhoto;
 	listCriteriaPhoto.photoPath = findPhotoCriteria->photoPath;
 
-	//printf("FindGPSPhotoCriteria %s \n ", CConvertUtility::ConvertToUTF8(listCriteriaPhoto.photoPath));
+	//printf("FindGPSPhotoCriteria %s \n ", CConvertUtility::ConvertToStdString(listCriteriaPhoto.photoPath));
 
 	fileGeolocalisation.SetFile(listCriteriaPhoto.photoPath, notGeo);
 
 
 	if (fileGeolocalisation.HasGps())
 	{
-		//printf("Has GPS %s \n ", CConvertUtility::ConvertToUTF8((listCriteriaPhoto.photoPath)));
+		//printf("Has GPS %s \n ", CConvertUtility::ConvertToStdString((listCriteriaPhoto.photoPath)));
 		fileGeolocalisation.Geolocalisation(&listCriteriaPhoto);
 		if (listCriteriaPhoto.listCriteria.size() > 0)
 		{
@@ -660,13 +660,13 @@ void CCategoryFolderWindow::FindPhotoCriteria(CFindPhotoCriteria* findPhotoCrite
 	listCriteriaPhoto.numPhotoId = findPhotoCriteria->numPhoto;
 	listCriteriaPhoto.photoPath = findPhotoCriteria->photoPath;
 
-	//printf("FindPhotoCriteria %s \n ", CConvertUtility::ConvertToUTF8((listCriteriaPhoto.photoPath)));
+	//printf("FindPhotoCriteria %s \n ", CConvertUtility::ConvertToStdString((listCriteriaPhoto.photoPath)));
 
 	geoloc.SetFile(listCriteriaPhoto.photoPath, notGeo);
 
 	if (!geoloc.HasGps())
 	{
-		//printf("Has not GPS %s \n ", CConvertUtility::ConvertToUTF8((listCriteriaPhoto.photoPath)));
+		//printf("Has not GPS %s \n ", CConvertUtility::ConvertToStdString((listCriteriaPhoto.photoPath)));
 		auto insertCriteria = new CInsertCriteria();
 		insertCriteria->type = CATEGORIE_GEO;
 		insertCriteria->value = CLibResource::LoadStringFromResource(L"LBLNOTGEO", 1);
@@ -688,8 +688,8 @@ void CCategoryFolderWindow::FindPhotoCriteria(CFindPhotoCriteria* findPhotoCrite
 
 	wxString datetime = geoloc.GetDateTimeInfos();
 
-	//printf("FindPhotoCriteria %s datetime %s \n ", CConvertUtility::ConvertToUTF8(listCriteriaPhoto.photoPath),
-	 //      CConvertUtility::ConvertToUTF8(datetime));
+	//printf("FindPhotoCriteria %s datetime %s \n ", CConvertUtility::ConvertToStdString(listCriteriaPhoto.photoPath),
+	 //      CConvertUtility::ConvertToStdString(datetime));
 
 	if (datetime.Length() >= 10)
 	{

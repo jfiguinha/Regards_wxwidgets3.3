@@ -16,11 +16,17 @@ public:
     static wxString GetResourcesFolderPathWithExt(const wxString & folder);
 	static wxString GetFileTime(const wxString& szFileName);
 	static wxString GetDocumentFolderPath();
-    static wxString GetDocumentFolderPathWithExt(const wxString & folder);
+    static wxString GetDocumentFolderPathWithFilename(const wxString & folder);
 	static wxString GetThumbnailPath(const wxString& path);
 	static wxString GetVideoThumbnailPath(const wxString& path, const int& numFrame);
 	static wxString GetFaceThumbnailPath(const int& numFace);
 	static wxString GetTempFile(wxString filename, const bool& removeFile = true);
 	static wxString GetTempFile(wxString filename, wxString folder, const bool& removeFile = true);
 	static wxString GetFaceZScorePath(const int& numFace);
+
+private:
+	static wxString GetOrCreateSubFolder(const wxString& folderName);
+#if defined(__APPLE__)
+	static wxString GetAppleExecFolderPath(const wxString& folder);
+#endif
 };

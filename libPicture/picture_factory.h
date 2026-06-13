@@ -145,6 +145,8 @@ public:
     static void InitFreeImage();
     static void UninitFreeImage();
 
+    wxImage CreatePictureFromSVGFilename(const wxString& filename, const int& buttonWidth, const int& buttonHeight);
+
 private:
     cv::Mat LoadViaCvMat(const wxString& fileName);      // OpenCV générique
     cv::Mat LoadViaFreeImage(const char* filename);      // FallBack FreeImage

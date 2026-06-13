@@ -119,7 +119,7 @@ bool CGps::IsLocalisationAvailable(const wxString& server, const wxString& apiKe
 	}
 
 	data.data[0] = '\0';
-	gpsUrl->PerformHttpGet(&data, CConvertUtility::ConvertToUTF8(httpAdress));
+	gpsUrl->PerformHttpGet(&data, CConvertUtility::ConvertToStdString(httpAdress).c_str());
 
 	//wxString mystring2(chars, wxConvUTF8);
 	wxString xml(data.data, wxConvUTF8);
@@ -135,7 +135,7 @@ bool CGps::IsLocalisationAvailable(const wxString& server, const wxString& apiKe
 	}
 
 
-	//printf("URL  : %s \n", CConvertUtility::ConvertToUTF8(httpAdress));
+	//printf("URL  : %s \n", CConvertUtility::ConvertToStdString(httpAdress));
 	//printf("Data : %s \n", data.data);
 
 	free(data.data);
@@ -249,12 +249,12 @@ bool CGps::GeolocalisationGPS(const wxString& latitude, const wxString& longitud
 		}
 
 		data.data[0] = '\0';
-		gpsUrl->PerformHttpGet(&data, CConvertUtility::ConvertToUTF8(httpAdress));
+		gpsUrl->PerformHttpGet(&data, CConvertUtility::ConvertToStdString(httpAdress).c_str());
 
 		//wxString mystring2(chars, wxConvUTF8);
 		wxString xml(data.data, wxConvUTF8);
 
-		//printf("URL  : %s \n", CConvertUtility::ConvertToUTF8(httpAdress));
+		//printf("URL  : %s \n", CConvertUtility::ConvertToStdString(httpAdress));
 		//printf("Data : %s \n", data.data);
 
 		geoPluginVector.clear();

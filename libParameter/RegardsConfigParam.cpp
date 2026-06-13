@@ -983,7 +983,7 @@ void CRegardsConfigParam::SaveParameter()
 	SetWindowParameter(windowMode);
 	root->append_node(windowMode);
 	// save the xml data to a file (could equally well use any other ostream)
-	std::ofstream file(CConvertUtility::ConvertToStdString(filename));
+	std::ofstream file(CConvertUtility::ConvertToStdString(filename).c_str());
 	if (file.is_open())
 	{
 		file << doc;

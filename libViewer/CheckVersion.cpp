@@ -88,7 +88,7 @@ wxString CCheckVersion::GetLastVersion()
 	curl = curl_easy_init();
 	if (curl)
 	{
-		curl_easy_setopt(curl, CURLOPT_URL, CConvertUtility::ConvertToUTF8(httpAdress));
+		curl_easy_setopt(curl, CURLOPT_URL, CConvertUtility::ConvertToStdString(httpAdress));
 
 #ifdef SKIP_PEER_VERIFICATION
 		/*
@@ -149,7 +149,7 @@ wxString CCheckVersion::GetLastVersion()
 
 	try
 	{
-		printf("http address : %s \n", CConvertUtility::ConvertToUTF8(httpAdress));
+		printf("http address : %s \n", CConvertUtility::ConvertToStdString(httpAdress));
 		wxURL url(httpAdress);
 		if (url.GetError() == wxURL_NOERR)
 		{
@@ -171,13 +171,13 @@ wxString CCheckVersion::GetLastVersion()
 		}
 		else
 		{
-			printf("URL ERROR %s \n", CConvertUtility::ConvertToUTF8(httpAdress));
+			printf("URL ERROR %s \n", CConvertUtility::ConvertToStdString(httpAdress));
 			return "";
 		}
 	}
 	catch (...)
 	{
-		printf("wxURL ERROR CRASH %s \n", CConvertUtility::ConvertToUTF8(httpAdress));
+		printf("wxURL ERROR CRASH %s \n", CConvertUtility::ConvertToStdString(httpAdress));
 	}
 
 	return xml;

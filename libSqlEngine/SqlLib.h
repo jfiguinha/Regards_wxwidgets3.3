@@ -32,7 +32,7 @@ namespace Regards
             bool RecoverDatabaseFile(const wxString& filename);
             bool ExecuteSqlWithStatement(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter);
             int  ExecuteSQLWithNoResult(const wxString& query);
-            bool ExecuteSQLSelect(const wxString& query, CSqlResult* result);
+            int  ExecuteSQLSelect(const wxString& query, CSqlResult* result);
             bool ExecuteSQLBlobInsert(const wxString& query, int numCol,
                 const void* blob, int blobSize, CSqlResult* result);
 

@@ -7,35 +7,25 @@
 #include <SqlEngine.h>
 #include <ConvertUtility.h>
 #include <FileUtility.h>
-#define NANOSVG_IMPLEMENTATION
-#include <nanosvg.h>
-#define NANOSVGRAST_IMPLEMENTATION
-#include <nanosvgrast.h>
+#include <libPicture.h>
 #include <wx/sstream.h>
 #include <RegardsConfigParam.h>
 #include <ParamInit.h>
+#include <wx/filename.h>
 using namespace Regards::Sqlite;
 
 wxString CLibResource::GetPhotoCancel()
 {
-#ifdef WIN32
-	return CFileUtility::GetResourcesFolderPath() + "\\photo_cancel.png";
-#else
-	return CFileUtility::GetResourcesFolderPath() + "/photo_cancel.png";
-#endif
+	wxFileName file(CFileUtility::GetResourcesFolderPath(), "photo_cancel.png");
+	return file.GetFullPath();
 }
 
 bool CLibResource::InitializeSQLServerDatabase(const wxString& folder)
 {
 	auto libResource = new CSqlLibResource(true, true);
-	wxString filename = folder;
-#ifdef WIN32
-	filename.append(L"\\resource.db");
-#else
-    filename.append(L"/resource.db");
-#endif
-	printf("ResourceDB %s \n", CConvertUtility::ConvertToUTF8(filename));
-	return CSqlEngine::Initialize(filename, L"ResourceDB", libResource);
+	wxFileName file(folder, "resource.db");
+	printf("ResourceDB %s \n", CConvertUtility::ConvertToStdString(file.GetFullPath()).c_str());
+	return CSqlEngine::Initialize(file.GetFullPath(), L"ResourceDB", libResource);
 }
 
 void CLibResource::KillSqlEngine()
@@ -43,161 +33,6 @@ void CLibResource::KillSqlEngine()
 	CSqlEngine::kill(L"ResourceDB");
 }
 
-wxImage CLibResource::CreatePictureFromSVGFilename(const wxString& filename, const int& buttonWidth,
-                                                   const int& buttonHeight)
-{
-	int w = 0, h = 0;
-	int width = buttonWidth;
-	int height = buttonHeight;
-
-	if (width != height)
-	{
-		if (width > height)
-		{
-			width = height;
-		}
-		else
-		{
-			height = width;
-		}
-	}
-
-	//Calcul Ratio picture
-	bool isError = false;
-
-	{
-		NSVGimage* image = nullptr;
-		image = nsvgParseFromFile(CConvertUtility::ConvertToUTF8(filename), "px", 96.0f, 0, 0);
-		if (image == nullptr)
-		{
-			isError = true;
-			printf("Could not open SVG image.\n");
-		}
-
-		if (!isError)
-		{
-			w = static_cast<int>(image->width);
-			h = static_cast<int>(image->height);
-		}
-
-		nsvgDelete(image);
-	}
-
-	float ratio = 1.0f;
-	if (w != h)
-	{
-		if (w > h)
-		{
-			ratio = static_cast<float>(h) / static_cast<float>(w);
-			height = width * ratio;
-		}
-		else
-		{
-			ratio = static_cast<float>(w) / static_cast<float>(h);
-			width = height * ratio;
-		}
-	}
-
-	wxImage img;
-	NSVGimage* image = nullptr;
-	NSVGrasterizer* rast = nullptr;
-	uint8_t* data = nullptr;
-	image = nsvgParseFromFile(CConvertUtility::ConvertToStdString(filename).c_str(), "px", 96.0f, width, height);
-	if (image == nullptr)
-	{
-		isError = true;
-		printf("Could not open SVG image.\n");
-	}
-
-	if (!isError)
-	{
-		w = static_cast<int>(image->width);
-		h = static_cast<int>(image->height);
-		rast = nsvgCreateRasterizer();
-	}
-
-	if (rast == nullptr)
-	{
-		isError = true;
-		printf("Could not init rasterizer.\n");
-	}
-
-	if (!isError)
-	{
-		data = new uint8_t[w * h * 4];
-		if (data == nullptr)
-		{
-			printf("Could not alloc image buffer.\n");
-			isError = true;
-		}
-	}
-
-	if (!isError)
-		nsvgRasterize(rast, image, 0, 0, 1, data, w, h, w * 4);
-
-	nsvgDeleteRasterizer(rast);
-	nsvgDelete(image);
-
-	bool flip = false;
-
-	if (!isError)
-	{
-		const int width = w;
-		const int height = h;
-		const int widthSrcSize = width * 4;
-
-		wxImage anImage(width, height, true);
-		anImage.InitAlpha();
-
-		unsigned char* dataOut = anImage.GetData();
-		unsigned char* dataAlpha = anImage.GetAlpha();
-
-		{
-			if (data != nullptr)
-			{
-				tbb::parallel_for(0, height, 1, [=](int y)
-				{
-					//changed line
-					int pos_data = y * widthSrcSize;
-					int posDataOut = y * (width * 3);
-					int posAlpha = y * width;
-
-					for (auto x = 0; x < width; x++)
-					{
-						dataOut[posDataOut] = data[pos_data + 2];
-						dataOut[posDataOut + 1] = data[pos_data + 1];
-						dataOut[posDataOut + 2] = data[pos_data];
-						dataAlpha[posAlpha++] = data[pos_data + 3];
-						pos_data += 4;
-						posDataOut += 3;
-					}
-				}); //added ); at the end
-			}
-			delete[] data;
-		}
-
-
-		{
-			int posX = (buttonWidth - w) / 2;
-			int posY = (buttonHeight - h) / 2;
-			wxImage final(buttonWidth, buttonHeight, true);
-			final.InitAlpha();
-			unsigned char* dataAlpha = final.GetAlpha();
-			if (dataAlpha != nullptr)
-			{
-				tbb::parallel_for(0, buttonHeight, 1, [=](int y)
-				{
-					int posAlpha = y * buttonWidth;
-					for (auto x = 0; x < buttonWidth; x++)
-						dataAlpha[posAlpha++] = 0;
-				});
-			}
-			final.Paste(anImage, posX, posY);
-			return final;
-		}
-	}
-	return img;
-}
 
 
 vector<wxString> CLibResource::GetSavePictureFormat()
@@ -215,15 +50,13 @@ vector<wxString> CLibResource::GetSavePictureExtension()
 wxImage CLibResource::CreatePictureFromSVG(const wxString& idName, const int& buttonWidth, const int& buttonHeight)
 {
 	CSqlResource sqlResource;
-	wxString filename = sqlResource.GetFilepath(idName);
-	return CreatePictureFromSVGFilename(filename, buttonWidth, buttonHeight);
+	return Regards::Picture::CLibPicture::CreatePictureFromSVGFilename(sqlResource.GetFilepath(idName), buttonWidth, buttonHeight);
 }
 
 wxString CLibResource::LoadExifNameFromResource(const wxString& id)
 {
 	CSqlResource sqlResource;
-	wxString libelle = sqlResource.GetExifLibelle(id);
-	return libelle;
+	return sqlResource.GetExifLibelle(id);
 }
 
 wxString CLibResource::LoadBitmapFromResource(const wxString& idName)
@@ -241,15 +74,13 @@ wxString CLibResource::LoadStringFromResource(const wxString& idName, const int&
 	if (config != nullptr)
 		numLanguage = config->GetNumLanguage();
 
-	wxString libelle = sqlResource.GetLibelle(idName, numLanguage);
-	return libelle;
+	return sqlResource.GetLibelle(idName, numLanguage);
 }
 
 wxString CLibResource::GetVector(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxString libelle = sqlResource.GetVectorFromFile(idName);
-	return libelle;
+	return sqlResource.GetVectorFromFile(idName);
 }
 
 int CLibResource::GetExtensionId(const wxString& extension)
@@ -262,31 +93,23 @@ int CLibResource::GetExtensionId(const wxString& extension)
 wxString CLibResource::GetOpenGLShaderFromDB(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxString program = sqlResource.GetText(idName);
-	//printf("Program : %s \n",CConvertUtility::ConvertToUTF8(program));
-	return program;
+	return  sqlResource.GetText(idName);
 }
 
 wxString CLibResource::GetOpenGLShaderProgram(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxString program = sqlResource.GetOpenGLFromFile(idName);
-	//printf("Program : %s \n",CConvertUtility::ConvertToUTF8(program));
-	return program;
+	return sqlResource.GetOpenGLFromFile(idName);
 }
 
 wxString CLibResource::GetOpenCLFloatProgram(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxString program = sqlResource.GetOpenCLFloatFromFile(idName);
-	//printf("Program : %s \n",CConvertUtility::ConvertToUTF8(program));
-	return program;
+	return sqlResource.GetOpenCLFloatFromFile(idName);
 }
 
 wxString CLibResource::GetOpenCLUcharProgram(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxString program = sqlResource.GetOpenCLUcharFromFile(idName);
-	//printf("Program : %s \n",CConvertUtility::ConvertToUTF8(program));
-	return program;
+	return sqlResource.GetOpenCLUcharFromFile(idName);
 }

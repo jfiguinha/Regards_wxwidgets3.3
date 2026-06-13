@@ -65,7 +65,7 @@ int CSqlLib::recoverDatabase(sqlite3* db)
 bool CSqlLib::RecoverDatabaseFile(const wxString& filename)
 {
     DbGuard g;
-    int rc = sqlite3_open(CConvertUtility::ConvertToUTF8(filename), &g.db);
+    int rc = sqlite3_open(CConvertUtility::ConvertToStdString(filename).c_str(), &g.db);
     if (rc != SQLITE_OK)
         return false;
 
@@ -118,7 +118,7 @@ bool CSqlLib::OpenConnection(const wxString& path, bool readonly, bool load_inme
             return false;
         }
         if (wxFileExists(m_dbPath))
-            rc = LoadOrSaveDb(pCon, CConvertUtility::ConvertToUTF8(m_dbPath), 0);
+            rc = LoadOrSaveDb(pCon, CConvertUtility::ConvertToStdString(m_dbPath).c_str(), 0);
     }
     else
     {
@@ -126,7 +126,7 @@ bool CSqlLib::OpenConnection(const wxString& path, bool readonly, bool load_inme
             ? SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX
             : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
 
-        rc = sqlite3_open_v2(CConvertUtility::ConvertToUTF8(m_dbPath), &pCon, flags, nullptr);
+        rc = sqlite3_open_v2(CConvertUtility::ConvertToStdString(m_dbPath).c_str(), &pCon, flags, nullptr);
     }
 
     if (rc != SQLITE_OK)
@@ -145,7 +145,7 @@ bool CSqlLib::OpenConnection(const wxString& path, bool readonly, bool load_inme
         int flags = readonly
             ? SQLITE_OPEN_READONLY | SQLITE_OPEN_FULLMUTEX
             : SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_FULLMUTEX;
-        rc = sqlite3_open_v2(CConvertUtility::ConvertToUTF8(m_dbPath), &pCon, flags, nullptr);
+        rc = sqlite3_open_v2(CConvertUtility::ConvertToStdString(m_dbPath).c_str(), &pCon, flags, nullptr);
 
         if (rc != SQLITE_OK)
         {
@@ -165,7 +165,7 @@ void CSqlLib::CloseConnection()
     if (!pCon) return;
 
     if (!m_readonly && m_loadInMemory)
-        LoadOrSaveDb(pCon, CConvertUtility::ConvertToUTF8(m_dbPath), 1);
+        LoadOrSaveDb(pCon, CConvertUtility::ConvertToStdString(m_dbPath).c_str(), 1);
 
     sqlite3_close(pCon);
     pCon = nullptr;
@@ -191,7 +191,7 @@ int CSqlLib::ExecuteSQLWithNoResult(const wxString& query)
     if (!isConnected()) return -1;
 
     char* err = nullptr;
-    if (sqlite3_exec(pCon, CConvertUtility::ConvertToUTF8(query),
+    if (sqlite3_exec(pCon, CConvertUtility::ConvertToStdString(query).c_str(),
         nullptr, nullptr, &err) != SQLITE_OK)
     {
         m_lastError = err ? err : "unknown error";
@@ -275,18 +275,18 @@ bool CSqlLib::ExecuteSqlWithStatement(
 }
 
 
-bool CSqlLib::ExecuteSQLSelect(const wxString& query, CSqlResult* result)
+int CSqlLib::ExecuteSQLSelect(const wxString& query, CSqlResult* result)
 {
     if (!isConnected() || !result) return false;
 
     // stmt local — plus de pRes membre partagé
     sqlite3_stmt* stmt = nullptr;
-    if (sqlite3_prepare_v2(pCon, CConvertUtility::ConvertToUTF8(query),
+    if (sqlite3_prepare_v2(pCon, CConvertUtility::ConvertToStdString(query).c_str(),
         -1, &stmt, nullptr) != SQLITE_OK)
     {
         m_lastError = sqlite3_errmsg(pCon);
         sqlite3_finalize(stmt);
-        return false;
+        return -1;
     }
     result->SetStatement(stmt); // CSqlResult prend ownership
     return sqlite3_total_changes(pCon);
@@ -298,7 +298,7 @@ bool CSqlLib::ExecuteSQLBlobInsert(const wxString& query, int /*numCol*/,
     if (!isConnected()) return false;
 
     StmtGuard g;
-    if (sqlite3_prepare_v2(pCon, CConvertUtility::ConvertToUTF8(query),
+    if (sqlite3_prepare_v2(pCon, CConvertUtility::ConvertToStdString(query).c_str(),
         -1, &g.stmt, nullptr) != SQLITE_OK)
     {
         m_lastError = sqlite3_errmsg(pCon);

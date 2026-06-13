@@ -161,7 +161,7 @@ void CDecodeRaw::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 
 	this->filename = filename;
 
-	rawDecoder = new CDecodeRawPicture(CConvertUtility::ConvertToStdString(filename));
+	rawDecoder = new CDecodeRawPicture(CConvertUtility::ConvertToStdString(filename).c_str());
 
 	this->source = source;
 

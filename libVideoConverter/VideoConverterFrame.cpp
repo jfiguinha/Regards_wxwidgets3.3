@@ -64,34 +64,15 @@ void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
 		ffmpegEncoder = nullptr;
 	}
 	if (wxFileExists(tempAudioVideoFile))
-	{
-#ifdef WIN32
-		std::remove(tempAudioVideoFile);
-#else
 		wxRemoveFile(tempAudioVideoFile);
-#endif
-	}
 
 	if (wxFileExists(tempVideoFile))
-	{
-#ifdef WIN32
-		std::remove(tempVideoFile);
-#else
 		wxRemoveFile(tempVideoFile);
-#endif
-	}
 
 	if (needToRemux)
 	{
 		if (wxFileExists(filepathVideo))
-		{
-#ifdef WIN32
-			std::remove(filepathVideo);
-#else
 			wxRemoveFile(filepathVideo);
-#endif
-		}
-
 
 		if (isAudio)
 		{
@@ -126,42 +107,18 @@ void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
 
 		//Cleanup
 		if (wxFileExists(fileOutVideo))
-		{
-#ifdef WIN32
-			std::remove(fileOutVideo);
-#else
 			wxRemoveFile(fileOutVideo);
-#endif
-		}
 
 		if (wxFileExists(fileOutAudio))
-		{
-#ifdef WIN32
-			std::remove(fileOutAudio);
-#else
 			wxRemoveFile(fileOutAudio);
-#endif
-		}
 
 		if (wxFileExists(fileOut))
-		{
-#ifdef WIN32
-			std::remove(fileOut);
-#else
 			wxRemoveFile(fileOut);
-#endif
-		}
 	}
 	else
 	{
 		if (wxFileExists(fileOut))
-		{
-#ifdef WIN32
-			std::remove(fileOut);
-#else
 			wxRemoveFile(fileOut);
-#endif
-		}
 	}
 
 

@@ -9,6 +9,7 @@
 
 #include "SqlVersion.h"
 #include "SqlResult.h"
+#include <SqlParameter.h>
 #include <ConvertUtility.h>
 using namespace Regards::Sqlite;
 
@@ -28,17 +29,17 @@ CSqlVersion::~CSqlVersion()
 
 bool CSqlVersion::InsertVersion(const wxString& version)
 {
-	return (ExecuteRequestWithNoResult("INSERT INTO VERSION (libelle) VALUES ('" + version + "')") != -1)
-		       ? true
-		       : false;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(version));
+	return ExecuteSqlWithStatementBool("INSERT INTO VERSION (libelle) VALUES (?)", parameter);
 }
 
 bool CSqlVersion::UpdateVersion(const wxString& version, const wxString& oldValue)
 {
-	return (ExecuteRequestWithNoResult(
-		       "UPDATE VERSION SET libelle = '" + version + "' WHERE libelle = '" + oldValue + "'") != -1)
-		       ? true
-		       : false;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(version));
+	parameter.push_back(std::make_unique<CSqlString>(oldValue));
+	return ExecuteSqlWithStatementBool("UPDATE VERSION SET libelle = ? WHERE libelle = ?", parameter);
 }
 
 bool CSqlVersion::DeleteVersion()
@@ -48,32 +49,27 @@ bool CSqlVersion::DeleteVersion()
 
 wxString CSqlVersion::GetVersion()
 {
-	typeResult = 0;
+	typeResult = 1;
 	ExecuteRequest("SELECT libelle FROM VERSION");
-	printf("Version : %s \n", CConvertUtility::ConvertToUTF8(result));
+	printf("Version : %s \n", CConvertUtility::ConvertToStdString(result));
 	return result;
 }
 
 
 int CSqlVersion::TraitementResult(CSqlResult* sqlResult)
 {
-	int nbResult = 0;
+	result = "";
 	while (sqlResult->Next())
 	{
-		if (typeResult == 0)
+		switch (typeResult)
 		{
-			for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
-			{
-				switch (i)
-				{
-				case 0:
-					result = sqlResult->ColumnDataText(i);
-					break;
-				default: ;
-				}
-			}
+		case 1:
+			result = sqlResult->GetText("libelle");
+			break;
 		}
-		nbResult++;
+
+		if (!result.empty())
+			break;
 	}
-	return nbResult;
+	return 1;
 }

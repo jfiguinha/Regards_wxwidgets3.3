@@ -271,7 +271,7 @@ wxString CPanelPhotoWnd::AddFolder(const wxString& folder, wxString* file, const
 		CSqlFolderCatalog sqlFolderCatalog;
 		int64_t idFolder = sqlFolderCatalog.GetFolderCatalogId(NUMCATALOGID, folder);
 
-		//printf("AddFolder : %s \n", CConvertUtility::ConvertToUTF8(folder));
+		//printf("AddFolder : %s \n", CConvertUtility::ConvertToStdString(folder));
 
 		if (idFolder == -1)
 		{
@@ -279,7 +279,7 @@ wxString CPanelPhotoWnd::AddFolder(const wxString& folder, wxString* file, const
 			//Insert la liste des photos dans la base de données.
 			CSqlInsertFile sqlInsertFile;
 			sqlInsertFile.AddFileFromFolder(this, nullptr, files, folder, idFolder, localFilename);
-			//printf("CMainWindow::AddFolder : %s \n", CConvertUtility::ConvertToUTF8(localFilename));
+			//printf("CMainWindow::AddFolder : %s \n", CConvertUtility::ConvertToStdString(localFilename));
 		}
 	
 

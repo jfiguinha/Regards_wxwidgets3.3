@@ -279,12 +279,14 @@ std::unique_ptr<CToolbarTexte> CToolbarWindow::CreateTexte(
 std::unique_ptr<CToolbarButton> CToolbarWindow::CreateButton(
 	const wxString& icon,
 	const wxString& label,
-	int commandId)
+	int commandId,
+	bool showLibelle)
 {
 	auto btn = std::make_unique<CToolbarButton>(themeToolbar.button);
 	const wxString libelle = CLibResource::LoadStringFromResource(label, 1);
 	btn->SetButtonResourceId(icon);
-	btn->SetLibelle(libelle);
+	if(showLibelle)
+		btn->SetLibelle(libelle);
 	btn->SetCommandId(commandId);
 	btn->SetLibelleTooltip(libelle);
 	navElement.push_back(btn.get());

@@ -3,18 +3,14 @@
 #include <wx/dir.h>
 #include <wx/filename.h>
 #include <ImageLoadingFormat.h>
-
+#include <wx/filename.h>
 CModificationManager::CModificationManager(const wxString& folder)
 {
 	orientation = 0;
 	nbModification = 0;
 	numModification = 0;
-	this->folder = folder;
-#ifdef WIN32
-	this->folder.append("\\history");
-#else
-    this->folder.append("//history");
-#endif
+	wxFileName file(folder, "history");
+	this->folder = file.GetFullPath();
 }
 
 void CModificationManager::Init(CImageLoadingFormat* bitmap)
@@ -55,12 +51,8 @@ void CModificationManager::EraseData()
 	bool cont = dir.GetFirst(&filename);
 	while (cont)
 	{
-#ifdef WIN32
-		std::remove(folder + "\\" + filename);
-#else
-        wxRemoveFile(folder + "//" + filename);
-#endif
-
+		wxFileName file(folder, filename);
+        wxRemoveFile(file.GetFullPath());
 		cont = dir.GetNext(&filename);
 	}
 }
@@ -82,16 +74,8 @@ void CModificationManager::SetNumModification(const unsigned int& numModificatio
 
 wxString CModificationManager::GetFilenameWithModification(const unsigned int& numModification)
 {
-	wxString filename;
-	filename.append(folder.begin(), folder.end());
-
-#ifdef WIN32
-	filename.append("\\" + to_string(numModification) + ".png");
-#else
-    filename.append("//" + to_string(numModification) + ".png");
-#endif
-
-	return filename;
+	wxFileName filename(folder, wxString::Format("%d.png", numModification));
+	return filename.GetFullPath();
 }
 
 wxString CModificationManager::GetModificationLibelle(const unsigned int& numModification)
@@ -122,18 +106,6 @@ void CModificationManager::AddModification(CImageLoadingFormat* bitmap, const wx
 	if (numModification < nbModification)
 		listLibelle.erase(listLibelle.begin() + (numModification + 1), listLibelle.end());
 
-	/*
-	int startRemove = numModification;
-	while(startRemove < nbModification)
-	{
-	    wxString filename = GetFilenameWithModification(startRemove);
-	    
-	    if(wxFileName::FileExists(filename))
-	        ::wxRemoveFile(filename);
-	    
-	    startRemove++;
-	}*/
-
 	nbModification = numModification;
 
 	numModification++;
@@ -144,14 +116,7 @@ void CModificationManager::AddModification(CImageLoadingFormat* bitmap, const wx
 	wxString filename = GetFilenameWithModification(numModification);
 
 	if (wxFileName::FileExists(filename))
-	{
-#ifdef WIN32
-		std::remove(filename);
-#else
 		wxRemoveFile(filename);
-#endif
-	}
-		
 
 	bitmap->WriteFile(filename);
 }

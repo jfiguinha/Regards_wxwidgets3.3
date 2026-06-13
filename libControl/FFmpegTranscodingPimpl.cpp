@@ -464,7 +464,7 @@ int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename)
 	unsigned int i;
 
 	ifmt_ctx = nullptr;
-	if ((ret = avformat_open_input(&ifmt_ctx, CConvertUtility::ConvertToUTF8(filename), nullptr, nullptr)) < 0)
+	if ((ret = avformat_open_input(&ifmt_ctx, CConvertUtility::ConvertToStdString(filename).c_str(), nullptr, nullptr)) < 0)
 	{
 		av_log(nullptr, AV_LOG_ERROR, "Cannot open input file\n");
 		return ret;
@@ -539,7 +539,7 @@ int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename)
 			return AVERROR(ENOMEM);
 	}
 
-	av_dump_format(ifmt_ctx, 0, CConvertUtility::ConvertToUTF8(filename), 0);
+	av_dump_format(ifmt_ctx, 0, CConvertUtility::ConvertToStdString(filename).c_str(), 0);
 	return 0;
 }
 
@@ -555,10 +555,10 @@ int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename, const wxS
 	this->decodeHardware = decodeHardware;
 	if (decodeHardware != "" || decodeHardware != "none")
 	{
-		type = av_hwdevice_find_type_by_name(CConvertUtility::ConvertToUTF8(decodeHardware));
+		type = av_hwdevice_find_type_by_name(CConvertUtility::ConvertToStdString(decodeHardware).c_str());
 		if (type == AV_HWDEVICE_TYPE_NONE)
 		{
-			fprintf(stderr, "Device type %s is not supported.\n", CConvertUtility::ConvertToUTF8(decodeHardware));
+			fprintf(stderr, "Device type %s is not supported.\n", CConvertUtility::ConvertToStdString(decodeHardware));
 			fprintf(stderr, "Available device types:");
 			while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
 				fprintf(stderr, " %s", av_hwdevice_get_type_name(type));
@@ -567,7 +567,7 @@ int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename, const wxS
 	}
 
 	ifmt_ctx = nullptr;
-	if ((ret = avformat_open_input(&ifmt_ctx, CConvertUtility::ConvertToUTF8(filename), nullptr, nullptr)) < 0)
+	if ((ret = avformat_open_input(&ifmt_ctx, CConvertUtility::ConvertToStdString(filename).c_str(), nullptr, nullptr)) < 0)
 	{
 		av_log(nullptr, AV_LOG_ERROR, "Cannot open input file\n");
 		return ret;
@@ -673,7 +673,7 @@ int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename, const wxS
 			return AVERROR(ENOMEM);
 	}
 
-	av_dump_format(ifmt_ctx, 0, CConvertUtility::ConvertToUTF8(filename), 0);
+	av_dump_format(ifmt_ctx, 0, CConvertUtility::ConvertToStdString(filename).c_str(), 0);
 	return 0;
 }
 
@@ -1406,18 +1406,18 @@ int CFFmpegTranscodingPimpl::open_output_file(const wxString& filename)
 
 	if (extension == "mkv")
 		avformat_alloc_output_context2(
-			&ofmt_ctx, av_guess_format("matroska", CConvertUtility::ConvertToUTF8(filename), nullptr), "mkv",
-			CConvertUtility::ConvertToUTF8(filename));
+			&ofmt_ctx, av_guess_format("matroska", CConvertUtility::ConvertToStdString(filename).c_str(), nullptr), "mkv",
+			CConvertUtility::ConvertToStdString(filename).c_str());
 	else if (extension == "webm")
 		avformat_alloc_output_context2(
-			&ofmt_ctx, av_guess_format("webm", CConvertUtility::ConvertToUTF8(filename), nullptr), "webm",
-			CConvertUtility::ConvertToUTF8(filename));
+			&ofmt_ctx, av_guess_format("webm", CConvertUtility::ConvertToStdString(filename).c_str(), nullptr), "webm",
+			CConvertUtility::ConvertToStdString(filename).c_str());
 	else if (extension == "mpeg")
 		avformat_alloc_output_context2(
-			&ofmt_ctx, av_guess_format("mpeg", CConvertUtility::ConvertToUTF8(filename), nullptr), "mpeg",
-			CConvertUtility::ConvertToUTF8(filename));
+			&ofmt_ctx, av_guess_format("mpeg", CConvertUtility::ConvertToStdString(filename).c_str(), nullptr), "mpeg",
+			CConvertUtility::ConvertToStdString(filename).c_str());
 	else
-		avformat_alloc_output_context2(&ofmt_ctx, nullptr, nullptr, CConvertUtility::ConvertToUTF8(filename));
+		avformat_alloc_output_context2(&ofmt_ctx, nullptr, nullptr, CConvertUtility::ConvertToStdString(filename).c_str());
 	if (!ofmt_ctx)
 	{
 		av_log(nullptr, AV_LOG_ERROR, "Could not create output context\n");
@@ -1584,15 +1584,15 @@ int CFFmpegTranscodingPimpl::open_output_file(const wxString& filename)
 	//if (rotate_tag != nullptr)
 	//	av_dict_set(&ofmt_ctx->metadata, rotate_tag->key, rotate_tag->value, 0);
 
-	av_dump_format(ofmt_ctx, 0, CConvertUtility::ConvertToUTF8(filename), 1);
+	av_dump_format(ofmt_ctx, 0, CConvertUtility::ConvertToStdString(filename).c_str(), 1);
 
 	if (!(ofmt_ctx->oformat->flags & AVFMT_NOFILE))
 	{
-		ret = avio_open(&ofmt_ctx->pb, CConvertUtility::ConvertToUTF8(filename), AVIO_FLAG_WRITE);
+		ret = avio_open(&ofmt_ctx->pb, CConvertUtility::ConvertToStdString(filename).c_str(), AVIO_FLAG_WRITE);
 		if (ret < 0)
 		{
 			av_log(nullptr, AV_LOG_ERROR, "Could not open output file '%s'",
-			       CConvertUtility::ConvertToUTF8(filename));
+			       CConvertUtility::ConvertToStdString(filename).c_str());
 			return ret;
 		}
 	}

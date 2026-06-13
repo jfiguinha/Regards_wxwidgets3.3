@@ -36,7 +36,7 @@ void CSqlResource::InsertBitmap(const wstring& idName, const wstring& mimeType, 
 		wchar_t _pwszRequeteSQL[512];
 		swprintf(_pwszRequeteSQL, 512,
 		         L"INSERT INTO BitmapResource (idName, mimeType, width, height, depth, data) VALUES('%s', '%s', %d, %d, %d, ?)",
-		         CConvertUtility::ConvertToUTF8(idName), CConvertUtility::ConvertToUTF8(mimeType),
+		         CConvertUtility::ConvertToStdString(idName), CConvertUtility::ConvertToStdString(mimeType),
 		         loadPicture->GetWidth(), loadPicture->GetHeight(), 32);
 		int size = loadPicture->GetWidth() * loadPicture->GetHeight() * 4;
 		//cv::flip(bitmap, bitmap, 0);
@@ -82,11 +82,11 @@ void CSqlResource::InsertOpenGLShader(const wstring& idName, const wstring& mime
 {
 	const wxString data = readFileBytes(filename);
 	auto out = new char[data.size()];
-	const int taille = LZ4_compress(CConvertUtility::ConvertToUTF8(data), out, data.size());
+	const int taille = LZ4_compress(CConvertUtility::ConvertToStdString(data).c_str(), out, data.size());
 	wchar_t _pwszRequeteSQL[512];
 	swprintf(_pwszRequeteSQL, 512,
 	         L"INSERT INTO OpenglResource (idName, mimeType, size, data) VALUES('%s', '%s', %d, ?)",
-	         CConvertUtility::ConvertToUTF8(idName), CConvertUtility::ConvertToUTF8(mimeType), data.size());
+	         CConvertUtility::ConvertToStdString(idName), CConvertUtility::ConvertToStdString(mimeType), data.size());
 	ExecuteInsertBlobData(_pwszRequeteSQL, 3, out, taille);
 
 	delete[] out;
@@ -96,11 +96,11 @@ void CSqlResource::InsertOpenCLFloat(const wstring& idName, const wstring& mimeT
 {
 	const wxString data = readFileBytes(filename);
 	auto out = new char[data.size()];
-	const int taille = LZ4_compress(CConvertUtility::ConvertToUTF8(data), out, data.size());
+	const int taille = LZ4_compress(CConvertUtility::ConvertToStdString(data).c_str(), out, data.size());
 	wchar_t _pwszRequeteSQL[512];
 	swprintf(_pwszRequeteSQL, 512,
 	         L"INSERT INTO OpenclFloatResource (idName, mimeType, size, data) VALUES('%s', '%s', %d, ?)",
-	         CConvertUtility::ConvertToUTF8(idName), CConvertUtility::ConvertToUTF8(mimeType), data.size());
+	         CConvertUtility::ConvertToStdString(idName), CConvertUtility::ConvertToStdString(mimeType), data.size());
 	ExecuteInsertBlobData(_pwszRequeteSQL, 3, out, taille);
 
 	delete[] out;
@@ -110,11 +110,11 @@ void CSqlResource::InsertOpenCLUchar(const wstring& idName, const wstring& mimeT
 {
 	const wxString data = readFileBytes(filename);
 	auto out = new char[data.size()];
-	const int taille = LZ4_compress_default(CConvertUtility::ConvertToUTF8(data), out, data.size(), data.size());
+	const int taille = LZ4_compress_default(CConvertUtility::ConvertToStdString(data).c_str(), out, data.size(), data.size());
 	wchar_t _pwszRequeteSQL[512];
 	swprintf(_pwszRequeteSQL, 512,
 	         L"INSERT INTO OpenclUcharResource (idName, mimeType, size, data) VALUES('%s', '%s', %d, ?)",
-	         CConvertUtility::ConvertToUTF8(idName), CConvertUtility::ConvertToUTF8(mimeType), data.size());
+	         CConvertUtility::ConvertToStdString(idName), CConvertUtility::ConvertToStdString(mimeType), data.size());
 	ExecuteInsertBlobData(_pwszRequeteSQL, 3, out, taille);
 
 	delete[] out;

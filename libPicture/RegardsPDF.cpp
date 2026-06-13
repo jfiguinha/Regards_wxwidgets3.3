@@ -543,10 +543,10 @@ void CRegardsPDF::AddPage(const wxString& fileToAdd, const wxString& filename, c
 
 		QPDF oldpdf;
 		if (fileIn)
-			oldpdf.processFile(CConvertUtility::ConvertToUTF8(filename));
+			oldpdf.processFile(CConvertUtility::ConvertToStdString(filename).c_str());
 
 		QPDF inpdf;
-		inpdf.processFile(CConvertUtility::ConvertToUTF8(fileToAdd));
+		inpdf.processFile(CConvertUtility::ConvertToStdString(fileToAdd).c_str());
 
 
 		std::string outfile = CConvertUtility::ConvertToStdString(file);
@@ -656,7 +656,7 @@ void CRegardsPDF::RemovePage(const wxString& filename, const vector<int>& listPa
 		wxString libelle = CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
 		wxBusyInfo wait(libelle);
 		QPDF inpdf;
-		inpdf.processFile(CConvertUtility::ConvertToUTF8(filename));
+		inpdf.processFile(CConvertUtility::ConvertToStdString(filename).c_str());
 		const std::vector<QPDFObjectHandle>& pages = inpdf.getAllPages();
 		//int pageno_len = QIntC::to_int(QUtil::uint_to_string(pages.size()).length());
 		int pageno = 0;
@@ -687,7 +687,7 @@ void CRegardsPDF::RemovePage(const wxString& filename, const vector<int>& listPa
 			pageno++;
 		}
 
-		QPDFWriter outpdfw(outpdf, CConvertUtility::ConvertToUTF8(outfile));
+		QPDFWriter outpdfw(outpdf, CConvertUtility::ConvertToStdString(outfile).c_str());
 		outpdfw.write();
 	}
 

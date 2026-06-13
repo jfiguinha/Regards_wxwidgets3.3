@@ -14,8 +14,8 @@ CImageLoadingFormat* CRaw::GetThumbnail(const wxString& fileName, const bool& th
 	//const char * fichier = CConvertUtility::ConvertFromwxString(fileName);
 	CImageLoadingFormat* picture = nullptr;
 	int type = 0;
-	int orientation = CRegardsRaw::GetOrientation(CConvertUtility::ConvertToStdString(fileName));
-	DataStorage* memFile = CRegardsRaw::GetThumbnail(CConvertUtility::ConvertToStdString(fileName), type);
+	int orientation = CRegardsRaw::GetOrientation(CConvertUtility::ConvertToStdString(fileName).c_str());
+	DataStorage* memFile = CRegardsRaw::GetThumbnail(CConvertUtility::ConvertToStdString(fileName).c_str(), type);
 	if (memFile != nullptr)
 	{
 		if (type == JPEGOUTPUT)
@@ -121,5 +121,5 @@ bool CRaw::LoadPicture(const wxString& fileName, CImageLoadingFormat* imageLoadi
 void CRaw::GetDimensions(const wxString& fileName, int& width, int& height)
 {
 	//const char * fichier = CConvertUtility::ConvertFromwxString(fileName);
-	CRegardsRaw::GetDimensions(CConvertUtility::ConvertToStdString(fileName), width, height);
+	CRegardsRaw::GetDimensions(CConvertUtility::ConvertToStdString(fileName).c_str(), width, height);
 }

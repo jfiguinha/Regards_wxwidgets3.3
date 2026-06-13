@@ -79,7 +79,7 @@ cv::Mat CThumbnailBuffer::GetPicture(const wxString& filename)
         sizeBuffer = param->GetBufferSize();
 
     if (sizeBuffer <= 0)
-        return cv::imread(CConvertUtility::ConvertToStdString(filename), cv::IMREAD_COLOR);
+        return cv::imread(CConvertUtility::ConvertToStdString(filename).c_str(), cv::IMREAD_COLOR);
 
     s_cache.maxSize = sizeBuffer;
 
@@ -110,7 +110,7 @@ cv::Mat CThumbnailBuffer::GetPicture(const wxString& filename)
     // Décodage toujours hors lock
     cv::Mat decoded = cv::imdecode(raw, cv::IMREAD_COLOR);
     if (decoded.empty())
-        return cv::imread(CConvertUtility::ConvertToStdString(filename), cv::IMREAD_COLOR);
+        return cv::imread(CConvertUtility::ConvertToStdString(filename).c_str(), cv::IMREAD_COLOR);
 
     return decoded;
 }

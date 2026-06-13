@@ -90,7 +90,7 @@ void CBitmapWndViewer::SendEmail()
 #ifdef __APPLE__
     
     CSendEmail sendEmail;
-    sendEmail.SendEmail("", subject, CConvertUtility::ConvertToStdString(filename));
+    sendEmail.SendEmail("", subject, CConvertUtility::ConvertToStdString(fileName).c_str());
     
 #elif defined(WIN32)
 
@@ -98,7 +98,7 @@ void CBitmapWndViewer::SendEmail()
 	vector<string> attachment;
 
 
-	attachment.push_back(CConvertUtility::ConvertToStdString(filename));
+	attachment.push_back(CConvertUtility::ConvertToStdString(filename).c_str());
 	if (attachment.size() > 0)
 		m_cMapi.SendEmail("", attachment);
 

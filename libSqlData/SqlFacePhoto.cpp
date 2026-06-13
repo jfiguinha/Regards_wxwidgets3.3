@@ -11,8 +11,17 @@
 #include "ThumbnailBuffer.h"
 #include <wx/file.h>
 #include <wx/dir.h>
+#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;
+
+#define VIDEO_POSITION 1
+#define NUM_FACE 2
+#define LISTE_NUM_FACE 3
+#define FULLPATH_FACE 4
+#define LISTE_NUM_FACE_COMPATIBLE 5
+#define LISTE_FACE_COMPATIBLE 6
+#define LISTE_FULLPATH_FACE 7
 
 CSqlFacePhoto::CSqlFacePhoto()
 	: CSqlExecuteRequest(L"RegardsDB"), numFace(0), type(0)
@@ -26,64 +35,68 @@ CSqlFacePhoto::~CSqlFacePhoto()
 
 int CSqlFacePhoto::UpdateVideoFace(const int& numFace, const int& videoPosition)
 {
-	return ExecuteRequestWithNoResult(
-		"INSERT INTO FACEVIDEO (NumFace, videoPosition) VALUES (" + to_string(numFace) + "," + to_string(videoPosition)
-		+ ")");
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	parameter.push_back(std::make_unique<CSqlInt>(videoPosition));
+	return ExecuteSqlWithStatementBool("INSERT INTO FACEVIDEO (NumFace, videoPosition) VALUES (? , ?)", parameter);
 }
 
 int CSqlFacePhoto::GetVideoFacePosition(const int& numFaceid)
 {
-	numFace = 0;
-	type = 2;
-	ExecuteRequest("SELECT videoPosition FROM FACEVIDEO WHERE NumFace = " + to_string(numFaceid));
-	return numFace;
+	videoPosition = 0;
+	type = VIDEO_POSITION;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("SELECT videoPosition FROM FACEVIDEO WHERE NumFace = ?", parameter);
+	return videoPosition;
 }
 
 bool CSqlFacePhoto::DeleteNumFaceMaster(const int& numFace)
 {
-	listFaceIndex.clear();
-	type = 4;
-	ExecuteRequest("Select distinct NumFace FROM FACE_RECOGNITION WHERE NumFaceCompatible = " + to_string(numFace));
+	listFace.clear();
+	type = LISTE_NUM_FACE;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("Select distinct NumFace FROM FACE_RECOGNITION WHERE NumFaceCompatible = ?", parameter);
 
-	if (listFaceIndex.size() > 0)
+	if (listFace.size() > 0)
 	{
-		for (int faceId : listFaceIndex)
+		for (int faceId : listFace)
 		{
 			wxString thumbnail = CFileUtility::GetFaceThumbnailPath(faceId);
 			if (wxFileExists(thumbnail))
-			{
-#ifdef WIN32
-				std::remove(thumbnail);
-#else
 				wxRemoveFile(thumbnail);
-#endif
-			}
 
 			thumbnail = CFileUtility::GetFaceZScorePath(faceId);
 			if (wxFileExists(thumbnail))
-			{
-#ifdef WIN32
-				std::remove(thumbnail);
-#else
 				wxRemoveFile(thumbnail);
-#endif
-			}
-			ExecuteRequestWithNoResult("DELETE FROM FACEPHOTO WHERE NumFace = " + to_string(faceId));
-			ExecuteRequestWithNoResult("DELETE FROM FACEVIDEO WHERE NumFace = " + to_string(faceId));
+
+			std::vector<std::unique_ptr<CSqlParameter>> parameter;
+			parameter.push_back(std::make_unique<CSqlInt>(faceId));
+			ExecuteSqlWithStatement("DELETE FROM FACEPHOTO WHERE NumFace = ?", parameter);
+			ExecuteSqlWithStatement("DELETE FROM FACEVIDEO WHERE NumFace = ?", parameter);
 		}
 	}
-	ExecuteRequestWithNoResult("DELETE FROM FACE_RECOGNITION WHERE NumFaceCompatible = " + to_string(numFace));
-	ExecuteRequestWithNoResult("DELETE FROM FACE_NAME WHERE NumFace = " + to_string(numFace));
-	DeleteFaceNameAlone();
+
+	{
+		std::vector<std::unique_ptr<CSqlParameter>> parameter;
+		parameter.push_back(std::make_unique<CSqlInt>(numFace));
+		ExecuteSqlWithStatement("DELETE FROM FACE_RECOGNITION WHERE NumFaceCompatible = ?", parameter);
+		ExecuteSqlWithStatement("DELETE FROM FACE_NAME WHERE NumFace = ?", parameter);
+		DeleteFaceNameAlone();
+	}
+
 
 	return true;
 }
 
 void CSqlFacePhoto::EraseFace(const int& numFace)
 {
-	type = 1;
+	type = FULLPATH_FACE;
 	filename = "";
-	ExecuteRequest("Select FullPath FROM FACEPHOTO WHERE NumFace = " + to_string(numFace));
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("Select FullPath FROM FACEPHOTO WHERE NumFace = ?", parameter);
 	if (filename != "")
 	{
 		DeletePhotoFaceDatabase(filename);
@@ -96,73 +109,60 @@ void CSqlFacePhoto::DeleteNumFace(const int& numFace)
 {
 	wxString thumbnail = CFileUtility::GetFaceThumbnailPath(numFace);
 	if (wxFileExists(thumbnail))
-	{
-#ifdef WIN32
-		std::remove(thumbnail);
-#else
 		wxRemoveFile(thumbnail);
-#endif
-	}
 
-	ExecuteRequestWithNoResult("DELETE FROM FACEPHOTO WHERE NumFace = " + to_string(numFace));
-	ExecuteRequestWithNoResult("DELETE FROM FACEVIDEO WHERE NumFace = " + to_string(numFace));
-	ExecuteRequestWithNoResult("DELETE FROM FACE_RECOGNITION WHERE NumFace = " + to_string(numFace));
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("DELETE FROM FACEPHOTO WHERE NumFace = ?", parameter);
+	ExecuteSqlWithStatement("DELETE FROM FACEVIDEO WHERE NumFace = ?", parameter);
+	ExecuteSqlWithStatement("DELETE FROM FACE_RECOGNITION WHERE NumFace = ?", parameter);
 	DeleteFaceNameAlone();
 }
 
 int CSqlFacePhoto::GetFaceCompatibleRecognition(const int& numFace)
 {
-	listFaceIndex.clear();
-	type = 4;
-	ExecuteRequest("Select distinct NumFaceCompatible FROM FACE_RECOGNITION WHERE NumFace = " + to_string(numFace));
-	if (listFaceIndex.size() > 0)
-		return listFaceIndex[0];
+	listFace.clear();
+	type = LISTE_NUM_FACE_COMPATIBLE;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("Select distinct NumFaceCompatible FROM FACE_RECOGNITION WHERE NumFace = ? ", parameter);
+	if (listFace.size() > 0)
+		return listFace[0];
 	return -1;
 }
 
 vector<CFaceRecognitionData> CSqlFacePhoto::GetAllNumFaceRecognition()
 {
 	listFaceRecognition.clear();
-	type = 5;
+	type = LISTE_FACE_COMPATIBLE;
 	ExecuteRequest("Select NumFace, NumFaceCompatible FROM FACE_RECOGNITION ORDER BY NumFaceCompatible");
 	return listFaceRecognition;
 }
 
-/*
-vector<int> CSqlFacePhoto::GetAllNumFaceRecognition(const int& numFace)
-{
-	listFaceIndex.clear();
-	type = 4;
-	ExecuteRequest("Select NumFace FROM FACE_RECOGNITION WHERE NumFace != " + to_string(numFace));
-	return listFaceIndex;
-}
-*/
-
 vector<int> CSqlFacePhoto::GetAllThumbnailFace()
 {
-	listFaceIndex.clear();
-	type = 4;
+	listFace.clear();
+	type = LISTE_NUM_FACE;
 	ExecuteRequest("Select NumFace FROM FACEPHOTO");
-	return listFaceIndex;
+	return listFace;
 }
 
 vector<int> CSqlFacePhoto::GetAllNumFace()
 {
-	listFaceIndex.clear();
-	type = 4;
-	ExecuteRequest(
-		"SELECT (Select NumFace FROM FACE_RECOGNITION WHERE FACE_RECOGNITION.NumFaceCompatible = FACEPHOTO.NumFace) as NumFaceCompatible FROM FACEPHOTO");
-	return listFaceIndex;
+	listFace.clear();
+	type = LISTE_NUM_FACE;
+	ExecuteRequest("SELECT (Select NumFace FROM FACE_RECOGNITION WHERE FACE_RECOGNITION.NumFaceCompatible = FACEPHOTO.NumFace) as NumFaceCompatible FROM FACEPHOTO");
+	return listFace;
 }
 
 vector<int> CSqlFacePhoto::GetAllNumFace(const int& numFace)
 {
-	listFaceIndex.clear();
-	type = 4;
-	ExecuteRequest(
-		"SELECT (Select NumFace FROM FACE_RECOGNITION WHERE FACE_RECOGNITION.NumFaceCompatible = FACEPHOTO.NumFace) as NumFaceCompatible FROM FACEPHOTO where NumFace != "
-		+ to_string(numFace));
-	return listFaceIndex;
+	listFace.clear();
+	type = LISTE_NUM_FACE_COMPATIBLE;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("SELECT (Select NumFace FROM FACE_RECOGNITION WHERE FACE_RECOGNITION.NumFaceCompatible = FACEPHOTO.NumFace) as NumFaceCompatible FROM FACEPHOTO where NumFace != ?", parameter);
+	return listFace;
 }
 
 
@@ -183,8 +183,7 @@ CImageLoadingFormat* CSqlFacePhoto::GetFacePicture(const int& numFace)
 
 bool CSqlFacePhoto::DeleteListOfPhoto(const vector<int>& listNumPhoto)
 {
-	type = 2;
-	tbb::parallel_for(0, static_cast<int>(listNumPhoto.size()), 1, [=](int i)
+	for(auto i = 0;i < listNumPhoto.size();i++)
 	{
 		int numPhoto = listNumPhoto[i];
 		CSqlPhotos sqlPhoto;
@@ -199,12 +198,10 @@ bool CSqlFacePhoto::DeleteListOfPhoto(const vector<int>& listNumPhoto)
 			DeleteNumFace(facename.numFace);
 		}
 
-		ExecuteRequestWithNoResult(
-			"DELETE FROM FACE_PROCESSING WHERE fullpath in (select fullpath from Photos where NumPhoto = " +
-			to_string(numPhoto) + ")");
+		std::vector<std::unique_ptr<CSqlParameter>> parameter;
+		parameter.push_back(std::make_unique<CSqlInt>(numFace));
+		ExecuteSqlWithStatement("DELETE FROM FACE_PROCESSING WHERE fullpath in (select fullpath from Photos where NumPhoto = ?", parameter);
 	}
-    );
-
 	RebuildLink();
 	return false;
 }
@@ -215,28 +212,14 @@ void CSqlFacePhoto::RebuildLink()
 	CSqlFaceLabel faceLabel;
 	vector<int> listFace = faceLabel.GetFaceLabelAlone();
 
-	/*
-	for(int i = 0;i < listFace.size();i++)
+	for (auto i = 0;i < listFace.size(); i++)
 	{
 		int oldNumFace = listFace[i];
 		numFace = -1;
-		ExecuteRequest("SELECT numFace FROM FACE_RECOGNITION WHERE NumFaceCompatible = " + to_string(oldNumFace) + " ORDER BY numFace ASC LIMIT 1");
-		if(numFace != -1)
-		{
-			faceLabel.UpdateNumFaceLabel(oldNumFace, numFace);
-			faceRecognition.UpdateFaceRecognition(oldNumFace, numFace);
-		}
-		
-	}
-	*/
-
-	tbb::parallel_for(0, static_cast<int>(listFace.size()), 1, [=](int i)
-	{
-		int oldNumFace = listFace[i];
-		numFace = -1;
-		ExecuteRequest(
-			"SELECT numFace FROM FACE_RECOGNITION WHERE NumFaceCompatible = " + to_string(oldNumFace) +
-			" ORDER BY numFace ASC LIMIT 1");
+		type = NUM_FACE;
+		std::vector<std::unique_ptr<CSqlParameter>> parameter;
+		parameter.push_back(std::make_unique<CSqlInt>(oldNumFace));
+		ExecuteSqlWithStatement("SELECT numFace FROM FACE_RECOGNITION WHERE NumFaceCompatible = ? ORDER BY numFace ASC LIMIT 1", parameter);
 		if (numFace != -1)
 		{
 			CSqlFaceRecognition faceRecognition;
@@ -245,15 +228,13 @@ void CSqlFacePhoto::RebuildLink()
 			faceRecognition.UpdateFaceRecognition(oldNumFace, numFace);
 		}
 	}   
-    );
 
 	DeleteFaceNameAlone();
 }
 
 bool CSqlFacePhoto::DeleteListOfPhoto(const vector<wxString>& listPhoto)
 {
-	type = 2;
-	for (int i = 0; i < listPhoto.size(); i++)
+	for (auto i = 0; i < listPhoto.size(); i++)
 	{
 		wxString fullpath = listPhoto[i];
 		fullpath.Replace("'", "''");
@@ -262,15 +243,16 @@ bool CSqlFacePhoto::DeleteListOfPhoto(const vector<wxString>& listPhoto)
 		CSqlFindFacePhoto findFacePhoto;
 		std::vector<CFaceName> listFace = findFacePhoto.GetListFaceNum(listPhoto[i]);
 
-        tbb::parallel_for(0, static_cast<int>(listFace.size()), 1, [=](int k)
+		for (auto k = 0; i < listFace.size(); k++)
 		{
 			//changed line
 			CFaceName facename = listFace[k];
 			DeleteNumFace(facename.numFace);
-		});
+		}
 
-
-		ExecuteRequestWithNoResult("DELETE FROM FACE_PROCESSING WHERE fullpath = '" + fullpath + "'");
+		std::vector<std::unique_ptr<CSqlParameter>> parameter;
+		parameter.push_back(std::make_unique<CSqlString>(fullpath));
+		ExecuteSqlWithStatement("DELETE FROM FACE_PROCESSING WHERE fullpath = ?", parameter);
 	}
 	RebuildLink();
 	return false;
@@ -290,7 +272,7 @@ bool CSqlFacePhoto::DeleteFaceTreatmentDatabase()
 vector<wxString> CSqlFacePhoto::GetPhotoList()
 {
 	listPhoto.clear();
-	type = 1;
+	type = LISTE_FULLPATH_FACE;
 	ExecuteRequest("SELECT FullPath FROM PHOTOS WHERE FullPath not in (select distinct FullPath FROM FACEPHOTO)");
 	return listPhoto;
 }
@@ -298,17 +280,16 @@ vector<wxString> CSqlFacePhoto::GetPhotoList()
 vector<wxString> CSqlFacePhoto::GetPhotoListTreatment()
 {
 	listPhoto.clear();
-	type = 1;
+	type = LISTE_FULLPATH_FACE;
 	ExecuteRequest("SELECT FullPath FROM PHOTOS WHERE FullPath not in (select FullPath FROM FACE_PROCESSING) ");
 	return listPhoto;
 }
 
 int CSqlFacePhoto::InsertFaceTreatment(const wxString& path)
 {
-	wxString fullpath = path;
-	fullpath.Replace("'", "''");
-	ExecuteRequest("INSERT INTO FACE_PROCESSING (FullPath) VALUES('" + fullpath + "')");
-	return 0;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(path));
+	return ExecuteSqlWithStatement("INSERT INTO FACE_PROCESSING (FullPath) VALUES(?)", parameter);
 }
 
 //--------------------------------------------------------
@@ -317,12 +298,18 @@ int CSqlFacePhoto::InsertFaceTreatment(const wxString& path)
 int CSqlFacePhoto::InsertFace(const wxString& path, const wxString& gender, const wxString& age, const int& numberface, const int& width, const int& height,
                               const double& pertinence, const uint8_t* zBlob, const int& nBlob)
 {
-	wxString fullpath = path;
-	fullpath.Replace("'", "''");
 	wxString value = wxString::Format(wxT("%f"), pertinence);
-	ExecuteRequest(
-		"INSERT INTO FACEPHOTO (FullPath, Numberface, width, height, Pertinence, gender, age) VALUES('" + fullpath + "'," +
-		to_string(numberface) + "," + to_string(width) + "," + to_string(height) + "," + value + ",'" + gender + "','" + age + "')");
+
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(path));
+	parameter.push_back(std::make_unique<CSqlInt>(numberface));
+	parameter.push_back(std::make_unique<CSqlInt>(width));
+	parameter.push_back(std::make_unique<CSqlInt>(height));
+	parameter.push_back(std::make_unique<CSqlString>(value));
+	parameter.push_back(std::make_unique<CSqlString>(gender));
+	parameter.push_back(std::make_unique<CSqlString>(age));
+
+	ExecuteSqlWithStatement("INSERT INTO FACEPHOTO (FullPath, Numberface, width, height, Pertinence, gender, age) VALUES(?,?,?,?,?,?,?)", parameter);
 
 	int numFaceId = GetNumFace(path, numberface);
 
@@ -337,24 +324,18 @@ int CSqlFacePhoto::InsertFace(const wxString& path, const wxString& gender, cons
 
 int CSqlFacePhoto::GetNumFace(const wxString& path, const int& numberface)
 {
-	wxString fullpath = path;
 	numFace = 0;
-	type = 2;
-	fullpath.Replace("'", "''");
-	ExecuteRequest(
-		"SELECT NumFace FROM FACEPHOTO WHERE FullPath = '" + fullpath + "' and Numberface = " + to_string(numberface));
+	type = NUM_FACE;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(path));
+	parameter.push_back(std::make_unique<CSqlInt>(numberface));
+	ExecuteSqlWithStatement("SELECT NumFace FROM FACEPHOTO WHERE FullPath = ? and Numberface = ?", parameter);
 	return numFace;
 }
 
 cv::Mat CSqlFacePhoto::GetFace(const int& numFace, bool& isDefault)
 {
 	wxLogNull logNo;
-	/*
-	bitmap.Destroy();
-	type = 0;
-	ExecuteRequest("SELECT FullPath, width, height, Face FROM FACEPHOTO WHERE NumFace = " + to_string(numFace));
-	return bitmap;
-	*/
 	wxString thumbnail = CFileUtility::GetFaceThumbnailPath(numFace);
 	cv::Mat image;
 	if (wxFileExists(thumbnail))
@@ -378,12 +359,11 @@ cv::Mat CSqlFacePhoto::GetFace(const int& numFace, bool& isDefault)
 
 bool CSqlFacePhoto::DeletePhotoFaceDatabase(const wxString& path)
 {
-	wxString fullpath = path;
-	fullpath.Replace("'", "''");
-
-	type = 7;
+	type = LISTE_NUM_FACE;
 	listFace.clear();
-	ExecuteRequest("SELECT NumFace FROM FACEPHOTO WHERE FullPath = '" + fullpath + "'");
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(path));
+	ExecuteSqlWithStatement("SELECT NumFace FROM FACEPHOTO WHERE FullPath = ?", parameter);
 	for (int i : listFace)
 	{
 		DeleteNumFace(i);
@@ -395,112 +375,65 @@ bool CSqlFacePhoto::DeletePhotoFaceDatabase(const wxString& path)
 bool CSqlFacePhoto::DeleteFaceDatabase()
 {
 	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-	documentPath.append("\\Face");
-#else
-	documentPath.append("/Face");
-#endif
+	documentPath += wxFILE_SEP_PATH;
+	documentPath.append("Face");
 
 	wxArrayString files;
 	wxDir::GetAllFiles(documentPath, &files, wxEmptyString, wxDIR_FILES);
-
-
 
 	tbb::parallel_for(0, static_cast<int>(listFace.size()), 1, [=](int i)
 	{
 		wxString filename = files[i];
 		if (wxFileExists(filename))
-		{
-#ifdef WIN32
-			std::remove(filename);
-#else
 			wxRemoveFile(filename);
-#endif
-		}
 	});
-	/*
-	for (wxString filename : files)
-	{
-		wxRemoveFile(filename);
-	}
-	*/
-	//wxRmdir(documentPath);
+
 
 	return (ExecuteRequestWithNoResult("DELETE FROM FACEPHOTO") != -1) ? true : false;
 }
 
 int CSqlFacePhoto::TraitementResult(CSqlResult* sqlResult)
 {
-	int nbResult = 0;
+	videoPosition = -1;
+	listFace.clear();
+	numFace = -1;
+	filename = "";
+	listFaceRecognition.clear();
+	listPhoto.clear();
+
 	while (sqlResult->Next())
 	{
-		CFaceRecognitionData face;
-
-		for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
+		switch (type)
 		{
-			if (type == 1)
-			{
-				switch (i)
-				{
-				case 0:
-					filename = sqlResult->ColumnDataText(i);
-					break;
-				default: ;
-				}
-				listPhoto.push_back(filename);
-			}
-			else if (type == 2)
-			{
-				switch (i)
-				{
-				case 0:
-					numFace = sqlResult->ColumnDataInt(i);
-					break;
-				default: ;
-				}
-			}
-			else if (type == 4)
-			{
-				int numFace;
-				switch (i)
-				{
-				case 0:
-					numFace = sqlResult->ColumnDataInt(i);
-					break;
-				default: ;
-				}
-				listFaceIndex.push_back(numFace);
-			}
-			else if (type == 5)
-			{
-				switch (i)
-				{
-				case 0:
-					face.numFace = sqlResult->ColumnDataInt(i);
-					break;
-				case 1:
-					face.numFaceCompatible = sqlResult->ColumnDataInt(i);
-					break;
-				default: ;
-				}
-			}
-			else if (type == 7)
-			{
-				for (auto clm_num = 0; clm_num < sqlResult->GetColumnCount(); clm_num++)
-				{
-					switch (clm_num)
-					{
-					case 0:
-						listFace.push_back(sqlResult->ColumnDataInt(clm_num));
-						break;
-					default: ;
-					}
-				}
-			}
+		case VIDEO_POSITION:
+			videoPosition = sqlResult->GetInt("videoPosition");
+			return 1;
+		case LISTE_NUM_FACE:
+			listFace.push_back(sqlResult->GetInt("NumFace"));
+			break;
+		case NUM_FACE:
+			numFace = sqlResult->GetInt("NumFace");
+			return 1;
+		case FULLPATH_FACE:
+			filename = sqlResult->GetText("FullPath");
+			return 1;
+		case LISTE_NUM_FACE_COMPATIBLE:
+			listFace.push_back(sqlResult->GetInt("NumFaceCompatible"));
+			break;
+		case LISTE_FACE_COMPATIBLE:
+			CFaceRecognitionData data;
+			data.numFace = sqlResult->GetInt("NumFace");
+			data.numFaceCompatible = sqlResult->GetInt("NumFaceCompatible");
+			listFaceRecognition.push_back(data);
+			break;
+		case LISTE_FULLPATH_FACE:
+			listPhoto.push_back(sqlResult->GetText("FullPath"));
+			break;
 		}
-		if (type == 5)
-			listFaceRecognition.push_back(face);
-		nbResult++;
 	}
-	return nbResult;
+
+	if (LISTE_FACE_COMPATIBLE)
+		return listFaceRecognition.size();
+
+	return listFace.size();
 }

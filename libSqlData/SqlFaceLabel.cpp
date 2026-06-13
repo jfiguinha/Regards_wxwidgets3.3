@@ -1,6 +1,7 @@
 #include <header.h>
 #include "SqlFaceLabel.h"
 #include "SqlResult.h"
+#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 CSqlFaceLabel::CSqlFaceLabel()
@@ -18,18 +19,18 @@ CSqlFaceLabel::~CSqlFaceLabel()
 //--------------------------------------------------------
 bool CSqlFaceLabel::InsertFaceLabel(const int& numFace, const wxString& faceName, const int& isSelectable)
 {
-	return (ExecuteRequestWithNoResult(
-		       "INSERT INTO FACE_NAME (numFace, faceName, isSelectable) VALUES (" + to_string(numFace) + ",'" + faceName
-		       + "'," + to_string(isSelectable) + ")") != -1)
-		       ? true
-		       : false;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	parameter.push_back(std::make_unique<CSqlString>(faceName));
+	parameter.push_back(std::make_unique<CSqlInt>(isSelectable));
+	return ExecuteSqlWithStatementBool("INSERT INTO FACE_NAME (numFace, faceName, isSelectable) VALUES (?,?,?)", parameter);
 }
 
 
 int CSqlFaceLabel::GetLastFaceNum()
 {
 	numFace = -1;
-	type = 2;
+	type = 1;
 	ExecuteRequest("SELECT NumFace FROM FACEPHOTO ORDER BY NumFace desc LIMIT 1");
 	return numFace;
 }
@@ -38,44 +39,45 @@ int CSqlFaceLabel::GetLastFaceNum()
 int CSqlFaceLabel::GetNumFace(const wxString& faceName)
 {
 	numFace = -1;
-	type = 2;
-	ExecuteRequest("SELECT NumFace FROM FACE_NAME WHERE faceName = '" + faceName + "'");
+	type = 1;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(faceName));
+	ExecuteSqlWithStatement("SELECT NumFace FROM FACE_NAME WHERE faceName = ?", parameter);
 	return numFace;
 }
 
 int CSqlFaceLabel::GetFaceNumLabel(int idFace)
 {
 	numFace = -1;
-	type = 2;
-	ExecuteRequest("SELECT NumFaceCompatible FROM FACE_RECOGNITION WHERE NumFace = " + to_string(idFace));
+	type = 3;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("SELECT NumFaceCompatible FROM FACE_RECOGNITION WHERE NumFace = ?", parameter);
 	return numFace;
 }
 
 bool CSqlFaceLabel::UpdateNumFaceLabel(const int& numFace, const int& NewNumName)
 {
-	return (ExecuteRequestWithNoResult(
-			       "UPDATE FACE_NAME SET numFace = " + to_string(NewNumName) + " where numFace = " + to_string(numFace))
-		       !=
-		       -1)
-		       ? true
-		       : false;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(NewNumName));
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	return ExecuteSqlWithStatementBool("UPDATE FACE_NAME SET numFace = ? where numFace = ? ", parameter);
 }
 
 bool CSqlFaceLabel::UpdateFaceLabel(const int& numFace, const wxString& faceName)
 {
-	return (ExecuteRequestWithNoResult(
-		       "UPDATE FACE_NAME SET faceName = '" + faceName + "' where numFace = " + to_string(numFace)) != -1)
-		       ? true
-		       : false;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	parameter.push_back(std::make_unique<CSqlString>(faceName));
+	return ExecuteSqlWithStatementBool("UPDATE FACE_NAME SET faceName = ? where numFace = ?", parameter);
 }
 
 bool CSqlFaceLabel::UpdateFaceLabel(const int& numFace, const int& isSelectable)
 {
-	return (ExecuteRequestWithNoResult(
-		       "UPDATE FACE_NAME SET isSelectable = " + to_string(isSelectable) + " where numFace = " +
-		       to_string(numFace)) != -1)
-		       ? true
-		       : false;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(isSelectable));
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	return ExecuteSqlWithStatementBool("UPDATE FACE_NAME SET isSelectable = ? where numFace = ?", parameter);
 }
 
 vector<int> CSqlFaceLabel::GetFaceLabelAlone()
@@ -89,7 +91,7 @@ vector<int> CSqlFaceLabel::GetFaceLabelAlone()
 vector<int> CSqlFaceLabel::GetAllFace()
 {
 	listOfFace.clear();
-	type = 1;
+	type = 2;
 	ExecuteRequest("SELECT NumFace FROM FACE_NAME");
 	return listOfFace;
 }
@@ -97,15 +99,17 @@ vector<int> CSqlFaceLabel::GetAllFace()
 wxString CSqlFaceLabel::GetFaceName(int numFace)
 {
 	type = 0;
-	ExecuteRequest("SELECT faceName FROM FACE_NAME WHERE NumFace = " + to_string(numFace));
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	ExecuteSqlWithStatement("SELECT faceName FROM FACE_NAME WHERE NumFace = ?", parameter);
 	return faceName;
 }
 
 bool CSqlFaceLabel::DeleteFaceLabelDatabase(int numFace)
 {
-	return (ExecuteRequestWithNoResult("DELETE FROM FACE_NAME where numFace = " + to_string(numFace)) != -1)
-		       ? true
-		       : false;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
+	return ExecuteSqlWithStatementBool("DELETE FROM FACE_NAME WHERE NumFace = ?", parameter);
 }
 
 bool CSqlFaceLabel::DeleteFaceLabelDatabase()
@@ -115,40 +119,27 @@ bool CSqlFaceLabel::DeleteFaceLabelDatabase()
 
 int CSqlFaceLabel::TraitementResult(CSqlResult* sqlResult)
 {
-	int nbResult = 0;
+	numFace = -1;
 	while (sqlResult->Next())
 	{
-		for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
+		switch (type)
 		{
-			if (type == 0)
-			{
-				switch (i)
-				{
-				case 0:
-					faceName = sqlResult->ColumnDataText(i);
-					break;
-				}
-			}
-			else if (type == 1)
-			{
-				switch (i)
-				{
-				case 0:
-					listOfFace.push_back(sqlResult->ColumnDataInt(i));
-					break;
-				}
-			}
-			else if (type == 2)
-			{
-				switch (i)
-				{
-				case 0:
-					numFace = sqlResult->ColumnDataInt(i);
-					break;
-				}
-			}
+		case 0:
+			faceName = sqlResult->GetText("faceName");
+			return 1;
+			break;
+		case 1:
+			numFace = sqlResult->GetInt("NumFace");
+			return 1;
+			break;
+		case 2:
+			listOfFace.push_back(sqlResult->GetInt("NumFace"));
+			break;
+		case 3:
+			numFace = sqlResult->GetInt("NumFaceCompatible");
+			return 1;
+			break;
 		}
-		nbResult++;
 	}
-	return nbResult;
+	return listOfFace.size();
 }

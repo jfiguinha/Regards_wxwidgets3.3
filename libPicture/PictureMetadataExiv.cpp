@@ -19,7 +19,7 @@ CPictureMetadataExiv::CPictureMetadataExiv(const wxString& filename)
 	try
 	{
 		this->filename = filename;
-		exif = Exiv2::ImageFactory::open(CConvertUtility::ConvertToStdString(filename));
+		exif = Exiv2::ImageFactory::open(CConvertUtility::ConvertToStdString(fileName).c_str());
 		assert(exif.get() != 0);
 		exif->readMetadata();
 		isExif = true;

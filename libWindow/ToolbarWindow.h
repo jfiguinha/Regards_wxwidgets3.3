@@ -46,7 +46,8 @@ namespace Regards::Window
 		std::unique_ptr<CToolbarButton> CreateButton(
 			const wxString& icon,
 			const wxString& label,
-			int commandId);
+			int commandId,
+			bool showLibelle = true);
 		std::unique_ptr<CToolbarTexte> CreateTexte(
 			const wxString& label,
 			int commandId);

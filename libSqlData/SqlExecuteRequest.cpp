@@ -61,13 +61,9 @@ int CSqlExecuteRequest::ExecuteRequest(const wxString& sql)
     withLib([&](CSqlLib& lib)
         {
             CSqlResult sqlResult;
-            if (lib.ExecuteSQLSelect(sql, &sqlResult))
-            {
+            if(lib.ExecuteSQLSelect(sql, &sqlResult) != -1)
                 nbResult = TraitementResult(&sqlResult);
-                // Release() uniquement si CSqlResult ne gère pas lui-même son stmt
-                lib.Release();
-            }
-        });
+    });
 
     return nbResult;
 }
@@ -120,8 +116,6 @@ bool CSqlExecuteRequest::ExecuteInsertBlobData(const wxString& sql, int numCol,
         {
             CSqlResult sqlResult;
             success = lib.ExecuteSQLBlobInsert(sql, numCol, blob, blobSize, &sqlResult);
-            if (success)
-                lib.Release();
         });
 
     return success;

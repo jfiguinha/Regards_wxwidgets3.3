@@ -77,6 +77,7 @@ namespace Regards
 
             int SavePictureOption(const int& format, int& option, int& quality);
 
+            static wxImage CreatePictureFromSVGFilename(const wxString& filename, const int& buttonWidth, const int& buttonHeight);
             // -----------------------------------------------------------------
             // Thumbnails image statique
             // -----------------------------------------------------------------

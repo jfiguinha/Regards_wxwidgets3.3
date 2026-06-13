@@ -507,7 +507,7 @@ int CFFmfc::SetFile(CVideoControlInterface* control, const wxString& filename, c
 	_pimpl->autoexit = 1;
     
 	//_pimpl->flush_pkt.data = (uint8_t*)(intptr_t)"FLUSH";
-	cur_stream = _pimpl->g_is = _pimpl->stream_open(CConvertUtility::ConvertToUTF8(filename), _pimpl->file_iformat);
+	cur_stream = _pimpl->g_is = _pimpl->stream_open(CConvertUtility::ConvertToStdString(filename).c_str(), _pimpl->file_iformat);
 	if (!_pimpl->g_is)
 	{
 		_pimpl->do_exit(nullptr);

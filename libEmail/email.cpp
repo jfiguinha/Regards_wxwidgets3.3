@@ -76,15 +76,15 @@ void wxEmailMessage::Encode(wxOutputStream& out)
 		<< "Content-Transfer-Encoding: 8bit" << cr
 		<< cr
 		<< m_text << cr; // TODO: is it possible in MIME message to have a single '.' on a line?
-	out.Write(CConvertUtility::ConvertToUTF8(header), header.Length());
+	out.Write(CConvertUtility::ConvertToStdString(header).c_str(), header.Length());
 	for (size_t i = 0; i < m_mimeParts.GetCount(); i++)
 	{
-		out.Write(CConvertUtility::ConvertToUTF8(boundarySep), boundarySep.Length());
+		out.Write(CConvertUtility::ConvertToStdString(boundarySep).c_str(), boundarySep.Length());
 		m_mimeParts[i].Encode(out);
 	}
 	wxString footer = "--" + boundary + "--" + cr + "." + cr;
 	// TODO: perhaps moving the '.\r\n' sequence to another place
-	out.Write(CConvertUtility::ConvertToUTF8(footer), footer.Length());
+	out.Write(CConvertUtility::ConvertToStdString(footer).c_str(), footer.Length());
 }
 
 wxRecipientsIterator::wxRecipientsIterator(const wxEmailMessage& emailMessage) :

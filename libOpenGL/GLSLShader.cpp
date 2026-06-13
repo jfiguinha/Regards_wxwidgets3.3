@@ -100,7 +100,7 @@ bool GLSLShader::CreateShaderProgram(const wxString& nProgramID_i)
 
 	int length = static_cast<int>(dataProgram.size()) + 1;
 	auto src = new char[length];
-	strcpy(src, CConvertUtility::ConvertToUTF8(dataProgram));
+	strcpy(src, CConvertUtility::ConvertToStdString(dataProgram).c_str());
 	//printf("Opengl shader : \n");
 	//printf(src);
 	//printf("Opengl end shader : \n");
@@ -145,7 +145,7 @@ bool GLSLShader::CreateComputeProgram(const wxString& nProgramID_i)
 
 	int length = static_cast<int>(dataProgram.size()) + 1;
 	auto data = new char[length];
-	strcpy(data, CConvertUtility::ConvertToUTF8(dataProgram));
+	strcpy(data, CConvertUtility::ConvertToStdString(dataProgram).c_str());
 	glShaderSource(m_hComputeHandle, 1, (const GLcharARB**)&data, &length);
 
 	glCompileShader(m_hComputeHandle);
@@ -176,7 +176,7 @@ bool GLSLShader::CreateVertexProgram(const wxString& nProgramID_i)
 
 	int length = static_cast<int>(dataProgram.size()) + 1;
 	auto data = new char[length];
-	strcpy(data, CConvertUtility::ConvertToUTF8(dataProgram));
+	strcpy(data, CConvertUtility::ConvertToStdString(dataProgram).c_str());
 	glShaderSource(m_hVertexHandle, 1, (const GLcharARB**)&data, &length);
 
 	glCompileShader(m_hVertexHandle);

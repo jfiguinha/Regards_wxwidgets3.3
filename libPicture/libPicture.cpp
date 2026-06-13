@@ -150,6 +150,13 @@ uint32_t CLibPicture::GetFrameDelay(const wxString& szFileName)
     return loader_->GetFrameDelay(szFileName);
 }
 
+wxImage CLibPicture::CreatePictureFromSVGFilename(const wxString& filename, const int& buttonWidth, const int& buttonHeight)
+{
+    ImageLoader loader;
+    return loader.CreatePictureFromSVGFilename(filename, buttonWidth, buttonHeight);
+}
+
+
 int CLibPicture::GetVideoDuration(const wxString& szFileName)
 {
     return MetadataService::GetVideoDuration(szFileName);

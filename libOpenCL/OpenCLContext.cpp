@@ -207,7 +207,7 @@ cl_device_id COpenCLContext::GetListOfDevice(cl_platform_id platform, cl_device_
 			continue;
 
 		found = i;
-		//printf("Device found : %s \n", CConvertUtility::ConvertToUTF8(deviceName));
+		//printf("Device found : %s \n", CConvertUtility::ConvertToStdString(deviceName));
 		break;
 	}
 

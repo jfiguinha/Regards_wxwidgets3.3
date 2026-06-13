@@ -113,7 +113,7 @@ void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, co
 			wxString key = treeData->GetExifKey();
 			if (key != "-1")
 			{
-				const int modif = atoi(CConvertUtility::ConvertToUTF8(key));
+				const int modif = CConvertUtility::StringToInt(key);
 				bitmapViewer->SetBitmap(modificationManager->GetModification(modif));
 				//bitmapViewer->Refresh();
 				SetActifElement(key);

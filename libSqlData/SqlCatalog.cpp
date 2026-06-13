@@ -28,7 +28,7 @@ bool CSqlCatalog::UpdateCatalog(const int64_t& numCatalog, const wxString& libel
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(libelle));
 	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
-	return (ExecuteSqlWithStatementBool("UPDATE CATALOG SET LibelleCatalog = ? WHERE NumCatalog = ?", parameter);
+	return ExecuteSqlWithStatementBool("UPDATE CATALOG SET LibelleCatalog = ? WHERE NumCatalog = ?", parameter);
 }
 
 int64_t CSqlCatalog::GetCatalogId(const wxString& libelle)
@@ -64,10 +64,13 @@ int CSqlCatalog::TraitementResult(CSqlResult* sqlResult)
 		{
 		case 1:
 			numCatalogId = sqlResult->GetInt("NumCatalog");
+			return 1;
 			break;
 		case 2:
 			libelle = sqlResult->GetText("LibelleCatalog");
+			return 1;
 			break;
 		}
 	}
+	return 0;
 };

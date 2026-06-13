@@ -147,7 +147,7 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 		
 		myGLVersion = 0;
 		version = glGetString(GL_VERSION);
-		sscanf(CConvertUtility::ConvertToUTF8(version), "%f", &myGLVersion);
+		sscanf(CConvertUtility::ConvertToStdString(version).c_str(), "%f", &myGLVersion);
 		isInit = true;
 
 
