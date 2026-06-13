@@ -6,6 +6,7 @@
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/progdlg.h>
+#include <wx/filename.h>
 using namespace Regards::Viewer;
 using namespace Regards::Internet;
 
@@ -16,8 +17,10 @@ CModelManager::CModelManager(wxWindow* parent)
 
 bool CModelManager::VerifyAndUpdate()
 {
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-	wxString fileHash = documentPath + wxFILE_SEP_PATH + "model" + wxFILE_SEP_PATH + "hash.txt";
+	wxString documentPath = CFileUtility::GetDocumentFolderPathWithFilename("model");
+	wxFileName file(documentPath, "hash.txt");
+
+	wxString fileHash = file.GetFullPath();//documentPath + wxFILE_SEP_PATH + "model" + wxFILE_SEP_PATH + "hash.txt";
 
     bool fileExist = false;
     //Vérification de la version du hash
@@ -59,14 +62,14 @@ void CModelManager::NewModelsAvailable()
 	wxString line = "";
 	wxString documentPath = CFileUtility::GetDocumentFolderPath();
 	wxString tempModel = CFileUtility::GetTempFile("model.zip", true);
-	wxString resourcePath = documentPath + wxFILE_SEP_PATH + "model";
-	wxString fileHash = resourcePath + wxFILE_SEP_PATH + "hash.txt";
+	wxString resourcePath = CFileUtility::GetDocumentFolderPathWithFilename("model");
+	wxFileName fileHash(resourcePath,"hash.txt");
     const wxString serverURL = CLibResource::LoadStringFromResource("LBLWEBSITEMODELDOWNLOAD", 1);
     CDownloadFile downloader(serverURL);
     
-	if (wxFileExists(fileHash))
+	if (wxFileExists(fileHash.GetFullPath()))
 	{
-		wxFileInputStream input(fileHash);
+		wxFileInputStream input(fileHash.GetFullPath());
 		wxTextInputStream text(input, wxT("\x09"), wxConvUTF8);
 		while (input.IsOk() && !input.Eof())
 		{

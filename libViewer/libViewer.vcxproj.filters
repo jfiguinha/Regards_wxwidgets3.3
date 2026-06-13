@@ -46,9 +46,6 @@
     <Filter Include="Panel\source">
       <UniqueIdentifier>{3dec332c-d93b-45ed-8eb5-1cb042bc7eb6}</UniqueIdentifier>
     </Filter>
-    <Filter Include="CheckVersion">
-      <UniqueIdentifier>{add6f705-e73b-4a7d-ba64-2bfa4a4cc137}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Resource">
       <UniqueIdentifier>{8bbf014a-b4f4-4b6c-a5cc-5e3b0ad81160}</UniqueIdentifier>
     </Filter>
@@ -134,9 +131,6 @@
     </ClInclude>
     <ClInclude Include="FaceInfosUpdate.h">
       <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
-    <ClInclude Include="CheckVersion.h">
-      <Filter>CheckVersion</Filter>
     </ClInclude>
     <ClInclude Include="WaitingWindow.h">
       <Filter>Fichiers d%27en-tête</Filter>
@@ -316,9 +310,6 @@
     </ClCompile>
     <ClCompile Include="ThumbnailViewerPicture.cpp">
       <Filter>Thumbnail\source</Filter>
-    </ClCompile>
-    <ClCompile Include="CheckVersion.cpp">
-      <Filter>CheckVersion</Filter>
     </ClCompile>
     <ClCompile Include="ToolbarPhoto.cpp">
       <Filter>Toolbar\source</Filter>

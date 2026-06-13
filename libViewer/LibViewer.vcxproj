@@ -887,7 +887,6 @@
     <ClInclude Include="CategorySelectionController.h" />
     <ClInclude Include="CategoryTreeStatePersistence.h" />
     <ClInclude Include="CategoryWnd.h" />
-    <ClInclude Include="CheckVersion.h" />
     <ClInclude Include="CriteriaWindow.h" />
     <ClInclude Include="ExportDiaporama.h" />
     <ClInclude Include="FaceInfosUpdate.h" />
@@ -962,7 +961,6 @@
     <ClCompile Include="CategorySelectionController.cpp" />
     <ClCompile Include="CategoryTreeStatePersistence.cpp" />
     <ClCompile Include="CategoryWnd.cpp" />
-    <ClCompile Include="CheckVersion.cpp" />
     <ClCompile Include="CentralWindow.cpp" />
     <ClCompile Include="CriteriaWindow.cpp" />
     <ClCompile Include="ExportDiaporama.cpp" />

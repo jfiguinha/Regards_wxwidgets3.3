@@ -24,7 +24,6 @@
 #include <SqlFaceLabel.h>
 #include "SqlFacePhoto.h"
 #include <FiltreEffetCPU.h>
-#include "CheckVersion.h"
 #include <MainTheme.h>
 #include <MainThemeInit.h>
 #include <ParamInit.h>
@@ -32,7 +31,7 @@
 #include <wx/mimetype.h>
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
-#include "ListFace.h"
+#include <httprequest.h>
 #include "ThumbnailProcess.h"
 #include <MediaInfo.h>
 using namespace Regards::Picture;
@@ -944,8 +943,7 @@ void CMainWindow::NewVersionAvailable(void* param)
     wxString localVersion  = CLibResource::LoadStringFromResource("REGARDSVERSION", 1);
     wxString serverURL     = CLibResource::LoadStringFromResource("ADRESSEWEBVERSION", 1);
 
-    Regards::Internet::CCheckVersion checker(serverURL);
-    wxString serverVersion = checker.GetLastVersion();
+    wxString serverVersion = Regards::Internet::CHttpRequest::ExecuteRequest(serverURL);
     serverVersion = serverVersion.SubString(0, serverVersion.length() - 2);
 
     localVersion.Replace(".", "");

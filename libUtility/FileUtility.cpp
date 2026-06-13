@@ -167,7 +167,7 @@ wxString CFileUtility::GetThumbnailPath(const wxString& path)
 
 wxString CFileUtility::GetDocumentFolderPath()
 {
-	wxString documentPath = GetProgramFolderPath();
+	wxString documentPath = wxStandardPaths::Get().GetDocumentsDir();
 	documentPath += wxFILE_SEP_PATH;
 	documentPath.append("Regards");
 	if (!wxDir::Exists(documentPath))

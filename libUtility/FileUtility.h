@@ -23,9 +23,9 @@ public:
 	static wxString GetTempFile(wxString filename, const bool& removeFile = true);
 	static wxString GetTempFile(wxString filename, wxString folder, const bool& removeFile = true);
 	static wxString GetFaceZScorePath(const int& numFace);
-
-private:
 	static wxString GetOrCreateSubFolder(const wxString& folderName);
+private:
+	
 #if defined(__APPLE__)
 	static wxString GetAppleExecFolderPath(const wxString& folder);
 #endif

@@ -20,6 +20,7 @@
 #include <opencv2/xphoto/inpainting.hpp>
 #include <avir.h>
 #include "InterpolationFilters.h"
+#include <wx/filename.h>
 using namespace Regards::OpenCV;
 using namespace Regards::OpenGL;
 using namespace Regards::DeepLearning;
@@ -116,15 +117,9 @@ Rect CFiltreEffetCPUImpl::CalculRect(int widthIn, int heightIn, int widthOut, in
 
 string CFiltreEffetCPUImpl::GenerateModelPath(string modelName, int scale)
 {
-    wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-	wxString path = "";
-#ifdef WIN32
-	path = documentPath + "\\model\\" + modelName + "_x" + to_string(scale) + ".pb";
-#else
-	path = documentPath + "/model/"  + modelName + "_x" + to_string(scale) + ".pb";
-#endif
-	return CConvertUtility::ConvertToStdString(path);
+	wxString documentPath = CFileUtility::GetDocumentFolderPathWithFilename("model");
+	wxFileName file(documentPath, wxString::Format("%s_x%d.pb", modelName, scale));
+	return CConvertUtility::ConvertToStdString(file.GetFullPath());
 }
 
 bool CFiltreEffetCPUImpl::TestIfMethodIsValid(int method, int scale)
