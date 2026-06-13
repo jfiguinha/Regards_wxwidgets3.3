@@ -162,8 +162,8 @@ namespace Regards
             // en raw ptr car wxWidgets gère leur durée de vie (parent/child).
             // En revanche les objets non-wxWidgets utilisent unique_ptr.
             // ============================================================
-            CScrollbarWnd *   scrollbar         = nullptr;
-            CBitmapToolbar *   pictureToolbar     = nullptr;
+            std::unique_ptr<CScrollbarWnd>   scrollbar         = nullptr;
+            std::unique_ptr<CBitmapToolbar>   pictureToolbar     = nullptr;
             std::unique_ptr<CBitmapWndViewer> bitmapWindow       = nullptr;
             std::unique_ptr<CBitmapWnd3D>     bitmapWindowRender = nullptr;
 
@@ -174,8 +174,8 @@ namespace Regards
             // tempImage : propriété claire, géré via unique_ptr
             CImageLoadingFormat * tempImage;
 
-            CSlideToolbar *     slideToolbar = nullptr;
-            CSliderVideo *      videoSlider   = nullptr;
+            std::unique_ptr<CSlideToolbar>     slideToolbar = nullptr;
+            std::unique_ptr<CSliderVideo>      videoSlider   = nullptr;
             std::unique_ptr<CVideoControlSoft> videoWindow   = nullptr;
             
 

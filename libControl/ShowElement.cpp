@@ -107,25 +107,25 @@ CShowElement::CShowElement(wxWindow* parent,
     };
 
     // --- Widgets image ---
-    pictureToolbar = new CBitmapToolbar(this, wxID_ANY, bitmapViewerId,
+    pictureToolbar = std::make_unique<CBitmapToolbar>(this, wxID_ANY, bitmapViewerId,
                                                      themeToolbar, false, exportPicture);
     pictureToolbar->SetTabValue(zoomValues);
 
-    bitmapWindow = std::make_unique<CBitmapWndViewer>(pictureToolbar, mainViewerId,
+    bitmapWindow = std::make_unique<CBitmapWndViewer>(pictureToolbar.get(), mainViewerId,
                                                       themeBitmap, bitmapInterface);
     bitmapWindow->SetTabValue(zoomValues);
 
     bitmapWindowRender = std::make_unique<CBitmapWnd3D>(this, bitmapViewerId);
     bitmapWindowRender->SetBitmapRenderInterface(bitmapWindow.get());
 
-    scrollbar = new CScrollbarWnd(this, bitmapWindowRender.get(), wxID_ANY, "BitmapScroll");
+    scrollbar = std::make_unique<CScrollbarWnd>(this, bitmapWindowRender.get(), wxID_ANY, "BitmapScroll");
 
     // --- Widgets vidéo ---
     videoWindow  = std::make_unique<CVideoControlSoft>(windowMain, this, this);
     bitmapWindowRender->SetBitmapRenderInterface(videoWindow.get());
 
-    videoSlider  = new CSliderVideo(this, wxID_ANY, this, themeSlider);
-    slideToolbar = new CSlideToolbar(this, wxID_ANY, themeToolbar);
+    videoSlider  = std::make_unique<CSliderVideo>(this, wxID_ANY, this, themeSlider);
+    slideToolbar = std::make_unique<CSlideToolbar>(this, wxID_ANY, themeToolbar);
 
     bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
 
@@ -376,10 +376,10 @@ namespace
     }
 }
 
-void CShowElement::OnMoveLeft(wxCommandEvent& e)   { ForwardScrollEvent(scrollbar, wxEVENT_MOVELEFT,   e); }
-void CShowElement::OnMoveRight(wxCommandEvent& e)  { ForwardScrollEvent(scrollbar, wxEVENT_MOVERIGHT,  e); }
-void CShowElement::OnMoveTop(wxCommandEvent& e)    { ForwardScrollEvent(scrollbar, wxEVENT_MOVETOP,    e); }
-void CShowElement::OnMoveBottom(wxCommandEvent& e) { ForwardScrollEvent(scrollbar, wxEVENT_MOVEBOTTOM, e); }
+void CShowElement::OnMoveLeft(wxCommandEvent& e)   { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVELEFT,   e); }
+void CShowElement::OnMoveRight(wxCommandEvent& e)  { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVERIGHT, e); }
+void CShowElement::OnMoveTop(wxCommandEvent& e)    { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVETOP,    e); }
+void CShowElement::OnMoveBottom(wxCommandEvent& e) { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVEBOTTOM, e); }
 
 void CShowElement::OnControlSize(wxCommandEvent& event)
 {
