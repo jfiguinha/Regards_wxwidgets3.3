@@ -526,11 +526,8 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
         bool needReload = true;
         if (isDiaporama)
         {
-            if (IAfterEffect* fx = CBitmapWndViewer::AfterEffectPt(numEffect))
-            {
-                needReload = fx->NeedToReload();
-                delete fx;
-            }
+            std::unique_ptr<IAfterEffect> fx = CBitmapWndViewer::AfterEffectPt(numEffect);
+            needReload = fx->NeedToReload();
         }
         if (needReload)
         {

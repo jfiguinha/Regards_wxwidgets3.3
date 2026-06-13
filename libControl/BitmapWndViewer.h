@@ -70,7 +70,7 @@ namespace Regards::Control
 		vector<int> GetListTimer() override;
 		void ApplyPicturePosition(const int& angle, const int& flipH, const int& flipV);
 
-		static IAfterEffect* AfterEffectPt(const int& numFilter);
+		static std::unique_ptr<IAfterEffect> AfterEffectPt(const int& numFilter);
 
 	private:
 		bool IsOpenCLCompatible();
@@ -105,11 +105,13 @@ namespace Regards::Control
 		wxCursor hCursorCross;
 		CDraw* m_cDessin;
 		CImageLoadingFormat* nextPicture;
+		CBitmapInterface* bitmapInterface;
+
+
 		bool startTransition;
 		int etape;
 		bool fixArrow;
-		CBitmapInterface* bitmapInterface;
-		IAfterEffect* afterEffect;
+
 		wxPoint oldMouse;
 
 		//Thread Parameter
@@ -123,7 +125,9 @@ namespace Regards::Control
 		int oldTransNumEffect = -1;
 		wxRect arrowPrevious;
 		wxRect arrowNext;
+
 		std::unique_ptr<wxTimer> transitionTimer;
 		std::unique_ptr<wxTimer> clickTimer;
+		std::unique_ptr<IAfterEffect> afterEffect = nullptr;
 	};
 }

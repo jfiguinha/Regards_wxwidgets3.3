@@ -53,26 +53,26 @@ enum
 #define TIMER_CLICK 32
 #define TIMER_CLICK_TIME 200
 
-IAfterEffect* CBitmapWndViewer::AfterEffectPt(const int& numFilter)
+std::unique_ptr<IAfterEffect> CBitmapWndViewer::AfterEffectPt(const int& numFilter)
 {
 	switch (numFilter)
 	{
 	case IDM_DIAPORAMA_TRANSITION:
-		return new CDiaporamaEffect();
+		return std::make_unique<CDiaporamaEffect>();
 
 	case IDM_DIAPORAMA_MOVE:
 	case IDM_AFTEREFFECT_MOVE:
-		return new CMoveEffectTextureEffect();
+		return std::make_unique<CMoveEffectTextureEffect>();
 
 	case IDM_AFTEREFFECT_PAGECURL:
-		return new CPageCurlFilter();
+		return std::make_unique<CPageCurlFilter>();
 
 	case IDM_DIAPORAMA_FUSION:
 	case IDM_AFTEREFFECT_FUSION:
-		return new CBitmapFusionFilter();
+		return std::make_unique<CBitmapFusionFilter>();
 
 	default:
-		return new CNoneEffectTextureEffect();
+		return std::make_unique<CNoneEffectTextureEffect>();
 	}
 }
 
@@ -186,7 +186,7 @@ void CBitmapWndViewer::BeforeInterpolationBitmap()
 			wxBeginBusyCursor();
 
             filtreEffet->SetPreviewMode(false);
-            mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet, m_cDessin);
+            mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet.get(), m_cDessin);
             updateFilter = false;
             bitmapwidth = filtreEffet->GetWidth();
             bitmapheight = filtreEffet->GetHeight();
@@ -341,12 +341,6 @@ CBitmapWndViewer::~CBitmapWndViewer()
 
 	if (clickTimer->IsRunning())
 		clickTimer->Stop();
-
-	if (afterEffect != nullptr)
-	{
-		delete(afterEffect);
-		afterEffect = nullptr;
-	}
 }
 
 void CBitmapWndViewer::AfterSetBitmap()
@@ -473,7 +467,7 @@ bool CBitmapWndViewer::ApplyPreviewEffect(int& widthOutput, int& heightOutput)
 {
 	if (preview > 1 && mouseUpdate != nullptr)
 	{
-		mouseUpdate->ApplyPreviewEffect(effectParameter, this, filtreEffet, m_cDessin, widthOutput, heightOutput);
+		mouseUpdate->ApplyPreviewEffect(effectParameter, this, filtreEffet.get(), m_cDessin, widthOutput, heightOutput);
 
 		if (mouseUpdate->NeedToUpdateSource())
 			updateFilter = true;
@@ -567,12 +561,9 @@ void CBitmapWndViewer::SetTransitionBitmap(CImageLoadingFormat* bmpSecond)
 	if (oldTransNumEffect != numEffect)
 	{
 		if (afterEffect != nullptr)
-		{
-			delete(afterEffect);
-			afterEffect = nullptr;
-		}
-		afterEffect = AfterEffectPt(numEffect);
+			afterEffect.reset();
 
+		afterEffect = AfterEffectPt(numEffect);
 		oldTransNumEffect = numEffect;
 	}
 
@@ -730,7 +721,7 @@ void CBitmapWndViewer::AfterRender()
 
 		if (numEffect != 0 && (etape > 0 && etape < 101) && afterEffect != nullptr)
 		{
-			afterEffect->AfterRender(nextPicture, renderBitmapOpenGL, this, etape, scale_factor, isNext, ratio);
+			afterEffect->AfterRender(nextPicture, renderBitmapOpenGL.get(), this, etape, scale_factor, isNext, ratio);
 		}
 	}
 
@@ -765,7 +756,7 @@ void CBitmapWndViewer::RenderTexture(const bool& invertPos)
 
 		bool isValid = false;
 		if (afterEffect != nullptr)
-			isValid = afterEffect->RenderTexture(nextPicture, source, this, renderBitmapOpenGL, scale_factor, etape);
+			isValid = afterEffect->RenderTexture(nextPicture, source.get(), this, renderBitmapOpenGL.get(), scale_factor, etape);
 
 		if (!isValid)
 			renderOpenGL->RenderToScreen(mouseUpdate, effectParameter, x, y, invertPos);

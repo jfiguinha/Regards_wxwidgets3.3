@@ -275,7 +275,7 @@ void CBitmapWndRender::SetFullscreen(const bool& fullscreen)
 
 CFiltreEffet* CBitmapWndRender::GetFiltreEffet()
 {
-	return filtreEffet;
+	return filtreEffet.get();
 }
 
 
@@ -318,16 +318,7 @@ void CBitmapWndRender::SetRatioPos(const int& pos)
 //-----------------------------------------------------------------
 CBitmapWndRender::~CBitmapWndRender(void)
 {
-	//
-	if (filtreEffet != nullptr)
-		delete filtreEffet;
-	filtreEffet = nullptr;
 
-	if (renderBitmapOpenGL != nullptr)
-		delete renderBitmapOpenGL;
-
-	if (source != nullptr)
-		delete source;
 }
 
 void CBitmapWndRender::SetKey(const int& iKey)
@@ -714,13 +705,7 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				flipHorizontal = 0;
 				angle = 0;
 				muBitmap.lock();
-				if (source != nullptr)
-				{
-					delete source;
-					source = nullptr;
-				}
-
-				source = bitmapIn;
+				source.reset(bitmapIn);
 				muBitmap.unlock();
 				bitmapwidth = bitmapIn->GetWidth();
 				bitmapheight = bitmapIn->GetHeight();
@@ -737,13 +722,7 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				bitmapUpdate = true;
 				
 				muBitmap.lock();
-				if (source != nullptr)
-				{
-					delete source;
-					source = nullptr;
-				}
-
-				source = bitmapIn;
+				source.reset(bitmapIn);
 				muBitmap.unlock();
 
 				if (shrinkImage)
@@ -809,15 +788,7 @@ void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn, const bool& copy
 
 			//printf("CBitmapWndRender::SetBitmap  muBitmap.lock()\n");
 			muBitmap.lock();
-			if (source != nullptr)
-			{
-				delete source;
-				//printf("CBitmapWndRender::SetBitmap   delete source\n");
-				source = nullptr;
-			}
-
-			source = bitmapIn;
-			//source = nullptr;
+			source.reset(bitmapIn);
 			muBitmap.unlock();
 			//printf("CBitmapWndRender::SetBitmap  muBitmap.unlock()\n");
 			toolOption = MOVEPICTURE;
@@ -1627,10 +1598,10 @@ void CBitmapWndRender::OnPaint2D(wxWindow* gdi)
 
 		if (filtreEffet == nullptr)
 		{
-			filtreEffet = new CFiltreEffet(color, useOpenCL, useCuda, source);
+			filtreEffet = std::make_unique<CFiltreEffet>(color, useOpenCL, useCuda, source.get());
 		}
 		else
-			filtreEffet->SetBitmap(source);
+			filtreEffet->SetBitmap(source.get());
 
 		if (updateFilter)
 		{
@@ -1638,7 +1609,7 @@ void CBitmapWndRender::OnPaint2D(wxWindow* gdi)
 			updateFilter = false;
 		}
 
-		GenerateScreenBitmap(filtreEffet, widthOutput, heightOutput);
+		GenerateScreenBitmap(filtreEffet.get(), widthOutput, heightOutput);
 
 		int screenWidth = GetWidth() * scale_factor;
 		int left = 0, top = 0;
@@ -1682,11 +1653,8 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 	if (renderBitmapOpenGL == nullptr)
 	{
 		this->renderOpenGL = renderOpenGL;
-		renderBitmapOpenGL = new CRenderBitmapOpenGL(renderOpenGL);
+		renderBitmapOpenGL = std::make_unique<CRenderBitmapOpenGL>(renderOpenGL);
 		renderBitmapOpenGL->LoadingResource(scale_factor, themeBitmap.colorArrow);
-		if (filtreEffet != nullptr)
-			delete filtreEffet;
-		filtreEffet = nullptr;
 	}
 
 
@@ -1709,10 +1677,10 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
         if (loadBitmap)
         {
             if (filtreEffet == nullptr)
-                filtreEffet = new CFiltreEffet(color, useOpenCL, useCuda, source);
+                filtreEffet = std::make_unique<CFiltreEffet>(color, useOpenCL, useCuda, source.get());
             else
             {
-                filtreEffet->SetBitmap(source);
+                filtreEffet->SetBitmap(source.get());
             }
 
             loadBitmap = false;
@@ -1729,7 +1697,7 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
             if (updateFilter)// || mouseUpdate != nullptr)
             {
                 if (!bitmapIsLoad)
-                    filtreEffet->SetBitmap(source);
+                    filtreEffet->SetBitmap(source.get());
                 BeforeInterpolationBitmap();
                 updateFilter = true;
             }
@@ -1738,7 +1706,7 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
             //printf("widthOutput : %d heightOutput %d \n", widthOutput, heightOutput);
             if (updateFilter || widthOutputOld != widthOutput || heightOutputOld != heightOutput)
             {
-                GenerateScreenBitmap(filtreEffet, widthOutput, heightOutput);
+                GenerateScreenBitmap(filtreEffet.get(), widthOutput, heightOutput);
 
                 ApplyPreviewEffect(widthOutput, heightOutput);
 

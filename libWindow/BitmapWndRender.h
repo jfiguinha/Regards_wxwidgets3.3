@@ -291,16 +291,17 @@ namespace Regards::Window
 		CThemeBitmapWindow themeBitmap;
 		CRegardsConfigParam* config;
 
-		bool copyBitmap = false;
-		CFiltreEffet* filtreEffet = nullptr;
-		//CRegardsBitmap* copyBmpSrc = nullptr;
-		bool needUpdate = false;
-		CRenderBitmapOpenGL* renderBitmapOpenGL = nullptr;
-		//CRenderPageCurlOpenGL * pageCurlOpenGL = nullptr;
+		IMouseUpdate* mouseUpdate;
+		CEffectParameter* effectParameter;
+		
+		
+		
 		GLTexture* glTexture = nullptr;
-		//GLTexture* glTextureSrc = nullptr;
-
 		CRenderOpenGL* renderOpenGL = nullptr;
+
+		std::unique_ptr<CRenderBitmapOpenGL> renderBitmapOpenGL = nullptr;
+		std::unique_ptr<CFiltreEffet> filtreEffet = nullptr;
+		std::unique_ptr<CImageLoadingFormat> source = nullptr;
 		//Preview Parameter
 		int preview = 0;
 
@@ -311,7 +312,7 @@ namespace Regards::Window
 		int bitmapwidth;
 		int bitmapheight;
 		bool bitmapUpdate;
-		CImageLoadingFormat* source;
+		
 		bool bitmapLoad;
 		mutex muBitmap;
 		bool updateFilter = false;
@@ -321,13 +322,13 @@ namespace Regards::Window
 
 		int posLargeur = 0;
 		int posHauteur = 0;
-
+		bool needUpdate = false;
+		bool copyBitmap = false;
 		bool isOpenGLShow = true;
 		bool loadBitmap = false;
 		int isMoving;
 		bool destroyOpenGLRender = false;
-		IMouseUpdate* mouseUpdate;
-		CEffectParameter* effectParameter;
+
 		bool openGLRenderBitmap = true;
 		bool endProgram = false;
 		wxWindow* parentRender = nullptr;
