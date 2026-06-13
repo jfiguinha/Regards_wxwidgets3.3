@@ -137,10 +137,8 @@ CViewerFrame::~CViewerFrame()
 
 void CViewerFrame::InitParams()
 {
-    viewerParam_ = std::make_unique<CMainParam>();
-    viewerTheme_ = std::make_unique<CMainTheme>();
-    CMainParamInit::Initialize(viewerParam_.get());
-    CMainThemeInit::Initialize(viewerTheme_.get());
+    viewerParam_ = CMainParamInit::getInstance();
+    viewerTheme_ = CMainThemeInit::getInstance();
 }
 
 void CViewerFrame::InitTimers()

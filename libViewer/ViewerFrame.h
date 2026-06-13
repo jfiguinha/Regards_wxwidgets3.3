@@ -155,8 +155,8 @@ namespace Regards::Viewer
         IMainInterface* mainInterface_ = nullptr;
 
         // Paramètres et thème (propriété exclusive de ViewerFrame)
-        std::unique_ptr<CMainParam>  viewerParam_;
-        std::unique_ptr<CMainTheme>  viewerTheme_;
+        CMainParam * viewerParam_;
+        CMainTheme * viewerTheme_;
 
         // Fenêtres enfants
         

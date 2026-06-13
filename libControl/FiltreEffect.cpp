@@ -416,7 +416,6 @@ void CFiltreEffect::UpdateElementChild(tree<CTreeData*>::sibling_iterator& it, C
 
 void CFiltreEffect::UpdateElement(tree<CTreeData*>::sibling_iterator& parent, RenderMode mode)
 {
-	CPositionElement* pos_element;
 	tree<CTreeData*>::sibling_iterator it = tr.begin(parent);
 	bool isVisible = true;
 

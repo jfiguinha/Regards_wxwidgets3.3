@@ -4,7 +4,6 @@
 #include <exiv2/image.hpp>
 #include <exiv2/error.hpp>
 #include "PictureMetadataExiv_new.h"
-#include <DateValidation.hpp>
 #include <libexif/exif-data.h>
 #include <regex>
 using namespace Regards::exiv2;
@@ -571,10 +570,9 @@ void CPictureMetadataExiv::ReadPicture(bool& hasGps, bool& hasDataTime, wxString
 			Exiv2::ExifData::const_iterator md = exifData.findKey(dateTime);
 			if (exifData.end() != md)
 			{
-				hasDataTime = true;
-				std::string dateTimenfo = toString(*md);
-				DateValidation dateValidation(dateTimenfo);
-				if (dateValidation.isValid())
+				hasDataTime = true;			
+				wxDateTime dt;
+				if (dt.ParseFormat(toString(*md), "%Y-%m-%d"))
 					dateTimeInfos = toString(*md);
 				else
 					hasDataTime = false;

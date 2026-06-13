@@ -68,11 +68,9 @@ CScannerFrame::CScannerFrame(const wxString& title, ISCannerInterface * mainInte
 	Maximize();
 	this->mainInterface = mainInterface;
 
-	viewerParam = new CMainParam();
-	CMainParamInit::Initialize(viewerParam);
+	viewerParam = CMainParamInit::getInstance();
+	viewerTheme = CMainThemeInit::getInstance();
 
-	viewerTheme = new CMainTheme();
-	CMainThemeInit::Initialize(viewerTheme);
 #ifndef __APPLE__
 #if __WXSCANSANE__
     scanSane = new wxScanSane();	
