@@ -21,7 +21,7 @@
 #include <wx/display.h>
 #include <wx/stdpaths.h>
 #include <wx/busyinfo.h>
-
+#include <BitmapPrintout.h>
 #ifdef __APPLE__
 #include <ToggleFullscreen.h>
 #endif
@@ -88,13 +88,13 @@ CViewerFrame::CViewerFrame(const wxString& title, const wxPoint& pos, const wxSi
     const bool openFirstFile = !fileToOpen_.IsEmpty();
 
     // 4. Fenêtre principale
-    mainWindow_ = new CMainWindow(this, MAINVIEWERWINDOWID, this, fileToOpen_);
+    mainWindow_ = std::make_unique<CMainWindow>(this, MAINVIEWERWINDOWID, this, fileToOpen_);
 
     // 5. Services
     fileWatcherService_  = std::make_unique<CFileWatcherService>(this);
     printService_        = std::make_unique<CPrintService>(this);
     scannerLauncher_     = std::make_unique<CScannerLauncher>();
-    navigationCtrl_      = std::make_unique<CViewerNavigationController>(this, mainWindow_);
+    navigationCtrl_      = std::make_unique<CViewerNavigationController>(this, mainWindow_.get());
 
     // 6. Timers propres à la frame
     InitTimers();
@@ -278,14 +278,14 @@ void CViewerFrame::SetScreen()
 #endif
 }
 
-void CViewerFrame::PrintPreview(CImageLoadingFormat* imageToPrint)
+void CViewerFrame::PrintPreview(const wxString &filename)
 {
-    printService_->ShowMatrixPreview(imageToPrint);
+    printService_->ShowImagePreview(filename);
 }
 
-void CViewerFrame::PrintImagePreview(CImageLoadingFormat* imageToPrint)
+void CViewerFrame::PrintImagePreview(cv::Mat& picture)
 {
-    printService_->ShowImagePreview(imageToPrint);
+    printService_->ShowMatrixPreview(picture);
 }
 
 void CViewerFrame::CheckAllProcessEnd(wxTimerEvent& event)
@@ -337,7 +337,7 @@ void CViewerFrame::Exit()
         if(mainWindow_ != nullptr)
             mainWindow_->Show(false);
         
-		mainWindowWaiting = new CWaitingWindow(this, wxID_ANY);
+		mainWindowWaiting = std::make_unique<CWaitingWindow>(this, wxID_ANY);
         if(mainWindowWaiting != nullptr)
         {
             mainWindowWaiting->Show(true);

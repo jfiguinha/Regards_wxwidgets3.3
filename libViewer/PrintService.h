@@ -2,6 +2,13 @@
 #include <wx/print.h>
 class CImageLoadingFormat;
 
+namespace Regards
+{
+    namespace Control
+    {
+        class CBitmapPrintout;
+    }
+}
 namespace Regards::Viewer
 {
     // Encapsule toute la logique d'impression et d'aperçu.
@@ -10,11 +17,12 @@ namespace Regards::Viewer
     public:
         explicit CPrintService(wxWindow* parent);
 
-        // Aperçu impression à partir d'une matrice OpenCV (PrintPreview original).
-        void ShowMatrixPreview(CImageLoadingFormat* image);
+        // Aperçu impression à partir d'un CImageLoadingFormat copié (PrintImagePreview original).
+        void ShowImagePreview(const wxString& filename);
+
 
         // Aperçu impression à partir d'un CImageLoadingFormat copié (PrintImagePreview original).
-        void ShowImagePreview(CImageLoadingFormat* image);
+        void ShowMatrixPreview(cv::Mat& picture);
 
         // Dialogue de mise en page.
         void ShowPageSetup();
@@ -25,13 +33,11 @@ namespace Regards::Viewer
 #endif
 
         // Lance directement l'impression du fichier donné.
-        void PrintFile(const wxString& filename);
-
-        wxPreviewFrameModalityKind GetModality() const { return modality_; }
+        void PreviewFile(const wxString& filename);
 
     private:
         void OpenPreviewFrame(wxPrintPreview* preview);
-
+        void GeneratePreviewFrame(Regards::Control::CBitmapPrintout* bitmapPrintOut_first, Regards::Control::CBitmapPrintout* bitmapPrintOut_second);
         wxWindow* parent_   = nullptr;
         wxPreviewFrameModalityKind modality_ = wxPreviewFrame_AppModal;
     };

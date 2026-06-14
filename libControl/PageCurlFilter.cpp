@@ -55,7 +55,7 @@ void CPageCurlFilter::RenderTexture(CRenderBitmapOpenGL* renderOpenGL, const flo
 		}
 	}
 
-	renderOpenGL->ShowSecondBitmap(pictureNext, width, height, left, top, true);
+	renderOpenGL->ShowSecondBitmap(pictureNext.get(), width, height, left, top, true);
 
 	if (m_pShader != nullptr)
 		m_pShader->DisableShader();
@@ -156,7 +156,7 @@ void CPageCurlFilter::GenerateTexture(CImageLoadingFormat* nextPicture, CImageLo
 GLTexture* CPageCurlFilter::GetTexture(const int& numTexture)
 {
 	if (numTexture == 0)
-		return pictureFirst;
+		return pictureFirst.get();
 
-	return pictureNext;
+	return pictureNext.get();
 }

@@ -3,14 +3,7 @@
 #include <BitmapPrintout.h>
 #include <PrintEngine.h>
 #include <LibResource.h>
-#include <libPicture.h>
-#include <ImageLoadingFormat.h>
 #include <wx/printdlg.h>
-
-#if wxUSE_POSTSCRIPT
-#include <wx/generic/printps.h>
-#include <wx/generic/prntdlgg.h>
-#endif
 
 #ifdef __WXMAC__
 #include <wx/osx/printdlg.h>
@@ -19,25 +12,39 @@
 using namespace Regards::Viewer;
 using namespace Regards::Control;
 using namespace Regards::Print;
-using namespace Regards::Picture;
+
 
 CPrintService::CPrintService(wxWindow* parent)
     : parent_(parent)
 {
 }
 
-void CPrintService::ShowMatrixPreview(CImageLoadingFormat* image)
+void CPrintService::ShowImagePreview(const wxString &filename)
+{
+    Regards::Control::CBitmapPrintout* bitmapPrintOut_first = new CBitmapPrintout(filename);
+    Regards::Control::CBitmapPrintout* bitmapPrintOut_second = new CBitmapPrintout(filename);
+    GeneratePreviewFrame(bitmapPrintOut_first, bitmapPrintOut_second);
+}
+
+void CPrintService::GeneratePreviewFrame(Regards::Control::CBitmapPrintout* bitmapPrintOut_first, Regards::Control::CBitmapPrintout* bitmapPrintOut_second)
 {
     wxPrintData* printData = CPrintEngine::GetPrintData();
+
+    if (!printData)
+    {
+        wxLogError("Invalid print data");
+        return;
+    }
+
     wxPrintDialogData dialogData(*printData);
 
-    cv::Mat bitmapPreview = image->GetMatrix().getMat();
-    auto* preview = new wxPrintPreview(
-        new CBitmapPrintout(image),
-        new CBitmapPrintout(bitmapPreview),
-        &dialogData);
+    wxPrintPreview* preview =
+        new wxPrintPreview(
+            bitmapPrintOut_first,
+            bitmapPrintOut_second,
+            &dialogData);
 
-    if (!preview->IsOk())
+    if (!preview || !preview->IsOk())
     {
         delete preview;
         wxLogError(wxT("There was a problem previewing.\nPerhaps your current printer is not set correctly?"));
@@ -47,28 +54,14 @@ void CPrintService::ShowMatrixPreview(CImageLoadingFormat* image)
     OpenPreviewFrame(preview);
 }
 
-void CPrintService::ShowImagePreview(CImageLoadingFormat* image)
+// Aperçu impression à partir d'un CImageLoadingFormat copié (PrintImagePreview original).
+void CPrintService::ShowMatrixPreview(cv::Mat& picture)
 {
-    wxPrintData* printData = CPrintEngine::GetPrintData();
-    wxPrintDialogData dialogData(*printData);
-
-    auto* bitmapCopy = new CImageLoadingFormat();
-    *bitmapCopy = *image;
-
-    auto* preview = new wxPrintPreview(
-        new CBitmapPrintout(image),
-        new CBitmapPrintout(bitmapCopy),
-        &dialogData);
-
-    if (!preview->IsOk())
-    {
-        delete preview;
-        wxLogError(wxT("There was a problem previewing.\nPerhaps your current printer is not set correctly?"));
-        return;
-    }
-
-    OpenPreviewFrame(preview);
+    Regards::Control::CBitmapPrintout* bitmapPrintOut_first = new CBitmapPrintout(picture);
+    Regards::Control::CBitmapPrintout* bitmapPrintOut_second = new CBitmapPrintout(picture);
+    GeneratePreviewFrame(bitmapPrintOut_first, bitmapPrintOut_second);
 }
+
 
 void CPrintService::ShowPageSetup()
 {
@@ -98,22 +91,18 @@ void CPrintService::ShowPageMargins()
 }
 #endif
 
-void CPrintService::PrintFile(const wxString& filename)
+void CPrintService::PreviewFile(const wxString& filename)
 {
     if (filename.IsEmpty())
         return;
 
-    CLibPicture libPicture;
-    CImageLoadingFormat* image = libPicture.LoadPicture(filename);
-    if (image)
-        ShowMatrixPreview(image);
+    ShowImagePreview(filename);
 }
 
 void CPrintService::OpenPreviewFrame(wxPrintPreview* preview)
 {
     const wxString label = CLibResource::LoadStringFromResource(L"PicturePrintPreview", 1);
-    auto* frame = new wxPreviewFrame(preview, parent_, label, wxPoint(100, 100), wxSize(600, 650));
+    auto * frame = new wxPreviewFrame(preview, parent_, label, wxPoint(100, 100), wxSize(1000, 800));
     frame->Centre(wxBOTH);
-    frame->InitializeWithModality(modality_);
     frame->Show();
 }

@@ -166,9 +166,7 @@ void CMainViewerController::OnPrint(const wxString& localFilename)
             cv::Mat image = video->GetVideoBitmap();
             if (!image.empty())
             {
-                auto* imageLoading = new CImageLoadingFormat();
-                imageLoading->SetPicture(image);
-                statusBarViewer->PrintImagePreview(imageLoading);
+                statusBarViewer->PrintImagePreview(image);
                 showPrintPicture = false;
             }
         }
@@ -176,10 +174,8 @@ void CMainViewerController::OnPrint(const wxString& localFilename)
 
     if (showPrintPicture)
     {
-        CLibPicture libPicture;
-        CImageLoadingFormat* image = libPicture.LoadPicture(localFilename);
-        if (image)
-            statusBarViewer->PrintPreview(image);
+        if (!localFilename.empty())
+            statusBarViewer->PrintPreview(localFilename);
     }
 }
 

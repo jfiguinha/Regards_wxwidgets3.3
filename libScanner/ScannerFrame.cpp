@@ -73,7 +73,7 @@ CScannerFrame::CScannerFrame(const wxString& title, ISCannerInterface * mainInte
 
 #ifndef __APPLE__
 #if __WXSCANSANE__
-    scanSane = new wxScanSane();	
+    scanSane = std::make_unique<wxScanSane>();
 #endif
 #endif
 	// create a menu bar
@@ -105,8 +105,9 @@ CScannerFrame::CScannerFrame(const wxString& title, ISCannerInterface * mainInte
 	// create a status bar just for fun (by default with 1 pane only)
 	CreateStatusBar(1);
 
+	centralWindow = std::make_unique<CCentralWindow>(this, SCANNER_CENTRALVIEWERWINDOWID, this);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(centralWindow = new CCentralWindow(this, SCANNER_CENTRALVIEWERWINDOWID, this), 1, wxEXPAND);
+	sizer->Add(centralWindow.get(), 1, wxEXPAND);
 	SetSizer(sizer);
 
 	// dynamically connect all event handles
@@ -131,14 +132,6 @@ void CScannerFrame::OnCloseWindow(wxCloseEvent& event)
 
 CScannerFrame::~CScannerFrame()
 {
-#ifndef __APPLE__
-#if __WXSCANSANE__
-    if(scanSane != nullptr)
-        delete scanSane;
-#endif
-#endif
-	if (centralWindow != nullptr)
-		delete centralWindow;
 }
 
 int CScannerFrame::OnOpen()
@@ -160,35 +153,44 @@ void CScannerFrame::OnExport(wxCommandEvent& event)
 
 void CScannerFrame::OnPrint(wxCommandEvent& event)
 {
-	CLibPicture libPicture;
+
 	wxString filename = centralWindow->GetFilename();
 	if (filename != "")
 	{
-		CImageLoadingFormat* image = libPicture.LoadPicture(filename);
-		if (image != nullptr)
-			PrintPreview(image);
+		PrintPreview(filename);
 	}
 }
 
-
-void CScannerFrame::PrintPreview(CImageLoadingFormat* imageToPrint)
+void CScannerFrame::PrintPreview(CBitmapPrintout * bitmapPrintout)
 {
 	// Pass two printout objects: for preview, and possible printing.
 	wxPrintData* g_printData = CPrintEngine::GetPrintData();
 	wxPrintDialogData printDialogData(*g_printData);
 
-	auto preview = new wxPrintPreview(new CBitmapPrintout(imageToPrint), nullptr, &printDialogData);
+	std::unique_ptr<wxPrintPreview> preview = std::make_unique<wxPrintPreview>(bitmapPrintout, nullptr, &printDialogData);
 	if (!preview->IsOk())
 	{
-		delete preview;
 		wxLogError(wxT("There was a problem previewing.\nPerhaps your current printer is not set correctly?"));
 		return;
 	}
 	wxString picture_print_label = CLibResource::LoadStringFromResource(L"PicturePrintPreview", 1);
-	auto frame = new wxPreviewFrame(preview, this, picture_print_label, wxPoint(100, 100), wxSize(600, 650));
+	auto frame = new wxPreviewFrame(preview.get(), this, picture_print_label, wxPoint(100, 100), wxSize(600, 650));
 	frame->Centre(wxBOTH);
 	frame->InitializeWithModality(wxPreviewFrame_AppModal);
 	frame->Show();
+}
+
+void CScannerFrame::PrintPreview(cv::Mat& picture)
+{
+	Regards::Control::CBitmapPrintout* bitmap = new CBitmapPrintout(picture);
+	PrintPreview(bitmap);
+
+}
+
+void CScannerFrame::PrintPreview(const wxString &filename)
+{
+	Regards::Control::CBitmapPrintout* bitmap = new CBitmapPrintout(filename);
+	PrintPreview(bitmap);
 }
 
 void CScannerFrame::OnOpenImage(wxCommandEvent& event)

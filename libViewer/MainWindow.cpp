@@ -66,9 +66,6 @@ CMainWindow::~CMainWindow()
 {
     if (loadPictureStartTimer->IsRunning())
         loadPictureStartTimer->Stop();
-
-
-    delete loadPictureStartTimer;
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -111,7 +108,7 @@ void CMainWindow::InitTheme()
             viewerTheme->GetInfosToolbarTheme(&themeInfos);
             themeInfos.position = NAVIGATOR_CENTER;
 
-            toolbarViewerMode = new CToolbarViewerMode(
+            toolbarViewerMode = std::make_unique<CToolbarViewerMode>(
                 this, wxID_ANY, themeInfos, this, false);
         }
 
@@ -119,7 +116,7 @@ void CMainWindow::InitTheme()
             CThemeSplitter theme;
             viewerTheme->GetSplitterTheme(&theme);
 
-            centralWnd = new CCentralWindow(
+            centralWnd = std::make_unique<CCentralWindow>(
                 this, CENTRALVIEWERWINDOWID, theme, false);
         }
     }
@@ -130,17 +127,17 @@ void CMainWindow::InitUI(IStatusBarInterface* statusbar)
 {
     statusBarViewer = statusbar;
 
-    loadPictureStartTimer = new wxTimer(this, TIMER_LOADPICTURESTART);
+    loadPictureStartTimer = std::make_unique<wxTimer>(this, TIMER_LOADPICTURESTART);
 
-    statusBar = new wxStatusBar(
+    statusBar = std::make_unique<wxStatusBar>(
         this, wxID_ANY, wxSTB_DEFAULT_STYLE, "wxStatusBar");
 
     int tabWidth[] = {100, 300, 300, 300};
     statusBar->SetFieldsCount(4);
     statusBar->SetStatusWidths(4, tabWidth);
 
-    progressBar = new wxGauge(
-        statusBar, wxID_ANY, 200,
+    progressBar = std::make_unique<wxGauge>(
+        statusBar.get(), wxID_ANY, 200,
         wxPoint(1000, 0),
         wxSize(200, statusBar->GetSize().y),
         wxGA_HORIZONTAL);
@@ -150,10 +147,10 @@ void CMainWindow::InitUI(IStatusBarInterface* statusbar)
 
     // ── Création des services ────────────────────────────────────────────
     scheduler    = std::make_unique<ThumbnailScheduler>(this, thumbnailProcess.get());
-    folderService = std::make_unique<FolderRefreshService>(centralWnd, this, faceDetection);
+    folderService = std::make_unique<FolderRefreshService>(centralWnd.get(), this, faceDetection);
     viewerCtrl   = std::make_unique<CMainViewerController>(
-        centralWnd, toolbarViewerMode,
-        statusBar, progressBar,
+        centralWnd.get(), toolbarViewerMode.get(),
+        statusBar.get(), progressBar.get(),
         statusBarViewer, this);
 }
 
@@ -587,7 +584,7 @@ void CMainWindow::UpdateThumbnailIcone(wxCommandEvent& event)
     auto* localevent = new wxCommandEvent(wxEVENT_ICONEUPDATE);
     localevent->SetClientData(filename);
     localevent->SetExtraLong(threadLoadingBitmap->longWindow);
-    wxQueueEvent(centralWnd, localevent);
+    wxQueueEvent(centralWnd.get(), localevent);
 
     delete threadLoadingBitmap;
 
@@ -698,7 +695,12 @@ void CMainWindow::OnPrint(wxCommandEvent& /*event*/)
 void CMainWindow::PrintPreview(wxCommandEvent& event)
 {
     auto* bitmap = static_cast<CImageLoadingFormat*>(event.GetClientData());
-    if (bitmap) statusBarViewer->PrintImagePreview(bitmap);
+    if (bitmap)
+    {
+        cv::Mat picture = bitmap->GetMatrix().getMat();
+        statusBarViewer->PrintImagePreview(picture);
+        delete bitmap;
+    }
 }
 
 void CMainWindow::OnExportFile(wxCommandEvent& /*event*/)

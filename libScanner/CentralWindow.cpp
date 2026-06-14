@@ -405,7 +405,9 @@ void CCentralWindow::OnPrint(wxCommandEvent& event)
 {
 	if (filename != "")
 	{
-		frame->PrintPreview(GetImage());
+		CImageLoadingFormat * picture = GetImage();
+		cv::Mat matrix = picture->GetMatrix().getMat();
+		frame->PrintPreview(matrix);
 	}
 	else
 	{

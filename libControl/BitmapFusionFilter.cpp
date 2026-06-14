@@ -116,5 +116,5 @@ void CBitmapFusionFilter::GenerateTexture(CImageLoadingFormat* bitmap)
 
 GLTexture* CBitmapFusionFilter::GetTexture(const int& numTexture)
 {
-	return pictureNext;
+	return pictureNext.get();
 }

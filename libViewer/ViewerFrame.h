@@ -70,8 +70,8 @@ namespace Regards::Viewer
         void SetWindowTitle(const wxString& libelle) override;
         void SetFullscreen() override;
         void SetScreen() override;
-        void PrintPreview(CImageLoadingFormat* imageToPrint) override;
-        void PrintImagePreview(CImageLoadingFormat* imageToPrint) override;
+        void PrintPreview(const wxString& filename) override;
+        void PrintImagePreview(cv::Mat& picture) override;
         void Exit() override;
         void ShowViewer() override {}
 
@@ -160,8 +160,8 @@ namespace Regards::Viewer
 
         // Fenêtres enfants
         
-        CMainWindow *    mainWindow_;
-        CWaitingWindow* mainWindowWaiting;
+        std::unique_ptr<CMainWindow>    mainWindow_;
+        std::unique_ptr<CWaitingWindow> mainWindowWaiting;
         // Services
         std::unique_ptr<CModelManager>               modelManager_;
         std::unique_ptr<CFileWatcherService>         fileWatcherService_;

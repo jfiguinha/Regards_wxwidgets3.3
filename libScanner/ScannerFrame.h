@@ -19,6 +19,10 @@ namespace Regards
 	{
 		class CCentralWindow;
 	}
+	namespace Control
+	{
+		class CBitmapPrintout;
+	}
 }
 
 // IDs for the controls and the menu commands
@@ -52,7 +56,8 @@ public:
 
     ~CScannerFrame();
 
-	void PrintPreview(CImageLoadingFormat * imageToPrint);
+	void PrintPreview(const wxString& filename);
+	void PrintPreview(cv::Mat& picture);
 
 	wxString ScanPage();
 	int OnOpen();
@@ -84,12 +89,14 @@ private:
 
 #ifndef __APPLE__
 #ifdef __WXSCANSANE__  
-    wxScanSane * scanSane;
+    std::unique_ptr<wxScanSane> scanSane;
 #endif
 #endif
 
+	void PrintPreview(Regards::Control::CBitmapPrintout* bitmapPrintout);
+
 	//Toolbar
-	Regards::Scanner::CCentralWindow * centralWindow;
+	std::unique_ptr<Regards::Scanner::CCentralWindow> centralWindow;
 	//int m_imageCount;
 	ISCannerInterface * mainInterface;
 
