@@ -3,11 +3,11 @@
 #include "SqlResult.h"
 using namespace Regards::Sqlite;
 
-CSqlPhotoGPS::CSqlPhotoGPS(CSqlLib* m_transaction, const bool& m_useTransaction)
+CSqlPhotoGPS::CSqlPhotoGPS(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
 	: CSqlExecuteRequest(L"RegardsDB"), numPhoto(0), numFolderId(0), nbResult(0)
 {
-	this->m_transaction = m_transaction;
-	this->m_useTransaction = m_useTransaction;
+	this->m_transaction = _sqlLibTransaction;
+	this->m_useTransaction = useTransaction;
 }
 
 

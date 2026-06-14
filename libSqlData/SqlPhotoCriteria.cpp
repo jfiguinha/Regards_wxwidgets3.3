@@ -3,8 +3,7 @@
 #include "SqlCriteria.h"
 #include "SqlPhotos.h"
 #include <ConvertUtility.h>
-#include <SqlTransaction.h>
-#include <SqlParameter.h>
+#include "SqlTransaction.h"
 using namespace Regards::Sqlite;
 
 CSqlPhotoCriteria::CSqlPhotoCriteria()
@@ -21,8 +20,8 @@ bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPh
                                                 bool criteriaUpdate, const int& numFolder)
 {
 	CSqlTransaction sqlTransaction;
-	CSqlPhotos sqlPhoto;
-	CSqlCriteria sqlCriteria;
+	CSqlPhotos sqlPhoto(this->m_transaction, this->m_useTransaction);
+	CSqlCriteria sqlCriteria(this->m_transaction, this->m_useTransaction);
 
 	for (auto it = listPhotoCriteria.listCriteria.begin(); it != listPhotoCriteria.listCriteria.end(); ++it)
 	{
@@ -72,20 +71,11 @@ bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPh
 
 bool CSqlPhotoCriteria::InsertPhotoCriteria(const int64_t& numPhoto, const int64_t& numCriteria)
 {
-	
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numCriteria));
-	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
-	return ExecuteSqlWithStatementBool("INSERT INTO PHOTOSCRITERIA (NumCriteria, NumPhoto) VALUES (?,?)", parameter);
-
-	/*
 	return (ExecuteRequestWithNoResult(
 		       "INSERT INTO PHOTOSCRITERIA (NumCriteria, NumPhoto) VALUES (" + to_string(numCriteria) + "," +
 		       to_string(numPhoto) + ")") != -1)
 		       ? true
 		       : false;
-	*/
-	
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -93,16 +83,10 @@ bool CSqlPhotoCriteria::InsertPhotoCriteria(const int64_t& numPhoto, const int64
 /////////////////////////////////////////////////////////////////////////////
 bool CSqlPhotoCriteria::DeleteCriteria(const int64_t& numCriteria)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numCriteria));
-	return ExecuteSqlWithStatementBool("DELETE FROM PHOTOSCRITERIA WHERE NumCriteria = ?", parameter);
-
-	/*
 	return (ExecuteRequestWithNoResult("DELETE FROM PHOTOSCRITERIA WHERE NumCriteria = " + to_string(numCriteria)) != -
 		       1)
 		       ? true
 		       : false;
-	*/
 }
 
 bool CSqlPhotoCriteria::DeletePhoto(const int64_t& numPhoto)

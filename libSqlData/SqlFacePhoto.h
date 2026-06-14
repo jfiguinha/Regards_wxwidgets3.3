@@ -54,12 +54,16 @@ namespace Regards
 			int TraitementResult(CSqlResult* sqlResult) override;
 			int64_t numFace;
 			int type;
-			int64_t videoPosition;
+			//int width;
+			//int height;
 			wxString filename;
 			vector<wxString> listPhoto;
 			vector<int> listFace;
 			vector<CFaceRecognitionData> listFaceRecognition;
-
+			//vector<CPictureData *> listFace;
+			//CPictureData * facePicture;
+			vector<int> listFaceIndex;
+			//wxImage bitmap;
 		};
 	}
 }

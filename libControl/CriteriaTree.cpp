@@ -230,6 +230,18 @@ void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
 			{
 				wxString libelleCategorie = photoCategorie.GetLibelle();
 				wxString value = "";
+				int linkType = 0;
+				if (photoCategorie.GetId() == 1)
+				{
+					linkType = photoCategorie.GetId();
+					value = CLibResource::LoadStringFromResource("LBLNOTGEO", 1);
+				}
+				if (photoCategorie.GetId() == 3)
+				{
+					linkType = photoCategorie.GetId();
+					value = "1970.01.01";
+				}
+
 				if (photoCategorie.GetId() == 7)
 				{
 					/*
@@ -251,7 +263,7 @@ void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
 					treeDataFileName->SetKey(libelleCategorie);
 					treeDataFileName->SetValue(value);
 					treeDataFileName->SetType(2);
-					treeDataFileName->SetLinkType(0);
+					treeDataFileName->SetLinkType(linkType);
 					treeDataFileName->SetLinkPath("");
 					tr.append_child(child, treeDataFileName);
 				}

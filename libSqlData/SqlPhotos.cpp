@@ -3,12 +3,14 @@
 #include "SqlResult.h"
 using namespace Regards::Sqlite;
 
-CSqlPhotos::CSqlPhotos()
+CSqlPhotos::CSqlPhotos(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
 	: CSqlExecuteRequest(L"RegardsDB"), exif(0)
 {
 	photoId = -1;
 	criteriaVector = nullptr;
 	typeResult = 0;
+	this->m_transaction = _sqlLibTransaction;
+	this->m_useTransaction = useTransaction;
 }
 
 
@@ -280,6 +282,10 @@ int64_t CSqlPhotos::GetPhotoId(const wxString& filepath)
 	return photoId;
 }
 
+void CSqlPhotos::DeletePhotoSearch()
+{
+	//ExecuteRequestWithNoResult("DELETE FROM PHOTOSSEARCHCRITERIA");
+}
 
 bool CSqlPhotos::DeletePhoto(const int64_t& numPhoto)
 {

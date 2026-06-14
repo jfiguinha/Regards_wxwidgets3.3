@@ -378,3 +378,5 @@ libVideoEffect/libVideoEffect.txt
 /libPicture/Release
 /.cache/clangd/index
 /libWindow/bak
+/libSqlData/new
+/libSqlData/old

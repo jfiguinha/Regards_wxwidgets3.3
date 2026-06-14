@@ -12,11 +12,11 @@ using namespace std;
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;
 
-CSqlResource::CSqlResource(CSqlLib* m_transaction, const bool& m_useTransaction)
+CSqlResource::CSqlResource(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
 	: CSqlExecuteRequest(L"ResourceDB"), typeResult(0), memFile(nullptr), id(0)
 {
-	this->m_transaction = m_transaction;
-	this->m_useTransaction = m_useTransaction;
+	this->m_transaction = _sqlLibTransaction;
+	this->m_useTransaction = useTransaction;
 }
 
 
@@ -36,7 +36,7 @@ void CSqlResource::InsertBitmap(const wstring& idName, const wstring& mimeType, 
 		wchar_t _pwszRequeteSQL[512];
 		swprintf(_pwszRequeteSQL, 512,
 		         L"INSERT INTO BitmapResource (idName, mimeType, width, height, depth, data) VALUES('%s', '%s', %d, %d, %d, ?)",
-		         CConvertUtility::ConvertToStdString(idName), CConvertUtility::ConvertToStdString(mimeType),
+		         CConvertUtility::ConvertToStdString(idName).c_str(), CConvertUtility::ConvertToStdString(mimeType).c_str(),
 		         loadPicture->GetWidth(), loadPicture->GetHeight(), 32);
 		int size = loadPicture->GetWidth() * loadPicture->GetHeight() * 4;
 		//cv::flip(bitmap, bitmap, 0);
@@ -100,7 +100,7 @@ void CSqlResource::InsertOpenCLFloat(const wstring& idName, const wstring& mimeT
 	wchar_t _pwszRequeteSQL[512];
 	swprintf(_pwszRequeteSQL, 512,
 	         L"INSERT INTO OpenclFloatResource (idName, mimeType, size, data) VALUES('%s', '%s', %d, ?)",
-	         CConvertUtility::ConvertToStdString(idName), CConvertUtility::ConvertToStdString(mimeType), data.size());
+	         CConvertUtility::ConvertToStdString(idName).c_str(), CConvertUtility::ConvertToStdString(mimeType).c_str(), data.size());
 	ExecuteInsertBlobData(_pwszRequeteSQL, 3, out, taille);
 
 	delete[] out;

@@ -500,7 +500,7 @@ void CViewerFrame::OnHelp(wxCommandEvent&)
 void CViewerFrame::OnPrint(wxCommandEvent&)
 {
     if (mainWindow_)
-        printService_->PrintFile(mainWindow_->GetFilename());
+        printService_->PreviewFile(mainWindow_->GetFilename());
 }
 
 void CViewerFrame::OnPageSetup(wxCommandEvent&)

@@ -74,7 +74,9 @@ bool CSqlExecuteRequest::ExecuteSqlWithStatementBool(const wxString& query, std:
 
     withLib([&](CSqlLib& lib)
         {
-            nbResult = lib.ExecuteSqlWithStatement(query, parameter);
+            CSqlResult sqlResult;
+            if (lib.ExecuteSqlWithStatement(query, parameter, &sqlResult) != -1)
+                nbResult = TraitementResult(&sqlResult);
         });
 
     return nbResult != -1 ? true : false;
@@ -87,10 +89,24 @@ int CSqlExecuteRequest::ExecuteSqlWithStatement(const wxString& query, std::vect
 
     withLib([&](CSqlLib& lib)
         {
-            nbResult = lib.ExecuteSqlWithStatement(query, parameter);
+            CSqlResult sqlResult;
+            if (lib.ExecuteSqlWithStatement(query, parameter, &sqlResult) != -1)
+                nbResult = TraitementResult(&sqlResult);
         });
 
     return nbResult;
+}
+
+bool CSqlExecuteRequest::ExecuteSqlWithStatementNoResult(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter)
+{
+    int nbResult = 0;
+
+    withLib([&](CSqlLib& lib)
+        {
+            nbResult = lib.ExecuteSqlWithStatement(query, parameter);
+        });
+
+    return nbResult != -1 ? true : false;
 }
 
 int CSqlExecuteRequest::ExecuteRequestWithNoResult(const wxString& sql)

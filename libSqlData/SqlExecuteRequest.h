@@ -31,9 +31,10 @@ namespace Regards
             CSqlExecuteRequest(const CSqlExecuteRequest&) = delete;
             CSqlExecuteRequest& operator=(const CSqlExecuteRequest&) = delete;
             int  ExecuteSqlWithStatement(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter);
-            bool  ExecuteSqlWithStatementBool(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter);
+            bool ExecuteSqlWithStatementBool(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter);
             int  ExecuteRequest(const wxString& sql);
             int  ExecuteRequestWithNoResult(const wxString& sql);
+            bool ExecuteSqlWithStatementNoResult(const wxString& query, std::vector<std::unique_ptr<CSqlParameter>>& parameter);
             bool ExecuteInsertBlobData(const wxString& sql, int numCol,
                 const void* blob, int blobSize);
 

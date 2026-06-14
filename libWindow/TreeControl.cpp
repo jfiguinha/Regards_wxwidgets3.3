@@ -366,7 +366,7 @@ CPositionElement* CTreeControl::RenderTextLink(
 
 	if (posElement != nullptr)
 	{
-		auto element_texte = static_cast<CTreeElementTexte*>(posElement->GetTreeElement());
+		auto element_texte = static_cast<CTreeElementTexteClick *>(posElement->GetTreeElement());
 		element_texte->SetVisible(visible);
 		posElement->SetX(xPos);
 		posElement->SetY(yPos);

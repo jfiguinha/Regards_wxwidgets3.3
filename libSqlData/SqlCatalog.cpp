@@ -1,7 +1,6 @@
 #include <header.h>
 #include "SqlResult.h"
 #include "SqlCatalog.h"
-#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 CSqlCatalog::CSqlCatalog()
@@ -18,59 +17,59 @@ CSqlCatalog::~CSqlCatalog()
 
 bool CSqlCatalog::InsertCatalog(const wxString& libelle)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(libelle));
-	return ExecuteSqlWithStatementBool("INSERT INTO CATALOG (LibelleCatalog) VALUES (?)", parameter);
+	return (ExecuteRequestWithNoResult("INSERT INTO CATALOG (LibelleCatalog) VALUES ('" + libelle + "')") != -1)
+		       ? true
+		       : false;
 }
 
 bool CSqlCatalog::UpdateCatalog(const int64_t& numCatalog, const wxString& libelle)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(libelle));
-	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
-	return ExecuteSqlWithStatementBool("UPDATE CATALOG SET LibelleCatalog = ? WHERE NumCatalog = ?", parameter);
+	return (ExecuteRequestWithNoResult(
+			       "UPDATE CATALOG SET LibelleCatalog = '" + libelle + "' WHERE NumCatalog = " + to_string(numCatalog))
+		       != -
+		       1)
+		       ? true
+		       : false;
 }
 
 int64_t CSqlCatalog::GetCatalogId(const wxString& libelle)
 {
-	type = 1;
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(libelle));
-	ExecuteSqlWithStatement("SELECT NumCatalog FROM CATALOG WHERE LibelleCatalog = ?", parameter);
+	ExecuteRequest("SELECT NumCatalog FROM CATALOG WHERE LibelleCatalog = '" + libelle + "'");
 	return numCatalogId;
 }
 
 wxString CSqlCatalog::GetCatalogLibelle(const int64_t& numCatalog)
 {
-	type = 2;
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
-	ExecuteSqlWithStatement("SELECT LibelleCatalog FROM CATALOG WHERE NumCatalog = ?", parameter);
+	ExecuteRequest("SELECT NumCatalog, LibelleCatalog FROM CATALOG WHERE NumCatalog = " + to_string(numCatalog));
 	return libelle;
 }
 
 bool CSqlCatalog::DeleteCatalog(const int64_t& numCatalog)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
-	return ExecuteSqlWithStatementBool("DELETE FROM CATALOG WHERE NumCatalog = ?", parameter);
+	return (ExecuteRequestWithNoResult("DELETE FROM CATALOG WHERE NumCatalog = " + to_string(numCatalog)) != -1)
+		       ? true
+		       : false;
 }
 
 int CSqlCatalog::TraitementResult(CSqlResult* sqlResult)
 {
+	int nbResult = 0;
 	while (sqlResult->Next())
 	{
-		switch (type)
+		for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
 		{
-		case 1:
-			numCatalogId = sqlResult->GetInt("NumCatalog");
-			return 1;
-			break;
-		case 2:
-			libelle = sqlResult->GetText("LibelleCatalog");
-			return 1;
-			break;
+			switch (i)
+			{
+			case 0:
+				numCatalogId = sqlResult->ColumnDataInt(i);
+				break;
+			case 1:
+				libelle = sqlResult->ColumnDataText(i);
+				break;
+			default: ;
+			}
 		}
+		nbResult++;
 	}
-	return 0;
+	return nbResult;
 };

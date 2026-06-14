@@ -217,8 +217,12 @@ wxString CSqlLib::escapeSqlite(const wxString& str)
 
 bool CSqlLib::ExecuteSqlWithStatement(
     const wxString& query,
-    std::vector<std::unique_ptr<CSqlParameter>>& parameters)
+    std::vector<std::unique_ptr<CSqlParameter>>& parameters, CSqlResult* result)
 {
+
+    if (!isConnected()) 
+        return false;
+
     sqlite3_stmt* stmt = nullptr;
 
     int rc = sqlite3_prepare_v2(
@@ -269,10 +273,16 @@ bool CSqlLib::ExecuteSqlWithStatement(
             sqlite3_errmsg(pCon));
     }
 
-    sqlite3_finalize(stmt);
+    if (result != nullptr)
+    {
+        result->SetStatement(stmt); // CSqlResult prend ownership
+        return sqlite3_total_changes(pCon);
+    }
 
+    sqlite3_finalize(stmt);
     return success;
 }
+
 
 
 int CSqlLib::ExecuteSQLSelect(const wxString& query, CSqlResult* result)

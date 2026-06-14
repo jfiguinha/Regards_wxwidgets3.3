@@ -9,15 +9,14 @@
 
 #include "SqlVersion.h"
 #include "SqlResult.h"
-#include <SqlParameter.h>
 #include <ConvertUtility.h>
 using namespace Regards::Sqlite;
 
-CSqlVersion::CSqlVersion(CSqlLib* m_transaction, const bool& m_useTransaction)
+CSqlVersion::CSqlVersion(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
 	: CSqlExecuteRequest(L"RegardsDB")
 {
-	this->m_transaction = m_transaction;
-	this->m_useTransaction = m_useTransaction;
+	this->m_transaction = _sqlLibTransaction;
+	this->m_useTransaction = useTransaction;
 	typeResult = 0;
 	result = "";
 }
@@ -29,17 +28,17 @@ CSqlVersion::~CSqlVersion()
 
 bool CSqlVersion::InsertVersion(const wxString& version)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(version));
-	return ExecuteSqlWithStatementBool("INSERT INTO VERSION (libelle) VALUES (?)", parameter);
+	return (ExecuteRequestWithNoResult("INSERT INTO VERSION (libelle) VALUES ('" + version + "')") != -1)
+		       ? true
+		       : false;
 }
 
 bool CSqlVersion::UpdateVersion(const wxString& version, const wxString& oldValue)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(version));
-	parameter.push_back(std::make_unique<CSqlString>(oldValue));
-	return ExecuteSqlWithStatementBool("UPDATE VERSION SET libelle = ? WHERE libelle = ?", parameter);
+	return (ExecuteRequestWithNoResult(
+		       "UPDATE VERSION SET libelle = '" + version + "' WHERE libelle = '" + oldValue + "'") != -1)
+		       ? true
+		       : false;
 }
 
 bool CSqlVersion::DeleteVersion()
@@ -49,7 +48,7 @@ bool CSqlVersion::DeleteVersion()
 
 wxString CSqlVersion::GetVersion()
 {
-	typeResult = 1;
+	typeResult = 0;
 	ExecuteRequest("SELECT libelle FROM VERSION");
 	printf("Version : %s \n", CConvertUtility::ConvertToStdString(result));
 	return result;
@@ -58,18 +57,23 @@ wxString CSqlVersion::GetVersion()
 
 int CSqlVersion::TraitementResult(CSqlResult* sqlResult)
 {
-	result = "";
+	int nbResult = 0;
 	while (sqlResult->Next())
 	{
-		switch (typeResult)
+		if (typeResult == 0)
 		{
-		case 1:
-			result = sqlResult->GetText("libelle");
-			break;
+			for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
+			{
+				switch (i)
+				{
+				case 0:
+					result = sqlResult->ColumnDataText(i);
+					break;
+				default: ;
+				}
+			}
 		}
-
-		if (!result.empty())
-			break;
+		nbResult++;
 	}
-	return 1;
+	return nbResult;
 }

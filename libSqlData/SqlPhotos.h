@@ -15,7 +15,7 @@ namespace Regards
 		class CSqlPhotos : public CSqlExecuteRequest
 		{
 		public:
-			CSqlPhotos();
+			CSqlPhotos(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
 			~CSqlPhotos() override;
 			bool InsertPhoto(const wxString& filepath, const int64_t& idFolder);
 			int64_t GetPhotoId(const wxString& filepath, const int64_t& idFolder);
@@ -31,6 +31,7 @@ namespace Regards
 			static int GetExifFromAngleAndFlip(const int& angle, const int& flipH, const int& flipV);
 
 			bool DeletePhoto(const int64_t& numPhoto);
+			void DeletePhotoSearch();
 			bool DeletePhotoFolder(const int64_t& idFolder);
 			bool DeletePhotoCatalog(const int64_t& idCatalog);
 			bool UpdatePhotoCriteria(const int64_t& numPhoto);

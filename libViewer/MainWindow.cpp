@@ -16,6 +16,7 @@
 #include <wx/filename.h>
 #include <window_id.h>
 #include <SqlFindFolderCatalog.h>
+#include <CategoryWnd.h>
 #include "StatusText.h"
 #include <ThumbnailMessage.h>
 #define LIBHEIC
@@ -641,6 +642,11 @@ void CMainWindow::OnUpdateFolder(wxCommandEvent& event)
     updateCriteria = true;
     scheduler->ReloadFromDatabase();
 
+    /*
+    CCategoryFolderWindow * categoryFolder = static_cast<CCategoryFolderWindow*>(this->FindWindowById(CATEGORYFOLDERWINDOWID));
+    if (categoryFolder)
+        categoryFolder->init();
+    */
     if (newPath) delete newPath;
 
     folderService->UpdateFolderStatic(isDelete);

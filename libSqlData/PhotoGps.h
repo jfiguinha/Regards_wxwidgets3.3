@@ -6,13 +6,6 @@
 //  Copyright © 2015 figuinha jacques. All rights reserved.
 //
 #pragma once
-namespace Regards
-{
-	namespace Sqlite
-	{
-		class CSqlResult;
-	}
-}
 
 class CPhotoGps
 {
@@ -25,8 +18,6 @@ public:
 	~CPhotoGps()
 	{
 	};
-
-	static CPhotoGps Read(Regards::Sqlite::CSqlResult* result);
 
 	void SetId(const int& numId);
 	int GetId();

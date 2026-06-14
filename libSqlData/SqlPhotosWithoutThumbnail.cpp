@@ -1,7 +1,6 @@
 #include <header.h>
 #include "SqlPhotosWithoutThumbnail.h"
 #include "SqlResult.h"
-#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 
@@ -21,7 +20,7 @@ int CSqlPhotosWithoutThumbnail::GetPhotoElement()
 {
 	nbElement = 0;
 	typeResult = 1;
-	ExecuteRequest("SELECT count(*) as nbElement from PHOTOSWIHOUTTHUMBNAIL_VIEW");
+	ExecuteRequest("SELECT count(*) from PHOTOSWIHOUTTHUMBNAIL_VIEW");
 	return nbElement;
 }
 
@@ -30,12 +29,8 @@ void CSqlPhotosWithoutThumbnail::GetPhotoList(std::deque<wxString> * photoList, 
 	this->nbElement = nbElement;
 	this->photoList = photoList;
 	typeResult = 0;
-	if (nbElement > 0)
-	{
-		std::vector<std::unique_ptr<CSqlParameter>> parameter;
-		parameter.push_back(std::make_unique<CSqlInt>(nbElement));
-		ExecuteSqlWithStatementBool("SELECT DISTINCT FullPath from PHOTOSWIHOUTTHUMBNAIL_VIEW LIMIT ?", parameter);
-	}
+	if(nbElement > 0)
+		ExecuteRequest("SELECT DISTINCT FullPath from PHOTOSWIHOUTTHUMBNAIL_VIEW LIMIT " + to_string(nbElement));
 	else
 		ExecuteRequest("SELECT DISTINCT FullPath from PHOTOSWIHOUTTHUMBNAIL_VIEW");
 }
@@ -43,23 +38,38 @@ void CSqlPhotosWithoutThumbnail::GetPhotoList(std::deque<wxString> * photoList, 
 int CSqlPhotosWithoutThumbnail::TraitementResult(CSqlResult* sqlResult)
 {
 	int nbResult = 0;
-	nbElement = 0;
 	while (sqlResult->Next())
 	{
-		switch (typeResult)
+		if (typeResult == 0)
 		{
-		case 0:
-			photoList->push_back(sqlResult->GetText("FullPath"));
-			nbResult++;
-			break;
-		case 1:
-			nbElement = priority = sqlResult->GetInt("nbElement");
-			nbResult++;
-			break;
-		}
+			for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
+			{
+				switch (i)
+				{
+				case 0:
+					photoList->push_back(sqlResult->ColumnDataText(i));
+					break;
+				default: ;
+				}
+			}
 
-		if (typeResult == 1 && nbResult > 0)
-			break;
+			nbResult++;
+		}
+		else if (typeResult == 1)
+		{
+			for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
+			{
+				switch (i)
+				{
+				case 0:
+					nbElement = priority = sqlResult->ColumnDataInt(i);
+					break;
+				default: ;
+				}
+			}
+
+			nbResult++;
+		}
 	}
 	return nbResult;
 }

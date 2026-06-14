@@ -9,14 +9,13 @@
 
 #include "SqlGps.h"
 #include "SqlResult.h"
-#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
-CSqlGps::CSqlGps(CSqlLib* m_transaction, const bool& m_useTransaction)
+CSqlGps::CSqlGps(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
 	: CSqlExecuteRequest(L"RegardsDB")
 {
-	this->m_transaction = m_transaction;
-	this->m_useTransaction = m_useTransaction;
+	this->m_transaction = _sqlLibTransaction;
+	this->m_useTransaction = useTransaction;
 	typeResult = 0;
 	photogpsVector = nullptr;
 }
@@ -28,39 +27,76 @@ CSqlGps::~CSqlGps()
 
 bool CSqlGps::InsertGps(const wxString& filepath, const wxString& latitude, const wxString& longitude)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(filepath));
-	parameter.push_back(std::make_unique<CSqlString>(latitude));
-	parameter.push_back(std::make_unique<CSqlString>(longitude));
-	return ExecuteSqlWithStatementBool("INSERT INTO PHOTOGPS (FullPath, latitude, longitude) VALUES (?,?,?)", parameter);
+	wxString fullpath = filepath;
+	fullpath.Replace("'", "''");
+	return (ExecuteRequestWithNoResult(
+		       "INSERT INTO PHOTOGPS (FullPath, latitude, longitude) VALUES ('" + filepath + "', '" + latitude + "', '"
+		       + longitude + "')") != -1)
+		       ? true
+		       : false;
 }
 
 bool CSqlGps::UpdateGps(const wxString& filepath, const wxString& latitude, const wxString& longitude)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(latitude));
-	parameter.push_back(std::make_unique<CSqlString>(longitude));
-	parameter.push_back(std::make_unique<CSqlString>(filepath));
-	return ExecuteSqlWithStatementBool("UPDATE PHOTOGPS SET latitude = ? , longitude = ? WHERE FullPath = ?", parameter);
+	wxString fullpath = filepath;
+	fullpath.Replace("'", "''");
+	return (ExecuteRequestWithNoResult(
+		       "UPDATE PHOTOGPS SET latitude = '" + latitude + "', longitude = '" + longitude + "' WHERE FullPath = '" +
+		       fullpath + "'") != -1)
+		       ? true
+		       : false;
 }
 
 bool CSqlGps::DeleteGps(const wxString& filepath)
 {
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(filepath));
-	return ExecuteSqlWithStatementBool("DELETE FROM PHOTOGPS WHERE FullPath = ?", parameter);
+	wxString fullpath = filepath;
+	fullpath.Replace("'", "''");
+	return (ExecuteRequestWithNoResult("DELETE FROM PHOTOGPS WHERE FullPath = '" + fullpath + "'") != -1)
+		       ? true
+		       : false;
 }
 
 void CSqlGps::GetGps(PhotoGpsVector* photogpsVector, const wxString& filepath)
 {
+	wxString fullpath = filepath;
+	fullpath.Replace("'", "''");
 	typeResult = 0;
 	this->photogpsVector = photogpsVector;
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(filepath));
-	ExecuteSqlWithStatement("SELECT id, FullPath, latitude, longitude FROM PHOTOGPS where FullPath = ?", parameter);
+	ExecuteRequest("SELECT id, FullPath, latitude, longitude FROM PHOTOGPS where FullPath = '" + fullpath + "'");
 }
+
 
 int CSqlGps::TraitementResult(CSqlResult* sqlResult)
 {
-	return FillVector(sqlResult, *photogpsVector);
+	int nbResult = 0;
+	while (sqlResult->Next())
+	{
+		if (typeResult == 0)
+		{
+			CPhotoGps photoGps;
+
+			for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
+			{
+				switch (i)
+				{
+				case 0:
+					photoGps.SetId(sqlResult->ColumnDataInt(i));
+					break;
+				case 1:
+					photoGps.SetPath(sqlResult->ColumnDataText(i));
+					break;
+				case 2:
+					photoGps.SetLatitude(sqlResult->ColumnDataText(i));
+					break;
+				case 3:
+					photoGps.SetLongitude(sqlResult->ColumnDataText(i));
+					break;
+				default: ;
+				}
+			}
+			photogpsVector->push_back(photoGps);
+		}
+		nbResult++;
+	}
+	return nbResult;
 }

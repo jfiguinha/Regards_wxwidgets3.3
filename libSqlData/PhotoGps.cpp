@@ -8,17 +8,6 @@
 //
 
 #include "PhotoGps.h"
-#include <SqlResult.h>
-
-CPhotoGps CPhotoGps::Read(Regards::Sqlite::CSqlResult* result)
-{
-	CPhotoGps gps;
-	gps.SetId(result->GetInt("id"));
-	gps.SetPath(result->GetText("FullPath"));
-	gps.SetLatitude(result->GetText("latitude"));
-	gps.SetLongitude(result->GetText("longitude"));
-	return gps;
-}
 
 void CPhotoGps::SetId(const int& numId)
 {

@@ -12,6 +12,8 @@ CSqlResult::CSqlResult(): pRes(nullptr), m_iColumnCount(0)
 
 CSqlResult::~CSqlResult()
 {
+	if(pRes != nullptr)
+		sqlite3_finalize(pRes);
 }
 
 void CSqlResult::SetStatement(sqlite3_stmt* pRes)

@@ -9,6 +9,7 @@
 #include <wx/dir.h>
 #include <RegardsConfigParam.h>
 #include <ParamInit.h>
+#include "SqlTransaction.h"
 using namespace cv;
 using namespace Regards::Picture;
 using namespace Regards::Sqlite;
@@ -114,6 +115,7 @@ CSqlLibExplorer::~CSqlLibExplorer()
 {
 }
 
+
 void CSqlLibExplorer::LoadAndRotate(const wxString& filePath, const int& rotate)
 {
 	if (!wxFileExists(filePath))
@@ -145,7 +147,6 @@ void CSqlLibExplorer::LoadAndRotate(const wxString& filePath, const int& rotate)
 	imwrite(CConvertUtility::ConvertToStdString(filePath), src);
 	src.release();
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // Function: InitDatabase()
@@ -479,6 +480,8 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 	if (!OpenConnection(databasePath, false, m_loadInMemory))
 		return false;
 
+	CSqlTransaction sqlTransaction;
+
 	int hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOFOLDER_TABLE);
 	if (hr == -1)
 	{
@@ -526,8 +529,6 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 		goto Exit;
 	}
 
-	BeginTransaction();
-
 	hr = ExecuteSQLWithNoResult("INSERT INTO VERSION (libelle) VALUES ('2.71.0.0');");
 	if (hr == -1)
 	{
@@ -553,7 +554,7 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 		goto Exit;
 	}
 
-	CommitTransaction();
+	
 
 	// Create CATEGORIE table
 	//
@@ -583,8 +584,6 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 	{
 		goto Exit;
 	}
-
-	BeginTransaction();
 
 	hr = ExecuteSQLWithNoResult(
 		"INSERT INTO CATEGORIE (NumCategorie, NumLangue, Libelle) VALUES (1,2,'Geographique');");
@@ -715,9 +714,6 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 		goto Exit;
 	}
 
-	CommitTransaction();
-
-
 	// Create CATEGORIE table
 	//
 	hr = ExecuteSQLWithNoResult(SQL_CREATE_COUNTRY_TABLE);
@@ -725,8 +721,6 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 	{
 		goto Exit;
 	}
-
-	BeginTransaction();
 
 	hr = ExecuteSQLWithNoResult(
 		"INSERT INTO COUNTRY (NumCountry, CodeCountry, LibelleContinent, LibelleCountry) VALUES (1,'A1','None','Anonymous Proxy');");
@@ -1299,7 +1293,7 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 	hr = ExecuteSQLWithNoResult(
 		"INSERT INTO COUNTRY (NumCountry, CodeCountry, LibelleContinent, LibelleCountry) VALUES (248,'ZW','Africa','Zimbabwe');");
 
-	CommitTransaction();
+	sqlTransaction.commit();
 
 	// Create CATALOG ICONEFILE table
 	//
@@ -1417,6 +1411,6 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 
 Exit:
 
-
+	sqlTransaction.commit();
 	return (hr != -1);
 }

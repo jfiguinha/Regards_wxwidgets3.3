@@ -17,7 +17,7 @@ cv::Mat CSqlFaceThumbnail::GetImage(bool& isDefault)
 {
 
 	CSqlFacePhoto sqlThumbnail;
-	// printf("Filename : %s \n",CConvertUtility::ConvertToStdString(fileName).c_str());
+	// printf("Filename : %s \n",CConvertUtility::ConvertToStdString(filename));
 	cv::Mat image= sqlThumbnail.GetFace(numFace, isDefault);
 	if (isDefault)
 		image = GetDefaultPicture();

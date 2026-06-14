@@ -305,5 +305,8 @@
     <ClCompile Include="ThumbnailBuffer.cpp">
       <Filter>Buffer</Filter>
     </ClCompile>
+    <ClCompile Include="PhotoCriteria.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
