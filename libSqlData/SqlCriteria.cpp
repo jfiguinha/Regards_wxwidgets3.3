@@ -1,6 +1,7 @@
 #include <header.h>
 #include "SqlResult.h"
 #include "SqlCriteria.h"
+#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 CSqlCriteria::CSqlCriteria(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
@@ -35,19 +36,38 @@ void CSqlCriteria::RemoveUnusedCriteria()
 int64_t CSqlCriteria::GetCriteriaId(const int& numCriteria, const int& numFolder)
 {
 	criteriaId = 0;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFolder));
+	parameter.push_back(std::make_unique<CSqlInt>(numCriteria));
+	ExecuteSqlWithStatement("select distinct NumCriteria From PHOTOSCRITERIA inner join PHOTOS on PHOTOSCRITERIA.NumPhoto = PHOTOS.NumPhoto  where PHOTOS.NumFolderCatalog = ? and NumCriteria = ?", parameter);
+	return criteriaId;
+
+
+	/*
+	criteriaId = 0;
 	ExecuteRequest(
 		"select distinct NumCriteria From PHOTOSCRITERIA inner join PHOTOS on PHOTOSCRITERIA.NumPhoto = PHOTOS.NumPhoto  where PHOTOS.NumFolderCatalog = "
 		+ to_string(numFolder) + " and NumCriteria = " + to_string(numCriteria));
 	return criteriaId;
+	*/
 }
 
 int64_t CSqlCriteria::GetCriteriaIdByCategorie(const int& numPhoto, const int& numCategorie)
 {
 	criteriaId = 0;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
+	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));
+	ExecuteSqlWithStatement("select PHOTOSCRITERIA.NumCriteria From PHOTOSCRITERIA inner join CRITERIA on PHOTOSCRITERIA.NumCriteria = CRITERIA.NumCriteria  where NumPhoto = ? and NumCategorie = ?", parameter);
+	return criteriaId;
+
+	/*
+	criteriaId = 0;
 	ExecuteRequest(
 		"select PHOTOSCRITERIA.NumCriteria From PHOTOSCRITERIA inner join CRITERIA on PHOTOSCRITERIA.NumCriteria = CRITERIA.NumCriteria  where NumPhoto = "
 		+ to_string(numPhoto) + " and NumCategorie = " + to_string(numCategorie));
 	return criteriaId;
+	*/
 }
 
 bool CSqlCriteria::UpdateCriteria(const int64_t& numCatalog, const int64_t& numCategorie, const wxString& libelle)
@@ -63,10 +83,18 @@ bool CSqlCriteria::UpdateCriteria(const int64_t& numCatalog, const int64_t& numC
 int64_t CSqlCriteria::GetCriteriaId(const int64_t& numCatalog, const int64_t& numCategorie, const wxString& libelle)
 {
 	criteriaId = 0;
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
+	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));
+	parameter.push_back(std::make_unique<CSqlString>(libelle));
+	ExecuteSqlWithStatement("SELECT NumCriteria FROM CRITERIA WHERE NumCatalog = ? and NumCategorie = ? and Libelle = ?", parameter);
+	return criteriaId;
+	/*
+	criteriaId = 0;
 	ExecuteRequest(
 		"SELECT NumCriteria FROM CRITERIA WHERE NumCatalog = " + to_string(numCatalog) + " and NumCategorie = " +
 		to_string(numCategorie) + " and Libelle = '" + libelle + "'");
-	return criteriaId;
+	return criteriaId;*/
 }
 
 int64_t CSqlCriteria::GetOrInsertCriteriaId(const int64_t& numCatalog, const int64_t& numCategorie,

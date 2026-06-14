@@ -261,6 +261,12 @@ bool CSqlLib::ExecuteSqlWithStatement(
         ++num_param;
     }
 
+    if (result != nullptr)
+    {
+        result->SetStatement(stmt); // CSqlResult prend ownership
+        return sqlite3_total_changes(pCon);
+    }
+
     rc = sqlite3_step(stmt);
 
     bool success =
@@ -271,12 +277,6 @@ bool CSqlLib::ExecuteSqlWithStatement(
         wxLogError(
             "sqlite3_step failed : %s",
             sqlite3_errmsg(pCon));
-    }
-
-    if (result != nullptr)
-    {
-        result->SetStatement(stmt); // CSqlResult prend ownership
-        return sqlite3_total_changes(pCon);
     }
 
     sqlite3_finalize(stmt);
