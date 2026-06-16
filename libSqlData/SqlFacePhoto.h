@@ -52,18 +52,15 @@ namespace Regards
 			void DeleteFaceNameAlone();
 
 			int TraitementResult(CSqlResult* sqlResult) override;
-			int64_t numFace;
-			int type;
-			//int width;
-			//int height;
+
 			wxString filename;
 			vector<wxString> listPhoto;
 			vector<int> listFace;
 			vector<CFaceRecognitionData> listFaceRecognition;
-			//vector<CPictureData *> listFace;
-			//CPictureData * facePicture;
-			vector<int> listFaceIndex;
-			//wxImage bitmap;
+			int videoPosition = 0;
+			int64_t numFace = 0;
+			int type = 0;
+
 		};
 	}
 }

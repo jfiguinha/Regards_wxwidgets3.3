@@ -17,7 +17,7 @@ CToolbarKeyword::CToolbarKeyword(wxWindow* parent, wxWindowID id, const CThemeTo
 	: CToolbarWindow(parent, id, theme, vertical)
 {
 	themeToolbar = theme;
-	add = CreateButton(L"IDB_PLUS", L"LBLADDKEYWORD", WM_ADDKEYWORD);
+	add = CreateButton(L"IDB_PLUS", L"LBLADDKEYWORD", WM_ADDKEYWORD,false);
 	libelle = CreateTexte(L"LBLADDKEYWORD", WM_ADDKEYWORD);
 }
 

@@ -863,10 +863,7 @@
     <ClInclude Include="SqlFindDay.h" />
     <ClInclude Include="SqlFindFacePhoto.h" />
     <ClInclude Include="SqlFindFolderCatalog.h" />
-    <ClInclude Include="SqlFindLocalisation.h" />
-    <ClInclude Include="SqlFindMonth.h" />
     <ClInclude Include="SqlFindPhotos.h" />
-    <ClInclude Include="SqlFindYear.h" />
     <ClInclude Include="SqlFolderCatalog.h" />
     <ClInclude Include="SqlGps.h" />
     <ClInclude Include="SqlInsertFile.h" />
@@ -918,10 +915,7 @@
     <ClCompile Include="SqlFindDay.cpp" />
     <ClCompile Include="SqlFindFacePhoto.cpp" />
     <ClCompile Include="SqlFindFolderCatalog.cpp" />
-    <ClCompile Include="SqlFindLocalisation.cpp" />
-    <ClCompile Include="SqlFindMonth.cpp" />
     <ClCompile Include="SqlFindPhotos.cpp" />
-    <ClCompile Include="SqlFindYear.cpp" />
     <ClCompile Include="SqlFolderCatalog.cpp" />
     <ClCompile Include="SqlGps.cpp" />
     <ClCompile Include="SqlInsertFile.cpp" />

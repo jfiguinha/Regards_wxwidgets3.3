@@ -1,6 +1,7 @@
 #include <header.h>
 #include "SqlFindCriteria.h"
 #include "SqlResult.h"
+#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 CSqlFindCriteria::CSqlFindCriteria()
@@ -18,14 +19,15 @@ bool CSqlFindCriteria::SearchUniqueCriteria(CriteriaVector* criteriaVector, cons
 {
 	wxString sql;
 	m_criteriaVector = criteriaVector;
+
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numFolder));
+	parameter.push_back(std::make_unique<CSqlInt>(numFolder));
+	
 	sql = "SELECT NumCriteria, NumCategorie, Libelle FROM CRITERIA WHERE NumCriteria in (";
-	sql.append(
-		"SELECT DISTINCT NumCriteria FROM PHOTOS as PH INNER JOIN PHOTOSCRITERIA as CR ON CR.NumPHOTO = PH.NumPHOTO WHERE PH.NumFolderCatalog = "
-		+ to_string(numFolder) + " AND NumCriteria NOT IN(");
-	sql.append(
-		"SELECT DISTINCT NumCriteria FROM PHOTOS as PH INNER JOIN PHOTOSCRITERIA as CR ON CR.NumPHOTO = PH.NumPHOTO WHERE PH.NumFolderCatalog != "
-		+ to_string(numFolder) + "))");
-	return (ExecuteRequest(sql) != -1) ? true : false;
+	sql.append("SELECT DISTINCT NumCriteria FROM PHOTOS as PH INNER JOIN PHOTOSCRITERIA as CR ON CR.NumPHOTO = PH.NumPHOTO WHERE PH.NumFolderCatalog = " + to_string(numFolder) + " AND NumCriteria NOT IN(");
+	sql.append("SELECT DISTINCT NumCriteria FROM PHOTOS as PH INNER JOIN PHOTOSCRITERIA as CR ON CR.NumPHOTO = PH.NumPHOTO WHERE PH.NumFolderCatalog != " + to_string(numFolder) + "))");
+	return ExecuteSqlWithStatementNoResult(sql, parameter);
 }
 
 bool CSqlFindCriteria::SearchCriteriaAlone(CriteriaVector* criteriaVector)

@@ -21,10 +21,6 @@ cv::Mat CSqlFaceThumbnail::GetImage(bool& isDefault)
 	cv::Mat image= sqlThumbnail.GetFace(numFace, isDefault);
 	if (isDefault)
 		image = GetDefaultPicture();
-    else
-    {
-        
-    }
 	return image;
 }
 
