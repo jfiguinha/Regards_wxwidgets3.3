@@ -707,7 +707,7 @@ void CVideoControlSoft::VideoRotation(wxCommandEvent& event)
 	{
 		int _flipH = 0;
 		int _flipV = 0;
-		CSqlPhotos::GetAngleAndFlip(exif, angle, _flipH, _flipV);
+		application_context.GetAngleAndFlip(exif, angle, _flipH, _flipV);
 		if (_flipH)
 			flipH = true;
 		if (_flipV)
@@ -2284,7 +2284,7 @@ void CVideoControlSoft::Rotate90()
 	UpdateScrollBar();
 
 	CSqlPhotos sqlPhotos;
-	int exif = CSqlPhotos::GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
+	int exif = application_context.GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
 	sqlPhotos.UpdatePhotoExif(filename, exif);
 }
 
@@ -2296,7 +2296,7 @@ void CVideoControlSoft::Rotate270()
 	UpdateScrollBar();
 
 	CSqlPhotos sqlPhotos;
-	int exif = CSqlPhotos::GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
+	int exif = application_context.GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
 	sqlPhotos.UpdatePhotoExif(filename, exif);
 }
 
@@ -2311,7 +2311,7 @@ void CVideoControlSoft::FlipVertical()
 	}
 
 	CSqlPhotos sqlPhotos;
-	int exif = CSqlPhotos::GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
+	int exif = application_context.GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
 	sqlPhotos.UpdatePhotoExif(filename, exif);
 }
 
@@ -2326,7 +2326,7 @@ void CVideoControlSoft::FlipHorizontal()
 	}
 
 	CSqlPhotos sqlPhotos;
-	int exif = CSqlPhotos::GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
+	int exif = application_context.GetExifFromAngleAndFlip(angle, flipH ? 1 : 0, flipV ? 1 : 0);
 	sqlPhotos.UpdatePhotoExif(filename, exif);
 }
 

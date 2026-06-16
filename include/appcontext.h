@@ -15,6 +15,136 @@ public:
 	}
 
 
+	int GetExifFromAngleAndFlip(const int& angle, const int& flipH, const int& flipV)
+	{
+		if (angle == 0 && flipH == 0 && flipV == 0)
+			return 0;
+		if (angle == 0 && flipH == 1 && flipV == 0)
+			return 1;
+		if (angle == 0 && flipH == 0 && flipV == 1)
+			return 2;
+		if (angle == 0 && flipH == 1 && flipV == 1)
+			return 3;
+
+		if (angle == 90 && flipH == 0 && flipV == 0)
+			return 4;
+		if (angle == 90 && flipH == 1 && flipV == 0)
+			return 5;
+		if (angle == 90 && flipH == 0 && flipV == 1)
+			return 6;
+		if (angle == 90 && flipH == 1 && flipV == 1)
+			return 7;
+
+		if (angle == 180 && flipH == 0 && flipV == 0)
+			return 8;
+		if (angle == 180 && flipH == 1 && flipV == 0)
+			return 9;
+		if (angle == 180 && flipH == 0 && flipV == 1)
+			return 10;
+		if (angle == 180 && flipH == 1 && flipV == 1)
+			return 11;
+
+		if (angle == 270 && flipH == 0 && flipV == 0)
+			return 12;
+		if (angle == 270 && flipH == 1 && flipV == 0)
+			return 13;
+		if (angle == 270 && flipH == 0 && flipV == 1)
+			return 14;
+		if (angle == 270 && flipH == 1 && flipV == 1)
+			return 15;
+
+
+		return 0;
+	}
+
+	void GetAngleAndFlip(const int64_t& exif, int& angle, int& flipH, int& flipV)
+	{
+		switch (exif)
+		{
+		case 0:
+			angle = 0;
+			flipH = 0;
+			flipV = 0;
+			break;
+		case 1:
+			angle = 0;
+			flipH = 1;
+			flipV = 0;
+			break;
+		case 2:
+			angle = 0;
+			flipH = 0;
+			flipV = 1;
+			break;
+		case 3:
+			angle = 0;
+			flipH = 1;
+			flipV = 1;
+			break;
+		case 4:
+			angle = 90;
+			flipH = 0;
+			flipV = 0;
+			break;
+		case 5:
+			angle = 90;
+			flipH = 1;
+			flipV = 0;
+			break;
+		case 6:
+			angle = 90;
+			flipH = 0;
+			flipV = 1;
+			break;
+		case 7:
+			angle = 90;
+			flipH = 1;
+			flipV = 1;
+			break;
+		case 8:
+			angle = 180;
+			flipH = 0;
+			flipV = 0;
+			break;
+		case 9:
+			angle = 180;
+			flipH = 1;
+			flipV = 0;
+			break;
+		case 10:
+			angle = 180;
+			flipH = 0;
+			flipV = 1;
+			break;
+		case 11:
+			angle = 180;
+			flipH = 1;
+			flipV = 1;
+			break;
+		case 12:
+			angle = 270;
+			flipH = 0;
+			flipV = 0;
+			break;
+		case 13:
+			angle = 270;
+			flipH = 1;
+			flipV = 0;
+			break;
+		case 14:
+			angle = 270;
+			flipH = 0;
+			flipV = 1;
+			break;
+		case 15:
+			angle = 270;
+			flipH = 1;
+			flipV = 1;
+			break;
+		}
+	}
+
+
 	cv::Mat WxToCvMat(const wxImage& wx)
 	{
 		cv::Mat im2(cv::Size(wx.GetWidth(), wx.GetHeight()), CV_8UC3, wx.GetData());

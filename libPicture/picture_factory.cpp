@@ -1514,7 +1514,7 @@ int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap,
     if (exifId != -1)
     {
         int angle = 0, flipH = 0, flipV = 0;
-        photos.GetAngleAndFlip(exifId, angle, flipH, flipV);
+        application_context.GetAngleAndFlip(exifId, angle, flipH, flipV);
         bitmap->SetRotation(angle);
         if (flipV) bitmap->Flip();
         if (flipH) bitmap->Mirror();

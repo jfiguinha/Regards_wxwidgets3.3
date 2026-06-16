@@ -16,12 +16,14 @@
 #include "SlideToolbar.h"
 #include <BitmapWnd3d.h>
 #include <SavePicture.h>
-
+#include <appcontext.h>
 using namespace Regards::Video;
 using namespace Regards::Window;
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;
 using namespace Regards::Control;
+
+extern AppContext application_context;
 
 // ============================================================================
 // CThreadRotate – données partagées entre le thread ML et le thread UI.
@@ -484,7 +486,7 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
         CSqlPhotos sqlPhotos;
         int exif = sqlPhotos.GetPhotoExif(filename);
         if (exif > 0)
-            CSqlPhotos::GetAngleAndFlip(exif, angle, flipH, flipV);
+            application_context.GetAngleAndFlip(exif, angle, flipH, flipV);
     }
 
     bitmapWindow->SetIsBitmapThumbnail(isThumbnail);

@@ -1,6 +1,7 @@
 #include <header.h>
 #include "SqlPhotoGPS.h"
 #include "SqlResult.h"
+#include <SqlParameter.h>
 using namespace Regards::Sqlite;
 
 CSqlPhotoGPS::CSqlPhotoGPS(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
@@ -17,22 +18,18 @@ CSqlPhotoGPS::~CSqlPhotoGPS()
 
 bool CSqlPhotoGPS::InsertPhoto(const int& numPhoto, const wxString& filepath, const int& numFolderId)
 {
-    type = 0;
-	wxString fullpath = filepath;
-	fullpath.Replace("'", "''");
-	return (ExecuteRequestWithNoResult(
-		       "INSERT INTO PHOTOSGPS (NumPhoto, FullPath, NumFolderId) VALUES (" + to_string(numPhoto) + ", '" +
-		       fullpath + "'," + to_string(numFolderId) + ")") != -1)
-		       ? true
-		       : false;
+    std::vector<std::unique_ptr<CSqlParameter>> parameter;
+    parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
+    parameter.push_back(std::make_unique<CSqlString>(filepath));
+    parameter.push_back(std::make_unique<CSqlInt>(numFolderId));
+    return ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOSGPS (NumPhoto, FullPath, NumFolderId) VALUES (?,?,?)", parameter);
 }
 
 bool CSqlPhotoGPS::DeletePhoto(const int64_t& numPhoto)
 {
-    type = 0;
-	return (ExecuteRequestWithNoResult("DELETE FROM PHOTOSGPS WHERE NumPhoto = " + to_string(numPhoto)) != -1)
-		       ? true
-		       : false;
+    std::vector<std::unique_ptr<CSqlParameter>> parameter;
+    parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
+    return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSGPS WHERE NumPhoto = ? ", parameter);
 }
 
 
@@ -49,7 +46,7 @@ bool CSqlPhotoGPS::DeleteListOfPhoto(const vector<wxString>& listPhoto)
 
  int CSqlPhotoGPS::GetListPhoto(GpsPhotosVector * photoGpsVec)
  {
-    type = 1;
+    type = 0;
     m_photoGpsVec = photoGpsVec;
 	ExecuteRequest("SELECT NumPhoto, FullPath, NumFolderId FROM PHOTOSGPS");
 	return nbResult;   
@@ -57,7 +54,7 @@ bool CSqlPhotoGPS::DeleteListOfPhoto(const vector<wxString>& listPhoto)
 
  int CSqlPhotoGPS::GetNbPhoto()
  {
-     type = 2;
+     type = 1;
      nbResultRequest = 0;
      ExecuteRequest("SELECT count(*) as nb FROM PHOTOSGPS");
      return nbResultRequest;
@@ -65,7 +62,7 @@ bool CSqlPhotoGPS::DeleteListOfPhoto(const vector<wxString>& listPhoto)
 
 int CSqlPhotoGPS::GetFirstPhoto(int& numPhoto, wxString& filepath, int& numFolderId)
 {
-    type = 0;
+    type = 2;
 	ExecuteRequest("SELECT NumPhoto, FullPath, NumFolderId FROM PHOTOSGPS Limit 1");
 	numPhoto = this->numPhoto;
 	filepath = this->filepath;
@@ -80,70 +77,31 @@ int CSqlPhotoGPS::TraitementResult(CSqlResult* sqlResult)
 	{
         switch (type)
 		{
-            case 0:
+            case 2:
             {
-                for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
-                {
-                    switch (i)
-                    {
-                    case 0:
-                        numPhoto = sqlResult->ColumnDataInt(i);
-                        break;
-                    case 1:
-                        filepath = sqlResult->ColumnDataText(i);
-                        break;
-                    case 2:
-                        numFolderId = sqlResult->ColumnDataInt(i);
-                        break;
-                    default: ;
-                    }
-                }
-                nbResult++;
+                numPhoto = sqlResult->ColumnDataInt(0);
+                filepath = sqlResult->ColumnDataText(1);
+                numFolderId = sqlResult->ColumnDataInt(2);
                 break;
             }
-            case 1:
+
+            case 0:
             {
                 GpsPhoto gpsPhoto;
-                for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
-                {
-                    switch (i)
-                    {
-                    case 0:
-                        gpsPhoto.numPhoto = sqlResult->ColumnDataInt(i);
-                        break;
-                    case 1:
-                        gpsPhoto.filepath = sqlResult->ColumnDataText(i);
-                        break;
-                    case 2:
-                        gpsPhoto.numFolderId = sqlResult->ColumnDataInt(i);
-                        break;
-                    default: ;
-                    }
-                }
+                gpsPhoto.numPhoto = sqlResult->ColumnDataInt(0);
+                gpsPhoto.filepath = sqlResult->ColumnDataText(1);
+                gpsPhoto.numFolderId = sqlResult->ColumnDataInt(2);
                 m_photoGpsVec->push_back(gpsPhoto);
-                nbResult++;
                 break;
             }
            
-            case 2:
+            case 1:
             {
-                for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
-                {
-                    switch (i)
-                    {
-                    case 0:
-                        nbResultRequest = sqlResult->ColumnDataInt(i);
-                        break;
-                    default:;
-                    }
-                }
-                nbResult++;
-                break;
+               nbResultRequest = sqlResult->ColumnDataInt(0);
+               break;
             }
         }
-        
-        if(type == 0)
-            break;
+        nbResult++;
 	}
 	return nbResult;
 }

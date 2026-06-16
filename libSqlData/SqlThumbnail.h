@@ -26,17 +26,14 @@ namespace Regards
 			bool EraseFolderThumbnail(const int& numFolder);
 			bool TestThumbnail(const wxString& path, const wxString& hash);
 			bool TestThumbnail(const wxString& path);
+			int GetThumbnailId(const wxString& path);
 			vector<int> GetAllPhotoThumbnail();
 			//CPictureData * GetJpegThumbnail(const wxString & path);
 		private:
 			int TraitementResult(CSqlResult* sqlResult) override;
 			vector<int> listPhoto;
-			//wxImage bitmap;
-			//CRegardsBitmap * regardsBitmap;
 			int type;
-			bool find;
 			int numPhoto = 0;
-			//CPictureData * picture;
 		};
 	}
 }

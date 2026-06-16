@@ -17,13 +17,14 @@
 #include <ImageLoadingFormat.h>
 #include "RenderBitmapOpenGL.h"
 #include <WindowUtility.h>
-
+#include <appcontext.h>
 
 using namespace Regards::Sqlite;
 using namespace Regards::FiltreEffet;
 using namespace Regards::Window;
 using namespace std::chrono;
 
+extern AppContext application_context;
 
 #define TIMER_RESIZE 1
 #define TIMER_LOADING 4
@@ -888,7 +889,7 @@ int CBitmapWndRender::GetBitmapHeight()
 bool CBitmapWndRender::UpdateExifInfos()
 {
 	CSqlPhotos sqlPhotos;
-	int exifCode = sqlPhotos.GetExifFromAngleAndFlip(angle, flipHorizontal, flipVertical);
+	int exifCode = application_context.GetExifFromAngleAndFlip(angle, flipHorizontal, flipVertical);
 	sqlPhotos.UpdatePhotoExif(filename, exifCode);
 	return true;
 }
