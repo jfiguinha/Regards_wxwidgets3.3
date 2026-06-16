@@ -18,6 +18,24 @@ CSqlCriteria::~CSqlCriteria()
 {
 }
 
+wxString CSqlCriteria::GetCriteriaLibelle(const int& criteriaId)
+{
+	type = 2;
+	libelle = "";
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(criteriaId));
+	ExecuteSqlWithStatement("select libelle from criteria where NumCriteria = ?", parameter);
+	return libelle;
+}
+
+deque<int> CSqlCriteria::GetListCriteriaToGeolocalize()
+{
+	type = 1;
+	listCriteriaToGeolocalize.clear();
+	ExecuteRequest("select NumCriteria from criteria where libelle like 'map=6/%'");
+	return listCriteriaToGeolocalize;
+}
+
 bool CSqlCriteria::InsertCriteria(const int64_t& numCatalog, const int64_t& numCategorie, const wxString& libelle)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
@@ -147,6 +165,7 @@ bool CSqlCriteria::DeleteCriteriaCatalog(const int64_t& numCatalog)
 int CSqlCriteria::GetCriteriaId()
 {
 	criteriaId = 0;
+	type = 0;
 	ExecuteRequest("select numcriteria from criteria order by numcriteria desc limit 1");
 	return criteriaId;
 }
@@ -158,16 +177,20 @@ int CSqlCriteria::TraitementResult(CSqlResult* sqlResult)
 
 	while (sqlResult->Next())
 	{
-		for (auto i = 0; i < sqlResult->GetColumnCount(); i++)
+		switch (type)
 		{
-			switch (i)
-			{
-			case 0:
-				criteriaId = sqlResult->ColumnDataInt(i);
-				break;
-			default: ;
-			}
+		case 0:
+			criteriaId = sqlResult->ColumnDataInt(0);
+			break;
+		case 1:
+			listCriteriaToGeolocalize.push_back(sqlResult->ColumnDataInt(0));
+			break;
+		case 2:
+			libelle = sqlResult->ColumnDataText(0);
+			break;
+		default: ;
 		}
+		
 		nbResult++;
 	}
 	return nbResult;

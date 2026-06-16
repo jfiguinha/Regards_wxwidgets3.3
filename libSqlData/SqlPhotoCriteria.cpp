@@ -26,26 +26,26 @@ bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPh
 
 	for (auto it = listPhotoCriteria.listCriteria.begin(); it != listPhotoCriteria.listCriteria.end(); ++it)
 	{
-		CInsertCriteria* insertCriteria = *it;
+		CInsertCriteria insertCriteria = *it;
 
 		//Old Criteria
-		int oldCriteriaId = sqlCriteria.GetCriteriaIdByCategorie(listPhotoCriteria.numPhotoId, insertCriteria->type);
+		int oldCriteriaId = sqlCriteria.GetCriteriaIdByCategorie(listPhotoCriteria.numPhotoId, insertCriteria.type);
 
-		//printf("insertCriteria value : %s \n", CConvertUtility::ConvertToStdString(insertCriteria->value));
+		//printf("insertCriteria value : %s \n", CConvertUtility::ConvertToStdString(insertCriteria.value));
 
-		insertCriteria->id = sqlCriteria.GetOrInsertCriteriaId(listPhotoCriteria.numCatalog, insertCriteria->type,
-		                                                       insertCriteria->value, insertCriteria->isNew);
+		insertCriteria.id = sqlCriteria.GetOrInsertCriteriaId(listPhotoCriteria.numCatalog, insertCriteria.type,
+		                                                       insertCriteria.value, insertCriteria.isNew);
 
-		if (oldCriteriaId == insertCriteria->id)
+		if (oldCriteriaId == insertCriteria.id)
 			continue;
 
-		if (insertCriteria->isNew && isNew == false)
+		if (insertCriteria.isNew && isNew == false)
 			isNew = true;
 
 		if (!isNew && numFolder != 0)
 		{
-			int numCriteria = sqlCriteria.GetCriteriaId(insertCriteria->id, numFolder);
-			if (numCriteria != insertCriteria->id)
+			int numCriteria = sqlCriteria.GetCriteriaId(insertCriteria.id, numFolder);
+			if (numCriteria != insertCriteria.id)
 				isNew = true;
 		}
 
@@ -53,7 +53,7 @@ bool CSqlPhotoCriteria::InsertPhotoListCriteria(const CListCriteriaPhoto& listPh
 			DeletePhotoCriteria(listPhotoCriteria.numPhotoId, oldCriteriaId);
 
 
-		InsertPhotoCriteria(listPhotoCriteria.numPhotoId, insertCriteria->id);
+		InsertPhotoCriteria(listPhotoCriteria.numPhotoId, insertCriteria.id);
 	}
 
 	if (criteriaUpdate)

@@ -44,7 +44,7 @@ namespace Regards::Viewer
 		int nbGpsFileByMinute = 60;
 		int nbPhotoToProcess = 0;
 		int nbPhotoGpsToProcess = 0;
-        CCategoryFolderWindowPimpl * pimpl;
+        std::unique_ptr<CCategoryFolderWindowPimpl> pimpl;
     
 	};
 }

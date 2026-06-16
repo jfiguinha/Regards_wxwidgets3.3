@@ -28,10 +28,15 @@ namespace Regards
 			bool DeleteCriteriaAlone();
 			void RemoveUnusedCriteria();
 			int GetCriteriaId();
+			wxString GetCriteriaLibelle(const int& criteriaId);
+			deque<int> GetListCriteriaToGeolocalize();
 
 		private:
 			int TraitementResult(CSqlResult* sqlResult) override;
 			int64_t criteriaId;
+			int type = 0;
+			wxString libelle;
+			deque<int> listCriteriaToGeolocalize;
 		};
 	}
 }

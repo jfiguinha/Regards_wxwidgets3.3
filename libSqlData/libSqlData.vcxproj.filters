@@ -96,9 +96,6 @@
     <ClInclude Include="SqlFaceThumbnail.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="SqlPhotoGPS.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="SqlThumbnailVideo.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -225,9 +222,6 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="SqlFaceThumbnail.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="SqlPhotoGPS.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="SqlThumbnailVideo.cpp">

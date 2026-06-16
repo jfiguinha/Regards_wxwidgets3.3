@@ -12,6 +12,7 @@
 #include <window_id.h>
 #include <SqlPhotoCriteria.h>
 #include <LibResource.h>
+#include <ConvertUtility.h>
 #include <MediaInfo.h>
 using namespace Regards::Internet;
 using namespace Regards::Sqlite;
@@ -141,11 +142,11 @@ void CFileGeolocation::ImportCountry()
 }
 
 
-bool CFileGeolocation::Geolocalisation(CListCriteriaPhoto* listCriteriaPhoto)
+wxString CFileGeolocation::Geolocalisation(CListCriteriaPhoto* listCriteriaPhoto)
 {
 	CSqlCriteria sqlCriteria;
 	CSqlPhotoCriteria sqlPhotoCriteria;
-
+	wxString value = "";
 	//printf("CFileGeolocation Geolocalisation \n");
 	//Execution de la requête de géolocalisation
 	if (hasGps)
@@ -161,22 +162,9 @@ bool CFileGeolocation::Geolocalisation(CListCriteriaPhoto* listCriteriaPhoto)
 				for (auto it = geoPluginVector->begin(); it != geoPluginVector->end(); ++it)
 				{
 					CGeoPluginValue geoValue = *it;
-					wxString value = GenerateGeolocalisationString(geoValue.GetCountryCode(), geoValue.GetRegion(),
-					                                               geoValue.GetCity());
-					if (value != "" && value != "not found")
-					{
-						auto insertCriteria = new CInsertCriteria();
-						insertCriteria->type = CATEGORIE_GEO;
-						insertCriteria->value = value;
-						listCriteriaPhoto->listCriteria.push_back(insertCriteria);
-					}
-					else
-					{
-						auto insertCriteria = new CInsertCriteria();
-						insertCriteria->type = CATEGORIE_GEO;
-						insertCriteria->value = CLibResource::LoadStringFromResource(L"LBLNOTGEO", 1);
-						listCriteriaPhoto->listCriteria.push_back(insertCriteria);
-					}
+					value = GenerateGeolocalisationString(geoValue.GetCountryCode(), geoValue.GetRegion(),
+						geoValue.GetCity());
+					break;
 				}
 			}
 			//else
@@ -189,10 +177,9 @@ bool CFileGeolocation::Geolocalisation(CListCriteriaPhoto* listCriteriaPhoto)
 
 		delete gps;
 	}
-	else
-		return false;
 
-	return true;
+
+	return value;
 }
 
 wxString CFileGeolocation::GenerateGeolocalisationString(const wxString& countryCode, const wxString& region,
@@ -232,6 +219,24 @@ wxString CFileGeolocation::GenerateGeolocalisationString(const wxString& country
 	return "";
 }
 
+void CFileGeolocation::SetInfosGPS(const wxString& libelle)
+{
+
+	vector<wxString> gpsInfos = CConvertUtility::split(libelle, '/');
+	if (gpsInfos.size() == 3)
+	{
+		if (gpsInfos[0] == "map=6")
+		{
+			hasGps = true;
+			latitudeGps = gpsInfos.at(1);
+			longitudeGps = gpsInfos.at(2);
+		}
+	}
+
+
+	
+
+}
 
 void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGeo)
 {

@@ -10,7 +10,6 @@
 #include "SqlFacePhoto.h"
 #include "SqlFaceLabel.h"
 #include "SqlFaceRecognition.h"
-#include "SqlPhotoGPS.h"
 #include "SqlPhotoCategorieUsenet.h"
 #include "SqlTransaction.h"
 using namespace Regards::Sqlite;
@@ -88,7 +87,6 @@ bool CSQLRemoveData::DeleteFolder(int numFolder)
     ok &= sqlPhoto.DeletePhotoFolder(numFolder);
 
     ok &= CSqlFacePhoto().DeleteListOfPhoto(listPhoto);
-    ok &= CSqlPhotoGPS().DeleteListOfPhoto(listPhoto);
     ok &= CSqlCriteria().DeleteCriteriaAlone();
 
     CSqlPhotoCategorieUsenet photoCategorie;
@@ -112,7 +110,6 @@ bool CSQLRemoveData::DeleteListPhoto(const std::vector<int>& listPhoto,
     CSqlThumbnail        sqlThumbnail;
     CSqlThumbnailVideo   sqlThumbnailVideo;
     CSqlPhotoCriteria    sqlPhotoCriteria;
-    CSqlPhotoGPS         sqlPhotoGps;
     CSqlPhotos           sqlPhoto;
 
     for (int photoId : listPhoto)
@@ -120,7 +117,6 @@ bool CSQLRemoveData::DeleteListPhoto(const std::vector<int>& listPhoto,
         ok &= sqlThumbnail.DeleteThumbnail(photoId);
         ok &= sqlThumbnailVideo.DeleteThumbnail(photoId);
         ok &= sqlPhotoCriteria.DeletePhoto(photoId);
-        ok &= sqlPhotoGps.DeletePhoto(photoId);
         ok &= sqlPhoto.DeletePhoto(photoId);
     }
 

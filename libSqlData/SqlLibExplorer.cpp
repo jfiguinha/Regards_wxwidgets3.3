@@ -457,6 +457,12 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 				param->SetThumbnailOpenCV(0);
 			}
 		}
+		if (sqlVersion.GetVersion() == "2.72.0.0")
+		{
+			sqlVersion.DeleteVersion();
+			sqlVersion.InsertVersion("2.73.0.0");
+			hr = ExecuteSQLWithNoResult(SQL_DROP_PHOTOGPS);
+		}
 	}
 	return hr;
 }
@@ -1369,12 +1375,6 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 	}
 
 	hr = ExecuteSQLWithNoResult(SQL_CREATE_FACE_PROCESSING_TABLE);
-	if (hr == -1)
-	{
-		goto Exit;
-	}
-
-	hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTO_GPS_TABLE);
 	if (hr == -1)
 	{
 		goto Exit;
