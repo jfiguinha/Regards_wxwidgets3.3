@@ -41,9 +41,10 @@ namespace Regards
 			int TraitementResultPhoto(CSqlResult* sqlResult);
 			int TraitementResultNumPhoto(CSqlResult* sqlResult);
 			int TraitementResultFilename(CSqlResult* sqlResult);
-			bool DeleteAllInSearchPhotos();
+
 			wxString GetSearchSQL(vector<int> list);
 			int TraitementResult(CSqlResult* sqlResult) override;
+
 			PhotosVector* m_photosVector;
 			vector<wxString> * fileList;
 			vector<int>* m_listPhoto;

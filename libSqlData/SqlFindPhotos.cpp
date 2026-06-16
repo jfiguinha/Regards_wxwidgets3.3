@@ -310,11 +310,6 @@ bool CSqlFindPhotos::SearchPhotos(const wxString& sqlRequest)
 	return false;
 }
 
-bool CSqlFindPhotos::DeleteAllInSearchPhotos()
-{
-	return true; // return (ExecuteRequestWithNoResult("Delete From PHOTOSSEARCHCRITERIA") != -1) ? true : false;
-}
-
 bool CSqlFindPhotos::SearchPhotos(PhotosVector* photosVector, const int& numCategorie, const int& numCatalog)
 {
 	m_photosVector = photosVector;
