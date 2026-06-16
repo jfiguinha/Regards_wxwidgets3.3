@@ -31,9 +31,7 @@ namespace Regards
 			CImageVideoThumbnail* videoThumbnail = nullptr;
 			vector<int> listPhoto;
 			int type;
-			bool find;
 			int nbElement;
-			int numPhoto;
 		};
 	}
 }

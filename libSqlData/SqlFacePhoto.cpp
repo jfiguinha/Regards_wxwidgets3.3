@@ -183,10 +183,10 @@ bool CSqlFacePhoto::DeleteListOfPhoto(const vector<int>& listNumPhoto)
 		wxString path = sqlPhoto.GetPhotoPath(numPhoto);
 
 		CSqlFindFacePhoto findFacePhoto;
-		std::vector<CFaceName> listFace = findFacePhoto.GetListFaceNum(path);
+		std::vector<int> listFace = findFacePhoto.GetListFaceNum(path);
 
-		for (CFaceName facename : listFace)
-			DeleteNumFace(facename.numFace);
+		for (int numFace : listFace)
+			DeleteNumFace(numFace);
 
 		std::vector<std::unique_ptr<CSqlParameter>> parameter;
 		parameter.push_back(std::make_unique<CSqlInt>(numFace));
@@ -229,10 +229,10 @@ bool CSqlFacePhoto::DeleteListOfPhoto(const vector<wxString>& listPhotoToDelete)
 	for (wxString fullpath : listPhotoToDelete)
 	{
 		CSqlFindFacePhoto findFacePhoto;
-		std::vector<CFaceName> listFace = findFacePhoto.GetListFaceNum(fullpath);
+		std::vector<int> listFace = findFacePhoto.GetListFaceNum(fullpath);
 
-		for (CFaceName facename : listFace)
-			DeleteNumFace(facename.numFace);
+		for (int numFace : listFace)
+			DeleteNumFace(numFace);
 		
 
 		std::vector<std::unique_ptr<CSqlParameter>> parameter;

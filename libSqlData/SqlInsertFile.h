@@ -40,8 +40,8 @@ namespace Regards
 			CPhotos photoLocal;
 			vector<wxString>* listPathFile;
 			vector<int>* listPhoto;
-			int numPhoto;
 			int type;
+			int nbPhoto = 0;
 		};
 	}
 }

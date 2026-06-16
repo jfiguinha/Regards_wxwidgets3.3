@@ -48,9 +48,9 @@ int CSqlFindFolderCatalog::TraitementResult(CSqlResult* sqlResult)
 		case 1:
 			{
 				CFolderCatalog _foldercatalog;
-				_foldercatalog.SetNumFolder(sqlResult->ColumnDataInt(i));
-				_foldercatalog.SetNumCatalog(sqlResult->ColumnDataInt(i));
-				_foldercatalog.SetFolderPath(sqlResult->ColumnDataText(i));
+				_foldercatalog.SetNumFolder(sqlResult->ColumnDataInt(0));
+				_foldercatalog.SetNumCatalog(sqlResult->ColumnDataInt(1));
+				_foldercatalog.SetFolderPath(sqlResult->ColumnDataText(2));
 				m_catalogFolderVector->push_back(_foldercatalog);
 			}
 			break;
