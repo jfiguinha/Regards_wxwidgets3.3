@@ -323,7 +323,7 @@ bool CSqlFindPhotos::SearchPhotos(PhotosVector* photosVector, const int& numCate
 
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
-	parameter.push_back(std::make_unique<CSqlString>(numCategorie));
+	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));
 	return ExecuteSqlWithStatement("SELECT distinct PH.NumPhoto, PH.FullPath FROM PHOTOS as PH INNER JOIN FOLDERCATALOG as FC ON PH.NumFolderCatalog = FC.NumFolderCatalog INNER JOIN PHOTOSCRITERIA as PHCR ON PH.NumPhoto = PHCR.NumPhoto INNER JOIN CRITERIA as CR ON CR.NumCriteria = PHCR.NumCriteria WHERE FC.NumCatalog = ? AND CR.NumCategorie = ?", parameter);
 }
 
