@@ -45,9 +45,6 @@
     <ClInclude Include="SqlFindCriteria.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="SqlFindDay.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="SqlFindFolderCatalog.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -180,9 +177,6 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="SqlFindCriteria.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="SqlFindDay.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="SqlFindFolderCatalog.cpp">

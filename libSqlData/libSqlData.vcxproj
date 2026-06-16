@@ -860,7 +860,6 @@
     <ClInclude Include="SqlFaceThumbnail.h" />
     <ClInclude Include="SqlFindCatalog.h" />
     <ClInclude Include="SqlFindCriteria.h" />
-    <ClInclude Include="SqlFindDay.h" />
     <ClInclude Include="SqlFindFacePhoto.h" />
     <ClInclude Include="SqlFindFolderCatalog.h" />
     <ClInclude Include="SqlFindPhotos.h" />
@@ -912,7 +911,6 @@
     <ClCompile Include="SqlFaceThumbnail.cpp" />
     <ClCompile Include="SqlFindCatalog.cpp" />
     <ClCompile Include="SqlFindCriteria.cpp" />
-    <ClCompile Include="SqlFindDay.cpp" />
     <ClCompile Include="SqlFindFacePhoto.cpp" />
     <ClCompile Include="SqlFindFolderCatalog.cpp" />
     <ClCompile Include="SqlFindPhotos.cpp" />
