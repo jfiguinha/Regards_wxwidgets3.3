@@ -867,7 +867,6 @@
     <ClInclude Include="SqlGps.h" />
     <ClInclude Include="SqlInsertFile.h" />
     <ClInclude Include="SqlLibExplorer.h" />
-    <ClInclude Include="SqlOpenCLKernel.h" />
     <ClInclude Include="SqlPhotoCategorie.h" />
     <ClInclude Include="SqlPhotoCategorieUsenet.h" />
     <ClInclude Include="SqlPhotoCriteria.h" />
@@ -918,7 +917,6 @@
     <ClCompile Include="SqlGps.cpp" />
     <ClCompile Include="SqlInsertFile.cpp" />
     <ClCompile Include="SqlLibExplorer.cpp" />
-    <ClCompile Include="SqlOpenCLKernel.cpp" />
     <ClCompile Include="SqlPhotoCategorie.cpp" />
     <ClCompile Include="SqlPhotoCategorieUsenet.cpp" />
     <ClCompile Include="SqlPhotoCriteria.cpp" />

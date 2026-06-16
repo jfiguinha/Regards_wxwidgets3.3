@@ -17,6 +17,8 @@ CSqlFindCriteria::~CSqlFindCriteria()
 bool CSqlFindCriteria::SearchCriteriaAlone(CriteriaVector* criteriaVector)
 {
 	m_criteriaVector = criteriaVector;
+	if (m_criteriaVector == nullptr)
+		return false;
 	return (ExecuteRequest("SELECT NumCriteria, NumCategorie, Libelle from CRITERIA where NumCriteria not in (select NumCriteria From PhotosCRITERIA)")
 		       != -1)
 		       ? true
@@ -27,6 +29,9 @@ bool CSqlFindCriteria::SearchCriteria(CriteriaVector* criteriaVector, const int6
                                       const int64_t& numCatalog)
 {
 	m_criteriaVector = criteriaVector;
+	if (m_criteriaVector == nullptr)
+		return false;
+
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
 	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));
@@ -37,6 +42,9 @@ bool CSqlFindCriteria::SearchCriteria(CriteriaVector* criteriaVector, const int6
                                       const int64_t& numCatalog, const int64_t& numFolder)
 {
 	m_criteriaVector = criteriaVector;
+	if (m_criteriaVector == nullptr)
+		return false;
+
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
 	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));
@@ -48,6 +56,8 @@ bool CSqlFindCriteria::SearchCriteria(CriteriaVector* criteriaVector, const wxSt
                                       const int64_t& numCatalog)
 {
 	m_criteriaVector = criteriaVector;
+	if (m_criteriaVector == nullptr)
+		return false;
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
 	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));
@@ -59,6 +69,8 @@ bool CSqlFindCriteria::SearchCriteria(CriteriaVector* criteriaVector, const wxSt
 bool CSqlFindCriteria::SearchCriteria(CriteriaVector* criteriaVector, const int64_t& numPhoto)
 {
 	m_criteriaVector = criteriaVector;
+	if (m_criteriaVector == nullptr)
+		return false;
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
 	return ExecuteSqlWithStatement("SELECT CR.NumCriteria, CR.NumCategorie, CR.Libelle FROM CRITERIA as CR INNER JOIN PHOTOSCRITERIA as PHCR ON CR.NumCriteria = PHCR.NumCriteria WHERE NumPhoto = ?", parameter);
