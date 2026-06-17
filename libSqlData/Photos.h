@@ -43,4 +43,4 @@ private:
 };
 
 
-using PhotosVector = std::vector<CPhotos>;
+using PhotosVector = std::deque<CPhotos>;

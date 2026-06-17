@@ -6,11 +6,13 @@ using namespace Regards::Window;
 class CFindPhotoCriteria;
 class CFolderCatalog;
 class CCategoryFolderWindowPimpl;
+class CThumbnailMessage;
 
 namespace Regards::Viewer
 {
 	class CCategoryWnd;
 	class CMainParam;
+	
 
 	class CCategoryFolderWindow : public CTreeWithScrollbar
 	{
@@ -33,7 +35,11 @@ namespace Regards::Viewer
 		void OnRefreshFolder(wxCommandEvent& event);
 		void IdleFunction() override;
 		bool GetProcessEnd() override;
-
+		void ProcessPhotoQueue();
+		void ProcessGpsQueue();
+		void ProcessFolderRefresh();
+		void CleanupOldCatalogs();
+		void SendStatusMessage(CThumbnailMessage* thumbnailMessage);
 		static void FindPhotoCriteria(CFindPhotoCriteria* findPhotoCriteria);
 		static void FindGPSPhotoCriteria(CFindPhotoCriteria* findPhotoCriteria);
 		void RefreshThreadFolder(CFolderCatalog* folder);
