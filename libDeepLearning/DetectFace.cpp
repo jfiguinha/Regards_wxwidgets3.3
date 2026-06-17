@@ -201,15 +201,8 @@ void CDetectFace::LoadModel(const bool& openCLCompatible, const bool& cudaCompat
 
 	try
 	{
-#ifdef WIN32
-		wxString tensorflowConfigFile = documentPath + "\\model\\opencv_face_detector.pbtxt";
-		wxString tensorflowWeightFile = documentPath + "\\model\\opencv_face_detector_uint8.pb";
-#else
-		wxString tensorflowConfigFile = documentPath + "/model/opencv_face_detector.pbtxt";
-		wxString tensorflowWeightFile = documentPath + "/model/opencv_face_detector_uint8.pb";
-#endif
-        net = readNetFromTensorflow(CConvertUtility::ConvertToStdString(tensorflowWeightFile),
-		                            CConvertUtility::ConvertToStdString(tensorflowConfigFile));
+        net = readNetFromTensorflow(CFileUtility::GetFullpathModel("opencv_face_detector_uint8.pb"),
+			CFileUtility::GetFullpathModel("opencv_face_detector.pbtxt"));
 		net.setPreferableBackend(DNN_BACKEND_DEFAULT);
 
 		if (cudaCompatible)

@@ -172,33 +172,14 @@ int CDetectFacePCN::DetectFaceAngle(const cv::Mat& frameOpenCVDNN)
 
 void CDetectFacePCN::LoadModel(const bool& openCLCompatible, const bool& cudaCompatible)
 {
-    wxString documentPath = CFileUtility::GetDocumentFolderPath();
-    
-	wxString config = documentPath + "\\model\\deploy.prototxt";
-
 	try
 	{
-		if (!application_context.clExecCtx.empty())
-			application_context.clExecCtx.bind();
-
-#ifdef WIN32
-		wxString detection_model_path = documentPath + "\\model\\PCN.caffemodel";
-		wxString pcn1_proto = documentPath + "\\model\\PCN-1.prototxt";
-		wxString pcn2_proto = documentPath + "\\model\\PCN-2.prototxt";
-		wxString pcn3_proto = documentPath + "\\model\\PCN-3.prototxt";
-#else
-        wxString detection_model_path = documentPath + "/model/PCN.caffemodel";
-        wxString pcn1_proto = documentPath + "/model/PCN-1.prototxt";
-        wxString pcn2_proto = documentPath + "/model/PCN-2.prototxt";
-        wxString pcn3_proto = documentPath + "/model/PCN-3.prototxt";
-#endif
-
-		net_1 = readNet(CConvertUtility::ConvertToStdString(pcn1_proto),
-		                CConvertUtility::ConvertToStdString(detection_model_path));
-		net_2 = readNet(CConvertUtility::ConvertToStdString(pcn2_proto),
-		                CConvertUtility::ConvertToStdString(detection_model_path));
-		net_3 = readNet(CConvertUtility::ConvertToStdString(pcn3_proto),
-		                CConvertUtility::ConvertToStdString(detection_model_path));
+		net_1 = readNet(CConvertUtility::ConvertToStdString(CFileUtility::GetFullpathModel("PCN-1.prototxt")),
+		                CConvertUtility::ConvertToStdString(CFileUtility::GetFullpathModel("PCN.caffemodel")));
+		net_2 = readNet(CConvertUtility::ConvertToStdString(CFileUtility::GetFullpathModel("PCN-2.prototxt")),
+		                CConvertUtility::ConvertToStdString(CFileUtility::GetFullpathModel("PCN.caffemodel")));
+		net_3 = readNet(CConvertUtility::ConvertToStdString(CFileUtility::GetFullpathModel("PCN-3.prototxt")),
+		                CConvertUtility::ConvertToStdString(CFileUtility::GetFullpathModel("PCN.caffemodel")));
 
 
 		net_1.setPreferableBackend(DNN_BACKEND_DEFAULT);

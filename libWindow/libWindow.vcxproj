@@ -843,7 +843,6 @@
     <ClInclude Include="CalendarDialogBox.h" />
     <ClInclude Include="CalendarSelect.h" />
     <ClInclude Include="ClickToolbar.h" />
-    <ClInclude Include="EmptyWindow.h" />
     <ClInclude Include="GLcontext.h" />
     <ClInclude Include="GpsEngine.h" />
     <ClInclude Include="IBitmapRenderInterface.h" />
@@ -934,7 +933,6 @@
     <ClCompile Include="CalendarDialogBox.cpp" />
     <ClCompile Include="CalendarSelect.cpp" />
     <ClCompile Include="ClickToolbar.cpp" />
-    <ClCompile Include="EmptyWindow.cpp" />
     <ClCompile Include="GpsEngine.cpp" />
     <ClCompile Include="Icone.cpp" />
     <ClCompile Include="IconeList.cpp" />

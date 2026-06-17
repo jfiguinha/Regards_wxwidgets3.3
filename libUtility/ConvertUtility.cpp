@@ -13,6 +13,8 @@ CConvertUtility::~CConvertUtility(void)
 {
 }
 
+
+
 wxString CConvertUtility::ConvertToBase64(const wxString& s)
 {
 	wxCharBuffer utf8 = s.ToUTF8();

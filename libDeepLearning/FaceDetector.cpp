@@ -14,6 +14,7 @@
 #include <picture_utility.h>
 #include "colornet.h"
 #include <appcontext.h>
+#include <wx/filename.h>
 extern AppContext application_context;
 
 #define WIDTH_THUMBNAIL 1920
@@ -72,98 +73,46 @@ CFaceDetector::~CFaceDetector()
 {
 }
 
+
+
 static void LoadRealESRGAN()
 {
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-	wxString esrgan_param = documentPath + "\\model\\real_esrgan.param";
-	wxString esrgan_bin = documentPath + "\\model\\real_esrgan.bin";
-#else
-	wxString esrgan_param = documentPath + "/model/real_esrgan.param";
-	wxString esrgan_bin = documentPath + "/model/real_esrgan.bin";
-#endif
-
 	if (!isRealESRGAN_load)
 	{
 		real_net = std::make_unique<RealESRGAN>();
-		real_net->load(esrgan_param.ToStdString(), esrgan_bin.ToStdString());
+		real_net->load(CFileUtility::GetFullpathModel("real_esrgan.param"), CFileUtility::GetFullpathModel("real_esrgan.bin"));
 	}
 	isRealESRGAN_load = true;
 }
 
 static void LoadGFPGAN()
 {
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-	wxString age_net = documentPath + "\\model\\age_net.caffemodel";
-	wxString age_deploy = documentPath + "\\model\\age_deploy.prototxt";
-	wxString gender_net = documentPath + "\\model\\gender_net.caffemodel";
-	wxString gender_deploy = documentPath + "\\model\\gender_deploy.prototxt";
-	wxString gfpgan_param = documentPath + "\\model\\encoder.param";
-	wxString gfpgan_bin = documentPath + "\\model\\encoder.bin";
-	wxString gfpgan_stylebin = documentPath + "\\model\\style.bin";
-#else
-	wxString age_net = documentPath + "/model/age_net.caffemodel";
-	wxString age_deploy = documentPath + "/model/age_deploy.prototxt";
-	wxString gender_net = documentPath + "/model/gender_net.caffemodel";
-	wxString gender_deploy = documentPath + "/model/gender_deploy.prototxt";
-	wxString gfpgan_param = documentPath + "/model/encoder.param";
-	wxString gfpgan_bin = documentPath + "/model/encoder.bin";
-	wxString gfpgan_stylebin = documentPath + "/model/style.bin";
-#endif
-
 	if (!isGFPGAN_load)
 	{
 		gfpgan = std::make_unique<GFPGAN>();
-		gfpgan->load(gfpgan_param.ToStdString(), gfpgan_bin.ToStdString(), gfpgan_stylebin.ToStdString());
-		ageNet = readNet(CConvertUtility::ConvertToStdString(age_net), CConvertUtility::ConvertToStdString(age_deploy));
-		genderNet = readNet(CConvertUtility::ConvertToStdString(gender_net), CConvertUtility::ConvertToStdString(gender_deploy));
+		gfpgan->load(CFileUtility::GetFullpathModel("encoder.param"), CFileUtility::GetFullpathModel("encoder.bin"), CFileUtility::GetFullpathModel("style.bin"));
+		ageNet = readNet(CFileUtility::GetFullpathModel("age_net.caffemodel"), CFileUtility::GetFullpathModel("age_deploy.prototxt"));
+		genderNet = readNet(CFileUtility::GetFullpathModel("gender_net.caffemodel"), CFileUtility::GetFullpathModel("gender_deploy.prototxt"));
 	}
 	isGFPGAN_load = true;
 }
 
 static void LoadColorisationNCNN()
 {
-    //printf("LoadColorisation() \n");
-    
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-	wxString siggraph17_param = documentPath + "\\model\\siggraph17_color_sim.param";
-	wxString siggraph17_bin = documentPath + "\\model\\siggraph17_color_sim.bin";
-#else
-	wxString siggraph17_param = documentPath + "/model/siggraph17_color_sim.param";
-	wxString siggraph17_bin = documentPath + "/model/siggraph17_color_sim.bin";
-#endif
-
 	if (!isColorisation_load)
 	{
 		colorreal_net = std::make_unique<CColorisationNCNN>();
-		colorreal_net->load(siggraph17_param.ToStdString(), siggraph17_bin.ToStdString());
+		colorreal_net->load(CFileUtility::GetFullpathModel("siggraph17_color_sim.param"), CFileUtility::GetFullpathModel("siggraph17_color_sim.bin"));
 	}
 	isColorisation_load = true;
 }
 
 static void LoadColorisation()
 {
-    printf("LoadColorisation() \n");
-    
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-	wxString ncnn_param = documentPath + "\\model\\ncnn_v1.param";
-	wxString ncnn_bin = documentPath + "\\model\\ncnn_v1.bin";
-#else
-	wxString ncnn_param = documentPath + "/model/ncnn_v1.param";
-	wxString ncnn_bin = documentPath + "/model/ncnn_v1.bin";
-#endif
-
 	if (!isColorisation_load)
 	{
 		color_net = std::make_unique<CColorization>();
-		color_net->load(ncnn_param.ToStdString(), ncnn_bin.ToStdString());
+		color_net->load(CFileUtility::GetFullpathModel("ncnn_v1.param"), CFileUtility::GetFullpathModel("ncnn_v1.bin"));
 	}
 	isColorisation_load = true;
 }
@@ -276,46 +225,11 @@ void CFaceDetector::LoadModel(const bool& openCLCompatible, const bool& cudaComp
 	{
 		CDetectFacePCN detectFacePCN;
 		CDetectFace detectFace;
-		wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-		wxString face_landmark = documentPath + "\\model\\face_landmark_model.dat";
-		wxString fr_modelPath = documentPath + "\\model\\face_recognition_sface_2021dec.onnx";
-		wxString fileEye = documentPath + "\\model\\haarcascade_eye.xml";
-		wxString age_net = documentPath + "\\model\\age_net.caffemodel";
-		wxString age_deploy = documentPath + "\\model\\age_deploy.prototxt";
-		wxString gender_net = documentPath + "\\model\\gender_net.caffemodel";
-		wxString gender_deploy = documentPath + "\\model\\gender_deploy.prototxt";
-		wxString esrgan_param = documentPath + "\\model\\real_esrgan.param";
-		wxString esrgan_bin = documentPath + "\\model\\real_esrgan.bin";
-		wxString siggraph17_param = documentPath + "\\model\\siggraph17_color_sim.param";
-		wxString siggraph17_bin = documentPath + "\\model\\siggraph17_color_sim.bin";
-		wxString gfpgan_param = documentPath + "\\model\\encoder.param";
-		wxString gfpgan_bin = documentPath + "\\model\\encoder.bin";
-		wxString gfpgan_stylebin = documentPath + "\\model\\style.bin";
-#else
-		wxString face_landmark = documentPath + "/model/face_landmark_model.dat";
-		wxString fr_modelPath = documentPath + "/model/face_recognition_sface_2021dec.onnx";
-        wxString fileEye = documentPath + "/model/haarcascade_eye.xml";
-		wxString age_net = documentPath + "/model/age_net.caffemodel";
-		wxString age_deploy = documentPath + "/model/age_deploy.prototxt";
-		wxString gender_net = documentPath + "/model/gender_net.caffemodel";
-		wxString gender_deploy = documentPath + "/model/gender_deploy.prototxt";
-		wxString esrgan_param = documentPath + "/model/real_esrgan.param";
-		wxString esrgan_bin = documentPath + "/model/real_esrgan.bin";
-		wxString siggraph17_param = documentPath + "/model/siggraph17_color_sim.param";
-		wxString siggraph17_bin = documentPath + "/model/siggraph17_color_sim.bin";
-		wxString gfpgan_param = documentPath + "/model/encoder.param";
-		wxString gfpgan_bin = documentPath + "/model/encoder.bin";
-		wxString gfpgan_stylebin = documentPath + "/model/style.bin";
-#endif
-
-
 
 		facemark = createFacemarkKazemi();
-		facemark->loadModel(CConvertUtility::ConvertToStdString(face_landmark));
-		faceRecognizer = FaceRecognizerSF::create(CConvertUtility::ConvertToStdString(fr_modelPath), "");
-		eye_cascade.load(CConvertUtility::ConvertToStdString(fileEye));
+		facemark->loadModel(CFileUtility::GetFullpathModel("face_landmark_model.dat"));
+		faceRecognizer = FaceRecognizerSF::create(CFileUtility::GetFullpathModel("face_recognition_sface_2021dec.onnx"), "");
+		eye_cascade.load(CFileUtility::GetFullpathModel("haarcascade_eye.xml"));
 
        // printf("CFaceDetector::LoadModel \n");
 		detectFace.LoadModel(openCLCompatible, cudaCompatible);
@@ -942,9 +856,6 @@ int CFaceDetector::FaceRecognition(const int& numFace)
 #else
 
 
-	
-	//double l2norm_similar_thresh = 1.128;
-
 	double maxConfidence = 0.0;
 	Mat fc1;
 	bool findFaceCompatible = false;
@@ -983,8 +894,6 @@ int CFaceDetector::FaceRecognition(const int& numFace)
 				predictedLabel = i;
 			}
 		}
-
-
 
 		if (predictedLabel != -1 && confidence > cosine_similar_thresh)
 		{

@@ -24,6 +24,7 @@ public:
 	static wxString GetTempFile(wxString filename, wxString folder, const bool& removeFile = true);
 	static wxString GetFaceZScorePath(const int& numFace);
 	static wxString GetOrCreateSubFolder(const wxString& folderName);
+	static std::string GetFullpathModel(const wxString& filename);
 private:
 	
 #if defined(__APPLE__)

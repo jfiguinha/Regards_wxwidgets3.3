@@ -5,7 +5,11 @@ class CConvertUtility
 public:
 	CConvertUtility(void);
 	~CConvertUtility(void);
-
+	static int ToInt(const wxString& s)
+	{
+		long value{};
+		return s.ToLong(&value) ? value : 0;
+	};
 	static wxString GetTimeLibelle(const int& timePosition);
 	static std::vector<wxString> split(const wxString& s, char seperator);
     static wxString ConvertToBase64(const wxString& s);

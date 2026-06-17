@@ -66,9 +66,6 @@
     <ClInclude Include="CalendarSelect.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="EmptyWindow.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="Icone.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -306,9 +303,6 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="CalendarSelect.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="EmptyWindow.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="Icone.cpp">
