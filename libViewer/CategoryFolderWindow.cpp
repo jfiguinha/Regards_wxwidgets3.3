@@ -42,14 +42,8 @@ wxDEFINE_EVENT(EVENT_CRITERIAPHOTOUPDATE, wxCommandEvent);
 class CListToClean
 {
 public:
-	CListToClean(){}
-	~CListToClean()
-	{
-		if (catalogWndOld != nullptr)
-			delete catalogWndOld;
-	}
-	CCategoryWnd * catalogWndOld = nullptr;
-	std::time_t timeToAdd;
+	std::unique_ptr<CCategoryWnd> catalogWndOld;
+	std::time_t timeToAdd{};
 };
 
 class CCategoryFolderWindowPimpl
@@ -58,11 +52,10 @@ public:
     
     CCategoryFolderWindowPimpl()
     {
-        catalogWndOld = nullptr;
+        catalogWnd = nullptr;
         explorerconfig = nullptr;
         oldPos = 0;
         update = false;
-        traitementEnd = true;
         numProcess = 0;
 		numProcessGps = 0;
         nbProcesseur = 1;
@@ -77,14 +70,10 @@ public:
 		if (refreshTimer)
     		if (refreshTimer->IsRunning())
 				refreshTimer->Stop();
-
-		delete catalogWndOld;
-		for (auto element : listToErase)
-			delete element;
 		listToErase.clear();
     }
     
-    CCategoryWnd* catalogWndOld;
+    CCategoryWnd* catalogWnd;
     CMainParam* explorerconfig;
 	std::atomic<bool> traitementEnd;
 	std::atomic<bool> refreshFolder;
@@ -107,7 +96,7 @@ public:
 	wxString apiKey = "";
 	std::unique_ptr<wxTimer> refreshTimer;
     std::mutex muVector;
-    std::vector<CListToClean *> listToErase;
+	std::vector<std::unique_ptr<CListToClean>> listToErase;
 };
 
 
@@ -196,8 +185,8 @@ void CCategoryFolderWindow::OnTimerRefresh(wxTimerEvent& event)
 
 void CCategoryFolderWindow::RefreshCriteriaSearch()
 {
-	if (pimpl->catalogWndOld != nullptr)
-		pimpl->catalogWndOld->RefreshCriteriaSearch();
+	if (pimpl->catalogWnd != nullptr)
+		pimpl->catalogWnd->RefreshCriteriaSearch();
 
 	init();
 }
@@ -213,8 +202,8 @@ void CCategoryFolderWindow::OnUpdateGpsInfos(wxCommandEvent& event)
 
 void CCategoryFolderWindow::RefreshCriteriaSearch(wxCommandEvent& event)
 {
-	if (pimpl->catalogWndOld != nullptr)
-		pimpl->catalogWndOld->RefreshCriteriaSearch();
+	if (pimpl->catalogWnd != nullptr)
+		pimpl->catalogWnd->RefreshCriteriaSearch();
 }
 
 CCategoryFolderWindow::~CCategoryFolderWindow()
@@ -268,16 +257,16 @@ void CCategoryFolderWindow::UpdateCriteria(const bool& need_to_send_message)
 		catalogWnd->Init();
 		treeWindow->SetTreeControl(catalogWnd);
         
-		CListToClean* listToAdd = new CListToClean();
-        listToAdd->catalogWndOld = pimpl->catalogWndOld;
+		auto listToAdd = std::make_unique<CListToClean>();
+		listToAdd->catalogWndOld.reset(pimpl->catalogWnd);
 
-		pimpl->catalogWndOld = catalogWnd;
+		pimpl->catalogWnd = catalogWnd;
 		pimpl->update = true;
         
        
 		time(&listToAdd->timeToAdd);
 		
-		pimpl->listToErase.push_back(listToAdd);
+		pimpl->listToErase.push_back(std::move(listToAdd));
 
 
 	}
@@ -409,27 +398,15 @@ void CCategoryFolderWindow::CleanupOldCatalogs()
 {
 	if (!pimpl->listToErase.empty())
 	{
-		// printf("CCategoryFolderWindow::listToErrase Nb Element : %i \n", pimpl->listToErrase.size());
-		int i = 0;
 		time_t ending;
 		time(&ending);
-		for (int i = 0; i < pimpl->listToErase.size(); i++)
+		for (auto it = pimpl->listToErase.begin();
+			it != pimpl->listToErase.end(); )
 		{
-			CListToClean* element = pimpl->listToErase[i];
-			int diff = difftime(ending, element->timeToAdd);
-			if (diff > 5 && element != nullptr)
-			{
-				//printf("CCategoryFolderWindow::listToErrase %i \n", i);
-				if (element->catalogWndOld)
-				{
-					delete element->catalogWndOld;
-					element->catalogWndOld = nullptr;
-				}
-				delete element;
-
-				pimpl->listToErase.erase(pimpl->listToErase.begin() + i);
-				i--;
-			}
+			if (difftime(ending, (*it)->timeToAdd) > 5)
+				it = pimpl->listToErase.erase(it);
+			else
+				++it;
 		}
 	}
 }
@@ -624,7 +601,7 @@ void CCategoryFolderWindow::FindPhotoCriteria(CFindPhotoCriteria* findPhotoCrite
 		fileGeolocalisation.SetFile(findPhotoCriteria->photoPath, notGeo);
 		CInsertCriteria insertCriteria;
 		insertCriteria.type = CATEGORIE_GEO;
-		insertCriteria.value = "map=6/" + fileGeolocalisation.GetLatitude() + "/" + fileGeolocalisation.GetLongitude();
+		insertCriteria.value = application_context.special_key + "/" + fileGeolocalisation.GetLatitude() + "/" + fileGeolocalisation.GetLongitude();
 		listCriteriaPhoto.listCriteria.push_back(insertCriteria);
 
 	}
@@ -678,8 +655,8 @@ void CCategoryFolderWindow::FindPhotoCriteria(CFindPhotoCriteria* findPhotoCrite
 wxString CCategoryFolderWindow::GetSqlRequest()
 {
 	wxString sqlRequest = "";
-	if (pimpl->catalogWndOld != nullptr)
-		return pimpl->catalogWndOld->GetSqlRequest();
+	if (pimpl->catalogWnd != nullptr)
+		return pimpl->catalogWnd->GetSqlRequest();
 	return sqlRequest;
 }
 

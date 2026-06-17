@@ -2,6 +2,8 @@
 #include "SqlResult.h"
 #include "SqlCriteria.h"
 #include <SqlParameter.h>
+#include <appcontext.h>
+extern AppContext application_context;
 using namespace Regards::Sqlite;
 
 CSqlCriteria::CSqlCriteria(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
@@ -32,7 +34,9 @@ deque<int> CSqlCriteria::GetListCriteriaToGeolocalize()
 {
 	type = 1;
 	listCriteriaToGeolocalize.clear();
-	ExecuteRequest("select NumCriteria from criteria where libelle like 'map=6/%'");
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlString>(application_context.special_key + "%"));
+	ExecuteSqlWithStatement("select NumCriteria from criteria where libelle like ?", parameter);
 	return listCriteriaToGeolocalize;
 }
 

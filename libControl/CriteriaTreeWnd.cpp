@@ -56,7 +56,7 @@ CCriteriaTreeWnd::CCriteriaTreeWnd(wxWindow* parent, wxWindowID id, const int& m
 	oldCriteriaTree = nullptr;
 	numPhotoId = 0;
 	this->mainWindowID = mainWindowID;
-	fileGeolocalisation = new CFileGeolocation(urlServer, apiKey);
+	fileGeolocalisation = std::make_unique<CFileGeolocation>(urlServer, apiKey);
 
 
 	Connect(wxEVT_SHOWCALENDAR, wxCommandEventHandler(CCriteriaTreeWnd::ShowCalendar));
@@ -109,8 +109,8 @@ void CCriteriaTreeWnd::ShowCalendar(wxCommandEvent& event)
 		wxQueueEvent(mainWnd, eventChange);
 	}
 
-	CListOfWindow* fileGeolocalisation = CGpsEngine::getInstance();
-	fileGeolocalisation->SendMessageToWindow(filename, 2);
+	CListOfWindow* listWindow = CGpsEngine::getInstance();
+	listWindow->SendMessageToWindow(filename, 2);
 
 	if (photoCriteria != nullptr)
 		delete photoCriteria;

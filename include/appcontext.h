@@ -264,7 +264,7 @@ public:
 	std::map<wxString, cv::ocl::Program> openclBinaryMapping;
 	bool isGPsAvailable = false;
 	double value[256];
-
+	wxString special_key = "map=6";
 private:
 
 	cv::Mat defaultPictureMat;

@@ -225,6 +225,10 @@ void CBitmapInfos::UpdateData()
 			if (criteria.GetCategorieId() == 1)
 			{
 				gpsInfos = criteria.GetLibelle();
+				if (gpsInfos.find(application_context.special_key) == 0)
+				{
+					gpsInfos = "";
+				}
 			}
 			else if (criteria.GetCategorieId() == 3)
 			{

@@ -12,6 +12,7 @@
 #include <libPicture.h>
 #include <SqlFindFacePhoto.h>
 #include <LibResource.h>
+#include <appcontext.h>
 #include <SqlPhotoCategorie.h>
 #if defined(__WXMSW__)
 #include "../include/window_id.h"
@@ -23,7 +24,7 @@ using namespace Regards::Window;
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;
 #define TAILLEMAX 4096
-
+extern AppContext application_context;
 PhotoCategorieVector CCriteriaTree::photoCategorieVector;
 
 CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* interfaceControl): yPos(0)
@@ -291,6 +292,9 @@ void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
 					CCriteria criteria = criteriaVector.at(0);
 					wxString libelleCategorie = photoCategorie.GetLibelle();
 					wxString value = criteria.GetLibelle();
+
+					if(value.find(application_context.special_key) == 0)
+						value = CLibResource::LoadStringFromResource("LBLNOTGEO", 1);
 
 					auto treeDataFileName = new CTreeDataLink();
 					treeDataFileName->SetIsParent(false);

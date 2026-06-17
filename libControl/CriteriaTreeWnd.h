@@ -16,7 +16,7 @@ namespace Regards::Control
 	public:
 		CCriteriaTreeWnd(wxWindow* parent, wxWindowID id, const int& mainWindowID, const CThemeTree& theme,
 		                 const CThemeScrollBar& themeScroll);
-		~CCriteriaTreeWnd(void) override;
+		~CCriteriaTreeWnd(void);
 		void SetFile(const wxString& filename);
 
 	private:
@@ -26,7 +26,7 @@ namespace Regards::Control
 		void UpdateTreeData();
 		void ShowKeyWord(wxCommandEvent& event);
 
-		CFileGeolocation* fileGeolocalisation;
+		std::unique_ptr<CFileGeolocation> fileGeolocalisation;
 		CCriteriaTree* criteriaTree;
 		CCriteriaTree* oldCriteriaTree;
 		wxString filename;

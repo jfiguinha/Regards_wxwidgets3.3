@@ -11,13 +11,14 @@
 #include <SqlGps.h>
 #include <window_id.h>
 #include <SqlPhotoCriteria.h>
-#include <LibResource.h>
+#include <appcontext.h>
 #include <ConvertUtility.h>
 #include <MediaInfo.h>
 using namespace Regards::Internet;
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;
 using namespace Regards::exiv2;
+extern AppContext application_context;
 CountryVector CFileGeolocation::countryVector;
 
 CFileGeolocation::CFileGeolocation(const wxString& urlServer, const wxString& apiKey)
@@ -225,7 +226,7 @@ void CFileGeolocation::SetInfosGPS(const wxString& libelle)
 	vector<wxString> gpsInfos = CConvertUtility::split(libelle, '/');
 	if (gpsInfos.size() == 3)
 	{
-		if (gpsInfos[0] == "map=6")
+		if (gpsInfos[0] == application_context.special_key)
 		{
 			hasGps = true;
 			latitudeGps = gpsInfos.at(1);
