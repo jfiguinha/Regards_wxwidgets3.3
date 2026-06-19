@@ -112,7 +112,7 @@ namespace Regards::Viewer
         void SetDataToStatusBar(void* thumbnailMessage, const wxString& message);
 
         // ── Widgets UI ────────────────────────────────────────────────
-        std::unique_ptr<wxGauge>            progressBar = nullptr;
+        wxGauge *                           progressBar = nullptr;
         std::unique_ptr<wxStatusBar>        statusBar          = nullptr;
         std::unique_ptr<CCentralWindow>     centralWnd         = nullptr;
         std::unique_ptr<CToolbarViewerMode> toolbarViewerMode  = nullptr;

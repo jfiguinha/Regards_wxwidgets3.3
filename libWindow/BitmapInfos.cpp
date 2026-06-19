@@ -53,7 +53,7 @@ bool CBitmapInfos::GetProcessEnd()
 	if (gpsTimer->IsRunning())
 		gpsTimer->Stop();
 
-	if (!threadGps)
+	if (!(threadGps == nullptr))
 		return false;
 
 	return true;

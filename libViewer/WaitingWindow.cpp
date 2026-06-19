@@ -1,22 +1,17 @@
 #include <header.h>
 #include "WaitingWindow.h"
 #include <FileUtility.h>
+#include <wx/filename.h>
 using namespace Regards::Viewer;
 
 CWaitingWindow::CWaitingWindow(wxWindow* parent, wxWindowID id) : CWindowMain("CWaitingWindow", parent, id)
 {
 	textToShow = "Please wait ...";
-	const wxString resourcePath = CFileUtility::GetResourcesFolderPath();
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath(), "loading.gif");
 	//m_animation = new wxAnimation(resourcePath + "/loading.gif");
-	m_animationCtrl = new wxAnimationCtrl(this, wxID_ANY);
+	m_animationCtrl = std::make_unique<wxAnimationCtrl>(this, wxID_ANY);
 	m_animationCtrl->Show(true);
 	Connect(wxEVT_PAINT, wxPaintEventHandler(CWaitingWindow::on_paint));
-
-#ifdef WIN32
-	m_animationCtrl->LoadFile(resourcePath + "\\loading.gif");
-#else
-	m_animationCtrl->LoadFile(resourcePath + "//loading.gif");
-#endif
 
 	m_animationCtrl->SetBackgroundColour(wxColour("white"));
 #ifdef __WXGTK__
@@ -28,8 +23,6 @@ CWaitingWindow::CWaitingWindow(wxWindow* parent, wxWindowID id) : CWindowMain("C
 
 CWaitingWindow::~CWaitingWindow()
 {
-	if (m_animationCtrl != nullptr)
-		delete m_animationCtrl;
 };
 
 void CWaitingWindow::UpdateScreenRatio()
@@ -92,8 +85,12 @@ void CWaitingWindow::on_paint(wxPaintEvent& event)
 	const int xPos = (GetWindowWidth() / scale_factor - size.x) / 2;
 
 	const wxAnimation animation = m_animationCtrl->GetAnimation();
-	const wxSize animationSize = animation.GetSize();
-	int yPos = (GetWindowHeight() / scale_factor - animationSize.GetHeight()) / 2;
-	yPos -= size.y * 2;
-	DrawTexte(&dc, textToShow, xPos, yPos, font);
+	if (animation.IsOk())
+	{
+		const wxSize animationSize = animation.GetSize();
+		int yPos = (GetWindowHeight() / scale_factor - animationSize.GetHeight()) / 2;
+		yPos -= size.y * 2;
+		DrawTexte(&dc, textToShow, xPos, yPos, font);
+	}
+
 }

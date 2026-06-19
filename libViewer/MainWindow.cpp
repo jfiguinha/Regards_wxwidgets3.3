@@ -137,7 +137,7 @@ void CMainWindow::InitUI(IStatusBarInterface* statusbar)
     statusBar->SetFieldsCount(4);
     statusBar->SetStatusWidths(4, tabWidth);
 
-    progressBar = std::make_unique<wxGauge>(
+    progressBar = new wxGauge(
         statusBar.get(), wxID_ANY, 200,
         wxPoint(1000, 0),
         wxSize(200, statusBar->GetSize().y),
@@ -151,7 +151,7 @@ void CMainWindow::InitUI(IStatusBarInterface* statusbar)
     folderService = std::make_unique<FolderRefreshService>(centralWnd.get(), this, faceDetection);
     viewerCtrl   = std::make_unique<CMainViewerController>(
         centralWnd.get(), toolbarViewerMode.get(),
-        statusBar.get(), progressBar.get(),
+        statusBar.get(), progressBar,
         statusBarViewer, this);
 }
 

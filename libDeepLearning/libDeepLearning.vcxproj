@@ -408,7 +408,7 @@
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>false</ConformanceMode>
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
-      <AdditionalIncludeDirectories>.;../include;../libUtility;../libSqlData</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../include;../libUtility;../libSqlData;../libSqlEngine;</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <InterproceduralOptimization>NoIPO</InterproceduralOptimization>
       <OpenMP>GenerateParallelCode</OpenMP>
