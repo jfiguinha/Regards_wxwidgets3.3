@@ -135,6 +135,17 @@ void CShowPreview::SetParameter(const wxString& videoFilename,
 	//this->Resize();
 }
 
+void CShowPreview::SetBitmapToViewer(CImageLoadingFormat* bitmap, bool isUpdate)
+{
+	wxCommandEvent* event = nullptr;
+	if(isUpdate)
+		event = new wxCommandEvent(wxEVENT_UPDATEBITMAP);
+	else
+		event = new wxCommandEvent(wxEVENT_SETBITMAP);
+	event->SetClientData(bitmap);
+	wxQueueEvent(bitmapWindowRender, event);
+}
+
 void CShowPreview::ShowPicture(cv::Mat& bitmap, const wxString& label)
 {
 	if (!bitmap.empty())
@@ -142,9 +153,9 @@ void CShowPreview::ShowPicture(cv::Mat& bitmap, const wxString& label)
 		auto imageLoadingFormat = new CImageLoadingFormat();
 		imageLoadingFormat->SetPicture(bitmap);
 		if (isFirstPicture)
-			bitmapWindow->SetBitmap(imageLoadingFormat, false);
+			SetBitmapToViewer(imageLoadingFormat, false);
 		else
-			bitmapWindow->UpdateBitmap(imageLoadingFormat, false);
+			SetBitmapToViewer(imageLoadingFormat, true);
 
 		if (isFirstPicture)
 			bitmapWindow->ShrinkImage();
@@ -442,7 +453,7 @@ bool CShowPreview::SetBitmap(CImageLoadingFormat* bitmap)
 	if (bitmapWindow != nullptr)
 	{
 		bitmap->SetOrientation(orientation);
-		bitmapWindow->SetBitmap(bitmap, false);
+		SetBitmapToViewer(bitmap, false);
 	}
 
 	return true;

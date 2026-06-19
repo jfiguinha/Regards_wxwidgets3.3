@@ -43,7 +43,7 @@ namespace Regards::Control
 		void ExportPicture();
 		void SavePicture();
 		void PrintPicture();
-		void SetTransitionBitmap(CImageLoadingFormat* bmpSecond);
+		
 		void FixArrowNavigation(const bool& fix);
 		void StopTransition();
 		void SetBitmapPreviewEffect(const int& effect);
@@ -56,8 +56,6 @@ namespace Regards::Control
 		CRgbaquad GetBackColor() override;
 		int GetOrientation() override;
 		CDraw* GetDessinPt() override;
-		void StartTransitionEffect(CImageLoadingFormat* bmpSecond, const bool& setPicture) override;
-		void StopTransitionEffect(CImageLoadingFormat* bmpSecond) override;
 		wxPoint GetMousePosition();
 		void CalculCenterPositionPicture() override;
 
@@ -73,6 +71,12 @@ namespace Regards::Control
 		static std::unique_ptr<IAfterEffect> AfterEffectPt(const int& numFilter);
 
 	private:
+
+		void SetTransitionBitmap(CImageLoadingFormat* bmpSecond) override;
+		void StartTransitionEffect(CImageLoadingFormat* bmpSecond, const bool& setPicture) override;
+		void StopTransitionEffect(CImageLoadingFormat* bmpSecond) override;
+
+
 		bool IsOpenCLCompatible();
 		
 		void RenderTexture(const bool& invertPos) override;

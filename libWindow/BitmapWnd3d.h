@@ -31,7 +31,6 @@ namespace Regards::Window
 		void UpdateScreenRatio() override;
 
 		void Resize() override;
-
 		bool GetProcessEnd() override;
 
 	private:

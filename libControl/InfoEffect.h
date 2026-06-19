@@ -27,7 +27,7 @@ namespace Regards::Control
 	private:
 		void InitTree(const wxString& libelle, const wxString& key);
 		wxString GetNumModification();
-
+		void SetBitmapToViewer(CImageLoadingFormat* bitmap);
 		void ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
 		                    const int& posLargeur, const int& posHauteur) override;
 		void MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,

@@ -57,8 +57,8 @@ namespace Regards
 		private:
 			void ShowOriginal();
 			void ShowNew();
+			void SetBitmapToViewer(CImageLoadingFormat* bitmap, bool isUpdate);
 
-			bool SetBitmap(CImageLoadingFormat* bitmap);
 			void OnViewerZoomIn(wxCommandEvent& event);
 			void OnViewerZoomOut(wxCommandEvent& event);
 			void Resize() override;
@@ -72,7 +72,7 @@ namespace Regards
 			void OnShowOriginal(wxCommandEvent& event);
 			void OnShowNew(wxCommandEvent& event);
 			void OnUpdatePicture(wxCommandEvent& event);
-
+			bool SetBitmap(CImageLoadingFormat* bitmap);
 			static void ThreadLoading(void* data);
 
 			CScrollbarWnd* scrollbar;

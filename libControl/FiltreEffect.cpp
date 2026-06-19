@@ -101,6 +101,14 @@ void CFiltreEffect::UpdateScreenRatio()
 }
 
 
+void CFiltreEffect::UpdateBitmapToViewer(CImageLoadingFormat* bitmap)
+{
+	auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);
+	auto event = new wxCommandEvent(wxEVENT_SETBITMAP);
+	event->SetClientData(bitmap);
+	wxQueueEvent(bitmapWindow, event);
+}
+
 void CFiltreEffect::UpdateMousePosition()
 {
 	CBitmapWndViewer* bitmapViewer = nullptr;
@@ -113,7 +121,7 @@ void CFiltreEffect::UpdateMousePosition()
 	if (bitmapViewer != nullptr)
 	{
 		CImageLoadingFormat* imageLoad = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
-		bitmapViewer->UpdateBitmap(imageLoad, false);
+		UpdateBitmapToViewer(imageLoad);
 	}
 }
 

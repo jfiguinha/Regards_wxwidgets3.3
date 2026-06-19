@@ -8,18 +8,15 @@
 #include <BitmapInterface.h>
 #include <ImageLoadingFormat.h>
 #include <LibResource.h>
-#include "wx/stdpaths.h"
 #include <FilterData.h>
 #include <ViewerParam.h>
-#include <wx/mimetype.h>
 #include <GLTexture.h>
 #include <RenderBitmapOpenGL.h>
 #include "PageCurlFilter.h"
 #include "MoveEffectTexture.h"
 #include "NoneEffectTextureEffect.h"
 #include "DiaporamaEffect.h"
-#include <wx/busyinfo.h>
-#include <wx/activityindicator.h>
+
 #include <MainParam.h>
 #include <ParamInit.h>
 #include "ViewerParamInit.h"
@@ -576,7 +573,7 @@ void CBitmapWndViewer::StartTransitionEffect(CImageLoadingFormat* bmpSecond, con
 	if (setPicture)
 	{
 		nextPicture = nullptr;
-		SetBitmap(bmpSecond, false);
+		SetBitmap(bmpSecond);
 	}
 	else
 		nextPicture = bmpSecond;
@@ -597,7 +594,7 @@ void CBitmapWndViewer::StopTransitionEffect(CImageLoadingFormat* bmpSecond)
 {
 	etape = 0;
 	m_bTransition = false;
-	SetBitmap(bmpSecond, false);
+	SetBitmap(bmpSecond);
 	startTransition = false;
 	nextPicture = nullptr;
 	EndTransition();

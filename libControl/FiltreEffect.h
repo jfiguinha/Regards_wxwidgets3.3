@@ -43,7 +43,7 @@ namespace Regards::Window
 			const int& index, tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child,
 			const int& type);
 		//void UpdateElement();
-
+		void UpdateBitmapToViewer(CImageLoadingFormat* bitmap);
 		void RenderElement(RenderMode mode);
 		void UpdateElement(tree<CTreeData*>::sibling_iterator& parent, RenderMode mode);
 		void UpdateElementChild(tree<CTreeData*>::sibling_iterator& it, CTreeDataEffect* data, int widthPosition, int profondeur, bool isVisible, RenderMode mode);

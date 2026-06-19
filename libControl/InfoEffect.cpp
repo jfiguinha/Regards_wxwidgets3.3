@@ -95,6 +95,14 @@ wxString CInfoEffect::GetNumModification()
 	return to_string(modificationManager->GetNumModification());
 }
 
+void CInfoEffect::SetBitmapToViewer(CImageLoadingFormat* bitmap)
+{
+	auto bitmapWindow =wxWindow::FindWindowById(bitmapWindowId);
+	auto event = new wxCommandEvent(wxEVENT_SETBITMAP);
+	event->SetClientData(bitmap);
+	wxQueueEvent(bitmapWindow, event);
+}
+
 void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
                                  const int& posLargeur, const int& posHauteur)
 {
@@ -102,23 +110,14 @@ void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, co
 	auto treeData = element->GetTreeData();
 	if (element->GetType() == ELEMENT_TEXTE)
 	{
-		CBitmapWndViewer* bitmapViewer = nullptr;
-		auto bitmapWindow = dynamic_cast<IBitmapWnd*>(wxWindow::FindWindowById(bitmapWindowId));
-		if (bitmapWindow != nullptr)
+		wxString key = treeData->GetExifKey();
+		if (key != "-1")
 		{
-			bitmapViewer = (CBitmapWndViewer*)bitmapWindow->GetWndPt();
+			const int modif = CConvertUtility::StringToInt(key);
+			SetBitmapToViewer(modificationManager->GetModification(modif));
+			SetActifElement(key);
 		}
-		if (bitmapViewer != nullptr)
-		{
-			wxString key = treeData->GetExifKey();
-			if (key != "-1")
-			{
-				const int modif = CConvertUtility::StringToInt(key);
-				bitmapViewer->SetBitmap(modificationManager->GetModification(modif));
-				//bitmapViewer->Refresh();
-				SetActifElement(key);
-			}
-		}
+		
 	}
 	else if (element->GetType() == ELEMENT_TRIANGLE)
 	{

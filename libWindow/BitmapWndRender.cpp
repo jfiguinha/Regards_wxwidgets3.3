@@ -116,6 +116,8 @@ void CBitmapWndRender::SetEndProgram(const bool& endProgram)
 vector<int> CBitmapWndRender::GetListCommand()
 {
 	vector<int> list;
+	list.push_back(wxEVENT_SETBITMAP);
+	list.push_back(wxEVENT_SETTRANSITIONBITMAP);
 	list.push_back(wxEVENT_UPDATEBITMAP); // , wxCommandEventHandler(CBitmapWnd::OnUpdateBitmap));
 	list.push_back(wxEVENT_LEFTPOSITION); //, wxCommandEventHandler(CBitmapWnd::OnLeftPosition));
 	list.push_back(wxEVENT_TOPPOSITION); //, wxCommandEventHandler(CBitmapWnd::OnTopPosition));
@@ -126,12 +128,19 @@ vector<int> CBitmapWndRender::GetListCommand()
 	list.push_back(wxEVENT_SCROLLMOVE); //, wxCommandEventHandler(CBitmapWnd::OnScrollMove));
 	list.push_back(wxEVENT_UPDATEEFFECTFILTER);
 	return list;
-};
+}
+
 
 void CBitmapWndRender::OnCommand(wxCommandEvent& event)
 {
 	switch (event.GetEventType())
 	{
+	case wxEVENT_SETTRANSITIONBITMAP:
+		OnTransitionBitmap(event);
+		break;
+	case wxEVENT_SETBITMAP:
+		OnSetBitmap(event);
+		break;
 	case wxEVENT_UPDATEBITMAP:
 		OnUpdateBitmap(event);
 		break;
@@ -264,6 +273,19 @@ void CBitmapWndRender::OnUpdateBitmap(wxCommandEvent& event)
 		UpdateBitmap(picture, false);
 }
 
+void CBitmapWndRender::OnSetBitmap(wxCommandEvent& event)
+{
+	auto picture = static_cast<CImageLoadingFormat*>(event.GetClientData());
+	if (picture != nullptr)
+		SetBitmap(picture);
+}
+
+void CBitmapWndRender::OnTransitionBitmap(wxCommandEvent& event)
+{
+	auto picture = static_cast<CImageLoadingFormat*>(event.GetClientData());
+	if (picture != nullptr)
+		SetTransitionBitmap(picture);
+}
 
 void CBitmapWndRender::SetFullscreen(const bool& fullscreen)
 {
@@ -705,9 +727,7 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				flipVertical = 0;
 				flipHorizontal = 0;
 				angle = 0;
-				muBitmap.lock();
 				source.reset(bitmapIn);
-				muBitmap.unlock();
 				bitmapwidth = bitmapIn->GetWidth();
 				bitmapheight = bitmapIn->GetHeight();
 				orientation = bitmapIn->GetOrientation();
@@ -721,11 +741,7 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				bitmapwidth = bitmapIn->GetWidth();
 				bitmapheight = bitmapIn->GetHeight();
 				bitmapUpdate = true;
-				
-				muBitmap.lock();
 				source.reset(bitmapIn);
-				muBitmap.unlock();
-
 				if (shrinkImage)
 					ShrinkImage(false);
 			}
@@ -759,14 +775,8 @@ void CBitmapWndRender::ReinitPicture()
 //-----------------------------------------------------------------
 //Affectation de l'image
 //-----------------------------------------------------------------
-void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn, const bool& copy)
+void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn)
 {
-	//
-	//printf("CBitmapWndRender::SetBitmap \n");
-	//if (copyBmpSrc != nullptr)
-	//	delete copyBmpSrc;
-	//copyBmpSrc = nullptr;
-	//this->SetFocus();
 	if (bitmapIn != nullptr)
 	{
 		if (bitmapIn->IsOk())
@@ -785,13 +795,7 @@ void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn, const bool& copy
 			flipVertical = 0;
 			flipHorizontal = 0;
 			angle = 0;
-
-
-			//printf("CBitmapWndRender::SetBitmap  muBitmap.lock()\n");
-			muBitmap.lock();
 			source.reset(bitmapIn);
-			muBitmap.unlock();
-			//printf("CBitmapWndRender::SetBitmap  muBitmap.unlock()\n");
 			toolOption = MOVEPICTURE;
 			bitmapwidth = bitmapIn->GetWidth();
 			bitmapheight = bitmapIn->GetHeight();
@@ -1672,7 +1676,6 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 
 
         bool invert = true;
-        muBitmap.lock();
         bool bitmapIsLoad = false;
 
         if (loadBitmap)
@@ -1687,8 +1690,6 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
             loadBitmap = false;
             bitmapIsLoad = true;
         }
-        muBitmap.unlock();
-
 
         if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0)
         {

@@ -435,7 +435,7 @@ void CShowElement::TransitionEnd()
     transitionEnd = true;
     if (tempImage)
     {
-        bitmapWindow->SetBitmap(tempImage);
+        SetBitmapToViewer(tempImage, wxEVENT_SETBITMAP);
         if (pictureToolbar)
             pictureToolbar->SetTrackBarPosition(bitmapWindow->GetPosRatio());
     }
@@ -457,6 +457,13 @@ static wxWindow* SendPreviewButtonEvents(wxWindow* root,
     w->GetEventHandler()->AddPendingEvent(wxCommandEvent(saveEvt));
     w->GetEventHandler()->AddPendingEvent(wxCommandEvent(exportEvt));
     return w;
+}
+
+void CShowElement::SetBitmapToViewer(CImageLoadingFormat* bitmap, int eventType)
+{
+    auto event = new wxCommandEvent(eventType);// wxEVENT_SETBITMAP);
+    event->SetClientData(bitmap);
+    wxQueueEvent(bitmapWindowRender.get(), event);
 }
 
 bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail)
@@ -501,12 +508,14 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
         {
             transitionEnd = false;
             bitmapWindow->ShrinkImage();
-            bitmapWindow->SetTransitionBitmap(bitmap);
+            SetBitmapToViewer(bitmap, wxEVENT_SETTRANSITIONBITMAP);
+            //bitmapWindow->SetTransitionBitmap(bitmap);
         }
         else if (transitionEnd)
         {
             bitmapWindow->StopTransition();
-            bitmapWindow->SetBitmap(bitmap, false);
+            SetBitmapToViewer(bitmap, wxEVENT_SETBITMAP);
+            //bitmapWindow->SetBitmap(bitmap, false);
             bitmapWindow->ApplyPicturePosition(angle, flipH, flipV);
         }
         else
@@ -516,7 +525,7 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
     }
     else
     {
-        bitmapWindow->SetBitmap(bitmap, false);
+        SetBitmapToViewer(bitmap, wxEVENT_SETBITMAP);
         bitmapWindow->ApplyPicturePosition(angle, flipH, flipV);
     }
 

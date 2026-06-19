@@ -152,7 +152,7 @@ namespace Regards
             void ShowSliderToolbar(bool show);
             void ShowSlider(bool show);
             void InitControl();
-
+            void SetBitmapToViewer(CImageLoadingFormat* bitmap, int eventType);
             // ---- Helper dispatch IViewerMode ----
             IViewerMode* ActiveViewer() const;   // renvoie bitmapWindow ou videoWindow selon isVideo
 

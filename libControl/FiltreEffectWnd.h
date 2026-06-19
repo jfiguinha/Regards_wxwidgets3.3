@@ -31,7 +31,7 @@ namespace Regards::Control
 
 	private:
 		void OnUpdateFilter(wxCommandEvent& event);
-
+		void SetBitmapToViewer(CImageLoadingFormat* bitmap);
 		//CImageLoadingFormat * SetBitmapEffect(const int &effect, CEffectParameter * effectParameter, CRegardsBitmap * bitmap);
 		CImageLoadingFormat* bitmap;
 		CEffectParameter* effectParameter;
