@@ -40,7 +40,7 @@ namespace Regards
 
 			CThumbnailFolder* GetPtThumbnailFolder()
 			{
-				return thumbnailFolder;
+				return thumbnailFolder.get();
 			}
 			
 
@@ -55,16 +55,12 @@ namespace Regards
 			void GenerateIndexFile(wxCommandEvent& event);
 			void ChangeDateFileCmd(wxCommandEvent& event);
 
-			CWindowManager* windowManager;
-			CScrollbarWnd* thumbscrollbar;
-			CThumbnailToolBar* thumbToolbar;
-			CThumbnailToolBarZoom* thumbToolbarZoom;
-			CThumbnailFolder* thumbnailFolder;
+
 
 			void GeolocalizeFile(const wxString& filename, const float& latitude, const float& longitude,
 			                     const wxString& lat, const wxString& lng, const wxString& geoInfos);
 			void ChangeDateFile(const wxString& filename, const wxDateTime& newDate, const wxString& selectDate);
-			void ExportFile(const wxString& filename, CThumbnailData* data, InfoExportFile infoFile,
+			void ExportFile(const wxString& filename, const int& numPhotoId, InfoExportFile infoFile,
 			                wxString destinationFolder, int optionPicture, int qualityPicture);
 			wxString GenerateFileName(const InfoExportFile& infoFile, const wxString& dateFile,
 			                          const wxString& gpsFile);
@@ -73,6 +69,11 @@ namespace Regards
 			void CreateFolder(const wxString& newFolder);
 
 			int typeAffichage;
+			std::unique_ptr<CWindowManager> windowManager;
+			std::unique_ptr<CScrollbarWnd> thumbscrollbar;
+			std::unique_ptr<CThumbnailToolBar> thumbToolbar;
+			std::unique_ptr<CThumbnailToolBarZoom> thumbToolbarZoom;
+			std::unique_ptr<CThumbnailFolder> thumbnailFolder;
 		};
 	}
 }

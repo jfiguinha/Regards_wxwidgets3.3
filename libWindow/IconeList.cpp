@@ -64,7 +64,7 @@ int CIconeList::GetPhotoId(const int& numElement)
 
 	if (icone != nullptr)
 	{
-		CThumbnailData* data = icone->GetData();
+		CThumbnailData* data = icone->GetPtData();
 		if (data != nullptr)
 			photoId = data->GetNumPhotoId();
 	}
@@ -81,7 +81,7 @@ void CIconeList::RemoveElement(int numElement)
 
     if (icone != nullptr)
     {
-		if (CThumbnailData* data = icone->GetData();
+		if (CThumbnailData* data = icone->GetPtData();
 			data != nullptr)
 		{
 			pIconeByPhotoId[data->GetNumPhotoId()] = nullptr;
@@ -110,7 +110,7 @@ void CIconeList::AddElement(CIcone* icone)
 
     pIconeList.push_back(icone);
 
-    if (CThumbnailData* data = icone->GetData();
+    if (CThumbnailData* data = icone->GetPtData();
         data != nullptr)
     {
         pIconeByPhotoId[data->GetNumPhotoId()] = icone;
@@ -127,7 +127,7 @@ wxString CIconeList::GetFilename(const int& numElement)
 
 	if (icone != nullptr)
 	{
-		CThumbnailData* data = icone->GetData();
+		CThumbnailData* data = icone->GetPtData();
 		if (data != nullptr)
 			filename = data->GetFilename();
 	}

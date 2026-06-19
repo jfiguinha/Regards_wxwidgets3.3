@@ -29,10 +29,6 @@ CThumbnailFileSelection::~CThumbnailFileSelection(void)
 {
 }
 
-void CThumbnailFileSelection::OnPictureClick(CThumbnailData* data)
-{
-}
-
 void CThumbnailFileSelection::AddSeparatorBar(CIconeList* iconeListLocal, const wxString& libelle, int& nbElement)
 {
 	auto infosSeparationBar = new CInfosSeparationBarExplorer(themeThumbnail.themeSeparation);
@@ -60,10 +56,10 @@ void CThumbnailFileSelection::AddSeparatorBar(CIconeList* iconeListLocal, const 
 
 		thumbnailData->SetBitmap(thumbnail->image);
 
-		auto pBitmapIcone = new CIcone();
+		auto pBitmapIcone = new CIcone(thumbnailData);
 		pBitmapIcone->SetNumElement(i);
 		pBitmapIcone->ShowSelectButton(true);
-		pBitmapIcone->SetData(thumbnailData);
+		
 		pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 		iconeListLocal->AddElement(pBitmapIcone);
 	}
@@ -167,9 +163,7 @@ void CThumbnailFileSelection::SetListeFile()
 
 		thumbnailData->SetBitmap(thumbnail->image);
         
-		auto pBitmapIcone = new CIcone();
-		pBitmapIcone->SetNumElement(thumbnailData->GetNumElement());
-		pBitmapIcone->SetData(thumbnailData);
+		auto pBitmapIcone = new CIcone(thumbnailData);
 		pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 		pBitmapIcone->SetWindowPos(x, y);
 		iconeList->AddElement(pBitmapIcone);

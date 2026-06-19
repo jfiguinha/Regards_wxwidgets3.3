@@ -23,7 +23,7 @@ namespace Regards::Viewer
 		}
 
 	private:
-		void OnPictureClick(CThumbnailData* data) override;
+		void OnPictureClick(const int& numPhotoId) override;
 		
 	};
 }

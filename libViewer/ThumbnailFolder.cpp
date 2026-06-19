@@ -42,14 +42,14 @@ CThumbnailFolder::~CThumbnailFolder(void)
 	}
 }
 
-void CThumbnailFolder::OnPictureClick(CThumbnailData* data)
+void CThumbnailFolder::OnPictureClick(const int &numPhotoId)
 {
 	CMainWindow* mainWindow = (CMainWindow*)this->FindWindowById(MAINVIEWERWINDOWID);
-	if (mainWindow != nullptr && data != nullptr)
+	if (mainWindow != nullptr)
 	{
 		//mainWindow->PictureVideoClick(timePosition);
 		wxCommandEvent evt(wxEVENT_ONPICTURECLICK);
-		evt.SetExtraLong(data->GetNumPhotoId());
+		evt.SetExtraLong(numPhotoId);
 		mainWindow->GetEventHandler()->AddPendingEvent(evt);
 	}
 }
@@ -68,42 +68,42 @@ CInfosSeparationBarExplorer* CThumbnailFolder::AddSeparatorBar(PhotosVector* _pi
 	{
 
 		tbb::parallel_for(0, size, 1, [=](int i)
+		//for (int i = 0; i < size; i++)
+		{
+			CPhotos photo = _pictures->at(i);
+			wxString filename = photo.GetPath();
+			bool find = true;
+			find = iconeList->IfElementExistByFilename(photo.GetPath());
+			if (!find)
 			{
-				CPhotos photo = _pictures->at(i);
-				wxString filename = photo.GetPath();
-				bool find = true;
-				find = iconeList->IfElementExistByFilename(photo.GetPath());
-				if (!find)
-				{
-					CThumbnailDataSQL* thumbnailData = new CThumbnailDataSQL(photo.GetPath(), testValidity, false);
-					thumbnailData->SetNumPhotoId(photo.GetId());
-					thumbnailData->SetNumElement(local_nbElement + i);
+				auto thumbnailData = new CThumbnailDataSQL(photo.GetPath(), testValidity, false);
+				thumbnailData->SetNumPhotoId(photo.GetId());
+				thumbnailData->SetNumElement(local_nbElement + i);
 
-					auto pBitmapIcone = new CIcone();
-					pBitmapIcone->ShowSelectButton(true);
-					pBitmapIcone->SetNumElement(thumbnailData->GetNumElement());
-					pBitmapIcone->SetData(thumbnailData);
-					pBitmapIcone->SetFilename(photo.GetPath());
-					pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-					iconeListLocal->AddElement(pBitmapIcone);
-				}
-				else
+				auto pBitmapIcone = new CIcone(thumbnailData);
+				pBitmapIcone->ShowSelectButton(true);
+				pBitmapIcone->SetNumElement(local_nbElement + i);
+				pBitmapIcone->SetFilename(photo.GetPath());
+				pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+				iconeListLocal->AddElement(pBitmapIcone);
+			}
+			else
+			{
+				CIcone* icone = iconeList->FindElementByFilename(photo.GetPath());
+				if (icone != nullptr)
 				{
-					CIcone* icone = iconeList->FindElementByFilename(photo.GetPath());
-					if (icone != nullptr)
+					icone->SetNumElement(local_nbElement + i);
+					auto data = static_cast<CThumbnailDataSQL*>(icone->GetPtData());
+					if (data != nullptr)
 					{
-						icone->SetNumElement(local_nbElement + i);
-						auto data = static_cast<CThumbnailDataSQL*>(icone->GetData());
-						if (data != nullptr)
-						{
-							data->SetNumElement(local_nbElement + i);
-							icone->SetNumElement(data->GetNumElement());
-						}
-
+						data->SetNumElement(local_nbElement + i);
+						icone->SetNumElement(data->GetNumElement());
 					}
+
 				}
-				
-			});
+			}
+		//}
+		});
 	}
 	else
 	{
@@ -114,7 +114,7 @@ CInfosSeparationBarExplorer* CThumbnailFolder::AddSeparatorBar(PhotosVector* _pi
 				if (icone != nullptr)
 				{
 					icone->SetNumElement(local_nbElement + i);
-					auto data = static_cast<CThumbnailDataSQL*>(icone->GetData());
+					auto data = static_cast<CThumbnailDataSQL*>(icone->GetPtData());
 					if (data != nullptr)
 					{
 						data->SetNumElement(local_nbElement + i);
@@ -150,12 +150,6 @@ bool CThumbnailFolder::compareFilename(CPhotos i1, CPhotos i2)
 void CThumbnailFolder::ChangeTypeAffichage(const int& typeAffichage, bool needFindNewItem)
 {
 	this->needFindNewItem = needFindNewItem;
-	//---------------------------------
-	//Sauvegarde de l'état
-	//---------------------------------
-	vector<CThumbnailData*> listSelectItem;
-	threadDataProcess = false;
-	GetSelectItem(listSelectItem);
 
 	InfosSeparationBarVector* _listSeparator = new InfosSeparationBarVector();
 	InfosSeparationBarVector* old = listSeparator;
@@ -238,8 +232,6 @@ void CThumbnailFolder::ChangeTypeAffichage(const int& typeAffichage, bool needFi
 	ResizeThumbnail();
 
 	needToRefresh = true;
-
-	listSelectItem.clear();
 }
 
 void CThumbnailFolder::Init(const int& typeAffichage, const bool& isDeleteFolder, const bool &isSqlUpdate)

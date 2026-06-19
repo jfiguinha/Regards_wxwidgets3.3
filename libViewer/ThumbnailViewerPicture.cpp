@@ -26,13 +26,13 @@ CThumbnailViewerPicture::CThumbnailViewerPicture(wxWindow* parent, wxWindowID id
 CThumbnailViewerPicture::~CThumbnailViewerPicture(void)
 {}
 
-void CThumbnailViewerPicture::OnPictureClick(CThumbnailData* data)
+void CThumbnailViewerPicture::OnPictureClick(const int& numPhotoId)
 {
 	auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));
 	if (mainWindow != nullptr)
 	{
 		wxCommandEvent evt(wxEVENT_ONPICTURECLICK);
-		evt.SetExtraLong(data->GetNumPhotoId());
+		evt.SetExtraLong(numPhotoId);
 		mainWindow->GetEventHandler()->AddPendingEvent(evt);
 	}
 }
@@ -65,9 +65,8 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
 				thumbnailData->SetNumPhotoId(photo.GetId());
 				thumbnailData->SetNumElement(i);
 
-				auto pBitmapIcone = new CIcone();
+				auto pBitmapIcone = new CIcone(thumbnailData);
 				pBitmapIcone->SetNumElement(i);
-				pBitmapIcone->SetData(thumbnailData);
 				pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 				pBitmapIcone->SetWindowPos(i * iconWidth, 0);
 				pBitmapIcone->SetFilename(filename);
@@ -87,7 +86,7 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
 		if (icone != nullptr)
 		{
 			icone->SetNumElement(i);
-			auto data = static_cast<CThumbnailDataSQL*>(icone->GetData());
+			auto data = static_cast<CThumbnailDataSQL*>(icone->GetPtData());
 			if (data != nullptr)
 			{
 				data->SetNumElement(i);
@@ -161,9 +160,8 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
 							thumbnailData->SetNumPhotoId(photo.GetId());
 							thumbnailData->SetNumElement(i);
 
-							auto pBitmapIcone = new CIcone();
+							auto pBitmapIcone = new CIcone(thumbnailData);
 							pBitmapIcone->SetNumElement(i);
-							pBitmapIcone->SetData(thumbnailData);
 							pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 							pBitmapIcone->SetWindowPos(i * iconWidth, 0);
 							pBitmapIcone->SetFilename(filename);
@@ -187,7 +185,7 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
 				if (icone != nullptr)
 				{
 					icone->SetNumElement(i);
-					auto data = static_cast<CThumbnailDataSQL*>(icone->GetData());
+					auto data = static_cast<CThumbnailDataSQL*>(icone->GetPtData());
 					if (data != nullptr)
 					{
 						data->SetNumElement(i);

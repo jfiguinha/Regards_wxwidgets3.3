@@ -7,16 +7,14 @@
 #include "LoadingResource.h"
 #include "WindowMain.h"
 #include <config_id.h>
-#include <wx/sstream.h>
 #ifdef WIN32
 #endif
 #include <RegardsConfigParam.h>
-#include <ThumbnailDataStorage.h>
-#include <ThumbnailDataSQL.h>
 #include <libPicture.h>
-#include <SqlFaceThumbnail.h>
+#include <ThumbnailDataFace.h>
 using namespace Regards::Picture;
 using namespace Regards::Window;
+
 
 
 wxImage CIcone::videoCadre;
@@ -70,67 +68,6 @@ int CIcone::GetHeight()
 		height = static_cast<int>(static_cast<float>(themeIcone.GetHeight()) * 0.75);
 
 	return height;
-}
-
-CIcone& CIcone::operator=(const CIcone& other)
-{
-	// check for self-assignment
-	if (&other == this)
-		return *this;
-
-	//---------------------------------------------------
-	//Theme
-	//---------------------------------------------------
-	//other.themeIcone = this->themeIcone;
-
-	//---------------------------------------------------
-	//Variable
-	//---------------------------------------------------
-	//int interpolationMethod;
-
-	pThumbnailData = new CThumbnailData(other.pThumbnailData->GetFilename());
-	*pThumbnailData = *other.pThumbnailData;
-	themeIcone = other.themeIcone;
-	bitmapCheckOn = other.bitmapCheckOn;
-	bitmapCheckOff = other.bitmapCheckOff;
-	useBackgroundColor = other.useBackgroundColor;
-	backgroundColor = other.backgroundColor;
-	pictureLoad = other.pictureLoad;
-	showSelected = other.showSelected;
-	isChecked = other.isChecked;
-	isSelected = other.isSelected;
-	showDeleted = other.showDeleted;
-	photoDefault = other.photoDefault;
-	posXThumbnail = other.posXThumbnail;
-	posYThumbnail = other.posYThumbnail;
-	numElement = other.numElement;
-	x = other.x;
-	y = other.y;
-
-	thumbnailIconeCache = other.thumbnailIconeCache;
-	filename = other.filename;
-	state = other.state;
-	numLib = other.numLib;
-	width = other.width;
-	height = other.height;
-	showLoading = other.showLoading;
-	pictureLoading = other.pictureLoading;
-	transparent = other.transparent;
-	return *this;
-}
-
-bool CIcone::operator ==(const CIcone& n2)
-{
-	int left = x;
-	int right = x + GetWidth();
-	int top = y;
-	int bottom = y + GetHeight();
-
-	if ((left < n2.x && n2.x < right) && (top < n2.y && n2.y < bottom))
-	{
-		return true;
-	}
-	return false;
 }
 
 void CIcone::SetWindowPos(const int& x, const int& y)
@@ -192,7 +129,7 @@ wxImage CIcone::LoadImageResource(const wxString& resourceName)
 	return bitmap;
 }
 
-CIcone::CIcone() : numElement(0), oldx(0), oldy(0)
+CIcone::CIcone(CThumbnailData * data) : numElement(0), oldx(0), oldy(0)
 {
 	pThumbnailData = nullptr;
 	showSelected = false;
@@ -212,7 +149,16 @@ CIcone::CIcone() : numElement(0), oldx(0), oldy(0)
 	state = INACTIFICONE;
 	isChecked = false;
 	numLib = LIBCPU;
-
+	if (data != nullptr)
+	{
+		numElement = data->GetNumElement();
+		pThumbnailData = data;
+	}
+	else
+	{
+		numElement = 0;
+		pThumbnailData = nullptr;
+	}
 	config = CParamInit::getInstance();
 	if (config != nullptr)
 		numLib = config->GetEffectLibrary();
@@ -238,6 +184,7 @@ void CIcone::StartLoadingPicture()
 {
 	showLoading = true;
 }
+
 
 void CIcone::StopLoadingPicture()
 {
@@ -584,23 +531,6 @@ void CIcone::RenderBitmap(wxDC* memdc, wxImage& bitmapScale, const int& type)
 	return RenderPictureBitmap(memdc, bitmapScale, type);
 }
 
-CIcone::~CIcone(void)
-{
-
-	if (pThumbnailData != nullptr)
-		delete pThumbnailData;
-	pThumbnailData = nullptr;
-}
-
-//----------------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------------
-void CIcone::SetData(CThumbnailData* thumbnailData)
-{
-	pThumbnailData = thumbnailData;
-}
-
-
 int CIcone::GetBitmapWidth()
 {
 	if (themeIcone.showOnlyThumbnail)
@@ -617,16 +547,9 @@ int CIcone::GetBitmapHeight()
 	return static_cast<int>(static_cast<float>(themeIcone.GetHeight()) * 0.75);
 }
 
-CThumbnailData* CIcone::GetData()
+CThumbnailData* CIcone::GetPtData()
 {
 	return pThumbnailData;
-}
-
-CThumbnailData* CIcone::GetCopyData()
-{
-	auto data = new CThumbnailData(pThumbnailData->GetFilename());
-	*data = *pThumbnailData;
-	return data;
 }
 
 void CIcone::CalculPosition(const wxImage& render)

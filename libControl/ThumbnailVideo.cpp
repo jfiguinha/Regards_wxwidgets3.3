@@ -73,7 +73,7 @@ bool CThumbnailVideo::ItemCompFonct(int videoPos, int y, CIcone * icone, CWindow
 {
 	if (icone != nullptr && parent != nullptr)
 	{
-		CThumbnailData* data = icone->GetData();
+		CThumbnailData* data = icone->GetPtData();
 		if (data != nullptr)
 		{
 			if (data->GetTimePosition() >= videoPos)
@@ -96,7 +96,7 @@ int CThumbnailVideo::FindNumItem(const int& videoPos)
 			numItem = icone->GetNumElement();
 		else
 		{
-			CThumbnailData* data = icone->GetData();
+			CThumbnailData* data = icone->GetPtData();
 			if (data != nullptr)
 			{
 				if (data->GetTimePosition() == videoPos)
@@ -269,9 +269,8 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 			}
 
 
-			auto pBitmapIcone = new CIcone();
+			auto pBitmapIcone = new CIcone(thumbnailData);
 			pBitmapIcone->SetNumElement(i);
-			pBitmapIcone->SetData(thumbnailData);
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 			pBitmapIcone->SetWindowPos(x, y);
 
@@ -322,9 +321,8 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 			if (typeElement == TYPEMULTIPAGE)
 				thumbnailData->SetLibelle("Page : " + to_string(j + 1) + "/" + to_string(size));
                 
-			auto pBitmapIcone = new CIcone();
+			auto pBitmapIcone = new CIcone(thumbnailData);
 			pBitmapIcone->SetNumElement(j);
-			pBitmapIcone->SetData(thumbnailData);
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 			pBitmapIcone->SetWindowPos(x, y);
 
@@ -458,7 +456,7 @@ void CThumbnailVideo::UpdateVideoThumbnail()
                 CIcone * pBitmapIcone = iconeList->GetElement(i);
  				if (pBitmapIcone != nullptr)
 				{
-					auto thumbnailData = static_cast<CThumbnailDataStorage*>(pBitmapIcone->GetData()); 
+					auto thumbnailData = dynamic_cast<CThumbnailDataStorage*>(pBitmapIcone->GetPtData()); 
                     if (thumbnailData != nullptr) 
                     {
                         auto thumbnail = new CImageVideoThumbnail();
@@ -519,7 +517,7 @@ void CThumbnailVideo::EraseThumbnail(long value)
 			CIcone * pIcone = iconeList->GetElement(i);
 			if (pIcone != nullptr)
 			{
-				CThumbnailDataStorage * pThumbnailData = (CThumbnailDataStorage *)pIcone->GetData();
+				CThumbnailDataStorage * pThumbnailData = (CThumbnailDataStorage *)pIcone->GetPtData();
 				if (pThumbnailData != nullptr)
 				{
 					pThumbnailData->InitLoadState();

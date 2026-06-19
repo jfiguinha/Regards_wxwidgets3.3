@@ -60,7 +60,7 @@ namespace Regards::Window
 		int GetIconeWidth();
 
 		virtual void SetActifItem(const int& idPhoto, const bool& move);
-		virtual void GetSelectItem(vector<CThumbnailData*>& vectorData);
+		virtual void GetSelectItemFilename(vector<wxString>& vectorData);
 
 		void SetTheme(CThemeThumbnail* theme);
 
@@ -72,6 +72,7 @@ namespace Regards::Window
 		void ChangeTabValue(const vector<int>& TabNewSize, const int& positionSize);
 		int GetTabValue();
 		virtual void ProcessVideo() {};
+		CIcone* GetIconeByPath(const wxString& filepath);
 
 	protected:
 
@@ -126,7 +127,7 @@ namespace Regards::Window
 		void OnRefreshThumbnail(wxCommandEvent& event);
 
 		void CalculControlSize();
-		virtual void OnPictureClick(CThumbnailData* data) = 0;
+		virtual void OnPictureClick(const int& numPhotoId) = 0;
 		void InitScrollingPos();
 		virtual void AfterSetList();
 		void RenderBitmap(wxDC* deviceContext, CIcone* pBitmapIcone, const int& posLargeur, const int& posHauteur);
@@ -146,7 +147,7 @@ namespace Regards::Window
 		void RefreshThumbnail(wxCommandEvent& event);
         void SendMoveEvent(wxEventType type);
         void RefreshAnimatedIcon(int photoId);
-		CIcone* GetIconeByPath(const wxString& filepath);
+		
 		static bool ItemCompFonctPath(wxString filepath, CIcone* icone);
 		bool UpdateThumbnail(CIcone* pBitmapIcone);
 		//------------------------------------------------------------

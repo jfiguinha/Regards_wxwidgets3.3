@@ -3,7 +3,7 @@
 #include "MainWindow.h"
 #include "ViewerParamInit.h"
 #include "ViewerParam.h"
-#include <SqlFaceThumbnail.h>
+#include <ThumbnailDataFace.h>
 #include <SqlFindFacePhoto.h>
 #include <ScrollbarWnd.h>
 #include <InfosSeparationBarFace.h>
@@ -40,25 +40,31 @@ CThumbnailFace::~CThumbnailFace(void)
 	listSeparator.clear();
 }
 
-void CThumbnailFace::OnPictureClick(CThumbnailData* data)
+void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 {
 	auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));
 	if (mainWindow != nullptr)
 	{
 		wxCommandEvent evt(wxEVENT_ONPICTURECLICK);
-		evt.SetExtraLong(data->GetNumPhotoId());
+		evt.SetExtraLong(numPhotoId);
 		mainWindow->GetEventHandler()->AddPendingEvent(evt);
 	}
-
-	CLibPicture libPicture;
-	if (libPicture.TestIsVideo(data->GetFilename()))
+	CIcone* icone = GetIconeById(numPhotoId);
+	if (icone != nullptr)
 	{
-		wxWindow* window = this->FindWindowById(BITMAPWINDOWVIEWERID);
-		if (window != nullptr)
+		if (icone->GetPtData() != nullptr)
 		{
-			wxCommandEvent evt(wxEVENT_SETPOSITION);
-			evt.SetExtraLong(data->GetNumFrame());
-			window->GetEventHandler()->AddPendingEvent(evt);
+			CLibPicture libPicture;
+			if (libPicture.TestIsVideo(icone->GetPtData()->GetFilename()))
+			{
+				wxWindow* window = this->FindWindowById(BITMAPWINDOWVIEWERID);
+				if (window != nullptr)
+				{
+					wxCommandEvent evt(wxEVENT_SETPOSITION);
+					evt.SetExtraLong(icone->GetPtData()->GetNumFrame());
+					window->GetEventHandler()->AddPendingEvent(evt);
+				}
+			}
 		}
 	}
 }
@@ -87,15 +93,18 @@ void CThumbnailFace::AddSeparatorBar(CIconeList* iconeListLocal, const wxString&
 				icone = iconeListLocal->GetElement(j);
 				if (icone != nullptr)
 				{
-					auto data = static_cast<CSqlFaceThumbnail*>(icone->GetData());
-					if (data != nullptr)
+					if (icone->GetPtData() != nullptr)
 					{
-						if (data->GetFilename() == numFace.faceFilePath && numFace.numFace == data->GetNumFace())
+						auto data = static_cast<CThumbnailDataFace*>(icone->GetPtData());
+						if (data != nullptr)
 						{
-							find = true;
-							data->SetNumElement(local_nbElement + i);
-							icone->SetNumElement(data->GetNumElement());
-							break;
+							if (data->GetFilename() == numFace.faceFilePath && numFace.numFace == data->GetNumFace())
+							{
+								find = true;
+								data->SetNumElement(local_nbElement + i);
+								icone->SetNumElement(data->GetNumElement());
+								break;
+							}
 						}
 					}
 				}
@@ -103,7 +112,7 @@ void CThumbnailFace::AddSeparatorBar(CIconeList* iconeListLocal, const wxString&
 
 			if (!find)
 			{
-				auto thumbnailData = new CSqlFaceThumbnail(numFace.faceFilePath, numFace.numFace);
+				auto thumbnailData = new CThumbnailDataFace(numFace.faceFilePath, numFace.numFace);
 				thumbnailData->SetNumPhotoId(numFace.numPhoto);
 				thumbnailData->SetNumElement(local_nbElement + i);
 
@@ -116,10 +125,9 @@ void CThumbnailFace::AddSeparatorBar(CIconeList* iconeListLocal, const wxString&
 				}
 
 
-				auto pBitmapIcone = new CIcone();
+				auto pBitmapIcone = new CIcone(thumbnailData);
 				pBitmapIcone->ShowSelectButton(true);
 				pBitmapIcone->SetNumElement(local_nbElement + i);
-				pBitmapIcone->SetData(thumbnailData);
 				pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 				pBitmapIcone->SetShowDelete(true);
 				pBitmapIcone->SetFilename(numFace.faceFilePath);
@@ -141,7 +149,7 @@ bool CThumbnailFace::ItemCompFonctFindFaceElement(wxString filepath, int numFace
 {
 	if (icone != nullptr)
 	{
-		auto data = static_cast<CSqlFaceThumbnail*>(icone->GetData());
+		auto data = static_cast<CThumbnailDataFace*>(icone->GetPtData());
 		if (data->GetFilename() == filepath && numFace == data->GetNumFace())
 		{
 			return true;
@@ -172,7 +180,7 @@ void CThumbnailFace::InitListFace()
 		CIcone* icone = iconeList->GetElement(i);
 		wxString filename = icone->GetFilename();
 		bool find = false;
-		auto data = static_cast<CSqlFaceThumbnail*>(icone->GetData());
+		auto data = static_cast<CThumbnailDataFace*>(icone->GetPtData());
 
 		for (CFaceFilePath filePath : listPhotoFace)
 		{
@@ -319,9 +327,6 @@ void CThumbnailFace::DeleteEmptyFace()
 //-----------------------------------------------------------------
 void CThumbnailFace::MoveFace(const wxString& faceName)
 {
-	vector<CThumbnailData*> listItem;
-	GetSelectItem(listItem);
-
 	CSqlFaceRecognition faceRecognition;
 	CSqlFaceLabel sqlfaceLabel;
 	int numFace = sqlfaceLabel.GetNumFace(faceName);
@@ -339,7 +344,7 @@ void CThumbnailFace::MoveFace(const wxString& faceName)
 				{
 					if (icone->IsChecked())
 					{
-						auto thumbnailData = static_cast<CSqlFaceThumbnail*>(icone->GetData());
+						auto thumbnailData = static_cast<CThumbnailDataFace*>(icone->GetPtData());
 						int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
 						if (numFaceCompatible != numFace)
 						{
@@ -386,7 +391,7 @@ vector<int> CThumbnailFace::GetFaceSelectID()
 					bool needToMove = false;
 					if (icone->IsChecked())
 					{
-						auto thumbnailData = static_cast<CSqlFaceThumbnail*>(icone->GetData());
+						auto thumbnailData = static_cast<CThumbnailDataFace*>(icone->GetPtData());
 						listFace.push_back(thumbnailData->GetNumFace());
 					}
 				}
@@ -469,7 +474,7 @@ void CThumbnailFace::OnMouseRelease(const int& x, const int& y)
 						bool needToMove = false;
 						if (icone->IsChecked())
 						{
-							auto thumbnailData = static_cast<CSqlFaceThumbnail*>(icone->GetData());
+							auto thumbnailData = static_cast<CThumbnailDataFace*>(icone->GetPtData());
 							int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
 							if (numFaceCompatible != numFace)
 							{
@@ -547,7 +552,7 @@ void CThumbnailFace::OnSelectIcon(wxCommandEvent& event)
 
 void CThumbnailFace::DeleteIcone(CIcone* numSelect)
 {
-	auto face_thumbnail = static_cast<CSqlFaceThumbnail*>(numSelect->GetData());
+	auto face_thumbnail = static_cast<CThumbnailDataFace*>(numSelect->GetPtData());
 	if (face_thumbnail != nullptr)
 	{
 		CSqlFacePhoto facePhoto;

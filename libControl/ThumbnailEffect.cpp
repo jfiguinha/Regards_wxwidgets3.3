@@ -187,18 +187,14 @@ void CThumbnailEffect::SetFile(const wxString& filename, CImageLoadingFormat* im
 	{
 		CInfosSeparationBarEffect* videoEffect = CreateNewSeparatorBar(videoLabelEffect);
 		int numElement = iconeListLocal->GetNbElement();
+		videoEffect->AddPhotoToList(numElement);
 
 		wxImage pBitmap = loadingResource.LoadImageResource("IDB_BLACKROOM");
 		auto thumbnailData = new CThumbnailDataStorage(CFiltreData::GetFilterLabel(IDM_FILTRE_VIDEO));
-		videoEffect->AddPhotoToList(numElement);
-
 		thumbnailData->SetNumPhotoId(IDM_FILTRE_VIDEO);
-
 		thumbnailData->SetBitmap(CLibPicture::mat_from_wx(pBitmap));
 
-		auto pBitmapIcone = new CIcone();
-		pBitmapIcone->SetNumElement(thumbnailData->GetNumElement());
-		pBitmapIcone->SetData(thumbnailData);
+		auto pBitmapIcone = new CIcone(thumbnailData);
 		pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 		iconeListLocal->AddElement(pBitmapIcone);
 
@@ -327,18 +323,11 @@ void CThumbnailEffect::SetFile(const wxString& filename, CImageLoadingFormat* im
 					break;
 				default: ;
 
-				/*
-	        case HDR_EFFECT:
-	            infosSeparationHDREffect->AddPhotoToList(numElement);
-	            break;
-				*/
 				}
 				break;
 			}
 			thumbnailData->SetNumPhotoId(numEffect);
-			auto pBitmapIcone = new CIcone();
-			pBitmapIcone->SetNumElement(thumbnailData->GetNumElement());
-			pBitmapIcone->SetData(thumbnailData);
+			auto pBitmapIcone = new CIcone(thumbnailData);
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 			iconeListLocal->AddElement(pBitmapIcone);
 		}
@@ -348,18 +337,14 @@ void CThumbnailEffect::SetFile(const wxString& filename, CImageLoadingFormat* im
 		{
 			CInfosSeparationBarEffect* blackRoom = CreateNewSeparatorBar(blackRoomEffect);
 			int numElement = iconeListLocal->GetNbElement();
-			auto thumbnailData = new CThumbnailDataStorage(filename);
-			cv::Mat image = loadingResource.LoadResourceCV("IDB_BLACKROOM");
-			thumbnailData = new CThumbnailDataStorage(CFiltreData::GetFilterLabel(IDM_DECODE_RAW));
 			blackRoom->AddPhotoToList(numElement);
 
+			cv::Mat image = loadingResource.LoadResourceCV("IDB_BLACKROOM");
+			auto thumbnailData = new CThumbnailDataStorage(CFiltreData::GetFilterLabel(IDM_DECODE_RAW));
 			thumbnailData->SetNumPhotoId(IDM_DECODE_RAW);
-
 			thumbnailData->SetBitmap(image);
 
-			auto pBitmapIcone = new CIcone();
-			pBitmapIcone->SetNumElement(thumbnailData->GetNumElement());
-			pBitmapIcone->SetData(thumbnailData);
+			auto pBitmapIcone = new CIcone(thumbnailData);		
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 			iconeListLocal->AddElement(pBitmapIcone);
 		}
@@ -472,7 +457,7 @@ void CThumbnailEffect::ProcessIdle()
 			CIcone *  icone = iconeList->GetElement(i);
 			if (icone != nullptr)
 			{
-				CThumbnailData* pThumbnailData = icone->GetData();
+				CThumbnailData* pThumbnailData = icone->GetPtData();
 				if (pThumbnailData != nullptr)
 				{
 					bool isLoad = pThumbnailData->IsLoad();
@@ -505,7 +490,7 @@ void CThumbnailEffect::ProcessIdle()
 		{
 			bool isLoad = false;
 			bool isProcess = false;
-			CThumbnailData* pThumbnailData = icone->GetData();
+			CThumbnailData* pThumbnailData = icone->GetPtData();
 			if (pThumbnailData != nullptr)
 			{
 				isLoad = pThumbnailData->IsLoad();
@@ -548,7 +533,7 @@ void CThumbnailEffect::UpdateRenderIcone(wxCommandEvent& event)
 				if (icone != nullptr)
 				{
 					bool _localneedToRefresh = false;
-					CThumbnailData* pThumbnailData = icone->GetData();
+					CThumbnailData* pThumbnailData = icone->GetPtData();
 					if (pThumbnailData->GetFilename() == threadLoadingBitmap->filename && icone !=
 						nullptr
 						&& pThumbnailData != nullptr)

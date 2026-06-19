@@ -20,7 +20,7 @@ namespace Regards::Scanner
 		}
 
 	private:
-		void OnPictureClick(CThumbnailData* data) override;
+		void OnPictureClick(const int &numPhotoId) override;
 		int FindNumItem(const int& videoPos);
 		void InitWithDefaultPicture(const wxString& filename, vector<CImageVideoThumbnail*>& videoThumbnail);
 		int numItemSelected;

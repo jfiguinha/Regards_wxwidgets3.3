@@ -93,9 +93,6 @@
     <ClInclude Include="SqlFindFacePhoto.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="SqlFaceThumbnail.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="SqlThumbnailVideo.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -155,6 +152,9 @@
     </ClInclude>
     <ClInclude Include="ThumbnailBuffer.h">
       <Filter>Buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailDataFace.h">
+      <Filter>datastructure</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -221,9 +221,6 @@
     <ClCompile Include="SqlFindFacePhoto.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="SqlFaceThumbnail.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
     <ClCompile Include="SqlThumbnailVideo.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
@@ -270,6 +267,9 @@
       <Filter>Buffer</Filter>
     </ClCompile>
     <ClCompile Include="PhotoCriteria.cpp">
+      <Filter>datastructure</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailDataFace.cpp">
       <Filter>datastructure</Filter>
     </ClCompile>
   </ItemGroup>

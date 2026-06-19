@@ -37,7 +37,7 @@ namespace Regards::Viewer
 		void ResizeThumbnailWithoutVScroll();
 
 	private:
-		void OnPictureClick(CThumbnailData* data) override;
+		void OnPictureClick(const int& numPhotoId) override;
 		CIcone *  FindElement(const int& xPos, const int& yPos) override;
 		void RenderIconeWithoutVScroll(wxDC* deviceContext) override;
 

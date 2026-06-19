@@ -1,7 +1,10 @@
 #pragma once
 #include <theme.h>
-//#include <OpenCLEngine.h>
-//using namespace Regards::OpenCL;
+
+#define INACTIFICONE 1
+#define ACTIFICONE 2
+#define SELECTEDICONE 3
+#define USEBACKGROUNDCOLOR 4
 
 class CThumbnailData;
 class CRegardsConfigParam;
@@ -10,17 +13,13 @@ namespace Regards::Window
 {
 	class CWindowMain;
 
-#define INACTIFICONE 1
-#define ACTIFICONE 2
-#define SELECTEDICONE 3
-#define USEBACKGROUNDCOLOR 4
+
 
 	class CIcone
 	{
 	public:
-		CIcone();
-		~CIcone(void);
-
+		CIcone(CThumbnailData * data);
+		~CIcone(void) = default;
 		void StartLoadingPicture();
 		void StopLoadingPicture();
 		void SetPictureLoading(const wxImage& imageLoading);
@@ -38,14 +37,8 @@ namespace Regards::Window
 		void InitPos();
 		void SetPos(const int& x, const int& y);
 
-		CIcone& operator=(const CIcone& other);
-		inline bool operator==(const CIcone& n1);
+		CThumbnailData* GetPtData();
 
-		void SetData(CThumbnailData* thumbnailData);
-		CThumbnailData* GetData();
-
-
-		CThumbnailData* GetCopyData();
 		void SetTheme(CThemeIcone theme);
 
 		void GetBitmapIcone(int& returnValue, const bool& flipHorizontal = false, const bool& flipVertical = false,

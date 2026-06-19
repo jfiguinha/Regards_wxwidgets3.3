@@ -18,7 +18,7 @@ namespace Regards::Scanner
 		vector<int> GetSelectItem();
 
 	protected:
-		void OnPictureClick(CThumbnailData* data) override;
+		void OnPictureClick(const int& numPhotoId) {};
 		void ResizeThumbnail() override;
 
 	private:

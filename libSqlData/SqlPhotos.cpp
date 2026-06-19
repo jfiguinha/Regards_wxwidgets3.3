@@ -148,7 +148,7 @@ int64_t CSqlPhotos::GetPhotoId(const wxString& filepath)
 	photoId = -1;
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(filepath));
-	ExecuteSqlWithStatement("SELECT NumPhoto FROM PHOTOS WHERE FullPath = = ?", parameter);
+	ExecuteSqlWithStatement("SELECT NumPhoto FROM PHOTOS WHERE FullPath = ?", parameter);
 	return photoId;
 }
 

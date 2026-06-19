@@ -29,19 +29,25 @@ CThumbnailMultiPage::~CThumbnailMultiPage(void)
 {
 }
 
-void CThumbnailMultiPage::OnPictureClick(CThumbnailData* data)
+void CThumbnailMultiPage::OnPictureClick(const int& numPhotoId)
 {
-	int timePosition = 0;
-
-	if (parent != nullptr && data != nullptr)
+	if (parent != nullptr)
 	{
-		timePosition = data->GetTimePosition();
-		wxCommandEvent evt(wxEVT_ANIMATIONPOSITION);
-		evt.SetExtraLong(timePosition);
-		parent->GetEventHandler()->AddPendingEvent(evt);
+		CIcone* icone = GetIconeById(numPhotoId);
+		if (icone != nullptr)
+		{
+			if (icone->GetPtData() != nullptr)
+			{
+				int timePosition = icone->GetPtData()->GetTimePosition();
+				wxCommandEvent evt(wxEVT_ANIMATIONPOSITION);
+				evt.SetExtraLong(timePosition);
+				parent->GetEventHandler()->AddPendingEvent(evt);
+			}
+		}
+
 	}
 
-	SetVideoPosition(timePosition);
+	SetVideoPosition(0);
 }
 
 int CThumbnailMultiPage::FindNumItem(const int& videoPos)
@@ -52,7 +58,7 @@ int CThumbnailMultiPage::FindNumItem(const int& videoPos)
 		CIcone *  icone = iconeList->GetElement(i);
 		if (icone != nullptr)
 		{
-			CThumbnailData* data = icone->GetData();
+			CThumbnailData* data = icone->GetPtData();
 			if (data != nullptr)
 			{
 				if (data->GetTimePosition() == videoPos)
@@ -162,9 +168,8 @@ void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
 
 			thumbnailData->SetBitmap(thumbnail->image);
 
-			auto pBitmapIcone = new CIcone();
+			auto pBitmapIcone = new CIcone(thumbnailData);
 			pBitmapIcone->SetNumElement(i);
-			pBitmapIcone->SetData(thumbnailData);
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 			pBitmapIcone->SetWindowPos(x, y);
 

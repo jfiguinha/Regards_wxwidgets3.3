@@ -857,7 +857,7 @@
     <ClInclude Include="SqlFaceLabel.h" />
     <ClInclude Include="SqlFacePhoto.h" />
     <ClInclude Include="SqlFaceRecognition.h" />
-    <ClInclude Include="SqlFaceThumbnail.h" />
+    <ClInclude Include="ThumbnailDataFace.h" />
     <ClInclude Include="SqlFindCatalog.h" />
     <ClInclude Include="SqlFindCriteria.h" />
     <ClInclude Include="SqlFindFacePhoto.h" />
@@ -906,7 +906,7 @@
     <ClCompile Include="SqlFaceLabel.cpp" />
     <ClCompile Include="SqlFacePhoto.cpp" />
     <ClCompile Include="SqlFaceRecognition.cpp" />
-    <ClCompile Include="SqlFaceThumbnail.cpp" />
+    <ClCompile Include="ThumbnailDataFace.cpp" />
     <ClCompile Include="SqlFindCatalog.cpp" />
     <ClCompile Include="SqlFindCriteria.cpp" />
     <ClCompile Include="SqlFindFacePhoto.cpp" />

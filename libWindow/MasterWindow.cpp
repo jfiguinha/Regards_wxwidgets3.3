@@ -5,6 +5,7 @@
 #include <LibResource.h>
 using namespace Regards::Window;
 
+//#define USE_THREAD_IDLE
 
 std::atomic_bool CMasterWindow::endProgram = false;
 tbb::concurrent_vector<CMasterWindow*> CMasterWindow::listMainWindow;
@@ -59,7 +60,11 @@ void CMasterWindow::ThreadIdle(void* data)
 
 void CMasterWindow::ProcessOnIdleEndEvent(wxCommandEvent& event)
 {
+#ifdef USE_THREAD_IDLE
 	windowMainPimpl->DeleteThread();
+#else
+	ProcessIdle();
+#endif
 	processEnd = true;
 }
 

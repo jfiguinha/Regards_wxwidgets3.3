@@ -43,7 +43,7 @@ namespace Regards::Viewer
 		void AddSeparatorBar(CIconeList* iconeListLocal, const wxString& libelle, const CFaceName& faceName,
 		                     const std::vector<CFaceFilePath>& listPhotoFace, int& nbElement);
 		CIcone *  FindElementWithVScroll(const int& xPos, const int& yPos) override;
-		void OnPictureClick(CThumbnailData* data) override;
+		void OnPictureClick(const int& numPhotoId) override;
 		void FindOtherElement(wxDC* dc, const int& x, const int& y) override;
 
 		CInfosSeparationBar* FindSeparatorElement(const int& xPos, const int& yPos);

@@ -75,7 +75,7 @@ void CThumbnail::EraseThumbnail(wxCommandEvent& event)
 		CIcone* pIcone = iconeList->GetElement(i);
 		if (pIcone != nullptr)
 		{
-			CThumbnailData* pThumbnailData = pIcone->GetData();
+			CThumbnailData* pThumbnailData = pIcone->GetPtData();
 			if (pThumbnailData != nullptr)
 			{
 				pThumbnailData->InitLoadState();
@@ -111,7 +111,7 @@ void CThumbnail::SetCheck(const bool& check)
 	}
 }
 
-void CThumbnail::GetSelectItem(vector<CThumbnailData*>& vectorData)
+void CThumbnail::GetSelectItemFilename(vector<wxString>& vectorData)
 {
 	for (int i = 0; i < nbElementInIconeList; i++)
 	{
@@ -119,7 +119,7 @@ void CThumbnail::GetSelectItem(vector<CThumbnailData*>& vectorData)
 		if (pIcone != nullptr)
 		{
 			if (pIcone->IsChecked())
-				vectorData.push_back(pIcone->GetData());
+				vectorData.push_back(pIcone->GetFilename());
 		}
 	}
 }
@@ -127,7 +127,7 @@ void CThumbnail::GetSelectItem(vector<CThumbnailData*>& vectorData)
 bool CThumbnail::ItemCompFonctPath(wxString filepath, CIcone* icone)
 /* Définit une fonction. */
 {
-	CThumbnailData* pThumbnailData = icone->GetData();
+	CThumbnailData* pThumbnailData = icone->GetPtData();
     if(pThumbnailData != nullptr)
         if (pThumbnailData->GetFilename() == filepath)
             return true;
@@ -145,7 +145,7 @@ bool CThumbnail::ItemCompFonctPhotoId(int xPos, int yPos, CIcone* icone, CWindow
 {
 	if (icone != nullptr)
 	{
-		CThumbnailData* pThumbnailData = icone->GetData();
+		CThumbnailData* pThumbnailData = icone->GetPtData();
 		if (pThumbnailData->GetNumPhotoId() == xPos)
 			return true;
 	}
@@ -594,7 +594,7 @@ void CThumbnail::RefreshAnimatedIcon(int photoId)
 		CIcone* icone = GetIconeById(photoId);
 		if (icone != nullptr)
 		{
-			CThumbnailData* data = icone->GetData();
+			CThumbnailData* data = icone->GetPtData();
 
 			if (libPicture.TestIsVideo(data->GetFilename()) || libPicture.TestIsPDF(data->GetFilename()) ||
 				libPicture.TestIsAnimation(data->GetFilename()))
@@ -664,7 +664,7 @@ void CThumbnail::AfterSetList()
 		CIcone* icone = iconeList->GetElement(i);
 		if (icone != nullptr)
 		{
-			CThumbnailData* data = icone->GetData();
+			CThumbnailData* data = icone->GetPtData();
 			if (numSelectPhotoId == data->GetNumPhotoId())
 			{
 				icone->SetSelected(true);
@@ -697,7 +697,7 @@ void CThumbnail::ExecuteTimer(const int& numId, std::unique_ptr<wxTimer> & refre
 	CIcone* icone = GetIconeById(numId);
 	if (icone != nullptr)
 	{
-		CThumbnailData* data = icone->GetData();
+		CThumbnailData* data = icone->GetPtData();
 
 		if (libPicture.TestIsVideo(data->GetFilename()) || libPicture.TestIsPDF(data->GetFilename()) ||
 			libPicture.TestIsAnimation(data->GetFilename()))
@@ -803,8 +803,8 @@ void CThumbnail::OnMouseMove(wxMouseEvent& event)
 		if (pBitmapIcone != nullptr)
 		{
 
-			if (pBitmapIcone->GetData() != nullptr)
-				iconePhotoId = pBitmapIcone->GetData()->GetNumPhotoId();
+			if (pBitmapIcone->GetPtData() != nullptr)
+				iconePhotoId = pBitmapIcone->GetPtData()->GetNumPhotoId();
 
 			if (numActifPhotoId != -1)
 			{
@@ -847,7 +847,7 @@ void CThumbnail::RefreshThumbnail(wxCommandEvent& event)
 bool CThumbnail::UpdateThumbnail(CIcone* pBitmapIcone)
 {
 	bool isProcess = false;
-	if (CThumbnailData* pThumbnailData = pBitmapIcone->GetData(); pThumbnailData != nullptr)
+	if (CThumbnailData* pThumbnailData = pBitmapIcone->GetPtData(); pThumbnailData != nullptr)
 	{
 		isProcess = pThumbnailData->IsProcess();
 		//const bool isLoad = pThumbnailData->IsLoad();
@@ -890,7 +890,7 @@ void CThumbnail::RenderBitmap(wxDC* deviceContext, CIcone* pBitmapIcone, const i
 		{
 			if (pBitmapIcone != nullptr)
 			{
-				if (CThumbnailData* pThumbnailData = pBitmapIcone->GetData(); pThumbnailData != nullptr)
+				if (CThumbnailData* pThumbnailData = pBitmapIcone->GetPtData(); pThumbnailData != nullptr)
 				{
 					const bool isProcess = pThumbnailData->IsProcess();
 					//const bool isLoad = pThumbnailData->IsLoad();
@@ -925,7 +925,7 @@ void CThumbnail::OnLDoubleClick(wxMouseEvent& event)
 
 	if (CIcone* pBitmapIcone = FindElement(xPos, yPos); pBitmapIcone != nullptr)
 	{
-		auto pThumbnailData = pBitmapIcone->GetData();
+		auto pThumbnailData = pBitmapIcone->GetPtData();
 		if (pThumbnailData != nullptr)
 		{
 			switch (pThumbnailData->GetTypeElement())
@@ -968,9 +968,9 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 	int iconePhotoId = -1;
 	CIcone* pBitmapIcone = FindElement(xPos, yPos);
 	if (pBitmapIcone != nullptr)
-		if (pBitmapIcone->GetData() != nullptr)
+		if (pBitmapIcone->GetPtData() != nullptr)
 		{
-			iconePhotoId = pBitmapIcone->GetData()->GetNumPhotoId();
+			iconePhotoId = pBitmapIcone->GetPtData()->GetNumPhotoId();
 			isIconeSelected = pBitmapIcone->IsChecked();
 		}
 
@@ -990,9 +990,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 		//
 		if (value == 1)
 		{
-			CThumbnailData* data = pBitmapIcone->GetCopyData();
-			OnPictureClick(data);
-			delete data;
+			OnPictureClick(numSelectPhotoId);
 		}
 		else if (value == 2)
 		{
@@ -1000,9 +998,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 		}
 		else
 		{
-			CThumbnailData* data = pBitmapIcone->GetCopyData();
-			OnPictureClick(data);
-			delete data;
+			OnPictureClick(numSelectPhotoId);
 			pBitmapIcone->SetSelected(true);
 		}
 	}

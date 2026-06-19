@@ -22,7 +22,7 @@ namespace Regards::Viewer
 
 	protected:
 
-		void OnPictureClick(CThumbnailData* data) override;
+		void OnPictureClick(const int& numPhotoId) override;
 		void ResizeThumbnail() override;
 		static bool compareFilename(CPhotos i1, CPhotos i2);
 
