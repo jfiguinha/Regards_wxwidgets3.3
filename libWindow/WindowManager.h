@@ -84,5 +84,6 @@ namespace Regards::Window
 		bool showSeparationBar;
 		CThemeSplitter themeSplitter;
 		int separationBarSize = 0;
+		std::unordered_map<Pos, CWindowToAdd*> windows;
 	};
 }
