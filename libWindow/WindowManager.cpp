@@ -365,6 +365,7 @@ void CWindowManager::AddWindow(CWindowToAdd* windowToAdd, Pos position, bool fix
 		else
 			windowToAdd->separationBar = nullptr;
 
+		windows[position] = windowToAdd;
 		listWindow.push_back(windowToAdd);
 	}
 }
@@ -1024,6 +1025,8 @@ void CWindowManager::OnLButtonUp()
 
 CWindowManager::~CWindowManager()
 {
+	for (CWindowToAdd* windowToAdd : listWindow)
+		delete windowToAdd;
 	listWindow.clear();
 }
 
@@ -1033,18 +1036,6 @@ CWindowToAdd* CWindowManager::FindWindow(Pos position)
 	if (it != windows.end())
 		return windows[position];
 
-	for (CWindowToAdd* windowToAdd : listWindow)
-	{
-		if (windowToAdd != nullptr)
-		{
-			if (windowToAdd->position == position)
-			{
-				windows[position] = windowToAdd;
-				return windowToAdd;
-			}
-				
-		}
-	}
 	return nullptr;
 }
 
