@@ -10,6 +10,7 @@ CWaitingWindow::CWaitingWindow(wxWindow* parent, wxWindowID id) : CWindowMain("C
 	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath(), "loading.gif");
 	//m_animation = new wxAnimation(resourcePath + "/loading.gif");
 	m_animationCtrl = std::make_unique<wxAnimationCtrl>(this, wxID_ANY);
+	m_animationCtrl->SetSize(wxSize(640, 480));
 	m_animationCtrl->Show(true);
 	Connect(wxEVT_PAINT, wxPaintEventHandler(CWaitingWindow::on_paint));
 
@@ -47,12 +48,25 @@ void CWaitingWindow::Resize()
 	if (m_animationCtrl->IsShown())
 	{
 		const wxAnimation animation = m_animationCtrl->GetAnimation();
-		const wxSize animationSize = animation.GetSize();
+		if (animation.IsOk())
+		{
+			const wxSize animationSize = animation.GetSize();
 
-		const int xPos = rcAffichageBitmap.x + (GetWindowWidth() / scale_factor - animationSize.GetWidth()) / 2;
-		const int yPos = (GetWindowHeight() / scale_factor - animationSize.GetHeight()) / 2;
+			if (animationSize.GetWidth() <= 0 || animationSize.GetHeight() <= 0)
+				return;
 
-		m_animationCtrl->SetSize(xPos, yPos, animationSize.GetWidth(), animationSize.GetHeight());
+			const int xPos = rcAffichageBitmap.x + (GetWindowWidth() / scale_factor - animationSize.GetWidth()) / 2;
+			const int yPos = (GetWindowHeight() / scale_factor - animationSize.GetHeight()) / 2;
+
+			m_animationCtrl->SetSize(xPos, yPos, animationSize.GetWidth(), animationSize.GetHeight());
+		}
+		else
+		{
+			const wxSize animationSize = wxSize(640, 480);
+			const int xPos = rcAffichageBitmap.x + (GetWindowWidth() / scale_factor - animationSize.GetWidth()) / 2;
+			const int yPos = (GetWindowHeight() / scale_factor - animationSize.GetHeight()) / 2;
+			m_animationCtrl->SetSize(xPos, yPos, animationSize.GetWidth(), animationSize.GetHeight());
+		}
 	}
 };
 
