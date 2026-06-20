@@ -107,7 +107,7 @@ bool CSqlPhotoCriteria::DeleteFolderCriteria(const int64_t& numFolder)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numFolder));
-	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSCRITERIA WHERE NumPhoto in (select NumPhoto from PHOTOS where NumFolderCatalog = ?", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSCRITERIA WHERE NumPhoto in (select NumPhoto from PHOTOS where NumFolderCatalog = ?)", parameter);
 }
 
 bool CSqlPhotoCriteria::DeleteCatalogCriteria(const int64_t& numCatalog)

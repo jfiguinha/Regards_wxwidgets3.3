@@ -73,7 +73,7 @@ wxString CSqlThumbnailVideo::InsertThumbnail(int photoId, const wxString& path, 
 			parameter.push_back(std::make_unique<CSqlInt>(timePosition));
 			parameter.push_back(std::make_unique<CSqlInt>(width));
 			parameter.push_back(std::make_unique<CSqlInt>(height));
-			ExecuteSqlWithStatementNoResult("INSERT INTO VIDEOTHUMBNAIL (NumPhoto, FullPath, numVideo, rotation, percent, timePosition, width, height) VALUES(?, ?, ?, ?, ?, ?,?, ?)", parameter);
+			ExecuteSqlWithStatementNoResult("INSERT INTO VIDEOTHUMBNAIL (NumPhoto, FullPath, numVideo, rotation, percent, timePosition, width, height) VALUES (?, ?, ?, ?, ?, ?,?, ?)", parameter);
 		}
 		
 	}

@@ -95,7 +95,7 @@ void CSqlInsertFile::ImportFileFromFolder(const vector<wxString>& listFile, cons
 				parameter.push_back(std::make_unique<CSqlString>(filename));
 				parameter.push_back(std::make_unique<CSqlInt>(extensionId));
 				parameter.push_back(std::make_unique<CSqlInt>(multifile));
-				ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOS (NumFolderCatalog, FullPath, CriteriaInsert, Process, ExtensionId, Multifiles) VALUES (?, ?, 0, 0, ?, ?", parameter);
+				ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOS (NumFolderCatalog, FullPath, CriteriaInsert, Process, ExtensionId, Multifiles) VALUES (?, ?, 0, 0, ?, ?)", parameter);
 			}
 		}
 	}
@@ -156,7 +156,7 @@ bool CSqlInsertFile::GetPhotoToRemove(vector<int>* listFile, const int& idFolder
 	listPhoto = listFile;
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(idFolder));
-	ExecuteSqlWithStatement("SELECT NumPhoto FROM PHOTOS WHERE NumFolderCatalog = ? and FullPath not in(Select FullPath From PHOTOFOLDER)", parameter);
+	ExecuteSqlWithStatement("SELECT NumPhoto FROM PHOTOS WHERE NumFolderCatalog = ? and FullPath not in (Select FullPath From PHOTOFOLDER)", parameter);
 	return listPhoto->size() > 0 ? true : false;
 }
 
@@ -177,7 +177,7 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 				parameter.push_back(std::make_unique<CSqlInt>(idFolder));
 				parameter.push_back(std::make_unique<CSqlString>(file));
 				parameter.push_back(std::make_unique<CSqlInt>(extensionId));
-				ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOS (NumFolderCatalog, FullPath, CriteriaInsert, Process, ExtensionId) VALUES (? , ?, 0, 0, ?)", parameter);
+				ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOS (NumFolderCatalog, FullPath, CriteriaInsert, Process, ExtensionId) VALUES (?, ?, 0, 0, ?)", parameter);
 			}
 
 			if (dialog != nullptr)

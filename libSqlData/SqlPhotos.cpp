@@ -157,7 +157,7 @@ bool CSqlPhotos::DeletePhoto(const int64_t& numPhoto)
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
 
-	ExecuteSqlWithStatementNoResult("DELETE FROM PHOTO_EXIF WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?", parameter);
+	ExecuteSqlWithStatementNoResult("DELETE FROM PHOTO_EXIF WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?)", parameter);
 	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOS WHERE NumPhoto = ?", parameter);
 }
 
@@ -166,7 +166,7 @@ bool CSqlPhotos::DeletePhotoFolder(const int64_t& idFolder)
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(idFolder));
 
-	ExecuteSqlWithStatementNoResult("DELETE FROM PHOTO_EXIF WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumFolderCatalog = ?", parameter);
+	ExecuteSqlWithStatementNoResult("DELETE FROM PHOTO_EXIF WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumFolderCatalog = ?)", parameter);
 	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOS WHERE NumFolderCatalog = ?", parameter);
 }
 
@@ -174,7 +174,7 @@ bool CSqlPhotos::DeletePhotoCatalog(const int64_t& idCatalog)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(idCatalog));
-	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOS WHERE NUMFOLDERCATALOG in (SELECT NUMFOLDERCATALOG FROM FOLDERCATALOG WHERE NumCatalog = ?", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOS WHERE NUMFOLDERCATALOG in (SELECT NUMFOLDERCATALOG FROM FOLDERCATALOG WHERE NumCatalog = ?)", parameter);
 }
 
 vector<wxString> CSqlPhotos::GetPhotoFromFolder(const int64_t& idFolder)

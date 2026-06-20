@@ -54,7 +54,7 @@ int CSqlFindFacePhoto::GetNbListFaceToRecognize()
 {
 	type = 2;
 	nbFaceList = 0;
-	ExecuteRequest("SELECT count(*) as NbElement FROM FACEPHOTO WHERE FACEPHOTO.NumFace not in(SELECT DISTINCT NumFace From FACE_RECOGNITION)");
+	ExecuteRequest("SELECT count(*) as NbElement FROM FACEPHOTO WHERE FACEPHOTO.NumFace not in (SELECT DISTINCT NumFace From FACE_RECOGNITION)");
 	return nbFaceList;
 }
 
