@@ -25,15 +25,12 @@ namespace Regards::Window
 		void SetPastTime(const int64_t& secondTime);
 
 	private:
-		void PaintNow();
+
 		void OnMouseMove(wxMouseEvent& event);
 		void on_paint(wxPaintEvent& event);
 		void OnLButtonDown(wxMouseEvent& event);
 		void OnLButtonUp(wxMouseEvent& event);
 
-		void OnMouseCaptureLost(wxMouseEvent& event)
-		{
-		};
 		void OnMouseLeave(wxMouseEvent& event);
 
 		void ClickLeftPage(const int& x);

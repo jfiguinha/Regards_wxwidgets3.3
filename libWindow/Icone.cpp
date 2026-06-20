@@ -148,7 +148,8 @@ CIcone::CIcone(CThumbnailData * data) : numElement(0), oldx(0), oldy(0)
 	showDeleted = false;
 	state = INACTIFICONE;
 	isChecked = false;
-	numLib = LIBCPU;
+	config = CParamInit::getInstance();
+
 	if (data != nullptr)
 	{
 		numElement = data->GetNumElement();
@@ -159,14 +160,7 @@ CIcone::CIcone(CThumbnailData * data) : numElement(0), oldx(0), oldy(0)
 		numElement = 0;
 		pThumbnailData = nullptr;
 	}
-	config = CParamInit::getInstance();
-	if (config != nullptr)
-		numLib = config->GetEffectLibrary();
 
-	//photoVector = CLibResource::GetVector(L"IDB_PHOTOTEMP");
-	//deleteVector = CLibResource::GetVector(L"IDB_DELETE");
-	//checkOnVector = CLibResource::GetVector(L"IDB_CHECKBOX_ON");
-	//checkOffVector = CLibResource::GetVector(L"IDB_CHECKBOX_OFF");
 	useBackgroundColor = false;
 	thumbnailIconeCache = config->GetThumbnailIconeCache();
 	redraw = true;

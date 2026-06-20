@@ -20,13 +20,10 @@ CPanelWithClickToolbar::CPanelWithClickToolbar(wxWindow* parent, const wxString&
 	//----------------------------------------------------------------------------------------
 	//Panel Thumbnail Video
 	//----------------------------------------------------------------------------------------
-	paneWindow = new CPane(this, wxID_ANY, this, PANE_WITHCLICKTOOLBAR, themePane, refreshButton);
+	paneWindow = std::make_unique<CPane>(this, wxID_ANY, this, PANE_WITHCLICKTOOLBAR, themePane, refreshButton);
 	paneWindow->SetTitle(paneLibelle);
-	//vertical = true;
-	clickWindow = new CClickToolbar(this, wxID_ANY, themeToolbar, this, PANE_WITHCLICKTOOLBAR, vertical);
+	clickWindow = std::make_unique<CClickToolbar>(this, wxID_ANY, themeToolbar, this, PANE_WITHCLICKTOOLBAR, vertical);
 
-	//#define wxEVENT_SHOWPANE 214
-	//#define wxEVENT_CLOSEPANE 215
 	Connect(wxEVENT_SHOWPANE, wxCommandEventHandler(CPanelWithClickToolbar::ShowPane));
 	Connect(wxEVENT_CLOSEPANE, wxCommandEventHandler(CPanelWithClickToolbar::ClosePaneEvent));
 	Connect(wxEVENT_REFRESHDATA, wxCommandEventHandler(CPanelWithClickToolbar::RefreshData));
@@ -73,14 +70,14 @@ void CPanelWithClickToolbar::ClosePaneEvent(wxCommandEvent& event)
 
 wxWindow* CPanelWithClickToolbar::GetPaneWindow()
 {
-	return paneWindow;
+	return paneWindow.get();
 }
 
 wxWindow* CPanelWithClickToolbar::GetWindow()
 {
 	if (isPanelVisible)
-		return paneWindow;
-	return clickWindow;
+		return paneWindow.get();
+	return clickWindow.get();
 }
 
 
@@ -110,7 +107,7 @@ void CPanelWithClickToolbar::SetWindow(CWindowMain* windowMain)
 	}
 
 	mainWindow = windowMain;
-	mainWindow->Reparent(paneWindow);
+	mainWindow->Reparent(paneWindow.get());
 	paneWindow->SetOtherWindow(windowMain);
 
 	if (needToResize)
@@ -122,8 +119,7 @@ void CPanelWithClickToolbar::SetWindow(CWindowMain* windowMain)
 
 CPanelWithClickToolbar::~CPanelWithClickToolbar()
 {
-	delete(clickWindow);
-	delete(paneWindow);
+
 }
 
 void CPanelWithClickToolbar::UpdateScreenRatio()
@@ -238,13 +234,6 @@ void CPanelWithClickToolbar::HidePanel(const bool& refresh)
 	this->Show(false);
 	clickWindow->Show(false);
 	paneWindow->Show(false);
-	/*
-	if(refresh)
-	{
-		wxCommandEvent* event = new wxCommandEvent(wxEVENT_RESIZE);
-		wxQueueEvent(this->GetParent(), event);
-	}
-	*/
 }
 
 void CPanelWithClickToolbar::ShowPanel()

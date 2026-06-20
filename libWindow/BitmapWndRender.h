@@ -124,17 +124,7 @@ namespace Regards::Window
 
 		void SetEndProgram(const bool& endProgram) override;
 
-		void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
-		void OnPaint2D(wxWindow* gdi) override;
-		void OnMouseMove(wxMouseEvent& event) override;
-		void OnLButtonDown(wxMouseEvent& event) override;
-		void OnRButtonDown(wxMouseEvent& event) override;
-		void OnLButtonUp(wxMouseEvent& event) override;
-		void OnLDoubleClick(wxMouseEvent& event) override;
-		void OnMouseWheel(wxMouseEvent& event) override;
-		void OnKeyDown(wxKeyEvent& event) override;
-		void OnKeyUp(wxKeyEvent& event) override;
-		void OnIdle(wxIdleEvent& evt) override;
+
 		
 		bool UpdateExifInfos();
 
@@ -160,6 +150,20 @@ namespace Regards::Window
 		void SetTabValue(const std::vector<int>& value);
 
 	protected:
+
+		void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
+		void OnPaint2D(wxWindow* gdi) override;
+		void OnMouseMove(wxMouseEvent& event) override;
+		void OnLButtonDown(wxMouseEvent& event) override;
+		void OnRButtonDown(wxMouseEvent& event) override;
+		void OnLButtonUp(wxMouseEvent& event) override;
+		void OnLDoubleClick(wxMouseEvent& event) override;
+		void OnMouseWheel(wxMouseEvent& event) override;
+		void OnKeyDown(wxKeyEvent& event) override;
+		void OnKeyUp(wxKeyEvent& event) override;
+		void OnIdle(wxIdleEvent& evt) override;
+
+
 		virtual void OnTransitionBitmap(wxCommandEvent& event);
 		virtual void OnUpdateBitmap(wxCommandEvent& event);
 		virtual void OnSetBitmap(wxCommandEvent& event);

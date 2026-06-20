@@ -29,11 +29,6 @@ int CSqlThumbnail::GetThumbnailId(const wxString& path)
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(path));
 	ExecuteSqlWithStatement("SELECT NumPhoto FROM PHOTOSTHUMBNAIL WHERE FullPath = ?", parameter);
-
-	if (numPhoto == -1)
-	{
-		DeleteThumbnail(path);
-	}
 	return numPhoto;
 }
 

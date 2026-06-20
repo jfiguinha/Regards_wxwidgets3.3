@@ -50,13 +50,13 @@ bool CSqlThumbnailVideo::TestThumbnail(const int& numPhoto, const int& numVideo)
 }
 
 
-wxString CSqlThumbnailVideo::InsertThumbnail(const wxString& path, const int& width,
+wxString CSqlThumbnailVideo::InsertThumbnail(int photoId, const wxString& path, const int& width,
                                          const int& height, const int& numPicture, const int& rotation,
                                          const int& percent, const int& timePosition)
 {
 	wxString thumbnail = "";
-	CSqlPhotos SqlPhotos;
-	int photoId = SqlPhotos.GetPhotoId(path);
+	//CSqlPhotos SqlPhotos;
+	//int photoId = SqlPhotos.GetPhotoId(path);
 
 	if (photoId != -1)
 	{
@@ -73,21 +73,20 @@ wxString CSqlThumbnailVideo::InsertThumbnail(const wxString& path, const int& wi
 			parameter.push_back(std::make_unique<CSqlInt>(timePosition));
 			parameter.push_back(std::make_unique<CSqlInt>(width));
 			parameter.push_back(std::make_unique<CSqlInt>(height));
-			ExecuteSqlWithStatementNoResult("INSERT INTO VIDEOTHUMBNAIL (NumPhoto, FullPath, numVideo, rotation, percent, timePosition, width, height) VALUES(?, ?, ?, ?, ?, ?,?, ?", parameter);
+			ExecuteSqlWithStatementNoResult("INSERT INTO VIDEOTHUMBNAIL (NumPhoto, FullPath, numVideo, rotation, percent, timePosition, width, height) VALUES(?, ?, ?, ?, ?, ?,?, ?)", parameter);
 		}
 		
 	}
 	return thumbnail;
 }
 
-void CSqlThumbnailVideo::GetPictureThumbnail(const wxString& path, const int& numVideo,
+void CSqlThumbnailVideo::GetPictureThumbnail(int photoId, const wxString& path, const int& numVideo,
                                              CImageVideoThumbnail* & videoThumbnail)
 {
 	if (videoThumbnail != nullptr)
 	{
 		this->videoThumbnail = videoThumbnail;
-		CSqlPhotos SqlPhotos;
-		int photoId = SqlPhotos.GetPhotoId(path);
+
 		if (photoId != -1)
 		{
 			type = 1;
@@ -111,13 +110,10 @@ void CSqlThumbnailVideo::GetPictureThumbnail(const wxString& path, const int& nu
 	}
 }
 
-cv::Mat CSqlThumbnailVideo::GetThumbnail(const wxString& path, const int& numVideo, bool & isDefault)
+cv::Mat CSqlThumbnailVideo::GetThumbnail(int photoId, const wxString& path, const int& numVideo, bool & isDefault)
 {
 	cv::Mat image;
-	wxLogNull logNo;
-	CSqlPhotos SqlPhotos;
 	isDefault = true;
-	int photoId = SqlPhotos.GetPhotoId(path);
 	if (photoId != -1)
 	{
 		wxString thumbnail = CFileUtility::GetVideoThumbnailPath(to_string(photoId), numVideo);
@@ -140,17 +136,6 @@ cv::Mat CSqlThumbnailVideo::GetThumbnail(const wxString& path, const int& numVid
 	return image;
 }
 
-
-bool CSqlThumbnailVideo::DeleteThumbnail(const wxString& path)
-{
-	CSqlPhotos SqlPhotos;
-	int photoId = SqlPhotos.GetPhotoId(path);
-	if (photoId != -1)
-		return DeleteThumbnail(photoId);
-
-	return false;
-
-}
 
 bool CSqlThumbnailVideo::DeleteThumbnail(const int& numPhoto)
 {

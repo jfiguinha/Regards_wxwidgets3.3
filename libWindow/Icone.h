@@ -152,7 +152,6 @@ namespace Regards::Window
 		CRegardsConfigParam* config;
 		wxString filename;
 		int state;
-		int numLib;
 		int width;
 		int height;
 		bool showLoading;

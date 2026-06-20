@@ -7,6 +7,7 @@
 #include <libPicture.h>
 #include <SqlThumbnailVideo.h>
 #include <SqlThumbnail.h>
+#include <SqlPhotos.h>
 #include <ImageVideoThumbnail.h>
 #include <ConvertUtility.h>
 #include <appcontext.h>
@@ -230,12 +231,14 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 
 	CSqlThumbnailVideo sqlThumbnailVideo;
 	int nbResult = sqlThumbnailVideo.GetNbThumbnail(szFileName);
+	CSqlPhotos SqlPhotos;
+	int photoId = SqlPhotos.GetPhotoId(videoFilename);
 	if (nbResult > 0)
 	{
 		for (int i = 0; i < nbResult; i++)
 		{
 			auto thumbnail = new CImageVideoThumbnail();
-			sqlThumbnailVideo.GetPictureThumbnail(szFileName, i, thumbnail);
+			sqlThumbnailVideo.GetPictureThumbnail(photoId, szFileName, i, thumbnail);
 			thumbnail->percent = (static_cast<float>(i) / static_cast<float>(nbResult)) * 100.0f;
 			//thumbnail->timePosition = i;
 
@@ -395,28 +398,33 @@ void CThumbnailVideo::LoadVideoThumbnail(void * param)
 	if (listVideo.size() > 0)
 	{
 		CSqlThumbnailVideo sqlThumbnailVideo;
-
-		//int selectPicture = listVideo.size() / 2;
-		for (int i = 0; i < listVideo.size(); i++)
+		CSqlPhotos SqlPhotos;
+		wxString filename = threadLoadingBitmap->filename; // bitmap->image->GetFilename();
+		int photoId = SqlPhotos.GetPhotoId(filename);
+		if (photoId != -1)
 		{
-			CImageVideoThumbnail* bitmap = listVideo[i];
-			wxString filename = threadLoadingBitmap->filename; // bitmap->image->GetFilename();
-
-			if (!bitmap->image.empty())
+			for (int i = 0; i < listVideo.size(); i++)
 			{
-				wxString localName = sqlThumbnailVideo.InsertThumbnail(filename, bitmap->image.size().width,
-					bitmap->image.size().height, i, bitmap->rotation, bitmap->percent,
-					bitmap->timePosition);
+				CImageVideoThumbnail* bitmap = listVideo[i];
 
-				cv::imwrite(CConvertUtility::ConvertToStdString(localName), bitmap->image);
-				//bitmap->image.SaveFile(localName, wxBITMAP_TYPE_JPEG);
+
+				if (!bitmap->image.empty())
+				{
+					wxString localName = sqlThumbnailVideo.InsertThumbnail(photoId, filename, bitmap->image.size().width,
+						bitmap->image.size().height, i, bitmap->rotation, bitmap->percent,
+						bitmap->timePosition);
+
+					cv::imwrite(CConvertUtility::ConvertToStdString(localName), bitmap->image);
+					//bitmap->image.SaveFile(localName, wxBITMAP_TYPE_JPEG);
+				}
+
+
+				if (i == 0)
+					threadLoadingBitmap->bitmapIcone = bitmap->image;
+
 			}
-
-
-			if (i == 0)
-				threadLoadingBitmap->bitmapIcone = bitmap->image;
-
 		}
+
 		threadLoadingBitmap->isAnimationOrVideo = true;
 	}
 	else //Not support video
@@ -425,11 +433,15 @@ void CThumbnailVideo::LoadVideoThumbnail(void * param)
 		wxString filename = threadLoadingBitmap->filename;
 
 		//wxBitmap bitmap = wxBitmap(defaultPicture);
+		CSqlPhotos SqlPhotos;
+		int photoId = SqlPhotos.GetPhotoId(filename);
+		if (photoId != -1)
+		{
+			CSqlThumbnailVideo sqlThumbnailVideo;
+			wxString localName = sqlThumbnailVideo.InsertThumbnail(photoId, filename, application_context.GetWxDefaultPicture().GetWidth(), application_context.GetWxDefaultPicture().GetHeight(), 0, 0, 0, 0);
+			application_context.GetWxDefaultPicture().SaveFile(localName, wxBITMAP_TYPE_JPEG);
+		}
 
-
-		CSqlThumbnailVideo sqlThumbnailVideo;
-		wxString localName = sqlThumbnailVideo.InsertThumbnail(filename, application_context.GetWxDefaultPicture().GetWidth(), application_context.GetWxDefaultPicture().GetHeight(), 0, 0, 0, 0);
-		application_context.GetWxDefaultPicture().SaveFile(localName, wxBITMAP_TYPE_JPEG);
 	}
 
 	for (CImageVideoThumbnail* bitmap : listVideo)
@@ -449,6 +461,8 @@ void CThumbnailVideo::UpdateVideoThumbnail()
 	{
 		CSqlThumbnailVideo sqlThumbnailVideo;
 		int nbResult = sqlThumbnailVideo.GetNbThumbnail(videoFilename);
+		CSqlPhotos SqlPhotos;
+		int photoId = SqlPhotos.GetPhotoId(videoFilename);
 		if (nbResult > 0)
 		{
 			for (int i = 0; i < nbResult; i++)
@@ -460,7 +474,7 @@ void CThumbnailVideo::UpdateVideoThumbnail()
                     if (thumbnailData != nullptr) 
                     {
                         auto thumbnail = new CImageVideoThumbnail();
-                        sqlThumbnailVideo.GetPictureThumbnail(videoFilename, i, thumbnail);
+                        sqlThumbnailVideo.GetPictureThumbnail(photoId, videoFilename, i, thumbnail);
                         thumbnail->percent = static_cast<float>(i) / static_cast<float>(nbResult) * 100.0f;
                             
                         if (!thumbnail->image.empty())
@@ -500,8 +514,11 @@ void CThumbnailVideo::EraseThumbnail(long value)
 
 	if (value == 1)
 	{
+		CSqlPhotos SqlPhotos;
+		int photoId = SqlPhotos.GetPhotoId(videoFilename);
+
 		CSqlThumbnailVideo sqlThumbnailvideo;
-		sqlThumbnailvideo.DeleteThumbnail(videoFilename);
+		sqlThumbnailvideo.DeleteThumbnail(photoId);
 
 		CSqlThumbnail sqlThumbnail;
 		sqlThumbnail.DeleteThumbnail(videoFilename);
