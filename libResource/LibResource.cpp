@@ -7,11 +7,11 @@
 #include <SqlEngine.h>
 #include <ConvertUtility.h>
 #include <FileUtility.h>
-#include <libPicture.h>
-#include <wx/sstream.h>
-#include <RegardsConfigParam.h>
 #include <ParamInit.h>
+#include <libPicture.h>
+#include <RegardsConfigParam.h>
 #include <wx/filename.h>
+#include <wx/textfile.h>
 using namespace Regards::Sqlite;
 
 wxString CLibResource::GetPhotoCancel()
@@ -32,7 +32,28 @@ void CLibResource::KillSqlEngine()
 {
 	CSqlEngine::kill(L"ResourceDB");
 }
+wxString CLibResource::ReadFile(const wxString& fileName)
+{
+	wxString text;
 
+	//Read data from filepath
+	// open the file
+	wxTextFile tfile;
+	tfile.Open(fileName);
+
+	// read the first line
+	text.append(tfile.GetFirstLine());
+	text.append("\n");
+	// read all lines one by one
+	// until the end of the file
+	while (!tfile.Eof())
+	{
+		text.append(tfile.GetNextLine());
+		text.append("\n");
+	}
+
+	return text;
+}
 
 
 vector<wxString> CLibResource::GetSavePictureFormat()
@@ -50,7 +71,10 @@ vector<wxString> CLibResource::GetSavePictureExtension()
 wxImage CLibResource::CreatePictureFromSVG(const wxString& idName, const int& buttonWidth, const int& buttonHeight)
 {
 	CSqlResource sqlResource;
-	return Regards::Picture::CLibPicture::CreatePictureFromSVGFilename(sqlResource.GetVectorFromFile(idName), buttonWidth, buttonHeight);
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	resourcePath.AppendDir("vector");
+	resourcePath.SetFullName(sqlResource.GetVectorFromFile(idName));
+	return Regards::Picture::CLibPicture::CreatePictureFromSVGFilename(resourcePath.GetFullPath(), buttonWidth, buttonHeight);
 }
 
 wxString CLibResource::LoadBitmapFromResource(const wxString& idName)
@@ -76,7 +100,10 @@ wxString CLibResource::LoadStringFromResource(const wxString& idName, const int&
 wxString CLibResource::GetVector(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	return sqlResource.GetVectorFromFile(idName);
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	resourcePath.AppendDir("vector");
+	resourcePath.SetFullName(sqlResource.GetVectorFromFile(idName));
+	return ReadFile(resourcePath.GetFullPath());
 }
 
 int CLibResource::GetExtensionId(const wxString& extension)
@@ -86,22 +113,22 @@ int CLibResource::GetExtensionId(const wxString& extension)
 	return id;
 }
 
-
-
 wxString CLibResource::GetOpenGLShaderProgram(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	return sqlResource.GetOpenGLFromFile(idName);
-}
-
-wxString CLibResource::GetOpenCLFloatProgram(const wxString& idName)
-{
-	CSqlResource sqlResource;
-	return sqlResource.GetOpenCLFloatFromFile(idName);
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	resourcePath.AppendDir("shader");
+	resourcePath.AppendDir("opengl");
+	resourcePath.SetFullName(sqlResource.GetOpenGLFromFile(idName));
+	return ReadFile(resourcePath.GetFullPath());
 }
 
 wxString CLibResource::GetOpenCLUcharProgram(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	return sqlResource.GetOpenCLUcharFromFile(idName);
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	resourcePath.AppendDir("shader");
+	resourcePath.AppendDir("opencl_uchar");
+	resourcePath.SetFullName(sqlResource.GetOpenCLUcharFromFile(idName));
+	return ReadFile(resourcePath.GetFullPath());
 }

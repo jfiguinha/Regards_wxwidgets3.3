@@ -34,14 +34,7 @@ void CSeparationBar::SetHorizontal(const bool& horizontal)
 
 void CSeparationBar::OnMouseHover(wxMouseEvent& event)
 {
-	if (horizontal)
-	{
-		wxSetCursor(wxCursor(wxCURSOR_SIZENS));
-	}
-	else
-	{
-		wxSetCursor(wxCursor(wxCURSOR_SIZEWE));
-	}
+	wxSetCursor(wxCursor(horizontal ? wxCURSOR_SIZENS : wxCURSOR_SIZEWE));
 }
 
 void CSeparationBar::OnMouseMove(wxMouseEvent& event)

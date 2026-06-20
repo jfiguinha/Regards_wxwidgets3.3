@@ -17,7 +17,6 @@ public:
 	static wxString LoadBitmapFromResource(const wxString& idName);
 	static wxString LoadStringFromResource(const wxString& idName, const int& idLang);
 	static wxString GetOpenGLShaderProgram(const wxString& idName);
-	static wxString GetOpenCLFloatProgram(const wxString& idName);
 	static wxString GetOpenCLUcharProgram(const wxString& idName);
 	static wxString GetVector(const wxString& idName);
 
@@ -26,4 +25,5 @@ public:
 	static vector<wxString> GetSavePictureFormat();
 	static vector<wxString> GetSavePictureExtension();
 	static wxString GetPhotoCancel();
+	static wxString ReadFile(const wxString& fileName);
 };

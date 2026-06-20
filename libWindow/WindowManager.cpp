@@ -72,11 +72,11 @@ void CWindowManager::UpdateScreenRatio()
 			if (windowToAdd->GetMasterWindowPt() != nullptr)
 				windowToAdd->GetMasterWindowPt()->UpdateScreenRatio();
 
-			if (windowToAdd->separationBar != nullptr)
-			{
-				if (windowToAdd->separationBar->separationBar != nullptr)
-					windowToAdd->separationBar->separationBar->UpdateScreenRatio();
-			}
+
+			CSeparationBar* separationBar = GetSeparationBar(windowToAdd);
+
+			if (separationBar != nullptr)
+				separationBar->UpdateScreenRatio();
 		}
 	}
 }
@@ -95,13 +95,11 @@ void CWindowManager::OnResize(wxCommandEvent& event)
 			{
 				if (value == 1) //Show
 				{
-					//windowToAdd->fixe = false;
+					CSeparationBar* separationBar = GetSeparationBar(windowToAdd);
 
-					if (windowToAdd->separationBar != nullptr)
-					{
-						if (windowToAdd->separationBar->separationBar != nullptr)
-							windowToAdd->separationBar->separationBar->Show(true);
-					}
+					if (separationBar != nullptr)
+						separationBar->Show(true);
+					
 
 					windowToAdd->rect = windowToAdd->rect_old;
 					windowToAdd->fixe = windowToAdd->fixe_old;
@@ -116,11 +114,11 @@ void CWindowManager::OnResize(wxCommandEvent& event)
 					windowToAdd->diffWidth = 0;
 					windowToAdd->diffHeight = 0;
 					windowToAdd->size_old = windowToAdd->size;
-					if (windowToAdd->separationBar != nullptr)
-					{
-						if (windowToAdd->separationBar->separationBar != nullptr)
-							windowToAdd->separationBar->separationBar->Show(false);
-					}
+
+					CSeparationBar* separationBar = GetSeparationBar(windowToAdd);
+					if (separationBar != nullptr)
+						separationBar->Show(false);
+					
 
 					windowToAdd->rect_old = windowToAdd->rect;
 
@@ -189,11 +187,11 @@ void CWindowManager::HideWindow(Pos position, const bool& refresh)
 			{
 				window->isHide = true;
 				_wnd->Show(false);
-				if (window->separationBar != nullptr)
-				{
-					if (window->separationBar->separationBar != nullptr)
-						window->separationBar->separationBar->Show(false);
-				}
+
+				CSeparationBar* separationBar = GetSeparationBar(window);
+				if (separationBar != nullptr)
+					separationBar->Show(false);
+
 				if (window->isPanel)
 				{
 					window->GetPanel()->Show(false);
@@ -297,14 +295,11 @@ void CWindowManager::ShowWindow(Pos position, const bool& refresh)
 			needTorefresh = true;
 			window->isHide = false;
 			window->GetWindow()->Show(true);
-			if (window->separationBar != nullptr)
-			{
-				if (window->separationBar->separationBar != nullptr)
-				{
-					if (!window->fixe)
-						window->separationBar->separationBar->Show(true);
-				}
-			}
+
+			CSeparationBar* separationBar = GetSeparationBar(window);
+			if (separationBar != nullptr)
+				separationBar->Show(true);
+
 			if (window->isPanel)
 			{
 				window->GetPanel()->Show(true);
@@ -993,8 +988,9 @@ void CWindowManager::SetSeparationBarVisible(const bool& visible)
 {
 	for (CWindowToAdd* windowToAdd : listWindow)
 	{
-		if (windowToAdd->separationBar != nullptr)
-			windowToAdd->separationBar->separationBar->Show(visible);
+		CSeparationBar* separationBar = GetSeparationBar(windowToAdd);
+		if (separationBar != nullptr)
+			separationBar->Show(visible);
 	}
 	showSeparationBar = visible;
 }
@@ -1209,6 +1205,7 @@ void CWindowManager::SetNewPosition(CSeparationBar* separationBar)
 	{
 		if (windowToAdd != nullptr)
 		{
+
 			if (windowToAdd->separationBar != nullptr)
 			{
 				if (windowToAdd->separationBar->separationBarId == separationBar->GetId())
@@ -1345,6 +1342,18 @@ void CWindowManager::DrawSeparationBar(const int& x, const int& y, const int& wi
 	}
 }
 
+CSeparationBar* CWindowManager::GetSeparationBar(CWindowToAdd* window)
+{
+	if (window->separationBar != nullptr)
+	{
+		if (window->separationBar->separationBar != nullptr)
+		{
+			return window->separationBar->separationBar.get();
+		}
+	}
+	return nullptr;
+}
+
 
 void CWindowManager::AddDifference(const int& diffWidth, const int& diffHeight, Pos position)
 {
@@ -1373,12 +1382,9 @@ void CWindowManager::AddDifference(const int& diffWidth, const int& diffHeight, 
 
 					if (right->separationBar != nullptr)
 					{
-						if (right->separationBar->separationBar != nullptr)
-						{
-							right->separationBar->posBar += diffWidth;
-							right->separationBar->rect.x += diffWidth;
-							right->separationBar->rect.height += diffHeight;
-						}
+						right->separationBar->posBar += diffWidth;
+						right->separationBar->rect.x += diffWidth;
+						right->separationBar->rect.height += diffHeight;
 					}
 				}
 			}
@@ -1392,12 +1398,7 @@ void CWindowManager::AddDifference(const int& diffWidth, const int& diffHeight, 
 					left->rect.height += diffHeight;
 
 					if (left->separationBar != nullptr)
-					{
-						if (left->separationBar->separationBar != nullptr)
-						{
-							left->separationBar->rect.height += diffHeight;
-						}
-					}
+						left->separationBar->rect.height += diffHeight;
 				}
 			}
 			break;
@@ -1409,12 +1410,7 @@ void CWindowManager::AddDifference(const int& diffWidth, const int& diffHeight, 
 				{
 					top->rect.width += diffWidth;
 					if (top->separationBar != nullptr)
-					{
-						if (top->separationBar->separationBar != nullptr)
-						{
-							top->separationBar->rect.width += diffWidth;
-						}
-					}
+						top->separationBar->rect.width += diffWidth;
 				}
 			}
 			break;
@@ -1428,12 +1424,10 @@ void CWindowManager::AddDifference(const int& diffWidth, const int& diffHeight, 
 					bottom->rect.y += diffHeight;
 					if (bottom->separationBar != nullptr)
 					{
-						if (bottom->separationBar->separationBar != nullptr)
-						{
-							bottom->separationBar->posBar += diffHeight;
-							bottom->separationBar->rect.y += diffHeight;
-							bottom->separationBar->rect.width += diffWidth;
-						}
+						bottom->separationBar->posBar += diffHeight;
+						bottom->separationBar->rect.y += diffHeight;
+						bottom->separationBar->rect.width += diffWidth;
+						
 					}
 				}
 			}
@@ -1493,15 +1487,14 @@ void CWindowManager::Resize()
 			}
 
 
-			if (windowToAdd->separationBar != nullptr)
+			CSeparationBar * separationBar = GetSeparationBar(windowToAdd);
+
+			if (separationBar != nullptr)
 			{
-				if (windowToAdd->separationBar->separationBar != nullptr)
-				{
-					if (windowToAdd->separationBar->separationBar->IsShown())
-						windowToAdd->separationBar->separationBar->SetSize(windowToAdd->separationBar->rect);
-					else
-						windowToAdd->separationBar->separationBar->SetSize(rc);
-				}
+				if (separationBar->IsShown())
+					separationBar->SetSize(windowToAdd->separationBar->rect);
+				else
+					separationBar->SetSize(rc);
 			}
 		}
 	}

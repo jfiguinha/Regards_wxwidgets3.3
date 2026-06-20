@@ -143,10 +143,9 @@ cv::ocl::Program COpenCLContext::GetProgram(const wxString& programName)
         return it->second;
     }
 
-    const wxString kernelSource =
-        CLibResource::GetOpenCLUcharProgram(programName);
+	wxString kernelSource = CLibResource::GetOpenCLUcharProgram(programName);
 
-    cv::ocl::ProgramSource programSource(kernelSource);
+	cv::ocl::ProgramSource programSource(kernelSource.c_str());
 
     cv::ocl::Context context = application_context.clExecCtx.getContext();
 
@@ -529,7 +528,7 @@ void COpenCLContext::CreateDefaultOpenCLContext()
 		cl_uint numPlatforms;
 		cl_platform_id firstPlatformId;
 		cl_context _context = NULL;
-		cl_device_id device;
+		//cl_device_id device;
 		//get Platform and choose first one
 		errNum = clGetPlatformIDs(1, &firstPlatformId, &numPlatforms);
 		if (errNum != CL_SUCCESS || numPlatforms <= 0) {

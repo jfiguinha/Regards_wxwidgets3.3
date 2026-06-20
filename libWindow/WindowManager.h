@@ -50,6 +50,8 @@ namespace Regards::Window
 		vector<CWindowToAdd*> listWindow;
 
 	private:
+
+		CSeparationBar* GetSeparationBar(CWindowToAdd* window);
 		void MoveVertical(int difference, Pos position);
 		void MoveHorizontal(int difference, Pos position);
 		void AddWindow(CWindowToAdd* windowToAdd, Pos position, bool fixe, int size, wxRect rect, int id, bool isPanel,

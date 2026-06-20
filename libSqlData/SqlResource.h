@@ -20,9 +20,7 @@ namespace Regards
 
 			wxString GetVectorFromFile(const wxString& idName);
 			wxString GetLibelle(const wxString& idName, const int& idLang);
-
 			int GetExtensionId(const wxString& extension);
-			wxString GetOpenCLFloatFromFile(const wxString& idName);
 			wxString GetOpenCLUcharFromFile(const wxString& idName);
 			wxString GetOpenGLFromFile(const wxString& idName);
 

@@ -37,16 +37,6 @@ vector<wxString> CSqlResource::GetSavePictureExtension()
 	return list;
 }
 
-wxString CSqlResource::GetOpenCLFloatFromFile(const wxString& idName)
-{
-	text = "";
-	typeResult = 0;
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlString>(idName));
-	ExecuteSqlWithStatement("SELECT FilePath FROM OpenclFloatResource WHERE idName = ?", parameter);
-	return text;
-}
-
 wxString CSqlResource::GetOpenCLUcharFromFile(const wxString& idName)
 {
 	text = "";
@@ -101,18 +91,21 @@ wxString CSqlResource::GetLibelle(const wxString& idName, const int& idLang)
 int CSqlResource::TraitementResult(CSqlResult* sqlResult)
 {
 	int nbResult = 0;
-	switch (typeResult)
+	while (sqlResult->Next())
 	{
-	case 0:
-		text = sqlResult->ColumnDataText(0);
-		break;
-	case 1:
-		list.push_back(sqlResult->ColumnDataText(0));
-		break;
-	case 2:
-		id = sqlResult->ColumnDataInt(0);
-		break;
-	default: ;
+		switch (typeResult)
+		{
+		case 0:
+			text = sqlResult->ColumnDataText(0);
+			break;
+		case 1:
+			list.push_back(sqlResult->ColumnDataText(0));
+			break;
+		case 2:
+			id = sqlResult->ColumnDataInt(0);
+			break;
+		default:;
+		}
 	}
 
 	return nbResult;
