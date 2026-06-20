@@ -50,19 +50,15 @@ vector<wxString> CLibResource::GetSavePictureExtension()
 wxImage CLibResource::CreatePictureFromSVG(const wxString& idName, const int& buttonWidth, const int& buttonHeight)
 {
 	CSqlResource sqlResource;
-	return Regards::Picture::CLibPicture::CreatePictureFromSVGFilename(sqlResource.GetFilepath(idName), buttonWidth, buttonHeight);
-}
-
-wxString CLibResource::LoadExifNameFromResource(const wxString& id)
-{
-	CSqlResource sqlResource;
-	return sqlResource.GetExifLibelle(id);
+	return Regards::Picture::CLibPicture::CreatePictureFromSVGFilename(sqlResource.GetVectorFromFile(idName), buttonWidth, buttonHeight);
 }
 
 wxString CLibResource::LoadBitmapFromResource(const wxString& idName)
 {
-	CSqlResource sqlResource;
-	return sqlResource.GetBitmapResourcePath(idName);
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	resourcePath.AppendDir("bitmap");
+	resourcePath.SetFullName(idName + ".png");
+	return resourcePath.GetFullPath();
 }
 
 wxString CLibResource::LoadStringFromResource(const wxString& idName, const int& idLang)
@@ -90,11 +86,7 @@ int CLibResource::GetExtensionId(const wxString& extension)
 	return id;
 }
 
-wxString CLibResource::GetOpenGLShaderFromDB(const wxString& idName)
-{
-	CSqlResource sqlResource;
-	return  sqlResource.GetText(idName);
-}
+
 
 wxString CLibResource::GetOpenGLShaderProgram(const wxString& idName)
 {
