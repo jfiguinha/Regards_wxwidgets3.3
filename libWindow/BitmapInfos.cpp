@@ -368,9 +368,8 @@ void CBitmapInfos::DrawInformations(wxDC* dc)
 
 void CBitmapInfos::on_paint(wxPaintEvent& event)
 {
-	int width = GetWindowWidth();
-	int height = GetWindowHeight();
-	if (width <= 0 || height <= 0)
+	wxSize size = GetClientSize();
+	if (size.x <= 0 || size.y <= 0)
 		return;
 
 	wxBufferedPaintDC dc(this);

@@ -1089,6 +1089,10 @@ void CThumbnail::StopLoadingPicture(wxCommandEvent& event)
 
 void CThumbnail::on_paint(wxPaintEvent& event)
 {
+	wxSize size = GetClientSize();
+	if (size.x <= 0 || size.y <= 0)
+		return;
+
 	wxBufferedPaintDC dc(this);
 	Render(dc);
 }

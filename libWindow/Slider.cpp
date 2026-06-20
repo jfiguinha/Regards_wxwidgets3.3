@@ -261,11 +261,11 @@ void CSlider::OnMouseLeave(wxMouseEvent& event)
 
 void CSlider::on_paint(wxPaintEvent& event)
 {
-	wxBufferedPaintDC dc(this);
-
 	wxSize size = GetClientSize();
 	if (size.x <= 0 || size.y <= 0)
 		return;
+
+	wxBufferedPaintDC dc(this);
 
 	Draw(&dc);
 }

@@ -70,11 +70,11 @@ void CBitmapInfosGps::DrawInformations(wxDC* dc)
 
 void CBitmapInfosGps::on_paint(wxPaintEvent& event)
 {
-	wxBufferedPaintDC dc(this);
-
 	wxSize size = GetClientSize();
 	if (size.x <= 0 || size.y <= 0)
 		return;
+
+	wxBufferedPaintDC dc(this);
 
 	DrawInformations(&dc);
 }

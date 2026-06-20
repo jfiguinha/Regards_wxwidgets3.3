@@ -92,7 +92,7 @@ wxString CSqlResource::GetLibelle(const wxString& idName, const int& idLang)
 	typeResult = 0;
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(idName));
-	parameter.push_back(std::make_unique<CSqlInt>(idName));
+	parameter.push_back(std::make_unique<CSqlInt>(idLang));
 	ExecuteSqlWithStatement("SELECT libelle FROM StringResource WHERE idName = ? and language = ?", parameter);
 	return text;
 }
