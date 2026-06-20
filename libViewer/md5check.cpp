@@ -26,6 +26,7 @@ void CMd5Check::CheckMD5(void* param)
 	if (path != nullptr)
 	{
 		CSqlThumbnail sqlThumbnail;
+		CSqlPhotos SqlPhotos;
 		CSqlThumbnailVideo sqlThumbnailVideo;
 		wxFileName file(path->filename);
 		wxULongLong sizeFile = file.GetSize();
@@ -34,7 +35,7 @@ void CMd5Check::CheckMD5(void* param)
 		bool result = sqlThumbnail.TestThumbnail(path->filename, md5file);
 		if (!result)
 		{
-			CSqlPhotos SqlPhotos;
+			
 			int photoId = SqlPhotos.GetPhotoId(path->filename);
 
 			//Remove thumbnail

@@ -8,7 +8,7 @@ namespace Regards::Window
 	{
 	public:
 		CTreeElementTexte();
-		~CTreeElementTexte() override;
+		~CTreeElementTexte() = default;
 
 		CTreeElementTexte& operator=(const CTreeElementTexte& other);
 
@@ -26,7 +26,7 @@ namespace Regards::Window
 		void MouseOver(wxDC* deviceContext, const int& x, const int& y, bool& update) override;
 		void DrawElement(wxDC* deviceContext, const int& x, const int& y) override;
 		void SetLibelle(const wxString& libelle);
-		void SetClick(const bool& value);
+
 		void SetTheme(CThemeTreeTexte* theme);
 		void SetPosition(const int& position);
 
@@ -43,12 +43,14 @@ namespace Regards::Window
 	protected:
 		void DrawText(wxDC* dc, const int& xPos, const int& yPos);
 		wxSize GetSizeText();
-
-		static mutex muTexteSize;
+		void GenerateFont();
+		bool textSizeValid;
 		bool canUpdate;
-		bool isClick;
 		wxString libelle;
 		int position;
+		wxFont font;
+		bool isFontOk = false;
+		wxSize cachedTextSize;
 		CThemeTreeTexte themeTexte;
 	};
 }

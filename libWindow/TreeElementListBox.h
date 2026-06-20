@@ -52,9 +52,11 @@ namespace Regards::Window
 	private:
 		wxBitmap CreateTriangle(const int& width, const int& height, const wxColor& color, const wxColor& colorBack);
 		wxString GetPositionValue();
+		void GenerateBitmap(wxDC* deviceContext);
 		void TestMaxMinValue();
+		wxBitmap bitmapBuffer;
 
-
+		bool changeValue = false;
 		CTreeElementSlideInterface* eventInterface;
 		vector<CMetadata> tabValue;
 		wxString exifKey;
