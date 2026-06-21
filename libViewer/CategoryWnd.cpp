@@ -236,6 +236,9 @@ void CCategoryWnd::RenderChildElement(tree<CTreeData*>::sibling_iterator& parent
 		CPositionElement* posElement = nullptr;
 		const int profondeur = tr.depth(it);
 		auto data = static_cast<CTreeDataCategory*>(*it);
+
+	
+
 		if (profondeur == 1 && (!data->GetValue().empty() || it.number_of_children() == 0))
 		{
 			int xPos = widthPosition * (profondeur + 1);

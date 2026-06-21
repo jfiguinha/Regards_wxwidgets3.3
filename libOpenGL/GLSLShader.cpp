@@ -126,7 +126,7 @@ bool GLSLShader::CreateComputeProgram(const wxString& nProgramID_i)
 
 	glCompileShader(m_hComputeHandle);
 
-	if (!check_shader_compile_status(m_hComputeHandle))
+	if (!check_program_link_status(m_hComputeHandle))
 		return false;
 	
 

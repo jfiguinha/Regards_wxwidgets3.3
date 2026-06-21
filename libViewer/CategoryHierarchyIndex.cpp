@@ -4,6 +4,7 @@
 #include "CategoryRepository.h"
 #include <ThumbnailData.h>
 #include <TreeDataCategory.h>
+extern AppContext application_context;
 using namespace Regards::Window;
 using namespace Regards::Viewer;
 
@@ -144,7 +145,8 @@ void CategoryHierarchyIndex::LoadCategorie(int numCategorie,
 
     for (CCriteria& c : criteria)
     {
-        if (c.GetLibelle().empty()) continue;
+        if (c.GetLibelle().empty() || c.GetLibelle().find(application_context.special_key) == 0) 
+            continue;
         AddCategorie(numCatalog, numCategorie, parent, numParent, c.GetLibelle(), c.GetId());
     }
 }
