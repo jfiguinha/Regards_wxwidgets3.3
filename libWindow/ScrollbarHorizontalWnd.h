@@ -4,126 +4,117 @@
 
 namespace Regards::Window
 {
-    class CScrollInterface;
+	class CScrollInterface;
 
-    class CScrollbarHorizontalWnd : public CWindowMain
-    {
-    public:
-        CScrollbarHorizontalWnd(const wxString& windowName, wxWindow* parent, wxWindowID id,
-            const CThemeScrollBar& theme);
-        ~CScrollbarHorizontalWnd() override;
+	class CScrollbarHorizontalWnd : public CWindowMain
+	{
+	public:
+		CScrollbarHorizontalWnd(const wxString& windowName, wxWindow* parent, wxWindowID id,
+		                        const CThemeScrollBar& theme);
+		~CScrollbarHorizontalWnd() override;
 
-        int  GetHeightSize();
+		int GetHeightSize();
 
-        void SetPageSize(int pageSize);
-        int  GetPageSize() const;
-        void SetLineSize(int lineSize);
-        int  GetLineSize() const;
+		void SetPageSize(const int& pageSize);
+		int GetPageSize();
+		void SetLineSize(const int& lineSize);
+		int GetLineSize();
 
-        bool DefineSize(int screenWidth, int pictureWidth);
-        bool SetPosition(int left);
+		bool DefineSize(const int& screenWidth, const int& pictureWidth);
+		bool SetPosition(const int& left);
 
-        int  GetPosition() const;
-        int  GetScreenWidth() const;
-        int  GetPictureWidth() const;
-        bool IsMoving() const;
+		int GetPosition();
 
-        bool UpdateScrollBar(int posLargeur, int screenWidth, int pictureWidth);
+		int GetScreenWidth();
+		int GetPictureWidth();
+		bool IsMoving();
+		bool UpdateScrollBar(const int& posLargeur, const int& screenWidth, const int& pictureWidth);
 
-        void UpdateScreenRatio() override;
-        void SetShowWindow(bool showValue);
+		void UpdateScreenRatio() override;
 
-        void ClickLeftTriangle();
-        void ClickRightTriangle();
-        void ClickLeftPage();
-        void ClickRightPage();
+		void SetShowWindow(const bool& showValue);
 
-    protected:
-        void PaintNow();
-        void DrawElement(wxDC* dc);
+		void ClickLeftTriangle();
+		void ClickRightTriangle();
+		void ClickLeftPage();
+		void ClickRightPage();
 
-        void on_paint(wxPaintEvent& event);
-        void OnMouseMove(wxMouseEvent& event);
-        void OnLButtonDown(wxMouseEvent& event);
-        void OnLButtonUp(wxMouseEvent& event);
-        void OnMouseLeave(wxMouseEvent& event);
-        void OnMouseHover(wxMouseEvent& event);
-        void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
+	protected:
+		void PaintNow();
+		void DrawElement(wxDC* dc);
+		void on_paint(wxPaintEvent& event);
+		void OnMouseMove(wxMouseEvent& event);
+		void OnLButtonDown(wxMouseEvent& event);
+		void OnLButtonUp(wxMouseEvent& event);
+		void OnMouseLeave(wxMouseEvent& event);
+		void OnMouseHover(wxMouseEvent& event);
+		void OnTimerTriangleLeft(wxTimerEvent& event);
+		void OnTimerTriangleRight(wxTimerEvent& event);
+		void OnTimerPageLeft(wxTimerEvent& event);
+		void OnTimerPageRight(wxTimerEvent& event);
+		void OnTimerStopMoving(wxTimerEvent& event);
+		void OnMouseCaptureLost(wxMouseEvent& event);
 
-        void OnTimerTriangleLeft(wxTimerEvent& event);
-        void OnTimerTriangleRight(wxTimerEvent& event);
-        void OnTimerPageLeft(wxTimerEvent& event);
-        void OnTimerPageRight(wxTimerEvent& event);
-        void OnTimerStopMoving(wxTimerEvent& event);
+		void OnEraseBackground(wxEraseEvent& event) override
+		{
+		};
 
-        void OnEraseBackground(wxEraseEvent& /*event*/) override {}
+		void Resize() override;
 
-        void Resize() override;
+		void SendLeftPosition(const int& value);
 
-        void SendLeftPosition(int value) const;
 
-        bool FindLeftTriangle(int x, int y) const;
-        bool FindRightTriangle(int x, int y) const;
-        bool FindRectangleBar(int x, int y) const;
+		bool FindLeftTriangle(const int& yPosition, const int& xPosition);
+		bool FindRightTriangle(const int& yPosition, const int& xPosition);
+		bool FindRectangleBar(const int& yPosition, const int& xPosition);
 
-        void DrawLeftTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& color);
-        void DrawRightTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& color);
-        void DrawRectangleElement(wxDC* dc, const wxColour& color);
+		void DrawLeftTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
+		void DrawRightTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
+		void DrawRectangleElement(wxDC* dc, const wxColour& colorBar);
+		void MoveBar(const int& diffX, wxColour color);
+		void SetIsMoving();
+		void CalculBarSize();
 
-        // Shared implementation for all four Click*() methods
-        void ScrollBy(int delta);
+		void FillRect(wxDC* dc, const wxRect& rc, const wxColour& color);
 
-        void MoveBar(int currentPos, const wxColour& color);
-        void SetIsMoving();
-        void CalculBarSize();
+		bool TestMaxX();
+		bool TestMinX();
 
-        void FillRect(wxDC* dc, const wxRect& rc, const wxColour& color);
+		int xPositionStartMove;
 
-        void ClampPosition();
+		wxRect rcPosTriangleLeft;
+		wxRect rcPosTriangleRight;
+		wxRect rcPosBar;
 
-        // --- data members ---
+		int barSize;
+		int barPosX;
+		bool captureBar;
+		int pictureWidth;
+		int screenWidth;
+		int pageSize;
+		int lineSize;
+		int xPositionStart;
+		int barStartX;
+		int barEndX;
+		int pageSizeDefault;
+		int lineSizeDefault;
+		int currentXPos;
 
-        static constexpr int kBarSizeMin = 20;
-        static constexpr int kDefaultLineSize = 5;
-        static constexpr int kDefaultPageSize = 50;
-        static constexpr int kTimerIntervalMs = 100;
-        static constexpr int kStopMovingMs = 1000;
+		bool m_bTracking;
 
-        int xPositionStart = 0;
-        int xPositionStartMove = 0;
 
-        wxRect rcPosTriangleLeft{};
-        wxRect rcPosTriangleRight{};
-        wxRect rcPosBar{};
+		std::unique_ptr<wxTimer> triangleLeft;
+		std::unique_ptr<wxTimer> triangleRight;
+		std::unique_ptr<wxTimer> pageLeft;
+		std::unique_ptr<wxTimer> pageRight;
+		std::unique_ptr<wxTimer> stopMoving;
 
-        int  barSize = 0;
-        int  barPosX = 0;
-        bool captureBar = false;
+		CThemeScrollBar themeScroll;
 
-        int  pictureWidth = 0;
-        int  screenWidth = 0;
-        int  pageSize = kDefaultPageSize;
-        int  lineSize = kDefaultLineSize;
-        int  pageSizeDefault = kDefaultPageSize;
-        int  lineSizeDefault = kDefaultLineSize;
+		bool scrollMoving;
 
-        int  barStartX = 0;
-        int  barEndX = 0;
-        int  currentXPos = 0;
+		bool showTriangle = false;
 
-        bool m_bTracking = false;
-        bool scrollMoving = false;
-        bool showTriangle = false;
-        bool showWindow = true;
-
-        // Owned timers – stored by value, no heap allocation
-        wxTimer triangleLeftTimer{ this };
-        wxTimer triangleRightTimer{ this };
-        wxTimer pageLeftTimer{ this };
-        wxTimer pageRightTimer{ this };
-        wxTimer stopMovingTimer{ this };
-
-        CThemeScrollBar themeScroll;
-    };
-
-} // namespace Regards::Window
+		bool showWindow = true;
+	};
+}

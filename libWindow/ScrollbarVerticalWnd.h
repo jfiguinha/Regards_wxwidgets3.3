@@ -45,95 +45,81 @@ namespace Regards::Window
 
 	protected:
 		void PaintNow();
-		void DrawElement(wxDC* dc);
-
 		void on_paint(wxPaintEvent& event);
 		void OnMouseMove(wxMouseEvent& event);
 		void OnLButtonDown(wxMouseEvent& event);
 		void OnLButtonUp(wxMouseEvent& event);
 		void OnMouseLeave(wxMouseEvent& event);
 		void OnMouseHover(wxMouseEvent& event);
-		void OnMouseCaptureLost(wxMouseCaptureLostEvent& event);
-
 		void OnTimerTriangleTop(wxTimerEvent& event);
 		void OnTimerTriangleBottom(wxTimerEvent& event);
 		void OnTimerPageTop(wxTimerEvent& event);
 		void OnTimerPageBottom(wxTimerEvent& event);
 		void OnTimerStopMoving(wxTimerEvent& event);
+		void OnMouseCaptureLost(wxMouseEvent& event);
 
-		void OnEraseBackground(wxEraseEvent& /*event*/) override {}
+		void OnEraseBackground(wxEraseEvent& event) override
+		{
+		};
+		void SendTopPosition(const int& value);
+		void DrawElement(wxDC* dc);
 
 		void Resize() override;
-
-		void SendTopPosition(int value) const;
-
-		bool FindTopTriangle(int y, int x) const;
-		bool FindBottomTriangle(int y, int x) const;
-		bool FindRectangleBar(int y, int x) const;
-
-		void DrawTopTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& color);
-		void DrawBottomTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& color);
-		void DrawRectangleElement(wxDC* dc, const wxColour& color);
-
-		// Shared implementation for all four Click*() methods
-		void ScrollBy(int delta);
-
-		void MoveBar(int currentPos, const wxColour& color);
-		void SetIsMoving();
 		void CalculBarSize();
 
-		void FillRect(wxDC* dc, const wxRect& rc, const wxColour& color);
 
-		void ClampPosition();
+		bool FindTopTriangle(const int& yPosition, const int& xPosition);
+		bool FindBottomTriangle(const int& yPosition, const int& xPosition);
+		bool FindRectangleBar(const int& yPosition, const int& xPosition);
 
-		// Helper methods for clamping (kept for compatibility but functionality merged into ClampPosition)
+		void DrawTopTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
+		void DrawBottomTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
+		void DrawRectangleElement(wxDC* dc, const wxColour& colorBar);
+		void MoveBar(const int& diffY, wxColour color);
+		void SetIsMoving();
 		bool TestMaxY();
 		bool TestMinY();
+		void FillRect(wxDC* dc, const wxRect& rc, const wxColour& color);
 
-	private:
-			static constexpr int kBarSizeMin = 20;
-			static constexpr int kDefaultLineSize = 5;
-			static constexpr int kDefaultPageSize = 50;
-			static constexpr int kTimerIntervalMs = 100;
-			static constexpr int kStopMovingMs = 1000;
+		int barSize;
+		int barPosY;
+		bool captureBar;
+		int stepSize;
+		bool showEmptyRectangle;
+		int heightSize;
 
-			int yPositionStart = 0;
-			int yPositionStartMove = 0;
+		int barStartY;
+		int barEndY;
+		int yPositionStart;
+		int yPositionStartMove;
+		bool moveScrollbar;
 
-			wxRect rcPosTriangleTop{};
-			wxRect rcPosTriangleBottom{};
-			wxRect rcPosBar{};
+		wxRect rcPosTriangleTop;
+		wxRect rcPosTriangleBottom;
+		wxRect rcPosBar;
 
-			int  barSize = 0;
-			int  barPosY = 0;
-			bool captureBar = false;
+		int pictureHeight;
+		int screenHeight;
+		int pageSize;
+		int lineSize;
+		int pageSizeDefault;
+		int lineSizeDefault;
+		int currentYPos;
 
-			int  pictureHeight = 0;
-			int  screenHeight = 0;
-			int  pageSize = kDefaultPageSize;
-			int  lineSize = kDefaultLineSize;
-			int  pageSizeDefault = kDefaultPageSize;
-			int  lineSizeDefault = kDefaultLineSize;
+		bool m_bTracking;
 
-			int  barStartY = 0;
-			int  barEndY = 0;
-			int  currentYPos = 0;
+		bool scrollMoving;
 
-			bool showEmptyRectangle = false;
-			int  heightSize = 0;
+		std::unique_ptr<wxTimer> triangleTop;
+		std::unique_ptr<wxTimer> triangleBottom;
+		std::unique_ptr<wxTimer> pageTop;
+		std::unique_ptr<wxTimer> pageBottom;
+		std::unique_ptr<wxTimer> stopMoving;
 
-			bool m_bTracking = false;
-			bool scrollMoving = false;
-			bool showTriangle = false;
-			bool showWindow = true;
+		CThemeScrollBar themeScroll;
 
-			// Owned timers – stored by value, no heap allocation
-			wxTimer triangleTopTimer{ this };
-			wxTimer triangleBottomTimer{ this };
-			wxTimer pageTopTimer{ this };
-			wxTimer pageBottomTimer{ this };
-			wxTimer stopMovingTimer{ this };
+		bool showTriangle = false;
 
-			CThemeScrollBar themeScroll;
+		bool showWindow = true;
 	};
 }
