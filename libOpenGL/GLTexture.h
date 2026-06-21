@@ -48,8 +48,6 @@ namespace Regards
 				return m_nTextureID;
 			}
 
-			cl_mem GetOpenCLTexture();
-
 			int GetWidth();
 			int GetHeight();
 
@@ -60,10 +58,11 @@ namespace Regards
 			GLuint m_nTextureID;
 
             bool SetTextureData(Regards::Picture::CPictureArray& bitmap);
+			//bool SetTextureDataCPU(Regards::Picture::CPictureArray& bitmap);
 
 			std::unique_ptr<CTextureGLPriv> pimpl_ = nullptr;
 			
-			std::unique_ptr<cv::ogl::Texture2D> tex = nullptr;
+			//std::unique_ptr<cv::ogl::Texture2D> tex = nullptr;
 
 			int width;
 			int height;

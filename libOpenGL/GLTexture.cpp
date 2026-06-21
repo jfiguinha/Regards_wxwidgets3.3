@@ -20,13 +20,18 @@ using namespace Regards::OpenGL;
 using namespace cv::ocl;
 
 
-void CHECK_ERROR_GL() {
-    GLenum err = glGetError();
-    if(err != GL_NO_ERROR) {
-        std::cerr << "GL Error: " << gluErrorString(err) << std::endl;
-        exit(-1);
-    }
+// ---------------------------------------------------------------------------
+// Helper GL error — log sans exit()
+// ---------------------------------------------------------------------------
+static void CHECK_ERROR_GL(const std::string& location = "")
+{
+	GLenum err = glGetError();
+	if (err != GL_NO_ERROR)
+		std::cerr << "GL Error in " << location
+		<< ": " << gluErrorString(err)
+		<< " (0x" << std::hex << err << std::dec << ")\n";
 }
+
 
 class CTextureGLPriv
 {
@@ -312,18 +317,95 @@ bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap)
 	}
 	if (!isOk)
 	{
-		isOk = SetTextureData(bitmap);
+		isOk = SetTextureData(bitmap);// SetTextureData(bitmap);
 		if (!isOk)
 		{
 			Delete();
-			isOk = SetTextureData(bitmap);
+			isOk = SetTextureData(bitmap);// SetTextureData(bitmap);
 		}
 	}
 
 	return isOk;
 }
 
+bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap)
+{
+	// Récupération du cv::Mat CPU (download depuis GPU si UMat)
+	cv::Mat mat = bitmap.getMat();
+	if (mat.empty())
+	{
+		std::cerr << "GLTexture::SetTextureDataCPU: bitmap is empty\n";
+		return false;
+	}
 
+	// Conversion vers RGBA si nécessaire
+	cv::Mat rgba;
+	const int ch = mat.channels();
+	if (ch == 3)
+	{
+		cv::cvtColor(mat, rgba, cv::COLOR_BGR2BGRA);
+	}
+	else if (ch == 1)
+		cv::cvtColor(mat, rgba, cv::COLOR_GRAY2RGBA);
+	else if (ch == 4)
+		rgba = mat; // déjà 4 canaux, on suppose RGBA ou BGRA selon le pipeline
+	else
+	{
+		std::cerr << "GLTexture::SetTextureDataCPU: unsupported channel count " << ch << "\n";
+		return false;
+	}
+
+	// S'assurer que les lignes sont contiguës (requis par glTexImage2D)
+	if (!rgba.isContinuous())
+		rgba = rgba.clone();
+
+	const int newW = rgba.cols;
+	const int newH = rgba.rows;
+
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	GLenum dataformat = GL_BGRA;
+
+	if (m_nTextureID == static_cast<GLuint>(-1))
+	{
+		// Première création
+		glGenTextures(1, &m_nTextureID);
+		glBindTexture(GL_TEXTURE_2D, m_nTextureID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+			newW, newH, 0,
+			dataformat, GL_UNSIGNED_BYTE, rgba.data);
+		CHECK_ERROR_GL("SetTextureDataCPU glTexImage2D");
+	}
+	else if (newW != width || newH != height)
+	{
+		// Dimensions changées : réallocation du storage
+		glBindTexture(GL_TEXTURE_2D, m_nTextureID);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8,
+			newW, newH, 0,
+			dataformat, GL_UNSIGNED_BYTE, rgba.data);
+		CHECK_ERROR_GL("SetTextureDataCPU glTexImage2D resize");
+	}
+	else
+	{
+		// Mêmes dimensions : mise à jour partielle, plus rapide
+		glBindTexture(GL_TEXTURE_2D, m_nTextureID);
+		glTexSubImage2D(GL_TEXTURE_2D, 0,
+			0, 0, newW, newH,
+			dataformat, GL_UNSIGNED_BYTE, rgba.data);
+		CHECK_ERROR_GL("SetTextureDataCPU glTexSubImage2D");
+	}
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	width = newW;
+	height = newH;
+	return true;
+}
+/*
 bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap)
 {
      bool isOk = false;
@@ -351,7 +433,7 @@ bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap)
     }
  	return isOk;
 }
-
+*/
 
 void GLTexture::SetFilterType(const GLint FilterType_i, const GLint FilterValue_i)
 {
