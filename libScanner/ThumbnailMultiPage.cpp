@@ -136,7 +136,7 @@ void CThumbnailMultiPage::SetVideoPosition(const int64_t& videoPos)
 }
 
 void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
-	vector<CImageVideoThumbnail*> & videoThumbnail)
+	std::vector<std::unique_ptr<CImageVideoThumbnail>>& videoThumbnail)
 {
 	int x = 0;
 	int y = 0;
@@ -147,10 +147,9 @@ void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
 	if (videoThumbnail.size() > 0)
 	{
 		int size = videoThumbnail.size();
-		for (int i = 0; i < videoThumbnail.size(); i++)
+		int i = 0;
+		for (auto& thumbnail : videoThumbnail)
 		{
-			CImageVideoThumbnail* thumbnail = videoThumbnail.at(i);
-
 			float percent = (static_cast<float>(i) / static_cast<float>(size)) * 100.0f;
 			auto thumbnailData = new CThumbnailDataStorage(filename);
 			//thumbnailData->SetStorage(nullptr);
@@ -183,10 +182,7 @@ void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
 
 			x += themeThumbnail.themeIcone.GetWidth();
 
-			if (thumbnail != nullptr)
-				delete thumbnail;
-
-			thumbnail = nullptr;
+			i++;
 		}
 		processIdle = false;
 	}
@@ -202,7 +198,7 @@ void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
 	needToRefresh = true;
 }
 
-void CThumbnailMultiPage::SetFile(const wxString& filename, vector<CImageVideoThumbnail *> & videoThumbnail)
+void CThumbnailMultiPage::SetFile(const wxString& filename, std::vector<std::unique_ptr<CImageVideoThumbnail>>& videoThumbnail)
 {
 	InitScrollingPos();
 	InitWithDefaultPicture(filename, videoThumbnail);

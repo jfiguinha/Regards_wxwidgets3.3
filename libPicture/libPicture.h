@@ -86,12 +86,12 @@ namespace Regards
                                                     const int& percent,
                                                     int& timePosition);
 
-            std::vector<CImageVideoThumbnail*> LoadAllVideoThumbnail(
+            std::vector<std::unique_ptr<CImageVideoThumbnail>> LoadAllVideoThumbnail(
                 const wxString& szFileName,
                 const bool& compressJpeg,
                 const bool& isThumbnail);
 
-            std::vector<CImageVideoThumbnail*> LoadDefaultVideoThumbnail(
+            std::vector<std::unique_ptr<CImageVideoThumbnail>> LoadDefaultVideoThumbnail(
                 const wxString& szFileName, const int& size);
 
             // -----------------------------------------------------------------

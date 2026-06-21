@@ -837,7 +837,6 @@
     <ClInclude Include="ascii.h" />
     <ClInclude Include="aspectratio.h" />
     <ClInclude Include="avif.h" />
-    <ClInclude Include="BitmapYUV.h" />
     <ClInclude Include="BmpOption.h" />
     <ClInclude Include="bpgoption.h" />
     <ClInclude Include="CompressionOption.h" />
@@ -876,8 +875,6 @@
     <ClInclude Include="RegardsRaw.h" />
     <ClInclude Include="regards_webp.h" />
     <ClInclude Include="RGBAQuad.h" />
-    <ClInclude Include="RotateByShear.h" />
-    <ClInclude Include="RotateByShearRGB.h" />
     <ClInclude Include="ScaleThumbnail.h" />
     <ClInclude Include="StreamInfo.h" />
     <ClInclude Include="ThumbnailData.h" />

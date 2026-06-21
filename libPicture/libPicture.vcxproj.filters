@@ -210,12 +210,6 @@
     <ClInclude Include="Metadata.h">
       <Filter>libexif</Filter>
     </ClInclude>
-    <ClInclude Include="RotateByShear.h">
-      <Filter>Rotate</Filter>
-    </ClInclude>
-    <ClInclude Include="RotateByShearRGB.h">
-      <Filter>Rotate</Filter>
-    </ClInclude>
     <ClInclude Include="hqdn3d.h">
       <Filter>hqdb3d</Filter>
     </ClInclude>
@@ -268,9 +262,6 @@
       <Filter>datastructure</Filter>
     </ClInclude>
     <ClInclude Include="aspectratio.h">
-      <Filter>ThumbnailVideoGenerator</Filter>
-    </ClInclude>
-    <ClInclude Include="BitmapYUV.h">
       <Filter>ThumbnailVideoGenerator</Filter>
     </ClInclude>
     <ClInclude Include="FFmpegVideoThumb.h">
@@ -337,9 +328,6 @@
     </Filter>
     <Filter Include="Dialog">
       <UniqueIdentifier>{bdc0c1a0-e7de-486c-a3af-db9eba76d898}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Rotate">
-      <UniqueIdentifier>{1ff0607e-4525-432a-9d3d-5f1118e555a3}</UniqueIdentifier>
     </Filter>
     <Filter Include="hqdb3d">
       <UniqueIdentifier>{531a7516-7c4b-4759-ad3f-783dd329bc7c}</UniqueIdentifier>

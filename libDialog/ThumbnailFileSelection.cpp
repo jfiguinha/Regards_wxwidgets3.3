@@ -27,13 +27,6 @@ CThumbnailFileSelection::CThumbnailFileSelection(wxWindow* parent, const wxWindo
 
 CThumbnailFileSelection::~CThumbnailFileSelection(void)
 {
-	for (CImageVideoThumbnail* image : photoVector)
-	{
-		delete image;
-		image = nullptr;
-	}
-
-
 	photoVector.clear();
 }
 
@@ -46,7 +39,7 @@ void CThumbnailFileSelection::AddSeparatorBar(CIconeList* iconeListLocal, const 
 
 	for (auto i = 0; i < photoVector.size(); i++)
 	{
-		CImageVideoThumbnail* thumbnail = photoVector.at(i);
+		CImageVideoThumbnail* thumbnail = photoVector.at(i).get();
 		infosSeparationBar->listElement.push_back(i);
 
 		auto thumbnailData = new CThumbnailDataStorage(filename);
@@ -111,14 +104,7 @@ void CThumbnailFileSelection::InitTypeAffichage(const int& typeAffichage)
 }
 
 void CThumbnailFileSelection::Init(const wxString& filename, const int& typeAffichage)
-{
-	for (CImageVideoThumbnail* image : photoVector)
-	{
-		delete image;
-		image = nullptr;
-	}
-
-   
+{ 
 	photoVector.clear();
 
 	CLibPicture libPicture;
@@ -147,7 +133,7 @@ void CThumbnailFileSelection::SetListeFile()
 
 	for (auto i = 0; i < photoVector.size(); i++)
 	{
-		CImageVideoThumbnail* thumbnail = photoVector.at(i);
+		CImageVideoThumbnail* thumbnail = photoVector.at(i).get();
 
 		auto thumbnailData = new CThumbnailDataStorage(filename);
 		//thumbnailData->SetStorage(nullptr);

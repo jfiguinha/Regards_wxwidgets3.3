@@ -44,17 +44,14 @@ CMediaLoader::CMediaLoader(wxWindow*                parent,
     , thumbnailVideo(thumbnailVideo)
     , musicController(musicController)
 {
-    animationTimer = new wxTimer(parent, wxTIMER_ANIMATION);
+    animationTimer = std::make_unique<wxTimer>(parent, wxTIMER_ANIMATION);
 }
 
 CMediaLoader::~CMediaLoader()
 {
     if (animationTimer->IsRunning())
         animationTimer->Stop();
-    delete animationTimer;
 
-    for (auto* img : videoThumbnail)
-        delete img;
     videoThumbnail.clear();
 }
 
@@ -305,8 +302,6 @@ bool CMediaLoader::SetAnimation(const wxString& filename)
     if (nbThumbnail > 0)
         thumbnailVideo->SetFile(filename, nbThumbnail);
 
-    for (auto* img : videoThumbnail)
-        delete img;
     videoThumbnail.clear();
 
     const int iFormat = libPicture.TestImageFormat(filename);
@@ -355,7 +350,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
     oldAnimationPosition = numFrame;
 
     bool isSetImage = false;
-    CImageLoadingFormat* image = nullptr;
+    std::unique_ptr<CImageLoadingFormat> image = nullptr;
 
     if (numFrame >= 0 && numFrame < nbThumbnail)
     {
@@ -365,10 +360,10 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
         {
             if ((int)videoThumbnail.size() > numFrame)
             {
-                CImageVideoThumbnail* thumbnail = videoThumbnail.at(numFrame);
+                CImageVideoThumbnail* thumbnail = videoThumbnail.at(numFrame).get();
                 if (thumbnail != nullptr)
                 {
-                    image = new CImageLoadingFormat();
+                    image = std::make_unique<CImageLoadingFormat>();
                     image->SetPicture(thumbnail->image);
                     image->SetFilename(thumbnail->filename);
                 }
@@ -376,7 +371,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
         }
         else
         {
-            image = libPicture.LoadPicture(filename, false, numFrame);
+            image.reset(libPicture.LoadPicture(filename, false, numFrame));
         }
     }
 
@@ -389,7 +384,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
         if (isDiaporama)
         {
             if (previewWindow != nullptr)
-                if (previewWindow->SetBitmap(image, false, true))
+                if (previewWindow->SetBitmap(image.get(), false, true))
                     isSetImage = true;
         }
         else
@@ -397,19 +392,13 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
             if (previewWindow != nullptr)
             {
                 previewWindow->HideValidationToolbar();
-                if (previewWindow->SetBitmap(image, false, true))
+                if (previewWindow->SetBitmap(image.get(), false, true))
                 {
                     isSetImage = true;
                     SetPanelInfos(false);
                 }
             }
         }
-    }
-
-    if (!isSetImage && image != nullptr)
-    {
-        delete image;
-        image = nullptr;
     }
 }
 

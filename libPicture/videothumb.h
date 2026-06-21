@@ -21,7 +21,7 @@ namespace Regards
 			cv::Mat GetVideoFramePercent(const int& percent, const int& thumbnailWidth, const int& thumbnailHeight);
 			void GetVideoDimensions(int& width, int& height);
 			int GetOrientation();
-			void GetVideoListFrame(vector<CImageVideoThumbnail*> & listPicture, const int& widthThumbnail, const int& heightThumbnail);
+			void GetVideoListFrame(std::vector<std::unique_ptr<CImageVideoThumbnail>> & listPicture, const int& widthThumbnail, const int& heightThumbnail);
 			int64_t GetMovieDuration();
             AspectRatio GetAspectRatio();
     

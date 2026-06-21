@@ -237,8 +237,8 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 	{
 		for (int i = 0; i < nbResult; i++)
 		{
-			auto thumbnail = new CImageVideoThumbnail();
-			sqlThumbnailVideo.GetPictureThumbnail(photoId, szFileName, i, thumbnail);
+			auto thumbnail = std::make_unique<CImageVideoThumbnail>();
+			sqlThumbnailVideo.GetPictureThumbnail(photoId, szFileName, i, thumbnail.get());
 			thumbnail->percent = (static_cast<float>(i) / static_cast<float>(nbResult)) * 100.0f;
 			//thumbnail->timePosition = i;
 
@@ -286,9 +286,6 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 			iconeListLocal->AddElement(pBitmapIcone);
 
 			x += themeThumbnail.themeIcone.GetWidth();
-
-			if (thumbnail != nullptr)
-				delete thumbnail;
 		}
 
 
@@ -299,14 +296,14 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 		GenerateThumbnail(szFileName);
 
 		CLibPicture libPicture;
-		vector<CImageVideoThumbnail*> listThumbnail = libPicture.LoadDefaultVideoThumbnail(szFileName, size);
+		std::vector<std::unique_ptr<CImageVideoThumbnail>>  listThumbnail = libPicture.LoadDefaultVideoThumbnail(szFileName, size);
 
 
 		//int i = 0;
 		for (auto j = 0; j < size; j++)
 		{
 			float percent = (static_cast<float>(j) / static_cast<float>(size)) * 100.0f;
-			CImageVideoThumbnail* thumbnail = listThumbnail[j];
+			CImageVideoThumbnail* thumbnail = listThumbnail[j].get();
 			auto thumbnailData = new CThumbnailDataStorage(szFileName);
 			//thumbnailData->SetStorage(nullptr);
 			thumbnailData->SetNumPhotoId(j);
@@ -338,13 +335,6 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 			iconeListLocal->AddElement(pBitmapIcone);
 
 			x += themeThumbnail.themeIcone.GetWidth();
-		}
-
-		for (auto j = 0; j < listThumbnail.size(); j++)
-		{
-			CImageVideoThumbnail* thumbnail = listThumbnail[j];
-			if (thumbnail != nullptr)
-				delete thumbnail;
 		}
 
         listThumbnail.clear();
@@ -392,7 +382,7 @@ void CThumbnailVideo::LoadVideoThumbnail(void * param)
 		return;
 
 
-	vector<CImageVideoThumbnail*> listVideo = libPicture.LoadAllVideoThumbnail(threadLoadingBitmap->filename, true, true);
+	std::vector<std::unique_ptr<CImageVideoThumbnail>> listVideo = libPicture.LoadAllVideoThumbnail(threadLoadingBitmap->filename, true, true);
 
 
 	if (listVideo.size() > 0)
@@ -405,7 +395,7 @@ void CThumbnailVideo::LoadVideoThumbnail(void * param)
 		{
 			for (int i = 0; i < listVideo.size(); i++)
 			{
-				CImageVideoThumbnail* bitmap = listVideo[i];
+				CImageVideoThumbnail* bitmap = listVideo[i].get();
 
 
 				if (!bitmap->image.empty())
@@ -444,10 +434,6 @@ void CThumbnailVideo::LoadVideoThumbnail(void * param)
 
 	}
 
-
-	for (CImageVideoThumbnail* bitmap : listVideo)
-		delete bitmap;
-
 	listVideo.clear();
 
 	auto event = new wxCommandEvent(wxEVENT_ICONEUPDATE);
@@ -474,21 +460,17 @@ void CThumbnailVideo::UpdateVideoThumbnail()
 					auto thumbnailData = dynamic_cast<CThumbnailDataStorage*>(pBitmapIcone->GetPtData()); 
                     if (thumbnailData != nullptr) 
                     {
-                        auto thumbnail = new CImageVideoThumbnail();
-                        sqlThumbnailVideo.GetPictureThumbnail(photoId, videoFilename, i, thumbnail);
+                        auto thumbnail = std::make_unique<CImageVideoThumbnail>();
+                        sqlThumbnailVideo.GetPictureThumbnail(photoId, videoFilename, i, thumbnail.get());
                         thumbnail->percent = static_cast<float>(i) / static_cast<float>(nbResult) * 100.0f;
                             
                         if (!thumbnail->image.empty())
                         {
                             thumbnailData->SetIsDefault(false);
                             thumbnailData->SetBitmap(thumbnail->image);
-                        }
-                                
+                        }  
                             
-                        thumbnailData->SetTimePosition(thumbnail->timePosition);
-
-                        if (thumbnail != nullptr)
-                            delete thumbnail;       
+                        thumbnailData->SetTimePosition(thumbnail->timePosition);   
                     }                     
                 }
 			}

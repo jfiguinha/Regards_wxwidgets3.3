@@ -9,7 +9,7 @@
 #include "picture_factory.h"
 #include "libPicture.h"
 #include <ParamInit.h>
-
+#include "ImageVideoThumbnail.h"
 using namespace Regards::Picture;
 
 // =============================================================================
@@ -107,7 +107,7 @@ CImageLoadingFormat* CLibPicture::LoadVideoThumbnail(const wxString& szFileName,
     return videoThumbSvc_->LoadVideoFrame(szFileName, percent, timePosition);
 }
 
-std::vector<CImageVideoThumbnail*> CLibPicture::LoadAllVideoThumbnail(
+ std::vector<std::unique_ptr<CImageVideoThumbnail>> CLibPicture::LoadAllVideoThumbnail(
     const wxString& szFileName,
     const bool& compressJpeg,
     const bool& isThumbnail)
@@ -115,7 +115,7 @@ std::vector<CImageVideoThumbnail*> CLibPicture::LoadAllVideoThumbnail(
     return videoThumbSvc_->LoadAllFrames(szFileName, compressJpeg, isThumbnail);
 }
 
-std::vector<CImageVideoThumbnail*> CLibPicture::LoadDefaultVideoThumbnail(
+ std::vector<std::unique_ptr<CImageVideoThumbnail>> CLibPicture::LoadDefaultVideoThumbnail(
     const wxString& szFileName, const int& size)
 {
     return videoThumbSvc_->LoadPlaceholders(szFileName, size);

@@ -8,7 +8,12 @@
 #include <cstdint>
 #include <wx/string.h>
 #include <opencv2/core.hpp>
-
+#if defined(WIN32)
+#include "wic.h"
+#endif
+#ifdef __APPLE__
+#include <ReadImage.h>
+#endif
 class CImageLoadingFormat;
 class CImageVideoThumbnail;
 
@@ -111,7 +116,7 @@ class ImageLoader
 {
 public:
     ImageLoader();
-    ~ImageLoader();
+    ~ImageLoader() = default;
 
     // Charge l'image fileName dans bitmap (frame numPicture, mode thumbnail ou full)
     void              Load(const wxString& fileName, bool isThumbnail,
@@ -156,10 +161,10 @@ private:
     int svgHeight_ = 1024;
 
 #ifdef WIN32
-    class CWic* wic_ = nullptr;
+    std::unique_ptr<CWic> wic_ = nullptr;
 #endif
 #ifdef __APPLE__
-    class CReadMacOSImage* readimage_ = nullptr;
+    std::unique_ptr<CReadMacOSImage> readimage_ = nullptr;
 #endif
 };
 
@@ -222,17 +227,17 @@ public:
                                         int percent, int& timePosition);
 
     // Toutes les frames d'une vidéo / animation (HEIC, WebP, GIF, PDF…)
-    std::vector<CImageVideoThumbnail*> LoadAllFrames(const wxString& fileName,
+    std::vector<std::unique_ptr<CImageVideoThumbnail>> LoadAllFrames(const wxString& fileName,
                                                      bool compressJpeg,
                                                      bool isThumbnail);
 
     // Génère size placeholders (image "loading") en attendant le vrai chargement
-    std::vector<CImageVideoThumbnail*> LoadPlaceholders(const wxString& fileName,
+    std::vector<std::unique_ptr<CImageVideoThumbnail>> LoadPlaceholders(const wxString& fileName,
                                                         int count);
 
 private:
     // Charge les frames d'un format multi-page géré par wxImage ou CRegardsPDF
-    std::vector<CImageVideoThumbnail*> LoadWxMultiPage(const wxString& fileName,
+    std::vector<std::unique_ptr<CImageVideoThumbnail>> LoadWxMultiPage(const wxString& fileName,
                                                        int bitmapType,
                                                        int thumbW, int thumbH,
                                                        bool compressJpeg,

@@ -254,7 +254,7 @@ int64_t CVideoThumb::GetMovieDuration()
 	return pimpl->m_videoMovieDuration;
 }
 
-void CVideoThumb::GetVideoListFrame(vector<CImageVideoThumbnail*> & listPicture, const int& widthThumbnail, const int& heightThumbnail)
+void CVideoThumb::GetVideoListFrame(std::vector<std::unique_ptr<CImageVideoThumbnail>> & listPicture, const int& widthThumbnail, const int& heightThumbnail)
 {
 	
 
@@ -266,7 +266,7 @@ void CVideoThumb::GetVideoListFrame(vector<CImageVideoThumbnail*> & listPicture,
 		{
 			try
 			{
-				auto cxVideo = new CImageVideoThumbnail();
+				auto cxVideo = std::make_unique<CImageVideoThumbnail>();
 				cxVideo->rotation = 0;
 				cxVideo->filename = fileName;
 
@@ -280,7 +280,7 @@ void CVideoThumb::GetVideoListFrame(vector<CImageVideoThumbnail*> & listPicture,
 				{
 				}
 				cxVideo->timePosition = i;
-				listPicture.push_back(cxVideo);
+				listPicture.push_back(std::move(cxVideo));
 			}
 			catch (...)
 			{
@@ -294,7 +294,7 @@ void CVideoThumb::GetVideoListFrame(vector<CImageVideoThumbnail*> & listPicture,
 		{
 			try
 			{
-				auto cxVideo = new CImageVideoThumbnail();
+				auto cxVideo = std::make_unique<CImageVideoThumbnail>();
 				cxVideo->rotation = 0;
 				cxVideo->percent = i;
 				cxVideo->filename = fileName;
@@ -308,7 +308,7 @@ void CVideoThumb::GetVideoListFrame(vector<CImageVideoThumbnail*> & listPicture,
 				{
 				}
 				cxVideo->timePosition = pimpl->m_seekTimeInSecond;
-				listPicture.push_back(cxVideo);
+				listPicture.push_back(std::move(cxVideo));
 			}
 			catch (...)
 			{

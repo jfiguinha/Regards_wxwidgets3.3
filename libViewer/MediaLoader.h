@@ -111,12 +111,12 @@ namespace Regards::Viewer
         CMusicController*        musicController  = nullptr;
 
         // Animation state
-        wxTimer*                           animationTimer       = nullptr;
+        std::unique_ptr<wxTimer>           animationTimer       = nullptr;
         int                                animationPosition    = 0;
         int                                nbThumbnail          = 0;
         int                                oldAnimationPosition = -1;
         wxString                           oldFilename;
-        std::vector<CImageVideoThumbnail*> videoThumbnail;
+        std::vector<std::unique_ptr<CImageVideoThumbnail>> videoThumbnail;
 
         // Playback state
         wxString filename;

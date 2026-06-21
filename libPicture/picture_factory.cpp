@@ -6,9 +6,7 @@
 #include <header.h>
 #include "picture_factory.h"
 
-#ifdef __APPLE__
-#include <ReadImage.h>
-#endif
+
 
 #include <wx/filename.h>
 #include <wx/progdlg.h>
@@ -42,9 +40,7 @@
 #ifdef LIBHEIC
 #include <Heic.h>
 #endif
-#if defined(WIN32)
-#include "wic.h"
-#endif
+
 #ifdef TURBOJPEG
 #include <turbojpeg.h>
 #endif
@@ -417,22 +413,13 @@ bool MetadataService::IsVideoValid(const wxString& fileName)
 ImageLoader::ImageLoader()
 {
 #ifdef WIN32
-    wic_ = new CWic();
+    wic_ = std::make_unique<CWic>();
 #endif
 #ifdef __APPLE__
-    readimage_ = new CReadMacOSImage();
+    readimage_ = std::make_unique<CReadMacOSImage>();
 #endif
 }
 
-ImageLoader::~ImageLoader()
-{
-#ifdef WIN32
-    delete wic_;
-#endif
-#ifdef __APPLE__
-    delete readimage_;
-#endif
-}
 
 void ImageLoader::SetSvgSize(int width, int height)
 {
@@ -1969,49 +1956,44 @@ CImageLoadingFormat* VideoThumbnailService::LoadVideoFrame(
     return bitmap;
 }
 
-std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadPlaceholders(
+ std::vector<std::unique_ptr<CImageVideoThumbnail>> VideoThumbnailService::LoadPlaceholders(
     const wxString& fileName, int count)
 {
-    std::vector<CImageVideoThumbnail*> list;
+    std::vector<std::unique_ptr<CImageVideoThumbnail>> list;
     int tw, th;
     GetScreenThumbnailSize(tw, th);
 
     const bool isAnim = FormatDetector::IsAnimation(fileName);
     int        rotation = 0;
-
-#ifdef WIN32
-    wxString loadingPng = CFileUtility::GetResourcesFolderPath() + "\\loading.png";
-#else
-    wxString loadingPng = CFileUtility::GetResourcesFolderPath() + "/loading.png";
-#endif
+    wxFileName loadingPng = wxFileName(CFileUtility::GetResourcesFolderPath(),"loading.png");
 
     wxImage img, imgResized;
-    img.LoadFile(loadingPng);
+    img.LoadFile(loadingPng.GetFullPath());
     imgResized = img.ResampleBilinear(tw, th);
 
     for (int i = 0; i < count; ++i)
     {
         const float pct =
             (static_cast<float>(i) / static_cast<float>(count)) * 100.f;
-        auto* entry = new CImageVideoThumbnail();
+        auto entry = std::make_unique<CImageVideoThumbnail>();
         entry->rotation     = rotation;
         entry->percent      = pct;
         entry->image        = ImageConverter::WxToCvMat(imgResized);
         entry->filename     = fileName;
         entry->timePosition = isAnim ? i : 0;
-        list.push_back(entry);
+        list.push_back(std::move(entry));
     }
     return list;
 }
 
-std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadWxMultiPage(
+ std::vector<std::unique_ptr<CImageVideoThumbnail>> VideoThumbnailService::LoadWxMultiPage(
     const wxString& fileName, int bitmapType,
     int thumbW, int thumbH, bool /*compressJpeg*/, bool isThumbnail)
 {
-    std::vector<CImageVideoThumbnail*> list;
+    std::vector<std::unique_ptr<CImageVideoThumbnail>> list;
     wxImage        image;
     wxBitmapType   wxType   = {};
-    CRegardsPDF*   pdf      = nullptr;
+    std::unique_ptr<CRegardsPDF>   pdf      = nullptr;
     int            nbFrames = 0;
 
     if (bitmapType == PDF)
@@ -2027,19 +2009,19 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadWxMultiPage(
 
     if (nbFrames == 0)
     {
-        auto* e = new CImageVideoThumbnail();
+        auto e = std::make_unique<CImageVideoThumbnail>();
         e->image        = application_context.GetDefaultPicture();
         e->filename     = fileName;
         e->rotation     = 0;
         e->delay        = 4;
         e->percent      = 100.f;
         e->timePosition = 0;
-        list.push_back(e);
+        list.push_back(std::move(e));
         return list;
     }
 
     if (bitmapType == PDF)
-        pdf = new CRegardsPDF(fileName);
+        pdf = std::make_unique<CRegardsPDF>(fileName);
 
     for (int i = 0; i < nbFrames; ++i)
     {
@@ -2060,7 +2042,7 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadWxMultiPage(
             continue;
         }
 
-        auto* e = new CImageVideoThumbnail();
+        auto e = std::make_unique<CImageVideoThumbnail>();
 
         if (isThumbnail)
         {
@@ -2084,17 +2066,16 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadWxMultiPage(
         e->percent      = static_cast<int>(
             (static_cast<float>(i) / nbFrames) * 100.f);
         e->timePosition = i;
-        list.push_back(e);
+        list.push_back(std::move(e));
     }
 
-    if (pdf) delete pdf;
     return list;
 }
 
-std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
+ std::vector<std::unique_ptr<CImageVideoThumbnail>> VideoThumbnailService::LoadAllFrames(
     const wxString& fileName, bool compressJpeg, bool isThumbnail)
 {
-    std::vector<CImageVideoThumbnail*> list;
+    std::vector<std::unique_ptr<CImageVideoThumbnail>> list;
     const int fmt = FormatDetector::DetectFormat(fileName);
 
     int tw, th;
@@ -2121,7 +2102,7 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
 
             for (size_t i = 0; i < frames.size(); ++i)
             {
-                auto* e = new CImageVideoThumbnail();
+                auto e = std::make_unique<CImageVideoThumbnail>();
                 e->filename     = fileName;
                 e->image        = frames[i];
                 e->rotation     = 0;
@@ -2129,7 +2110,7 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
                 e->percent      = static_cast<int>(
                     (static_cast<float>(i) / frames.size()) * 100.f);
                 e->timePosition = static_cast<int>(i);
-                list.push_back(e);
+                list.push_back(std::move(e));
             }
             frames.clear();
             break;
@@ -2148,7 +2129,7 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
         case GIF:
         {
             wxFileName fichier(fileName);
-            auto* cx = new CxImage();
+            auto cx = std::make_unique<CxImage>();
             cx->SetRetreiveAllFrames(true);
             cx->Load(CConvertUtility::ConvertToStdString(fileName).c_str(),
                      CxImage::GetTypeIdFromName(fichier.GetExt()));
@@ -2157,7 +2138,7 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
             {
                 for (int i = 0; i < cx->GetNumFrames(); ++i)
                 {
-                    auto* e = new CImageVideoThumbnail();
+                    auto e = std::make_unique<CImageVideoThumbnail>();
                     CxImage*            frame = cx->GetFrame(i);
                     CImageLoadingFormat img;
                     img.SetPicture(frame);
@@ -2169,24 +2150,24 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
                     e->percent      = (static_cast<float>(i) /
                                        cx->GetNumFrames()) * 100.f;
                     e->timePosition = i;
-                    list.push_back(e);
+                    list.push_back(std::move(e));
                 }
             }
             else
             {
-                auto* e = new CImageVideoThumbnail();
-                CImageLoadingFormat* fallback =
-                    ImageLoader::GetCancelPhoto(fileName, tw, th);
+                auto e = std::make_unique<CImageVideoThumbnail>();
+                std::unique_ptr<CImageLoadingFormat> fallback;
+                fallback.reset(ImageLoader::GetCancelPhoto(fileName, tw, th));
+                //auto fallback = std::make_unique<CImageLoadingFormat>();
                 e->filename     = fileName;
                 e->image        = fallback->GetMatrix().getMat();
                 e->rotation     = 0;
                 e->delay        = cx->GetFrameDelay();
                 e->percent      = 0.f;
                 e->timePosition = 0;
-                list.push_back(e);
-                delete fallback;
+                list.push_back(std::move(e));
+                //delete fallback;
             }
-            delete cx;
             break;
         }
 
@@ -2195,9 +2176,8 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
         case AVI:  case MP4:  case WEBM:  case MKV:
         case Y4M:  case WMV:  case AV1:   case MOV:
         {
-            CVideoThumb* thumb = new CVideoThumb(fileName, true, false);
+            auto thumb = std::make_unique<CVideoThumb>(fileName, true, false);
             thumb->GetVideoListFrame(list, tw, th);
-            delete thumb;
             break;
         }
 
@@ -2205,16 +2185,16 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
         default:
         {
             ThumbnailService svc;
-            auto* e = new CImageVideoThumbnail();
-            CImageLoadingFormat* img = svc.LoadThumbnail(fileName);
+            auto e = std::make_unique<CImageVideoThumbnail>();
+            std::unique_ptr<CImageLoadingFormat> img;
+            img.reset(svc.LoadThumbnail(fileName));
             e->image        = img->GetMatrix().getMat();
             e->filename     = fileName;
             e->rotation     = 0;
             e->delay        = 0;
             e->percent      = 0.f;
             e->timePosition = 0;
-            list.push_back(e);
-            delete img;
+            list.push_back(std::move(e));
             break;
         }
         }
@@ -2222,7 +2202,7 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
     catch (...)
     {
         // Dernier recours : cv::imread direct et resize
-        auto* e = new CImageVideoThumbnail();
+        auto e = std::make_unique<CImageVideoThumbnail>();
         cv::Mat mat = cv::imread(CConvertUtility::ConvertToStdString(fileName).c_str(),
                                  cv::IMREAD_COLOR | cv::IMREAD_IGNORE_ORIENTATION);
         if (!mat.empty())
@@ -2232,7 +2212,7 @@ std::vector<CImageVideoThumbnail*> VideoThumbnailService::LoadAllFrames(
         e->delay        = 0;
         e->percent      = 0.f;
         e->timePosition = 0;
-        list.push_back(e);
+        list.push_back(std::move(e));
     }
 
     return list;
