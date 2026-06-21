@@ -49,13 +49,13 @@ namespace Regards
 			void EffectUpdate();
 			void HistoryUpdate();
 
-			CInfoEffectWnd* historyEffectWnd;
-			CThumbnailViewerEffectWnd* thumbnailEffectWnd;
-			CFiltreEffectScrollWnd* filtreEffectWnd;
+			std::unique_ptr<CInfoEffectWnd> historyEffectWnd;
+			std::unique_ptr<CThumbnailViewerEffectWnd> thumbnailEffectWnd;
+			std::unique_ptr<CFiltreEffectScrollWnd> filtreEffectWnd;
 
-			CInfosFileWnd* infosFileWnd;
-			CToolbarInfos* infosToolbar;
-			COcrWnd* ocrWnd;
+			std::unique_ptr<CInfosFileWnd> infosFileWnd;
+			std::unique_ptr<CToolbarInfos> infosToolbar;
+			std::unique_ptr<COcrWnd> ocrWnd;
 			wxString _filename;
 			wxString url;
 			wxWebView* webBrowser = nullptr;

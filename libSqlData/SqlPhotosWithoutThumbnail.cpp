@@ -49,7 +49,7 @@ int CSqlPhotosWithoutThumbnail::TraitementResult(CSqlResult* sqlResult)
 			break;
 
 		case 1:
-			photoList->push_back(sqlResult->ColumnDataText(1));
+			photoList->push_back(sqlResult->ColumnDataText(0));
 			break;
 		default: ;
 		}

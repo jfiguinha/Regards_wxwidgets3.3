@@ -65,7 +65,6 @@ namespace Regards::Viewer
 
         // ── Idle / boucle principale ──────────────────────────────────
         void ProcessIdle()  override;
-        void IdleFunction() override;
         void Resize()       override;
 
         // ── Handlers d'événements ─────────────────────────────────────

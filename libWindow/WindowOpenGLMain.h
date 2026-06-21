@@ -21,9 +21,9 @@ namespace Regards::Window
 		{
 #ifdef __WXGTK__
 #if wxCHECK_VERSION(3, 1, 2)
-                scaleFactor = 1.0f;
+			scaleFactor = 1.0f;
 #else
-                scaleFactor = GetContentScaleFactor();
+			scaleFactor = GetContentScaleFactor();
 #endif
 #else
 			scaleFactor = 1.0f;
@@ -32,29 +32,15 @@ namespace Regards::Window
 			Connect(wxEVENT_REFRESH, wxCommandEventHandler(CWindowOpenGLMain::OnRefresh));
 			Connect(wxEVT_SIZE, wxSizeEventHandler(CWindowOpenGLMain::OnSize));
 			Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(CWindowOpenGLMain::OnEraseBackground));
-			Connect(wxEVENT_IDLETHREADING, wxEVT_COMMAND_TEXT_UPDATED,
-			        wxCommandEventHandler(CWindowOpenGLMain::OnProcessIdleEnd));
 		}
 
-		~CWindowOpenGLMain() override
-		{
-		}
+		~CWindowOpenGLMain() = default;
+
 
 		virtual void OnRefresh(wxCommandEvent& event)
 		{
 			this->Refresh();
 			this->Update();
-		}
-
-		void PushThreadIdleEvent() override
-		{
-			wxCommandEvent evt(wxEVT_COMMAND_TEXT_UPDATED, wxEVENT_IDLETHREADING);
-			GetEventHandler()->AddPendingEvent(evt);
-		}
-
-		virtual void OnProcessIdleEnd(wxCommandEvent& event)
-		{
-			this->ProcessOnIdleEndEvent(event);
 		}
 
 		virtual void OnEraseBackground(wxEraseEvent& event)

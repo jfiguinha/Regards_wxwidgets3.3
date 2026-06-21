@@ -42,7 +42,7 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 	wxString folder = CFileUtility::GetDocumentFolderPath();
 
-	modificationManager = new CModificationManager(folder);
+	modificationManager = std::make_unique<CModificationManager>(folder);
 
 #ifdef __APPLE__
     wxStandardPathsBase& stdp = wxStandardPaths::Get();
@@ -57,20 +57,20 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		CThemeTree theme;
 		viewerTheme->GetTreeTheme(&theme);
 
-		infosFileWnd = new CInfosFileWnd(this, wxID_ANY, themeScroll, theme);
-		ocrWnd = new COcrWnd(this, SCANNER_OCRPAGE);
+		infosFileWnd = std::make_unique<CInfosFileWnd>(this, wxID_ANY, themeScroll, theme);
+		ocrWnd = std::make_unique<COcrWnd>(this, SCANNER_OCRPAGE);
 
 		infosFileWnd->Show(true);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(infosFileWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(infosFileWnd.get());
 		tabInfosFile->SetId(WM_INFOS);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 
-		auto tabOcr = new CTabWindowData();
-		tabOcr->SetWindow(ocrWnd);
+		auto tabOcr = std::make_unique<CTabWindowData>();
+		tabOcr->SetWindow(ocrWnd.get());
 		tabOcr->SetId(WM_OCR);
-		listWindow.push_back(tabOcr);
+		listWindow.push_back(std::move(tabOcr));
 	}
 
 	if (viewerTheme != nullptr)
@@ -81,13 +81,13 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
 
-		filtreEffectWnd = new CFiltreEffectScrollWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
+		filtreEffectWnd = std::make_unique<CFiltreEffectScrollWnd>(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
 		filtreEffectWnd->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(filtreEffectWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(filtreEffectWnd.get());
 		tabInfosFile->SetId(WM_EFFECTPARAMETER);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 	if (viewerTheme != nullptr)
@@ -97,13 +97,13 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
-		historyEffectWnd = new CInfoEffectWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
+		historyEffectWnd = std::make_unique<CInfoEffectWnd>(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
 		historyEffectWnd->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(historyEffectWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(historyEffectWnd.get());
 		tabInfosFile->SetId(WM_HISTORY);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 	if (viewerTheme != nullptr)
@@ -123,15 +123,15 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		if (config != nullptr)
 			checkValidity = config->GetCheckThumbnailValidity();
 
-		thumbnailEffectWnd = new CThumbnailViewerEffectWnd(this, wxID_ANY, themeScroll, themeThumbnail,
+		thumbnailEffectWnd = std::make_unique<CThumbnailViewerEffectWnd>(this, wxID_ANY, themeScroll, themeThumbnail,
 		                                                   PANELINFOSWNDSCANNERID, checkValidity);
 
 		thumbnailEffectWnd->Show(false);
 
-		auto tabInfosFileEffect = new CTabWindowData();
-		tabInfosFileEffect->SetWindow(thumbnailEffectWnd);
+		auto tabInfosFileEffect = std::make_unique<CTabWindowData>();
+		tabInfosFileEffect->SetWindow(thumbnailEffectWnd.get());
 		tabInfosFileEffect->SetId(WM_EFFECT);
-		listWindow.push_back(tabInfosFileEffect);
+		listWindow.push_back(std::move(tabInfosFileEffect));
 	}
 
 	if (webBrowser == nullptr)
@@ -140,10 +140,10 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		webBrowser->Show(false);
 
 		/*
-		CTabWindowData * tabInfosFile = new CTabWindowData();
+		CTabWindowData * tabInfosFile = std::make_unique<CTabWindowData>();
 		tabInfosFile->window = webBrowser;
 		tabInfosFile->windowName = WM_HTMLEDITOR;
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile);
 		*/
 	}
 
@@ -151,10 +151,10 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 	{
 		CThemeToolbar theme;
 		viewerTheme->GetInfosToolbarTheme(&theme);
-		infosToolbar = new CToolbarInfos(this, wxID_ANY, theme, this, false);
+		infosToolbar = std::make_unique<CToolbarInfos>(this, wxID_ANY, theme, this, false);
 	}
 
-	toolbarWindow = infosToolbar;
+	toolbarWindow = infosToolbar.get();
 	Connect(wxEVENT_APPLYEFFECT, wxCommandEventHandler(CPanelInfosWnd::ApplyEffect));
 	Connect(wxEVENT_SHOWFILTRE, wxCommandEventHandler(CPanelInfosWnd::ShowFiltreEvent));
 }
@@ -169,7 +169,7 @@ void CPanelInfosWnd::HistoryUpdate()
 		if (bitmap != nullptr)
 		{
 			wxString filename = bitmap->GetFilename();
-			historyEffectWnd->HistoryUpdate(bitmap, filename, historyLibelle, modificationManager);
+			historyEffectWnd->HistoryUpdate(bitmap, filename, historyLibelle, modificationManager.get());
 			delete bitmap;
 		}
 	}
@@ -187,12 +187,12 @@ void CPanelInfosWnd::ApplyEffect(wxCommandEvent& event)
 	int numItem = event.GetInt();
 	//Test si l'history fonctionne ou pas 
 	HistoryUpdate();
-	filtreEffectWnd->ApplyEffect(numItem, historyEffectWnd, _filename, false, PANELINFOSWNDSCANNERID, PDFWINDOWID);
+	filtreEffectWnd->ApplyEffect(numItem, historyEffectWnd.get(), _filename, false, PANELINFOSWNDSCANNERID, PDFWINDOWID);
 }
 
 void CPanelInfosWnd::OnFiltreOk(const int& numFiltre)
 {
-	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
+	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd.get());
 	ClickShowButton(WM_EFFECT);
 	infosToolbar->SetEffectParameterInactif();
 }
@@ -250,13 +250,6 @@ wxString CPanelInfosWnd::GetFilename()
 
 CPanelInfosWnd::~CPanelInfosWnd()
 {
-	delete(infosFileWnd);
-	delete(ocrWnd);
-	delete(infosToolbar);
-	delete(historyEffectWnd);
-	delete(filtreEffectWnd);
-	delete(thumbnailEffectWnd);
-	delete(modificationManager);
 	delete(webBrowser);
 }
 

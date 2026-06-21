@@ -38,7 +38,7 @@ namespace Regards::Control
 		void UpdateTreeInfosEvent(wxCommandEvent& event);
 		static void GenerateTreeInfos(CThreadLoadInfos* threadInfos);
 
-		CInfosFile* infosFile;
+		std::unique_ptr<CInfosFile> infosFile;
 		wxString filename;
 	};
 }

@@ -26,6 +26,7 @@
 #include "ParamInit.h"
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
+#include <ModificationManager.h>
 using namespace Regards::Picture;
 using namespace Regards::Internet;
 using namespace Regards::Window;
@@ -122,7 +123,7 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 	wxString folder = CFileUtility::GetDocumentFolderPath();
 
-	modificationManager = new CModificationManager(folder);
+	modificationManager = std::make_unique<CModificationManager>(folder);
 
 	if (viewerTheme != nullptr)
 	{
@@ -132,14 +133,14 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		CThemeTree theme;
 		viewerTheme->GetTreeTheme(&theme);
 
-		infosFileWnd = new CInfosFileWnd(this, wxID_ANY, themeScroll, theme);
+		infosFileWnd = std::make_unique<CInfosFileWnd>(this, wxID_ANY, themeScroll, theme);
 
 		infosFileWnd->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(infosFileWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(infosFileWnd.get());
 		tabInfosFile->SetId(WM_INFOS);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 	if (viewerTheme != nullptr)
@@ -150,23 +151,23 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
 
-		filtreEffectWnd = new CFiltreEffectScrollWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
+		filtreEffectWnd = std::make_unique<CFiltreEffectScrollWnd>(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
 		filtreEffectWnd->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(filtreEffectWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(filtreEffectWnd.get());
 		tabInfosFile->SetId(WM_EFFECTPARAMETER);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 
-		auto tabInfosFileVideo = new CTabWindowData();
-		tabInfosFileVideo->SetWindow(filtreEffectWnd);
+		auto tabInfosFileVideo = std::make_unique<CTabWindowData>();
+		tabInfosFileVideo->SetWindow(filtreEffectWnd.get());
 		tabInfosFileVideo->SetId(WM_VIDEOEFFECT);
-		listWindow.push_back(tabInfosFileVideo);
+		listWindow.push_back(std::move(tabInfosFileVideo));
 
-		auto tabInfosFileAudioVideo = new CTabWindowData();
-		tabInfosFileAudioVideo->SetWindow(filtreEffectWnd);
+		auto tabInfosFileAudioVideo = std::make_unique<CTabWindowData>();
+		tabInfosFileAudioVideo->SetWindow(filtreEffectWnd.get());
 		tabInfosFileAudioVideo->SetId(WM_AUDIOVIDEO);
-		listWindow.push_back(tabInfosFileAudioVideo);
+		listWindow.push_back(std::move(tabInfosFileAudioVideo));
 	}
 
 	if (viewerTheme != nullptr)
@@ -176,13 +177,13 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
-		historyEffectWnd = new CInfoEffectWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
+		historyEffectWnd = std::make_unique<CInfoEffectWnd>(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
 		historyEffectWnd->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(historyEffectWnd);
+		std::unique_ptr<CTabWindowData> tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(historyEffectWnd.get());
 		tabInfosFile->SetId(WM_HISTORY);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 	if (viewerTheme != nullptr)
@@ -202,15 +203,15 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		if (main_param != nullptr)
 			checkValidity = main_param->GetCheckThumbnailValidity();
 
-		thumbnailEffectWnd = new CThumbnailViewerEffectWnd(this, wxID_ANY, themeScroll, themeThumbnail, PANELINFOSWNDID,
+		thumbnailEffectWnd = std::make_unique<CThumbnailViewerEffectWnd>(this, wxID_ANY, themeScroll, themeThumbnail, PANELINFOSWNDID,
 		                                                   checkValidity);
 
 		thumbnailEffectWnd->Show(false);
 
-		auto tabInfosFileEffect = new CTabWindowData();
-		tabInfosFileEffect->SetWindow(thumbnailEffectWnd);
+		std::unique_ptr<CTabWindowData> tabInfosFileEffect = std::make_unique<CTabWindowData>();
+		tabInfosFileEffect->SetWindow(thumbnailEffectWnd.get());
 		tabInfosFileEffect->SetId(WM_EFFECT);
-		listWindow.push_back(tabInfosFileEffect);
+		listWindow.push_back(std::move(tabInfosFileEffect));
 	}
 
 	if (webBrowser == nullptr)
@@ -233,10 +234,10 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
         webBrowser = wxWebView::New(this, wxID_ANY);
         webBrowser->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
 		tabInfosFile->SetWindow(webBrowser);
 		tabInfosFile->SetId(WM_MAPS);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 	if (picturePanel == nullptr)
@@ -244,13 +245,13 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		CThemeThumbnail themeThumbnail;
 		viewerTheme->GetThumbnailTheme(&themeThumbnail);
 
-		picturePanel = new CPicturePanel(this, wxID_ANY, themeThumbnail);
+		picturePanel = std::make_unique<CPicturePanel>(this, wxID_ANY, themeThumbnail);
 		picturePanel->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(picturePanel);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(picturePanel.get());
 		tabInfosFile->SetId(WM_HISTOGRAM);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 
@@ -258,7 +259,7 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 	{
 		CThemeToolbar theme;
 		viewerTheme->GetInfosToolbarTheme(&theme);
-		infosToolbar = new CToolbarInfos(this, wxID_ANY, theme, this, false);
+		infosToolbar = std::make_unique<CToolbarInfos>(this, wxID_ANY, theme, this, false);
 	}
 
 	if (viewerTheme != nullptr)
@@ -268,15 +269,15 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 		CThemeSplitter themeSplitter;
 		viewerTheme->GetSplitterTheme(&themeSplitter);
-		criteriaTreeWnd = new CCriteriaWindow(this, wxID_ANY, themeSplitter);
+		criteriaTreeWnd = std::make_unique<CCriteriaWindow>(this, wxID_ANY, themeSplitter);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(criteriaTreeWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(criteriaTreeWnd.get());
 		tabInfosFile->SetId(WM_CRITERIA);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
-	toolbarWindow = infosToolbar;
+	toolbarWindow = infosToolbar.get();
 	windowVisible = -1;
 	Connect(wxEVENT_APPLYEFFECT, wxCommandEventHandler(CPanelInfosWnd::ApplyEffect));
 	Connect(wxEVENT_SHOWFILTRE, wxCommandEventHandler(CPanelInfosWnd::ShowFiltreEvent));
@@ -299,15 +300,7 @@ wxString CPanelInfosWnd::GetFilename()
 
 CPanelInfosWnd::~CPanelInfosWnd()
 {
-	delete(infosFileWnd);
-	delete(historyEffectWnd);
-	delete(filtreEffectWnd);
-	delete(thumbnailEffectWnd);
-	delete(infosToolbar);
 	delete(webBrowser);
-	delete(criteriaTreeWnd);
-	delete(picturePanel);
-	delete(modificationManager);
 }
 
 void CPanelInfosWnd::SetAnimationFile(const wxString& filename)
@@ -346,11 +339,11 @@ void CPanelInfosWnd::SetVideoFile(const wxString& filename)
 		{
 			infosToolbar->SetVideoToolbar();
 			infosToolbar->SetInfosActif();
-			GeolocHelper::UpdateGpsStatus(infosToolbar, fileGeolocalisation);
+			GeolocHelper::UpdateGpsStatus(infosToolbar.get(), fileGeolocalisation);
 		}
 		else
 		{
-			GeolocHelper::UpdateGpsStatus(infosToolbar, fileGeolocalisation);
+			GeolocHelper::UpdateGpsStatus(infosToolbar.get(), fileGeolocalisation);
 		}
 
 		delete fileGeolocalisation;
@@ -385,7 +378,7 @@ void CPanelInfosWnd::SetBitmapFile(const wxString& filename, const bool& isThumb
 
 		auto fileGeolocalisation = GeolocHelper::CreateAndSetFile(filename);
 
-		GeolocHelper::UpdateGpsStatus(infosToolbar, fileGeolocalisation);
+		GeolocHelper::UpdateGpsStatus(infosToolbar.get(), fileGeolocalisation);
 
 		delete fileGeolocalisation;
 
@@ -416,13 +409,13 @@ void CPanelInfosWnd::ApplyEffect(wxCommandEvent& event)
 	int numItem = event.GetInt();
 	//Test si l'history fonctionne ou pas 
 	HistoryUpdate();
-	filtreEffectWnd->ApplyEffect(numItem, historyEffectWnd, filename, false, PANELINFOSWNDID, PREVIEWVIEWERID);
+	filtreEffectWnd->ApplyEffect(numItem, historyEffectWnd.get(), filename, false, PANELINFOSWNDID, PREVIEWVIEWERID);
 }
 
 void CPanelInfosWnd::OnFiltreOk(const int& numFiltre)
 {
 	wxBusyInfo wait("Please wait, working...");
-	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
+	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd.get());
 	ClickShowButton(WM_EFFECT);
 }
 
@@ -496,7 +489,7 @@ void CPanelInfosWnd::HistoryUpdate()
 		if (bitmapViewer != nullptr)
 		{
 			CImageLoadingFormat* bitmap = bitmapViewer->GetBitmap(true);
-			historyEffectWnd->HistoryUpdate(bitmap, filename, historyLibelle, modificationManager);
+			historyEffectWnd->HistoryUpdate(bitmap, filename, historyLibelle, modificationManager.get());
 		}
 	}
 }
@@ -529,7 +522,7 @@ void CPanelInfosWnd::LoadInfo()
 	case WM_AUDIOVIDEO:
 		if (!thumbnailEffectWnd->IsShown())
 			thumbnailEffectWnd->Show(true);
-		filtreEffectWnd->ApplyEffect(IDM_FILTRE_AUDIOVIDEO, historyEffectWnd, filename, isVideo, PANELINFOSWNDID,
+		filtreEffectWnd->ApplyEffect(IDM_FILTRE_AUDIOVIDEO, historyEffectWnd.get(), filename, isVideo, PANELINFOSWNDID,
 		                             PREVIEWVIEWERID);
 		AudioVideoUpdate();
 		infosToolbar->SetAudioVideoPush();
@@ -539,7 +532,7 @@ void CPanelInfosWnd::LoadInfo()
 	case WM_VIDEOEFFECT:
 		if (!thumbnailEffectWnd->IsShown())
 			thumbnailEffectWnd->Show(true);
-		filtreEffectWnd->ApplyEffect(IDM_FILTRE_VIDEO, historyEffectWnd, filename, isVideo, PANELINFOSWNDID,
+		filtreEffectWnd->ApplyEffect(IDM_FILTRE_VIDEO, historyEffectWnd.get(), filename, isVideo, PANELINFOSWNDID,
 		                             PREVIEWVIEWERID);
 		VideoEffectUpdate();
 		infosToolbar->SetVideoEffectPush();

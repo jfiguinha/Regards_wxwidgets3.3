@@ -15,6 +15,7 @@
 #include "SQLRemoveData.h"
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
+#include <ModificationManager.h>
 namespace Regards::Viewer
 {
 	class CListFace;
@@ -42,7 +43,7 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
         
         viewerTheme->GetTreeTheme(&themeTree);
         
-		folderWnd = new wxGenericDirCtrl(this, FOLDERWINDOWID, wxDirDialogDefaultFolderStr, wxDefaultPosition,
+		folderWnd = std::make_unique<wxGenericDirCtrl>(this, FOLDERWINDOWID, wxDirDialogDefaultFolderStr, wxDefaultPosition,
 		                                 wxDefaultSize, wxDIRCTRL_DIR_ONLY);
 		if (folderWnd->GetTreeCtrl() != nullptr)
 		{
@@ -67,10 +68,10 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 		}
 
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(folderWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(folderWnd.get());
 		tabInfosFile->SetId(WM_FOLDER);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 	if (viewerTheme != nullptr)
@@ -81,23 +82,23 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 		viewerTheme->GetScrollTheme(&themeScroll);
 		viewerTheme->GetTreeTheme(&theme);
 
-		categoryFolderWnd = new CCategoryFolderWindow(this, CATEGORYFOLDERWINDOWID, themeScroll, theme);
+		categoryFolderWnd = std::make_unique<CCategoryFolderWindow>(this, CATEGORYFOLDERWINDOWID, themeScroll, theme);
 		categoryFolderWnd->Show(false);
 
-		auto tabInfosFile = new CTabWindowData();
-		tabInfosFile->SetWindow(categoryFolderWnd);
+		auto tabInfosFile = std::make_unique<CTabWindowData>();
+		tabInfosFile->SetWindow(categoryFolderWnd.get());
 		tabInfosFile->SetId(WM_CRITERIA);
-		listWindow.push_back(tabInfosFile);
+		listWindow.push_back(std::move(tabInfosFile));
 	}
 
 	if (viewerTheme != nullptr)
 	{
 		CThemeToolbar theme;
 		viewerTheme->GetInfosToolbarTheme(&theme);
-		photoToolbar = new CToolbarPhoto(this, wxID_ANY, theme, this, false);
+		photoToolbar = std::make_unique<CToolbarPhoto>(this, wxID_ANY, theme, this, false);
 	}
 
-	toolbarWindow = photoToolbar;
+	toolbarWindow = photoToolbar.get();
 	photoToolbar->SetFolderPush();
 	windowVisible = WM_FOLDER;
 
@@ -108,13 +109,6 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 	Connect(wxEVENT_REFRESHDATA, wxCommandEventHandler(CPanelPhotoWnd::OnRefreshData));
 
 	categoryFolderWnd->UpdateCriteria(false);
-}
-
-CPanelPhotoWnd::~CPanelPhotoWnd()
-{
-	delete(categoryFolderWnd);
-	delete(folderWnd);
-	delete(photoToolbar);
 }
 
 void CPanelPhotoWnd::UpdateCriteria(wxCommandEvent& event)

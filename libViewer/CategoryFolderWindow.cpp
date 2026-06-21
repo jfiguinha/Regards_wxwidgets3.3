@@ -481,9 +481,6 @@ void CCategoryFolderWindow::IdleFunction()
 		if (pimpl->refreshTimer->IsRunning())
 			pimpl->refreshTimer->Stop();
 	}
-    
- 
-	StartThread();
 }
 
 

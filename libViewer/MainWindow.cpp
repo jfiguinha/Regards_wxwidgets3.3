@@ -314,11 +314,6 @@ void CMainWindow::ProcessIdle()
     processIdle = hasPendingWork;
 }
 
-void CMainWindow::IdleFunction()
-{
-    StartThread();
-}
-
 // ═════════════════════════════════════════════════════════════════════════════
 // API publique — délégation aux services
 // ═════════════════════════════════════════════════════════════════════════════

@@ -89,6 +89,7 @@ bool ThumbnailScheduler::Tick(int nbProcesseur, int nbElementInIconeList)
         {
             CSqlPhotosWithoutThumbnail sqlPhoto;
             sqlPhoto.GetPhotoList(&photoList, 0);
+            listFile.clear();
             const bool stillEmpty = photoList.empty();
             lock.unlock();
 

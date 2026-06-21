@@ -563,8 +563,6 @@ void CListFace::IdleFunction()
 	{
 		processIdle = false;
 	}
-
-	StartThread();
 }
 
 bool CListFace::GetProcessEnd()

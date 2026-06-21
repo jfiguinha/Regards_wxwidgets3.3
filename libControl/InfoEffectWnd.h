@@ -27,7 +27,7 @@ namespace Regards::Control
 		                   CModificationManager* modificationManager);
 
 	private:
-		CInfoEffect* historyEffectOld;
+		std::unique_ptr<CInfoEffect> historyEffectOld;
 		int bitmapWindowId;
 		//const wxWindowID id_;
 		//const CThemeScrollBar& theme_scroll_;

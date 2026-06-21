@@ -850,6 +850,7 @@
     <ClInclude Include="KeywordDialogBox.h" />
     <ClInclude Include="MainInterface.h" />
     <ClInclude Include="MasterWindow.h" />
+    <ClInclude Include="ModificationManager.h" />
     <ClInclude Include="PanelWithClickToolbar.h" />
     <ClInclude Include="RenderBitmapOpenGL.h" />
     <ClInclude Include="RenderOpenGL.h" />
@@ -941,6 +942,7 @@
     <ClCompile Include="MapDialogBox.cpp" />
     <ClCompile Include="MapSelect.cpp" />
     <ClCompile Include="MasterWindow.cpp" />
+    <ClCompile Include="ModificationManager.cpp" />
     <ClCompile Include="Pane.cpp" />
     <ClCompile Include="PanelWithClickToolbar.cpp" />
     <ClCompile Include="PositionElement.cpp" />

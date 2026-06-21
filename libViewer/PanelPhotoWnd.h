@@ -14,7 +14,7 @@ namespace Regards::Viewer
 	{
 	public:
 		CPanelPhotoWnd(wxWindow* parent, wxWindowID id);
-		~CPanelPhotoWnd() override;
+		~CPanelPhotoWnd() = default;
 
 	protected:
 		void SetFolder(wxCommandEvent& folderEvent);
@@ -28,8 +28,8 @@ namespace Regards::Viewer
 		void RemoveFolder(const wxString& folder);
 		wxString AddFolder(const wxString& folder, wxString* file, const bool& showDialog = true);
 
-		CCategoryFolderWindow* categoryFolderWnd;
-		wxGenericDirCtrl* folderWnd;
-		CToolbarPhoto* photoToolbar;
+		std::unique_ptr<CCategoryFolderWindow> categoryFolderWnd;
+		std::unique_ptr<wxGenericDirCtrl> folderWnd;
+		std::unique_ptr<CToolbarPhoto> photoToolbar;
 	};
 }

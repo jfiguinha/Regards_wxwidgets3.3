@@ -65,14 +65,14 @@ wxString CSqlThumbnail::InsertThumbnail(const wxString& path, const int& width, 
 
 	if (photoId != -1)
 	{
-		wxString thumbnail = CFileUtility::GetThumbnailPath(to_string(numPhoto));
+		wxString thumbnail = CFileUtility::GetThumbnailPath(to_string(photoId));
 		if (wxFileExists(thumbnail))
 			wxRemoveFile(thumbnail);
 
 		if (!wxFileExists(thumbnail))
 		{
 			std::vector<std::unique_ptr<CSqlParameter>> parameter;
-			parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
+			parameter.push_back(std::make_unique<CSqlInt>(photoId));
 			parameter.push_back(std::make_unique<CSqlString>(path));
 			parameter.push_back(std::make_unique<CSqlInt>(width));
 			parameter.push_back(std::make_unique<CSqlInt>(height));

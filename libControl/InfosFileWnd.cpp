@@ -23,8 +23,6 @@ CInfosFileWnd::CInfosFileWnd(wxWindow* parent, wxWindowID id, const CThemeScroll
 
 CInfosFileWnd::~CInfosFileWnd(void)
 {
-	if (infosFile != nullptr)
-		delete(infosFile);
 }
 
 void CInfosFileWnd::UpdateTreeInfosEvent(wxCommandEvent& event)
@@ -40,8 +38,7 @@ void CInfosFileWnd::UpdateTreeInfosEvent(wxCommandEvent& event)
 
 		treeWindow->SetTreeControl(threadInfos->infosFileWnd);
 
-		delete(infosFile);
-		infosFile = threadInfos->infosFileWnd;
+		infosFile.reset(threadInfos->infosFileWnd);
 	}
 
 	threadInfos->threadLoadInfos->join();

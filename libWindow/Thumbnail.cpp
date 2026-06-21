@@ -728,9 +728,6 @@ void CThumbnail::IdleFunction()
 	if (endProgram)
 		return;
 
-	if (processIdle)
-		StartThread();
-
 	if (enableTimer && !isMouseOnWindow)
 	{
 		if (refreshActifTimer->IsRunning())

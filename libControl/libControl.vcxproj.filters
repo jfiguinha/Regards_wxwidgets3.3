@@ -31,9 +31,6 @@
     <ClCompile Include="InfosSeparationBarEffect.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="ModificationManager.cpp">
-      <Filter>Datastructure</Filter>
-    </ClCompile>
     <ClCompile Include="ThumbnailEffect.cpp">
       <Filter>Thumbnail\source</Filter>
     </ClCompile>
@@ -159,9 +156,6 @@
     <ClInclude Include="..\include\header.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="ModificationManager.h">
-      <Filter>Datastructure</Filter>
-    </ClInclude>
     <ClInclude Include="ThumbnailEffect.h">
       <Filter>Thumbnail\header</Filter>
     </ClInclude>
@@ -274,9 +268,6 @@
     </Filter>
     <Filter Include="header">
       <UniqueIdentifier>{4deebe3d-795c-4ab3-ab13-d0c086e405e3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Datastructure">
-      <UniqueIdentifier>{0f6d7271-c723-44bd-bf34-e70edb676320}</UniqueIdentifier>
     </Filter>
     <Filter Include="Bitmap">
       <UniqueIdentifier>{ca4654b8-bd4a-4383-96a7-1a0e7dfff490}</UniqueIdentifier>

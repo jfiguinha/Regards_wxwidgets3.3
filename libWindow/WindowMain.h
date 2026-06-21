@@ -35,18 +35,6 @@ namespace Regards
 				needToRefresh = true;
 			}
 
-
-			void PushThreadIdleEvent() override
-			{
-				wxCommandEvent evt(wxEVENT_IDLETHREADING);
-				GetEventHandler()->AddPendingEvent(evt);
-			}
-
-			virtual void OnProcessIdleEnd(wxCommandEvent& event)
-			{
-				this->ProcessOnIdleEndEvent(event);
-			}
-
 			void Resize() override
 			{
 				needToRefresh = true;
@@ -79,13 +67,21 @@ namespace Regards
 
 			virtual void OnIdle(wxIdleEvent& evt)
 			{
+				if (endProgram)
+					return;
+
+
+
+				IdleFunction();
+
+				if (processIdle)
+					ProcessIdle();
+
 				if (needToRefresh)
 				{
 					this->Refresh();
 					needToRefresh = false;
 				}
-
-				IdleFunction();
 			}
 
 			bool needToRefresh = false;
@@ -110,7 +106,6 @@ namespace Regards
 			Connect(wxEVENT_REFRESH, wxCommandEventHandler(CWindowMain::OnRefresh));
 			Connect(wxEVENT_RESIZE, wxCommandEventHandler(CWindowMain::OnResize));
 			Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(CWindowMain::OnEraseBackground));
-			Connect(wxEVENT_IDLETHREADING, wxCommandEventHandler(CWindowMain::OnProcessIdleEnd));
 			Connect(wxEVT_IDLE, wxIdleEventHandler(CWindowMain::OnIdle));
 		}
 
