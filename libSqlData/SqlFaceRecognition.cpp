@@ -66,7 +66,7 @@ bool CSqlFaceRecognition::DeleteFaceRecognitionDatabase(int numFace)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numFace));
-	return ExecuteSqlWithStatementNoResult("DELETE FROM FACE_RECOGNITION WHERE NumFace = ?)", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM FACE_RECOGNITION WHERE NumFace = ?", parameter);
 }
 
 int CSqlFaceRecognition::TraitementResult(CSqlResult* sqlResult)

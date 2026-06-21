@@ -73,7 +73,7 @@ wxString CSqlThumbnailVideo::InsertThumbnail(int photoId, const wxString& path, 
 			parameter.push_back(std::make_unique<CSqlInt>(timePosition));
 			parameter.push_back(std::make_unique<CSqlInt>(width));
 			parameter.push_back(std::make_unique<CSqlInt>(height));
-			ExecuteSqlWithStatementNoResult("INSERT INTO VIDEOTHUMBNAIL (NumPhoto, FullPath, numVideo, rotation, percent, timePosition, width, height) VALUES (?, ?, ?, ?, ?, ?,?, ?)", parameter);
+			ExecuteSqlWithStatementNoResult("INSERT INTO VIDEOTHUMBNAIL (NumPhoto, FullPath, numVideo, rotation, percent, timePosition, width, height) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", parameter);
 		}
 		
 	}
@@ -151,7 +151,7 @@ bool CSqlThumbnailVideo::DeleteThumbnail(const int& numPhoto)
 
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
-	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?)", parameter);
 }
 
 bool CSqlThumbnailVideo::EraseThumbnail()
@@ -187,7 +187,7 @@ bool CSqlThumbnailVideo::EraseFolderThumbnail(const int& numFolder)
 		}
 	}
 
-	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumFolderCatalog = ?", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumFolderCatalog = ?)", parameter);
 }
 
 int CSqlThumbnailVideo::TraitementResult(CSqlResult* sqlResult)

@@ -190,7 +190,7 @@ bool CSqlFacePhoto::DeleteListOfPhoto(const vector<int>& listNumPhoto)
 
 		std::vector<std::unique_ptr<CSqlParameter>> parameter;
 		parameter.push_back(std::make_unique<CSqlInt>(numFace));
-		ExecuteSqlWithStatementNoResult("DELETE FROM FACE_PROCESSING WHERE fullpath in (select fullpath from Photos where NumPhoto = ?", parameter);
+		ExecuteSqlWithStatementNoResult("DELETE FROM FACE_PROCESSING WHERE fullpath in (select fullpath from Photos where NumPhoto = ?)", parameter);
 	}
 	RebuildLink();
 	return false;
@@ -274,7 +274,7 @@ int CSqlFacePhoto::InsertFaceTreatment(const wxString& path)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(path));
-	return ExecuteSqlWithStatementNoResult("INSERT INTO FACE_PROCESSING (FullPath) VALUES(?)", parameter);
+	return ExecuteSqlWithStatementNoResult("INSERT INTO FACE_PROCESSING (FullPath) VALUES (?)", parameter);
 }
 
 //--------------------------------------------------------
@@ -294,7 +294,7 @@ int CSqlFacePhoto::InsertFace(const wxString& path, const wxString& gender, cons
 	parameter.push_back(std::make_unique<CSqlString>(gender));
 	parameter.push_back(std::make_unique<CSqlString>(age));
 
-	ExecuteSqlWithStatementNoResult("INSERT INTO FACEPHOTO (FullPath, Numberface, width, height, Pertinence, gender, age) VALUES(?,?,?,?,?,?,?)", parameter);
+	ExecuteSqlWithStatementNoResult("INSERT INTO FACEPHOTO (FullPath, Numberface, width, height, Pertinence, gender, age) VALUES (?,?,?,?,?,?,?)", parameter);
 
 	int numFaceId = GetNumFace(path, numberface);
 

@@ -77,7 +77,7 @@ wxString CSqlThumbnail::InsertThumbnail(const wxString& path, const int& width, 
 			parameter.push_back(std::make_unique<CSqlInt>(width));
 			parameter.push_back(std::make_unique<CSqlInt>(height));
 			parameter.push_back(std::make_unique<CSqlString>(hash));
-			ExecuteSqlWithStatementNoResult("INSERT or IGNORE INTO PHOTOSTHUMBNAIL(NumPhoto, FullPath, width, height, hash) VALUES(?, ?, ?, ?, ?)", parameter);
+			ExecuteSqlWithStatementNoResult("INSERT or IGNORE INTO PHOTOSTHUMBNAIL(NumPhoto, FullPath, width, height, hash) VALUES (?, ?, ?, ?, ?)", parameter);
 		}
 		return thumbnail;
 	}
@@ -161,15 +161,15 @@ bool CSqlThumbnail::DeleteThumbnail(const int& numPhoto)
 
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
-	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?)", parameter);
 }
 
 void CSqlThumbnail::EraseThumbnail(const int& numPhoto)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
-	ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOSWIHOUTTHUMBNAIL (FullPath, Priority, ProcessStart) (SELECT FullPath, 1, 0 FROM PHOTOS WHERE NumPhoto = ?", parameter);
-	ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?", parameter);
+	ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOSWIHOUTTHUMBNAIL (FullPath, Priority, ProcessStart) VALUES (SELECT FullPath, 1, 0 FROM PHOTOS WHERE NumPhoto = ?)", parameter);
+	ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?)", parameter);
 }
 
 bool CSqlThumbnail::EraseThumbnail()
@@ -211,7 +211,7 @@ bool CSqlThumbnail::EraseFolderThumbnail(const int& numFolder)
 		}
 	}
 
-	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumFolderCatalog = ?", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOSTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumFolderCatalog = ?)", parameter);
 }
 
 int CSqlThumbnail::TraitementResult(CSqlResult* sqlResult)

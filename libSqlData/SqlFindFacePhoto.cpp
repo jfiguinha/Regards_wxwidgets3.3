@@ -62,7 +62,7 @@ std::vector<int> CSqlFindFacePhoto::GetListFaceToRecognize()
 {
 	type = 0;
 	listNumFace.clear();
-	ExecuteRequest("SELECT FACEPHOTO.NumFace FROM FACEPHOTO WHERE FACEPHOTO.NumFace not in(SELECT DISTINCT NumFace From FACE_RECOGNITION)");
+	ExecuteRequest("SELECT FACEPHOTO.NumFace FROM FACEPHOTO WHERE FACEPHOTO.NumFace not in (SELECT DISTINCT NumFace From FACE_RECOGNITION)");
 	return listNumFace;
 }
 
@@ -74,7 +74,7 @@ std::vector<CFaceFilePath> CSqlFindFacePhoto::GetListPhotoFace(const int& numFac
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(value));
 	parameter.push_back(std::make_unique<CSqlInt>(numFace));
-	ExecuteSqlWithStatement("SELECT FACE_RECOGNITION.NumFace, FACEPHOTO.FullPath, NumPhoto  FROM FACE_RECOGNITION INNER JOIN FACEPHOTO ON FACEPHOTO.NumFace = FACE_RECOGNITION.NumFace INNER JOIN PHOTOS ON FACEPHOTO.FullPath = PHOTOS.FullPath where Pertinence > ? and NumFaceCompatible = ?", parameter);
+	ExecuteSqlWithStatement("SELECT FACE_RECOGNITION.NumFace, FACEPHOTO.FullPath, NumPhoto FROM FACE_RECOGNITION INNER JOIN FACEPHOTO ON FACEPHOTO.NumFace = FACE_RECOGNITION.NumFace INNER JOIN PHOTOS ON FACEPHOTO.FullPath = PHOTOS.FullPath where Pertinence > ? and NumFaceCompatible = ?", parameter);
 	return listFace;
 }
 
