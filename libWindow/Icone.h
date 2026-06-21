@@ -123,7 +123,7 @@ namespace Regards::Window
 		//Variable
 		//---------------------------------------------------
 		//int interpolationMethod;
-		CThumbnailData* pThumbnailData;
+		std::unique_ptr<CThumbnailData> pThumbnailData;
 
 		static wxImage videoCadre;
 		static wxImage photoTemp;

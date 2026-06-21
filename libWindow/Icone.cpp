@@ -153,7 +153,7 @@ CIcone::CIcone(CThumbnailData * data) : numElement(0), oldx(0), oldy(0)
 	if (data != nullptr)
 	{
 		numElement = data->GetNumElement();
-		pThumbnailData = data;
+		pThumbnailData.reset(data);
 	}
 	else
 	{
@@ -543,7 +543,7 @@ int CIcone::GetBitmapHeight()
 
 CThumbnailData* CIcone::GetPtData()
 {
-	return pThumbnailData;
+	return pThumbnailData.get();
 }
 
 void CIcone::CalculPosition(const wxImage& render)
