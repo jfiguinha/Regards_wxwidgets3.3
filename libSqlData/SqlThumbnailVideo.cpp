@@ -81,7 +81,7 @@ wxString CSqlThumbnailVideo::InsertThumbnail(int photoId, const wxString& path, 
 }
 
 void CSqlThumbnailVideo::GetPictureThumbnail(int photoId, const wxString& path, const int& numVideo,
-                                             CImageVideoThumbnail* & videoThumbnail)
+                                             CImageVideoThumbnail* videoThumbnail)
 {
 	if (videoThumbnail != nullptr)
 	{

@@ -76,11 +76,6 @@ CThumbnailEffect::CThumbnailEffect(wxWindow* parent, const wxWindowID id, const 
 
 CThumbnailEffect::~CThumbnailEffect(void)
 {
-	for (CInfosSeparationBar* infosSeparationBar : listSeparator)
-	{
-		delete(infosSeparationBar);
-		infosSeparationBar = nullptr;
-	}
 	listSeparator.clear();
 }
 
@@ -110,11 +105,12 @@ CIcone * CThumbnailEffect::FindElement(const int& xPos, const int& yPos)
 
 CInfosSeparationBarEffect* CThumbnailEffect::CreateNewSeparatorBar(const wxString& libelle)
 {
-	auto infosSeparationBar = new CInfosSeparationBarEffect(themeThumbnail.themeSeparation);
+	auto infosSeparationBar = std::make_unique<CInfosSeparationBarEffect>(themeThumbnail.themeSeparation);
 	infosSeparationBar->SetTitle(libelle);
 	infosSeparationBar->SetWidth(GetWindowWidth());
-	listSeparator.push_back(infosSeparationBar);
-	return infosSeparationBar;
+	CInfosSeparationBarEffect* result = infosSeparationBar.get();
+	listSeparator.push_back(std::move(infosSeparationBar));
+	return result;
 }
 
 
@@ -169,11 +165,6 @@ void CThumbnailEffect::SetFile(const wxString& filename, CImageLoadingFormat* im
 	//EraseThumbnailList();
 	CreateOrLoadStorageFile();
 
-	for (CInfosSeparationBar* infosSeparationBar : listSeparator)
-	{
-		delete(infosSeparationBar);
-		infosSeparationBar = nullptr;
-	}
 	listSeparator.clear();
 
 	isAllProcess = false;
@@ -566,7 +557,7 @@ void CThumbnailEffect::UpdateScroll()
 	if (GetWindowWidth() <= 0)
 		return;
 
-	for (CInfosSeparationBar* infosSeparationBar : listSeparator)
+	for (auto& infosSeparationBar : listSeparator)
 	{
 		int nbElement = static_cast<int>(infosSeparationBar->listElement.size());
 

@@ -91,5 +91,6 @@ namespace Regards::Window
 		int yPos;
 	};
 
-	using InfosSeparationBarVector = std::vector<CInfosSeparationBar*>;
+	//using InfosSeparationBarVector = std::vector<CInfosSeparationBar*>;
+	using InfosSeparationBarVector = std::vector<std::unique_ptr<CInfosSeparationBar>>;
 }

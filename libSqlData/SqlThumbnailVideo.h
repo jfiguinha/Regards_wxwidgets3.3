@@ -19,7 +19,7 @@ namespace Regards
 			                     const int& numPicture, const int& rotation, const int& percent,
 			                     const int& timePosition);
 			cv::Mat GetThumbnail(int photoId, const wxString& path, const int& numVideo, bool& isDefault);
-			void GetPictureThumbnail(int photoId, const wxString& path, const int& numVideo, CImageVideoThumbnail* & videoThumbnail);
+			void GetPictureThumbnail(int photoId, const wxString& path, const int& numVideo, CImageVideoThumbnail* videoThumbnail);
 
 			bool DeleteThumbnail(const int& numPhoto);
 			bool EraseThumbnail();
