@@ -5,7 +5,7 @@
 #include <Metadata.h>
 #include "PositionElement.h"
 #include "TreeElementDelete.h"
-
+#include <wx/tokenzr.h>
 namespace Regards::Window
 {
 	class CTreeData;
@@ -47,6 +47,66 @@ namespace Regards::Window
 				CTreeElement* treeElement = element->GetTreeElement();
 				if (treeElement != nullptr)
 					treeElement->MouseOver(deviceContext, x, y, update);
+			}
+		}
+
+		template<typename TreeDataT, typename LeafInitializer>
+		void AddTreeInfosImpl(const wxString& exifKey,
+			int index,
+			tree<CTreeData*>::iterator& top,
+			tree<CTreeData*>::iterator& child,
+			LeafInitializer initLeaf)
+		{
+			wxStringTokenizer tokenizer(exifKey, ".");
+
+			int level = 0;
+
+			while (tokenizer.HasMoreTokens())
+			{
+				const wxString key = tokenizer.GetNextToken();
+				const bool hasChildren = tokenizer.HasMoreTokens();
+
+				auto* treeData = new TreeDataT();
+				treeData->SetKey(key);
+
+				if (hasChildren)
+				{
+					treeData->SetIsParent(true);
+
+					if (index > 0)
+					{
+						tree<CTreeData*>::iterator it;
+
+						if (level == 0)
+							it = FindKey(key);
+						else
+							it = FindKey(key, child);
+
+						if (it != nullptr) // replace with tr.end() if appropriate
+						{
+							child = it;
+							++level;
+							delete treeData;
+							continue;
+						}
+					}
+
+					if (level > 0)
+						child = tr.append_child(child, treeData);
+					else
+						child = tr.insert(top, treeData);
+				}
+				else
+				{
+					treeData->SetIsParent(false);
+
+					// Let caller initialize leaf-specific data
+					initLeaf(treeData);
+
+					tr.append_child(child, treeData);
+				}
+
+				++level;
 			}
 		}
 

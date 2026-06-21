@@ -21,6 +21,7 @@
 #include <TreeElementTriangle.h>
 #include <theme.h>
 #include <TreeElementControlInterface.h>
+#include <wx/tokenzr.h>
 using namespace Regards::Control;
 using namespace Regards::Window;
 using namespace Regards::Picture;
@@ -72,65 +73,23 @@ void CInfosFile::UpdateScreenRatio()
 	this->RenderElement(RenderMode::Update);
 }
 
-void CInfosFile::AddTreeInfos(const wxString& exifKey, const wxString& exifValue, const int& index,
-                              tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child)
+void CInfosFile::AddTreeInfos(const wxString& exifKey,
+	const wxString& exifValue,
+	const int& index,
+	tree<CTreeData*>::iterator& top,
+	tree<CTreeData*>::iterator& child)
 {
-	//
-	wchar_t seps[] = L".";
-	int item = 0;
-	wchar_t informations[TAILLEMAX];
-	wcscpy(informations, exifKey.c_str());
-	wchar_t* token1 = nullptr;
-	wchar_t* token = wcstok(informations, seps, &token1); // C4996
-
-	// Note: strtok is deprecated; consider using strtok_s instead
-	while (token != nullptr)
-	{
-		auto treeData = new CTreeData();
-		treeData->SetKey(token);
-		token = wcstok(nullptr, seps, &token1); // C4996
-
-		if (token != nullptr)
+	AddTreeInfosImpl<CTreeData>(
+		exifKey,
+		index,
+		top,
+		child,
+		[&](CTreeData* treeData)
 		{
-			treeData->SetIsParent(true);
-
-			if (index > 0)
-			{
-				tree<CTreeData*>::iterator it;
-				if (item == 0)
-					it = FindKey(treeData->GetKey());
-				else
-					it = FindKey(treeData->GetKey(), child);
-
-				if (it != nullptr)
-				{
-					child = it;
-					item++;
-					delete(treeData);
-					continue;
-				}
-			}
-
-			if (item > 0)
-			{
-				child = tr.append_child(child, treeData);
-			}
-			else
-			{
-				child = tr.insert(top, treeData);
-			}
-		}
-		else
-		{
-			treeData->SetIsParent(false);
 			treeData->SetValue(exifValue);
 			treeData->SetExifKey(exifKey);
-			tr.append_child(child, treeData);
-		}
-		item++;
-	}
+		});
 }
-
 
 void CInfosFile::SetFile(const wxString& picture)
 {

@@ -14,6 +14,7 @@
 #include <LibResource.h>
 #include <appcontext.h>
 #include <SqlPhotoCategorie.h>
+#include <wx/tokenzr.h>
 #if defined(__WXMSW__)
 #include "../include/window_id.h"
 #else
@@ -68,68 +69,26 @@ void CCriteriaTree::UpdateScreenRatio()
 	//this->UpdateElement();
 }
 
-void CCriteriaTree::AddTreeInfos(const wxString& exifKey, const wxString& exifValue, const int& index,
-                                 tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child)
+
+
+void CCriteriaTree::AddTreeInfos(const wxString& exifKey,
+	const wxString& exifValue,
+	const int& index,
+	tree<CTreeData*>::iterator& top,
+	tree<CTreeData*>::iterator& child)
 {
-	wchar_t seps[] = L".";
-	int item = 0;
-	wchar_t informations[TAILLEMAX];
-	wcscpy(informations, exifKey.c_str());
-	wchar_t* token1;
 
-	// Establish string and get the first token:
-#if defined(WIN32) && _MSC_VER < 1900
-	wchar_t * token = wcstok(informations, seps); // C4996
-#else
-	wchar_t* token = wcstok(informations, seps, &token1); // C4996
-#endif
-
-	// Note: strtok is deprecated; consider using strtok_s instead
-	while (token != nullptr)
-	{
-		auto treeData = new CTreeData();
-		treeData->SetKey(token);
-#if defined(WIN32) && _MSC_VER < 1900
-	wchar_t * token = wcstok(informations, seps); // C4996
-#else
-		wchar_t* token2 = wcstok(informations, seps, &token1); // C4996
-#endif
-
-		if (token2 != nullptr)
-		{
-			treeData->SetIsParent(true);
-
-			if (index > 0)
-			{
-				tree<CTreeData*>::iterator it;
-				if (item == 0)
-					it = FindKey(treeData->GetKey());
-				else
-					it = FindKey(treeData->GetKey(), child);
-
-				if (it != nullptr)
-				{
-					child = it;
-					item++;
-					delete(treeData);
-					continue;
-				}
-			}
-
-			if (item > 0)
-				child = tr.append_child(child, treeData);
-			else
-				child = tr.insert(top, treeData);
-		}
-		else
+	AddTreeInfosImpl<CTreeData>(
+		exifKey,
+		index,
+		top,
+		child,
+		[&](CTreeData* treeData)
 		{
 			treeData->SetIsParent(false);
 			treeData->SetValue(exifValue);
 			treeData->SetExifKey(exifKey);
-			tr.append_child(child, treeData);
-		}
-		item++;
-	}
+		});
 }
 
 void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)

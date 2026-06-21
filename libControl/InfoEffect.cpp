@@ -9,12 +9,13 @@
 #include "MainThemeInit.h"
 #include "BitmapWnd3d.h"
 #include "BitmapWndViewer.h"
+#include <libPicture.h>
 #include <TreeData.h>
 #include <TreeElementControlInterface.h>
 #include <ConvertUtility.h>
 using namespace Regards::Window;
 using namespace Regards::Control;
-
+using namespace Regards::Picture;
 
 CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModificationManager* modificationManager,
                          int bitmapWindowId): numEvent(0), yPos(0), index(0)
@@ -111,13 +112,19 @@ void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, co
 	if (element->GetType() == ELEMENT_TEXTE)
 	{
 		wxString key = treeData->GetExifKey();
-		if (key != "-1")
+		if (key != "History")
 		{
 			const int modif = CConvertUtility::StringToInt(key);
 			SetBitmapToViewer(modificationManager->GetModification(modif));
-			SetActifElement(key);
 		}
-		
+		else
+		{
+			CLibPicture libPicture;
+			CImageLoadingFormat* bitmap = libPicture.LoadPicture(treeData->GetKey());
+			SetBitmapToViewer(bitmap);
+
+		}
+		SetActifElement(key);
 	}
 	else if (element->GetType() == ELEMENT_TRIANGLE)
 	{
@@ -165,86 +172,69 @@ void CInfoEffect::SetActifElement(const wxString& key)
 	}
 	eventControl->UpdateTreeControl();
 }
-
 void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 {
-	//Récupération des catégories principales
 	numEvent += 2;
+
 	wxString localLibelle = libelle;
 	localLibelle.Replace("@99", ".");
-	auto treeData = new CTreeData();
-	treeData->SetIsParent(true);
-	treeData->SetKey(localLibelle);
-	treeData->SetExifKey(key);
 
-	//FindKey(const wxString & key)
-	//child = tr.insert_after(child, treeData);
+	int level = 0;
 
-	wchar_t seps[] = L".";
-	int item = 0;
-	wchar_t* next_token1 = nullptr;
-	wchar_t informations[1024];
-	wcscpy(informations, libelle.c_str());
+	wxStringTokenizer tokenizer(libelle, ".");
 
-	// Establish string and get the first token:
-#if defined(WIN32) && _MSC_VER < 1900
-	wchar_t * token = wcstok(informations, seps); // C4996
-#else
-	wchar_t* token = wcstok(informations, seps, &next_token1); // C4996
-#endif
-
-	// Note: strtok is deprecated; consider using strtok_s instead
-	while (token != nullptr)
+	while (tokenizer.HasMoreTokens())
 	{
-		auto tree_data = new CTreeData();
-		wxString value = token;
+		wxString value = tokenizer.GetNextToken();
 		value.Replace("@99", ".");
-		tree_data->SetKey(value);
-#if defined(WIN32) && _MSC_VER < 1900
-		token = wcstok(nullptr, seps); // C4996
-#else
-		token = wcstok(nullptr, seps, &next_token1); // C4996
-#endif
 
-		if (token != nullptr)
+		const bool hasChildren = tokenizer.HasMoreTokens();
+
+		auto* treeData = new CTreeData();
+		treeData->SetKey(value);
+
+		if (hasChildren)
 		{
-			tree_data->SetIsParent(true);
+			treeData->SetIsParent(true);
 
 			if (index > 0)
 			{
 				tree<CTreeData*>::iterator it;
-				if (item == 0)
-					it = FindKey(tree_data->GetKey());
-				else
-					it = FindKey(tree_data->GetKey(), child);
 
-				if (it != nullptr)
+				if (level == 0)
+					it = FindKey(treeData->GetKey());
+				else
+					it = FindKey(treeData->GetKey(), child);
+
+				if (it != nullptr) // maybe tr.end()
 				{
 					child = it;
-					item++;
-					delete(tree_data);
+					++level;
+					delete treeData;
 					continue;
 				}
 			}
 
-			if (item > 0)
+			if (level > 0)
 			{
-				child = tr.append_child(child, tree_data);
+				child = tr.append_child(child, treeData);
 			}
 			else
 			{
-				tree_data->SetExifKey("-1");
-				child = tr.insert(top, tree_data);
+				treeData->SetExifKey("-1");
+				child = tr.insert(top, treeData);
 			}
 		}
 		else
 		{
-			tree_data->SetIsParent(false);
-			tree_data->SetValue(localLibelle);
-			tree_data->SetExifKey(key);
-			tr.append_child(child, tree_data);
+			treeData->SetIsParent(false);
+			treeData->SetValue(localLibelle);
+			treeData->SetExifKey(key);
+
+			tr.append_child(child, treeData);
 		}
-		item++;
+
+		++level;
 	}
 
 	CreateElement(RenderMode::Update);

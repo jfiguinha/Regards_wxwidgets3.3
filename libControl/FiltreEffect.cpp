@@ -2,7 +2,7 @@
 #include "FiltreEffect.h"
 #include <TreeDataEffect.h>
 #include <FilterData.h>
-
+#include <wx/tokenzr.h>
 #include "MainTheme.h"
 #include "MainThemeInit.h"
 #include "BitmapWndViewer.h"
@@ -153,67 +153,27 @@ void CFiltreEffect::SlidePosChange(CTreeElement* treeElement, const int& positio
 	}
 	//eventControl->UpdateElement(treeElement);
 }
-
-
-void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value, int typeValue,
-                                 const int& index, tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child,
-                                 const int& type)
+void CFiltreEffect::AddTreeInfos(const wxString& exifKey,
+	CTreeElementValue* position,
+	void* value,
+	int typeValue,
+	const int& index,
+	tree<CTreeData*>::iterator& top,
+	tree<CTreeData*>::iterator& child,
+	const int& type)
 {
-	wchar_t seps[] = L".";
-	int item = 0;
-	wchar_t informations[TAILLEMAX];
-	wchar_t* next_token1 = nullptr;
-	wcscpy(informations, exifKey.c_str());
-	wchar_t* token = wcstok(informations, seps, &next_token1); // C4996
-
-	// Note: strtok is deprecated; consider using strtok_s instead
-	while (token != nullptr)
-	{
-		auto treeData = new CTreeDataEffect();
-		treeData->SetKey(token);
-		token = wcstok(nullptr, seps, &next_token1); // C4996
-
-		if (token != nullptr)
+	AddTreeInfosImpl<CTreeDataEffect>(
+		exifKey,
+		index,
+		top,
+		child,
+		[&](CTreeDataEffect* treeData)
 		{
-			treeData->SetIsParent(true);
-
-			if (index > 0)
-			{
-				tree<CTreeData*>::iterator it;
-				if (item == 0)
-					it = FindKey(treeData->GetKey());
-				else
-					it = FindKey(treeData->GetKey(), child);
-
-				if (it != nullptr)
-				{
-					child = it;
-					item++;
-					delete(treeData);
-					continue;
-				}
-			}
-
-			if (item > 0)
-			{
-				child = tr.append_child(child, treeData);
-			}
-			else
-			{
-				child = tr.insert(top, treeData);
-			}
-		}
-		else
-		{
-			treeData->SetIsParent(false);
 			treeData->SetInitValue(position);
 			treeData->SetValue(value, typeValue);
 			treeData->SetExifKey(exifKey);
 			treeData->SetType(type);
-			tr.append_child(child, treeData);
-		}
-		item++;
-	}
+		});
 }
 
 CPositionElement* CFiltreEffect::RenderSlide(
