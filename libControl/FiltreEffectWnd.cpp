@@ -32,14 +32,6 @@ CFiltreEffectScrollWnd::CFiltreEffectScrollWnd(wxWindow* parent, wxWindowID id, 
 	Connect(wxEVENT_UPDATEFILTER, wxCommandEventHandler(CFiltreEffectScrollWnd::OnUpdateFilter));
 }
 
-CFiltreEffectScrollWnd::~CFiltreEffectScrollWnd(void)
-{
-	if (filtreEffectOld != nullptr)
-		delete(filtreEffectOld);
-
-	if (effectParameter != nullptr)
-		delete(effectParameter);
-}
 
 void CFiltreEffectScrollWnd::SetBitmapToViewer(CImageLoadingFormat* bitmap)
 {
@@ -63,9 +55,7 @@ void CFiltreEffectScrollWnd::OnFiltreCancel()
 	if (bitmapViewer != nullptr && CFiltreData::NeedPreview(numFiltre))
 		bitmapViewer->RemoveListener();
 
-	if (filtreEffectOld != nullptr)
-		delete(filtreEffectOld);
-	filtreEffectOld = nullptr;
+	filtreEffectOld.reset();
 }
 
 void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd)
@@ -112,9 +102,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 	auto panelInfos = this->FindWindowById(panelId);
 	auto previewWindow = this->FindWindowById(previewId);
 
-	if (filtreEffectOld != nullptr)
-		delete(filtreEffectOld);
-	filtreEffectOld = nullptr;
+	filtreEffectOld.reset();
 
 	wxString filterName = CFiltreData::GetFilterLabel(numItem);
 	if (filterName != "")
@@ -168,18 +156,14 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 
 				case 2:
 					{
-						if (effectParameter != nullptr)
-							delete(effectParameter);
-
-
-						effectParameter = CFiltreData::GetEffectParameter(numItem);
+						effectParameter.reset(CFiltreData::GetEffectParameter(numItem));
 
 
 						bitmapViewer->SetBitmapPreviewEffect(numItem);
 
 						bitmap = bitmapViewer->GetBitmap(true);
 
-						filtreEffect->Init(effectParameter, bitmap->GetMatrix().getMat(), filename, numItem);
+						filtreEffect->Init(effectParameter.get(), bitmap->GetMatrix().getMat(), filename, numItem);
 
 						if (previewWindow != nullptr)
 						{
@@ -200,7 +184,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 						//panelInfos->ShowFiltre(CFiltreData::GetFilterLabel(numItem));
 						treeWindow->SetTreeControl(filtreEffect);
 
-						filtreEffectOld = filtreEffect;
+						filtreEffectOld.reset(filtreEffect);
 
 
 						break;
@@ -209,7 +193,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 				default:
 					{
 						CImageLoadingFormat* imageLoad = CFilterWindowParam::RenderEffect(
-							effectParameter, bitmapViewer, numItem);
+							effectParameter.get(), bitmapViewer, numItem);
 						historyEffectWnd->AddModification(imageLoad, CFiltreData::GetFilterLabel(numItem));
 						if (imageLoad != nullptr)
 							SetBitmapToViewer(imageLoad);
@@ -227,12 +211,10 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 		{
 		case IDM_FILTRE_VIDEO:
 			{
-				if (effectParameter != nullptr)
-					delete(effectParameter);
-				effectParameter = showVideo->GetParameter();
-				showVideo->SetVideoPreviewEffect(effectParameter);
+				effectParameter.reset(showVideo->GetParameter());
+				showVideo->SetVideoPreviewEffect(effectParameter.get());
 				cv::Mat bitmap;
-				filtreEffect->Init(effectParameter, bitmap, filename, numItem);
+				filtreEffect->Init(effectParameter.get(), bitmap, filename, numItem);
 
 				if (panelInfos != nullptr)
 				{
@@ -242,19 +224,16 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 				}
 
 				treeWindow->SetTreeControl(filtreEffect);
-				delete(filtreEffectOld);
-				filtreEffectOld = filtreEffect;
+				filtreEffectOld.reset(filtreEffect);
 				break;
 			}
 
 		case IDM_FILTRE_AUDIOVIDEO:
 			{
-				if (effectParameter != nullptr)
-					delete(effectParameter);
-				effectParameter = showVideo->GetParameter();
-				showVideo->SetVideoPreviewEffect(effectParameter);
+				effectParameter.reset(showVideo->GetParameter());
+				showVideo->SetVideoPreviewEffect(effectParameter.get());
 				cv::Mat bitmap;
-				filtreEffect->Init(effectParameter, bitmap, filename, numItem);
+				filtreEffect->Init(effectParameter.get(), bitmap, filename, numItem);
 
 				if (panelInfos != nullptr)
 				{
@@ -266,8 +245,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 
 
 				treeWindow->SetTreeControl(filtreEffect);
-				delete(filtreEffectOld);
-				filtreEffectOld = filtreEffect;
+				filtreEffectOld.reset(filtreEffect);
 				break;
 			}
 		default: ;
@@ -279,5 +257,5 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 
 CFiltreEffect* CFiltreEffectScrollWnd::GetFiltreEffect()
 {
-	return filtreEffectOld;
+	return filtreEffectOld.get();
 }

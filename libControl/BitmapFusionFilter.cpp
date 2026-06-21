@@ -71,11 +71,11 @@ void CBitmapFusionFilter::SetTransitionBitmap(const bool& start, IBitmapDisplay*
 
 void CBitmapFusionFilter::GenerateEffectTexture(CImageLoadingFormat* nextPicture, IBitmapDisplay* bmpViewer)
 {
-	CImageLoadingFormat* temp = GenerateInterpolationBitmapTexture(nextPicture, bmpViewer);
+	auto temp = std::make_unique< CImageLoadingFormat>();
+	temp.reset(GenerateInterpolationBitmapTexture(nextPicture, bmpViewer));
 	if (temp != nullptr)
 	{
-		GenerateTexture(temp);
-		delete temp;
+		GenerateTexture(temp.get());
 	}
 }
 

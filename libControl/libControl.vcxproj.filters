@@ -219,9 +219,6 @@
     <ClInclude Include="AfterEffect.h">
       <Filter>Bitmap\PostEffect</Filter>
     </ClInclude>
-    <ClInclude Include="BitmapFusionEffectParameter.h">
-      <Filter>Bitmap\PostEffect</Filter>
-    </ClInclude>
     <ClInclude Include="BitmapFusionFilter.h">
       <Filter>Bitmap\PostEffect</Filter>
     </ClInclude>

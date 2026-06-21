@@ -21,7 +21,7 @@ namespace Regards::Control
 	public:
 		CFiltreEffectScrollWnd(wxWindow* parent, wxWindowID id, const CThemeScrollBar& themeScroll,
 		                       const CThemeTree& themeTree, int bitmapWindowId);
-		~CFiltreEffectScrollWnd(void) override;
+		~CFiltreEffectScrollWnd(void) = default;
 		void ApplyEffect(const int& numItem, CInfoEffectWnd* historyEffectWnd, const wxString& filename,
 		                 const int& isVideo, int panelId, int previewId);
 		void OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd);
@@ -34,8 +34,8 @@ namespace Regards::Control
 		void SetBitmapToViewer(CImageLoadingFormat* bitmap);
 		//CImageLoadingFormat * SetBitmapEffect(const int &effect, CEffectParameter * effectParameter, CRegardsBitmap * bitmap);
 		CImageLoadingFormat* bitmap;
-		CEffectParameter* effectParameter;
-		CFiltreEffect* filtreEffectOld;
+		std::unique_ptr<CEffectParameter> effectParameter;
+		std::unique_ptr<CFiltreEffect> filtreEffectOld;
 		int numFiltre;
 		int bitmapWindowId;
 	};

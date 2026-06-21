@@ -8,7 +8,7 @@ namespace Regards::Control
 	{
 	public:
 		CFiltreToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical);
-		~CFiltreToolbar() override;
+		~CFiltreToolbar() = default;
 		void SetNumFiltre(const int& numFiltre);
 
 	private:

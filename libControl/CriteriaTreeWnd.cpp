@@ -52,8 +52,6 @@ CCriteriaTreeWnd::CCriteriaTreeWnd(wxWindow* parent, wxWindowID id, const int& m
 		apiKey = param->GetApiKey();
 	}
 
-	criteriaTree = nullptr;
-	oldCriteriaTree = nullptr;
 	numPhotoId = 0;
 	this->mainWindowID = mainWindowID;
 	fileGeolocalisation = std::make_unique<CFileGeolocation>(urlServer, apiKey);
@@ -210,21 +208,13 @@ void CCriteriaTreeWnd::ShowKeyWord(wxCommandEvent& event)
 	needToRefresh = true;
 }
 
-CCriteriaTreeWnd::~CCriteriaTreeWnd(void)
-{
-	if (oldCriteriaTree != nullptr)
-		delete(oldCriteriaTree);
-}
-
 void CCriteriaTreeWnd::UpdateTreeData()
 {
 	auto criteriaTree = new CCriteriaTree(treeWindow->GetTheme(), treeWindow.get());
 	criteriaTree->SetFile(filename, numPhotoId);
 	//criteriaTree->CreateElement();
 	treeWindow->SetTreeControl(criteriaTree);
-	if (oldCriteriaTree != nullptr)
-		delete(oldCriteriaTree);
-	oldCriteriaTree = criteriaTree;
+	oldCriteriaTree.reset(criteriaTree);
 }
 
 void CCriteriaTreeWnd::SetFile(const wxString& filename)

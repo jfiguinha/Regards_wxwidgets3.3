@@ -107,7 +107,7 @@ namespace Regards::Control
 		void BeforeInterpolationBitmap() override;
 
 		wxCursor hCursorCross;
-		CDraw* m_cDessin;
+		std::unique_ptr<CDraw> m_cDessin;
 		CImageLoadingFormat* nextPicture;
 		CBitmapInterface* bitmapInterface;
 

@@ -41,7 +41,8 @@ namespace Regards::Control
 		int index;
 		tree<CTreeData*>::iterator top;
 		tree<CTreeData*>::iterator child;
-		//tree<CTreeData *>::iterator childStart;
+	
+		//Pointeur externe
 		CModificationManager* modificationManager;
 		int widthPosition;
 		wxString filename;

@@ -862,7 +862,6 @@
   <ItemGroup>
     <ClInclude Include="..\include\header.h" />
     <ClInclude Include="AfterEffect.h" />
-    <ClInclude Include="BitmapFusionEffectParameter.h" />
     <ClInclude Include="BitmapFusionFilter.h" />
     <ClInclude Include="BitmapPrintout.h" />
     <ClInclude Include="BitmapToolbar.h" />

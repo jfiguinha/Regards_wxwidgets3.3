@@ -17,11 +17,6 @@ CFiltreToolbar::CFiltreToolbar(wxWindow* parent, wxWindowID id, const CThemeTool
 }
 
 
-CFiltreToolbar::~CFiltreToolbar()
-{
-}
-
-
 void CFiltreToolbar::SetNumFiltre(const int& numFiltre)
 {
 	this->numFiltre = numFiltre;

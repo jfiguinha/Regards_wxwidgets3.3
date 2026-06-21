@@ -183,7 +183,7 @@ void CBitmapWndViewer::BeforeInterpolationBitmap()
 			wxBeginBusyCursor();
 
             filtreEffet->SetPreviewMode(false);
-            mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet.get(), m_cDessin);
+            mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet.get(), m_cDessin.get());
             updateFilter = false;
             bitmapwidth = filtreEffet->GetWidth();
             bitmapheight = filtreEffet->GetHeight();
@@ -431,7 +431,7 @@ void CBitmapWndViewer::SetBitmapPreviewEffect(const int& effect)
 	preview = effect;
 	isInUse = true;
 
-	m_cDessin = CFiltreData::GetDrawingPt(effect);
+	m_cDessin.reset(CFiltreData::GetDrawingPt(effect));
 	if (m_cDessin != nullptr)
 	{
 		SetDessinRatio();
@@ -464,7 +464,7 @@ bool CBitmapWndViewer::ApplyPreviewEffect(int& widthOutput, int& heightOutput)
 {
 	if (preview > 1 && mouseUpdate != nullptr)
 	{
-		mouseUpdate->ApplyPreviewEffect(effectParameter, this, filtreEffet.get(), m_cDessin, widthOutput, heightOutput);
+		mouseUpdate->ApplyPreviewEffect(effectParameter, this, filtreEffet.get(), m_cDessin.get(), widthOutput, heightOutput);
 
 		if (mouseUpdate->NeedToUpdateSource())
 			updateFilter = true;
@@ -577,6 +577,7 @@ void CBitmapWndViewer::StartTransitionEffect(CImageLoadingFormat* bmpSecond, con
 	}
 	else
 		nextPicture = bmpSecond;
+
 	startTransition = true;
 	m_bTransition = true;
 	etape = 0;
@@ -689,7 +690,7 @@ int CBitmapWndViewer::GetOrientation()
 
 CDraw* CBitmapWndViewer::GetDessinPt()
 {
-	return m_cDessin;
+	return m_cDessin.get();
 }
 
 void CBitmapWndViewer::SetNextPictureMove(const bool& value)
