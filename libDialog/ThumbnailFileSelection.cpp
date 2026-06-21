@@ -27,11 +27,19 @@ CThumbnailFileSelection::CThumbnailFileSelection(wxWindow* parent, const wxWindo
 
 CThumbnailFileSelection::~CThumbnailFileSelection(void)
 {
+	for (CImageVideoThumbnail* image : photoVector)
+	{
+		delete image;
+		image = nullptr;
+	}
+
+
+	photoVector.clear();
 }
 
 void CThumbnailFileSelection::AddSeparatorBar(CIconeList* iconeListLocal, const wxString& libelle, int& nbElement)
 {
-	auto infosSeparationBar = new CInfosSeparationBarExplorer(themeThumbnail.themeSeparation);
+	auto infosSeparationBar = std::make_unique<CInfosSeparationBarExplorer>(themeThumbnail.themeSeparation);
 	infosSeparationBar->SetTitle(libelle);
 	infosSeparationBar->SetWidth(GetWindowWidth());
 	int typeElement = TYPEMULTIPAGE;
@@ -65,7 +73,7 @@ void CThumbnailFileSelection::AddSeparatorBar(CIconeList* iconeListLocal, const 
 	}
 
 	if (photoVector.size() > 0)
-		listSeparator.push_back(infosSeparationBar);
+		listSeparator.push_back(std::move(infosSeparationBar));
 
 	nbElement = photoVector.size(); // NOLINT(clang-diagnostic-shorten-64-to-32)
 }
@@ -75,13 +83,6 @@ void CThumbnailFileSelection::InitTypeAffichage(const int& typeAffichage)
 	iconeList->EraseThumbnailListWithIcon();
 
 	threadDataProcess = false;
-	//---------------------------------
-	//Sauvegarde de l'état
-	//---------------------------------
-	for (CInfosSeparationBar* infosSeparationBar : listSeparator)
-	{
-		delete(infosSeparationBar);
-	}
 
 	listSeparator.clear();
 
@@ -111,13 +112,13 @@ void CThumbnailFileSelection::InitTypeAffichage(const int& typeAffichage)
 
 void CThumbnailFileSelection::Init(const wxString& filename, const int& typeAffichage)
 {
-    
-    for(CImageVideoThumbnail * image : photoVector)
-    {
-        delete image;
-        image = nullptr;
-    }
-    
+	for (CImageVideoThumbnail* image : photoVector)
+	{
+		delete image;
+		image = nullptr;
+	}
+
+   
 	photoVector.clear();
 
 	CLibPicture libPicture;
@@ -222,14 +223,14 @@ CInfosSeparationBar* CThumbnailFileSelection::FindSeparatorElement(const int& xP
 {
 	int x = xPos + posLargeur;
 	int y = yPos + posHauteur;
-	for (CInfosSeparationBar* separatorBar : listSeparator)
+	for (auto& separatorBar : listSeparator)
 	{
 		if (separatorBar != nullptr)
 		{
 			wxRect rc = separatorBar->GetPos();
 			if ((rc.x < x && x < (rc.x + rc.width)) && (rc.y < y && y < (rc.height + rc.y)))
 			{
-				return separatorBar;
+				return separatorBar.get();
 			}
 		}
 	}
@@ -290,7 +291,7 @@ void CThumbnailFileSelection::ResizeThumbnail()
 
 	int controlWidth = nbElementByRow * themeThumbnail.themeIcone.GetWidth();
 
-	for (CInfosSeparationBar* infosSeparationBar : listSeparator)
+	for (auto& infosSeparationBar : listSeparator)
 	{
 		//int nbElement = static_cast<int>(infosSeparationBar->listElement.size());
 
@@ -364,7 +365,7 @@ void CThumbnailFileSelection::RenderIconeWithVScroll(wxDC* deviceContext)
 {
 	for (auto i = 0; i < listSeparator.size(); i++)
 	{
-		CInfosSeparationBar* infosSeparationBar = listSeparator.at(i);
+		CInfosSeparationBar* infosSeparationBar = listSeparator.at(i).get();
 		infosSeparationBar->Render(deviceContext, -posLargeur, -posHauteur);
 
 		for (auto j = 0; j < infosSeparationBar->listElement.size(); j++)
@@ -395,7 +396,7 @@ void CThumbnailFileSelection::UpdateScrollWithVScroll()
 	thumbnailSizeX = 0;
 	thumbnailSizeY = 0;
 
-	for (CInfosSeparationBar* infosSeparationBar : listSeparator)
+	for (auto& infosSeparationBar : listSeparator)
 	{
 		int nbElement = static_cast<int>(infosSeparationBar->listElement.size());
 

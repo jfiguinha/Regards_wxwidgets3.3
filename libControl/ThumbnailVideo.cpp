@@ -300,7 +300,7 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 
 		CLibPicture libPicture;
 		vector<CImageVideoThumbnail*> listThumbnail = libPicture.LoadDefaultVideoThumbnail(szFileName, size);
-		//Création de la liste des icones
+
 
 		//int i = 0;
 		for (auto j = 0; j < size; j++)
@@ -340,14 +340,13 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 			x += themeThumbnail.themeIcone.GetWidth();
 		}
 
-
 		for (auto j = 0; j < listThumbnail.size(); j++)
 		{
 			CImageVideoThumbnail* thumbnail = listThumbnail[j];
 			if (thumbnail != nullptr)
 				delete thumbnail;
 		}
-        
+
         listThumbnail.clear();
 
 
@@ -394,6 +393,7 @@ void CThumbnailVideo::LoadVideoThumbnail(void * param)
 
 
 	vector<CImageVideoThumbnail*> listVideo = libPicture.LoadAllVideoThumbnail(threadLoadingBitmap->filename, true, true);
+
 
 	if (listVideo.size() > 0)
 	{
@@ -443,6 +443,7 @@ void CThumbnailVideo::LoadVideoThumbnail(void * param)
 		}
 
 	}
+
 
 	for (CImageVideoThumbnail* bitmap : listVideo)
 		delete bitmap;

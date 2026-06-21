@@ -35,7 +35,7 @@ namespace Regards::Scanner
 		void InitTypeAffichage(const int& typeAffichage);
 
 		InfosSeparationBarVector listSeparator;
-		vector<CImageVideoThumbnail*> photoVector;
+		vector<CImageVideoThumbnail *>  photoVector;
 		int barseparationHeight;
 		int widthThumbnail;
 		int heightThumbnail;

@@ -136,7 +136,7 @@ void CThumbnailMultiPage::SetVideoPosition(const int64_t& videoPos)
 }
 
 void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
-                                                 vector<CImageVideoThumbnail*>& videoThumbnail)
+	vector<CImageVideoThumbnail*> & videoThumbnail)
 {
 	int x = 0;
 	int y = 0;
@@ -202,7 +202,7 @@ void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
 	needToRefresh = true;
 }
 
-void CThumbnailMultiPage::SetFile(const wxString& filename, vector<CImageVideoThumbnail*>& videoThumbnail)
+void CThumbnailMultiPage::SetFile(const wxString& filename, vector<CImageVideoThumbnail *> & videoThumbnail)
 {
 	InitScrollingPos();
 	InitWithDefaultPicture(filename, videoThumbnail);
