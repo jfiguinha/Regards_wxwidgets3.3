@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <wx/string.h>
 #include <opencv2/core.hpp>
+#include <picture_factory.h>
 
 // Forward declarations — inchangées par rapport à l'original
 class CxImage;
@@ -28,14 +29,6 @@ namespace Regards
 {
     namespace Picture
     {
-        // Forward declarations des couches métier
-        class FormatDetector;
-        class ImageConverter;
-        class ImageLoader;
-        class ImageSaver;
-        class ThumbnailService;
-        class VideoThumbnailService;
-        class MetadataService;
 
 #ifdef WIN32
         class CWic;
@@ -48,7 +41,7 @@ namespace Regards
         {
         public:
             CLibPicture();
-            virtual ~CLibPicture();
+            virtual ~CLibPicture() = default;
 
             // -----------------------------------------------------------------
             // Chargement
@@ -156,11 +149,11 @@ namespace Regards
 
         private:
             // Couches métier instanciées en composition
-            ImageLoader*            loader_;
-            ImageSaver*             saver_;
-            ThumbnailService*       thumbSvc_;
-            VideoThumbnailService*  videoThumbSvc_;
-            MetadataService*        metaSvc_;
+            std::unique_ptr<ImageLoader>            loader_;
+            std::unique_ptr<ImageSaver>             saver_;
+            std::unique_ptr<ThumbnailService>       thumbSvc_;
+            std::unique_ptr<VideoThumbnailService>  videoThumbSvc_;
+            std::unique_ptr<MetadataService>        metaSvc_;
 
             // Conservé pour rétro-compatibilité (accès via configRegards dans
             // le code appelant existant)

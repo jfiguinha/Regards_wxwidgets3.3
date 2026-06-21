@@ -17,22 +17,13 @@ using namespace Regards::Picture;
 // =============================================================================
 
 CLibPicture::CLibPicture()
-    : loader_        (new ImageLoader())
-    , saver_         (new ImageSaver())
-    , thumbSvc_      (new ThumbnailService())
-    , videoThumbSvc_ (new VideoThumbnailService())
-    , metaSvc_       (new MetadataService())
+    : loader_(std::make_unique<ImageLoader>())
+    , saver_         (std::make_unique<ImageSaver>())
+    , thumbSvc_      (std::make_unique<ThumbnailService>())
+    , videoThumbSvc_ (std::make_unique<VideoThumbnailService>())
+    , metaSvc_       (std::make_unique<MetadataService>())
     , configRegards  (CParamInit::getInstance())
 {}
-
-CLibPicture::~CLibPicture()
-{
-    delete loader_;
-    delete saver_;
-    delete thumbSvc_;
-    delete videoThumbSvc_;
-    delete metaSvc_;
-}
 
 // =============================================================================
 //  Chargement
