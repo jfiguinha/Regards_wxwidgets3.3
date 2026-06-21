@@ -80,7 +80,8 @@ namespace Regards::Viewer
         }
         void SetVideoStop()
         {
-            stopVideo = true;
+            stopVideo = false;
+            videoStart = false;
         }
         void LoadAnimationBitmap(const wxString& filename, const int& numFrame);
 

@@ -22,6 +22,6 @@ private:
 	                                cv::Mat& matFloat, size_t& xsize,
 	                                size_t& ysize, std::vector<uint8_t>* icc_profile);
 	static void* DecodeJpegDim(FILE* file);
-	static bool DecodeJpegXlExif(const uint8_t* jxl, size_t size, std::vector<uint8_t>* exif);
+
 	static bool EncodeJxlOneshot(const cv::Mat& matFloat, std::vector<uint8_t>* compressed);
 };

@@ -1,6 +1,7 @@
 #pragma once
 #include <WindowMain.h>
 #include "TitleBarInterface.h"
+#include "TitleBar.h"
 using namespace std;
 
 namespace Regards::Window
@@ -30,8 +31,10 @@ namespace Regards::Window
 	protected:
 		void Resize() override;
 		bool showTitle = false;
-		std::unique_ptr<CScrollbarWnd> scrollWindow;
-		std::unique_ptr<CTreeWindow> treeWindow;
+
+		
 		CTitleBar * titleBar;
+		std::unique_ptr<CTreeWindow> treeWindow;
+		std::unique_ptr<CScrollbarWnd> scrollWindow;
 	};
 }

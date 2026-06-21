@@ -31,13 +31,13 @@ void CScrollbarWnd::DefaultConstructor()
 	wxRect rect;
 
 	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
-	centralWindow = new CWindowToAdd();
+	centralWindow = std::make_unique<CWindowToAdd>();
 
 	if (viewerTheme != nullptr)
 	{
 		CThemeSplitter theme;
 		viewerTheme->GetSplitterTheme(&theme);
-		windowManager = new CWindowManager(this, wxID_ANY, theme);
+		windowManager = std::make_unique<CWindowManager>(this, wxID_ANY, theme);
 	}
 
 	scrollHorizontal = nullptr;
@@ -53,14 +53,14 @@ void CScrollbarWnd::DefaultConstructor()
 	{
 		CThemeScrollBar theme;
 		viewerTheme->GetScrollTheme(&theme);
-		scrollHorizontal = new CScrollbarHorizontalWnd("ScrollbarHorizontal", windowManager, wxID_ANY, theme);
-		scrollVertical = new CScrollbarVerticalWnd("ScrollbarVertical", windowManager, wxID_ANY, theme);
+		scrollHorizontal = std::make_unique<CScrollbarHorizontalWnd>("ScrollbarHorizontal", windowManager.get(), wxID_ANY, theme);
+		scrollVertical = std::make_unique<CScrollbarVerticalWnd>("ScrollbarVertical", windowManager.get(), wxID_ANY, theme);
 	}
 
 	// [CRITIQUE] GetBarHeight/GetBarWidth sont maintenant null-safe, donc ces appels
 	// sont sûrs même si les scrollbars n'ont pas pu être créées.
-	windowManager->AddWindow(scrollHorizontal, Pos::wxBOTTOM, true, GetBarHeight(), rect, wxID_ANY, false);
-	windowManager->AddWindow(scrollVertical, Pos::wxRIGHT, true, GetBarWidth(), rect, wxID_ANY, false);
+	windowManager->AddWindow(scrollHorizontal.get(), Pos::wxBOTTOM, true, GetBarHeight(), rect, wxID_ANY, false);
+	windowManager->AddWindow(scrollVertical.get(), Pos::wxRIGHT, true, GetBarWidth(), rect, wxID_ANY, false);
 
 	// [IMPORTANT] Migration Connect() → Bind() : type-safe, supporte les lambdas, idiomatique wx3
 
@@ -178,8 +178,6 @@ int CScrollbarWnd::GetBarWidth() const
 
 CScrollbarWnd::~CScrollbarWnd()
 {
-	if (windowManager != nullptr)
-		delete windowManager;
 }
 
 void CScrollbarWnd::UpdateScreenRatio()

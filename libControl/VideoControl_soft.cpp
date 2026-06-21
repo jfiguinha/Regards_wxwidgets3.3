@@ -941,7 +941,7 @@ void CVideoControlSoft::StopVideoThread(wxCommandEvent& event)
 		fpsTimer->Stop();
 		videoRenderStart = false;
 		stopVideo = true;
-
+		videoStart = false;
 
 		if (repeatVideo && !endProgram && !isDiaporama && filename == ffmfc->Getfilename())
 		{

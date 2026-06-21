@@ -2,7 +2,7 @@
 #include "TreeWithScrollbar.h"
 #include "ScrollbarWnd.h"
 #include "TreeWindow.h"
-#include "TitleBar.h"
+
 using namespace Regards::Window;
 
 CTreeWithScrollbar::CTreeWithScrollbar(const wxString& windowName, wxWindow* parent, wxWindowID id,

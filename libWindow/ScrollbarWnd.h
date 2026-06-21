@@ -74,8 +74,8 @@ namespace Regards::Window
 		void OnScrollMove(wxCommandEvent& event);
 
 		// Owned by wxWidgets window tree via windowManager — do not delete manually
-		CScrollbarHorizontalWnd* scrollHorizontal;
-		CScrollbarVerticalWnd* scrollVertical;
+		std::unique_ptr<CScrollbarHorizontalWnd> scrollHorizontal;
+		std::unique_ptr<CScrollbarVerticalWnd> scrollVertical;
 
 		bool showV;
 		bool showH;
@@ -89,7 +89,7 @@ namespace Regards::Window
 		int defaultLineSize;
 
 		// [QUALITE] loadingTimer supprimé : alloué mais jamais démarré ni géré
-		CWindowManager* windowManager;
-		CWindowToAdd* centralWindow;
+		std::unique_ptr<CWindowManager> windowManager;
+		std::unique_ptr<CWindowToAdd> centralWindow;
 	};
 }
