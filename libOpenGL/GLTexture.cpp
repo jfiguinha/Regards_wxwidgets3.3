@@ -13,7 +13,6 @@
 #endif
 #include <ParamInit.h>
 #include <RegardsConfigParam.h>
-#include <opengl.hpp>
 #include <appcontext.h>
 extern AppContext application_context;
 using namespace Regards::OpenGL;
@@ -215,7 +214,7 @@ GLTexture::GLTexture(void)
 }
 
 GLTexture::GLTexture(const int& textureId, const int& width, const int& height)
-    : m_nTextureID(textureId), width(width), height(height), format(GL_BGRA_EXT), dataformat(GL_BGRA), pboSupported(false), pimpl_(nullptr), tex(nullptr)
+    : m_nTextureID(textureId), width(width), height(height), format(GL_BGRA_EXT), dataformat(GL_BGRA), pboSupported(false), pimpl_(nullptr)
 
 {
 
@@ -405,35 +404,7 @@ bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap)
 	height = newH;
 	return true;
 }
-/*
-bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap)
-{
-     bool isOk = false;
-    try
-    {
-        if (tex == nullptr)
-            tex = std::make_unique<cv::ogl::Texture2D>();
 
-		bitmap.CopyFrom(tex.get());
-        //tex->copyFrom(bitmap, true);
-        tex->bind();
-        //tex->setAutoRelease(false);
-        m_nTextureID = tex->texId();
-        width = bitmap.getWidth();
-        height = bitmap.getHeight();
-        isOk = true;
-    }
-    catch (cv::Exception& e)
-    {
-		
-        const char* err_msg = e.what();
-        std::cout << "exception caught: " << err_msg << std::endl;
-        std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
-        isOk = false;
-    }
- 	return isOk;
-}
-*/
 
 void GLTexture::SetFilterType(const GLint FilterType_i, const GLint FilterValue_i)
 {
@@ -475,7 +446,7 @@ void GLTexture::Delete()
 		glBindTexture(GL_TEXTURE_2D, 0);
 		checkErrors("GLTexture::Delete()");
 	}
-	tex.reset();
+
 }
 
 void GLTexture::Enable()
