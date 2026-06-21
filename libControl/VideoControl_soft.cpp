@@ -1161,9 +1161,11 @@ void CVideoControlSoft::VideoStart(wxCommandEvent& event)
 		pause = false;
 		videoEnd = false;
 		videoStart = true;
+
+		Resize();
 		fpsTimer->Start(1000);
 		ShrinkVideo();
-
+		
 		wxWindow* window = wxWindow::FindWindowById(PREVIEWVIEWERID);
 		if (window != nullptr)
 		{
