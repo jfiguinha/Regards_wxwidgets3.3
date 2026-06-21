@@ -59,7 +59,6 @@ public:
         numProcess = 0;
 		numProcessGps = 0;
         nbProcesseur = 1;
-        refreshFolder = false;
         needToSendMessage = false;
         refreshTimer = nullptr;
 		startUpdateCriteria = false;
@@ -76,7 +75,6 @@ public:
     CCategoryWnd* catalogWnd;
     CMainParam* explorerconfig;
 	std::atomic<bool> traitementEnd;
-	std::atomic<bool> refreshFolder;
 	std::atomic<bool> startUpdateCriteria;
 
     int oldPos;
@@ -363,36 +361,6 @@ void CCategoryFolderWindow::SendStatusMessage(CThumbnailMessage * thumbnailMessa
 		delete thumbnailMessage;
 }
 
-void CCategoryFolderWindow::ProcessFolderRefresh()
-{
-	wxString message;
-	int counter = 0;
-	CSqlFindFolderCatalog folder;
-	FolderCatalogVector catalogfolderVector;
-	folder.GetFolderCatalog(&catalogfolderVector, 1);
-
-	{
-		auto thumbnailMessage = new CThumbnailMessage();
-		thumbnailMessage->nbElement = catalogfolderVector.size();
-		thumbnailMessage->typeMessage = 1;
-		SendStatusMessage(thumbnailMessage);
-	}
-
-	for (CFolderCatalog folder_catalog : catalogfolderVector)
-	{
-		counter++;
-		auto thumbnailMessage = new CThumbnailMessage();
-		thumbnailMessage->thumbnailPos = counter;
-		thumbnailMessage->nbElement = catalogfolderVector.size();
-		thumbnailMessage->typeMessage = 2;
-		SendStatusMessage(thumbnailMessage);
-
-		RefreshThreadFolder(&folder_catalog);
-	}
-
-	pimpl->update = true;
-	pimpl->refreshFolder = false;
-}
 
 void CCategoryFolderWindow::CleanupOldCatalogs()
 {
@@ -431,11 +399,6 @@ void CCategoryFolderWindow::ProcessIdle()
 		CSqlCriteria criteria;
 		criteria.DeleteCriteriaAlone();
 		pimpl->traitementEnd = true;
-	}
-	else if (pimpl->refreshFolder)
-	{
-		ProcessFolderRefresh();
-
 	}
 	else if (nbPhotos == 0)
 	{

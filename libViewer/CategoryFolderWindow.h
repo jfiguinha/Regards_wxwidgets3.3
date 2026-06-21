@@ -37,7 +37,6 @@ namespace Regards::Viewer
 		bool GetProcessEnd() override;
 		void ProcessPhotoQueue();
 		void ProcessGpsQueue();
-		void ProcessFolderRefresh();
 		void CleanupOldCatalogs();
 		void SendStatusMessage(CThumbnailMessage* thumbnailMessage);
 		static void FindPhotoCriteria(CFindPhotoCriteria* findPhotoCriteria);
@@ -45,6 +44,7 @@ namespace Regards::Viewer
 		void RefreshThreadFolder(CFolderCatalog* folder);
 		void OnTimerRefresh(wxTimerEvent& event);
 		void ProcessIdle() override;
+
 		time_t start;
 		int nbGpsRequest = 0;
 		int nbGpsFileByMinute = 60;
