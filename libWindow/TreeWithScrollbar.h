@@ -33,7 +33,7 @@ namespace Regards::Window
 		bool showTitle = false;
 
 		
-		CTitleBar * titleBar;
+		std::unique_ptr<CTitleBar> titleBar;
 		std::unique_ptr<CTreeWindow> treeWindow;
 		std::unique_ptr<CScrollbarWnd> scrollWindow;
 	};
