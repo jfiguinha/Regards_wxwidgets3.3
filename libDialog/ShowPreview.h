@@ -75,19 +75,19 @@ namespace Regards
 			bool SetBitmap(CImageLoadingFormat* bitmap);
 			static void ThreadLoading(void* data);
 
-			CScrollbarWnd* scrollbar;
-			CPreviewToolbar* previewToolbar;
-			CSliderVideoPreview* sliderVideo;
-			CBitmapWndRender* bitmapWindow;
-			CBitmapWnd3D* bitmapWindowRender;
+			std::unique_ptr<CScrollbarWnd> scrollbar;
+			std::unique_ptr<CPreviewToolbar> previewToolbar;
+			std::unique_ptr<CSliderVideoPreview> sliderVideo;
+			std::unique_ptr<CBitmapWndRender> bitmapWindow;
+			std::unique_ptr<CBitmapWnd3D> bitmapWindowRender;
 			CRegardsConfigParam* configRegards;
 
 			bool defaultToolbar;
 			bool defaultViewer;
 			//bool bitmapWndLocal;
-			Video::CVideoThumb * videoOriginal = nullptr;
+			std::unique_ptr<Video::CVideoThumb> videoOriginal = nullptr;
 			CVideoOptionCompress videoOptionCompress;
-			CFFmpegTranscoding* transcodeFFmpeg = nullptr;
+			std::unique_ptr<CFFmpegTranscoding> transcodeFFmpeg = nullptr;
 			cv::Mat decodeFrame;
 			cv::Mat decodeFrameOriginal;
 
@@ -100,7 +100,7 @@ namespace Regards
 			int position = 0;
 			bool showOriginal = false;
 			bool isFirstPicture = true;
-			std::thread* threadStart = nullptr;
+			std::unique_ptr<std::thread> threadStart = nullptr;
 			bool moveSlider = false;
 			bool oldShowOriginal = false;
 			bool firstTime = true;

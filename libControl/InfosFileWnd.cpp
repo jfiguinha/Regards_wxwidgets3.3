@@ -21,10 +21,6 @@ CInfosFileWnd::CInfosFileWnd(wxWindow* parent, wxWindowID id, const CThemeScroll
 	Connect(EVENT_UPDATEINFOSTHREAD, wxCommandEventHandler(CInfosFileWnd::UpdateTreeInfosEvent));
 }
 
-CInfosFileWnd::~CInfosFileWnd(void)
-{
-}
-
 void CInfosFileWnd::UpdateTreeInfosEvent(wxCommandEvent& event)
 {
 	auto threadInfos = static_cast<CThreadLoadInfos*>(event.GetClientData());
@@ -57,10 +53,6 @@ void CInfosFileWnd::InfosUpdate(const wxString& filename)
 		threadInfos->panelInfos = this;
 		threadInfos->filename = filename;
 		threadInfos->threadLoadInfos = new thread(GenerateTreeInfos, threadInfos);
-
-		auto event = new wxCommandEvent(wxEVT_STARTANIMATION);
-		event->SetClientData(this);
-		wxQueueEvent(this->GetParent(), event);
 	}
 }
 

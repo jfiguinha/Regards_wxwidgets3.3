@@ -20,9 +20,9 @@ namespace Regards::Window
 		CPanelWithClickToolbar* AddPanel(CWindowMain* window, const Pos& pos, bool fixe, int size, wxRect rect,
 		                                 const wxString& panelLabel, const wxString& windowName, const bool& isVisible,
 		                                 const int& idPanel, const bool& refreshButton, const bool& isTop = false);
-		void AddWindow(CWindowMain* window, Pos position, bool fixe, int size, wxRect rect, int id, bool isPanel,
+		CWindowToAdd* AddWindow(CWindowMain* window, Pos position, bool fixe, int size, wxRect rect, int id, bool isPanel,
 		               const bool& isTop = false);
-		void AddWindow(CWindowOpenGLMain* window, Pos position, bool fixe, int size, wxRect rect, int id, bool isPanel,
+		CWindowToAdd* AddWindow(CWindowOpenGLMain* window, Pos position, bool fixe, int size, wxRect rect, int id, bool isPanel,
 		               const bool& isTop = false);
 		void SetSeparationBarVisible(const bool& visible);
 		bool GetSeparationVisibility();

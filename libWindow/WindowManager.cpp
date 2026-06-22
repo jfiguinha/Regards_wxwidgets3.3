@@ -314,7 +314,7 @@ void CWindowManager::ShowWindow(Pos position, const bool& refresh)
 	}
 }
 
-void CWindowManager::AddWindow(CWindowOpenGLMain* window, Pos position, bool fixe, int size, wxRect rect, int id,
+CWindowToAdd * CWindowManager::AddWindow(CWindowOpenGLMain* window, Pos position, bool fixe, int size, wxRect rect, int id,
                                bool isPanel, const bool& isTop)
 {
 	auto windowToAdd = new CWindowToAdd();
@@ -324,6 +324,7 @@ void CWindowManager::AddWindow(CWindowOpenGLMain* window, Pos position, bool fix
 		windowToAdd->SetWindow(window, isPanel);
 		AddWindow(windowToAdd, position, fixe, size, rect, id, isPanel, isTop);
 	}
+	return windowToAdd;
 }
 
 void CWindowManager::AddWindow(CWindowToAdd* windowToAdd, Pos position, bool fixe, int size, wxRect rect, int id,
@@ -365,7 +366,7 @@ void CWindowManager::AddWindow(CWindowToAdd* windowToAdd, Pos position, bool fix
 	}
 }
 
-void CWindowManager::AddWindow(CWindowMain* window, Pos position, bool fixe, int size, wxRect rect, int id,
+CWindowToAdd * CWindowManager::AddWindow(CWindowMain* window, Pos position, bool fixe, int size, wxRect rect, int id,
                                bool isPanel, const bool& isTop)
 {
 	auto windowToAdd = new CWindowToAdd();
@@ -375,6 +376,7 @@ void CWindowManager::AddWindow(CWindowMain* window, Pos position, bool fixe, int
 		windowToAdd->SetWindow(window, isPanel);
 		AddWindow(windowToAdd, position, fixe, size, rect, id, isPanel, isTop);
 	}
+	return windowToAdd;
 }
 
 void CWindowManager::UnInit()

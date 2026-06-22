@@ -31,7 +31,7 @@ namespace Regards::Control
 	{
 	public:
 		CInfosFileWnd(wxWindow* parent, wxWindowID id, const CThemeScrollBar& themeScroll, const CThemeTree& theme);
-		~CInfosFileWnd(void) override;
+		~CInfosFileWnd(void) = default;
 		void InfosUpdate(const wxString& filename);
 
 	private:

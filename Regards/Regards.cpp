@@ -52,8 +52,6 @@ static void LogError(const wxString& msg)
 MyApp::MyApp()
 {
 
-	logNo = new wxLogNull();
-	//Init x11
 	regardsParam = nullptr;
 	frameStart = nullptr;
 	//frameViewer = nullptr;
@@ -64,8 +62,6 @@ MyApp::MyApp()
 #ifdef __WXGTK__
 	int result = XInitThreads();
 #endif
-
-
 
 	int flags = SDL_INIT_AUDIO | SDL_INIT_TIMER;
 	//------SDL------------------------
@@ -572,11 +568,6 @@ void MyApp::LaunchApplication()
 	}
 	else
 	{
-		/*
-		frameStart = new MyFrameIntro("Welcome to Regards", "REGARDS V2", wxPoint(50, 50), wxSize(450, 340), this);
-		frameStart->Centre(wxBOTH);
-		frameStart->Show(true);
-		*/
 		ShowViewer();
 
 		CViewerFrame::SetViewerMode(true);
