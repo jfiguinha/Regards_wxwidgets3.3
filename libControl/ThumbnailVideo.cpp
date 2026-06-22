@@ -232,7 +232,7 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 	CSqlThumbnailVideo sqlThumbnailVideo;
 	int nbResult = sqlThumbnailVideo.GetNbThumbnail(szFileName);
 	CSqlPhotos SqlPhotos;
-	int photoId = SqlPhotos.GetPhotoId(videoFilename);
+	int photoId = SqlPhotos.GetPhotoId(szFileName);
 	if (nbResult > 0)
 	{
 		for (int i = 0; i < nbResult; i++)
@@ -568,10 +568,10 @@ void CThumbnailVideo::SetFile(const wxString& videoFile, const int& size)
 
 	CLibPicture libPicture;
 	iFormat = libPicture.TestImageFormat(videoFile);
-
+	videoFilename = videoFile;
 	InitScrollingPos();
 	InitWithDefaultPicture(videoFile, size);
-	videoFilename = videoFile;
+	
 	process_end = false;
 	threadDataProcess = true;
 	needToRefresh = true;

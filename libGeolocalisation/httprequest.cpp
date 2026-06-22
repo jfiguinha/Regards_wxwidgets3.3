@@ -1,145 +1,258 @@
 #include <header.h>
 #include <httprequest.h>
 #include <ConvertUtility.h>
-#ifdef USECURL
-#include <curl/curl.h>
-#define SKIP_PEER_VERIFICATION
-#define SKIP_HOSTNAME_VERIFICATION
-#else
-#include <wx/url.h>
-#endif
+#include <wx/progdlg.h>
+
 
 using namespace Regards::Internet;
 
-struct url_data
+static size_t WriteToString(void* ptr, size_t size, size_t nmemb, void* userdata)
 {
-    std::string data;
-};
+    auto* response =
+        static_cast<std::string*>(userdata);
 
-/*
-size_t write_data(void* ptr,
-    size_t size,
-    size_t nmemb,
-    struct url_data* data)
-{
-    const size_t bytesToCopy = size * nmemb;
-
-    if (ptr == nullptr || data == nullptr)
-        return 0;
-
-    const size_t newSize = data->size + bytesToCopy;
-
-    // Limite de sécurité : 1 Mo
-    constexpr size_t MAX_DOWNLOAD_SIZE = 1024 * 1024;
-
-    if (newSize > MAX_DOWNLOAD_SIZE)
-    {
-        fprintf(stderr, "Download exceeds maximum allowed size\n");
-        return 0;
-    }
-
-    char* tmp = static_cast<char*>(
-        realloc(data->data, newSize + 1));
-
-    if (tmp == nullptr)
-    {
-        fprintf(stderr, "Failed to allocate memory\n");
-        return 0;
-    }
-
-    data->data = tmp;
-
-    memcpy(data->data + data->size,
-        ptr,
-        bytesToCopy);
-
-    data->size = newSize;
-    data->data[data->size] = '\0';
-
-    return bytesToCopy;
-}
-*/
-size_t write_data(void* ptr,
-    size_t size,
-    size_t nmemb,
-    struct url_data* data)
-{
-    const size_t bytes = size * nmemb;
-
-    data->data.append(
+    response->append(
         static_cast<char*>(ptr),
-        bytes);
+        size * nmemb);
 
-    return bytes;
+    return size * nmemb;
 }
 
-wxString CHttpRequest::ExecuteRequest(const wxString& url)
+static size_t WriteToFile(void* ptr, size_t size, size_t nmemb, void* userdata)
 {
-    wxString xml;
+    auto* context =
+        static_cast<DownloadContext*>(userdata);
 
-    CURL* curl = curl_easy_init();
-    if (curl == nullptr)
+    return fwrite(
+        ptr,
+        size,
+        nmemb,
+        context->file);
+}
+
+static int ProgressCallback(
+    void* clientp,
+    curl_off_t dltotal,
+    curl_off_t dlnow,
+    curl_off_t,
+    curl_off_t)
+{
+    auto* context =
+        static_cast<DownloadContext*>(clientp);
+
+    if (context->dialog == nullptr)
+        return 0;
+
+    int percent = 0;
+
+    if (dltotal > 0)
     {
-        fprintf(stderr, "curl_easy_init failed\n");
-        return "";
+        percent = static_cast<int>(
+            (100.0 * dlnow) / dltotal);
     }
 
-    url_data data{};
-    data.data[0] = '\0';
+    context->dialog->Update(
+        percent,
+        wxString::Format("%d %%", percent));
+
+    return 0;
+}
+
+void CHttpRequest::ConfigureCurl(CURL* curl)
+{
+    curl_easy_setopt(
+        curl,
+        CURLOPT_FOLLOWLOCATION,
+        1L);
 
     curl_easy_setopt(
         curl,
-        CURLOPT_URL,
-        CConvertUtility::ConvertToStdString(url).c_str());
+        CURLOPT_CONNECTTIMEOUT,
+        10L);
 
-    curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+    curl_easy_setopt(
+        curl,
+        CURLOPT_TIMEOUT,
+        60L);
 
-    // Timeouts
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 10L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L);
+    curl_easy_setopt(
+        curl,
+        CURLOPT_SSL_VERIFYPEER,
+        1L);
 
-    // SSL sécurisé
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 2L);
+    curl_easy_setopt(
+        curl,
+        CURLOPT_SSL_VERIFYHOST,
+        2L);
 
-    // Callback de réception
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &data);
+    curl_easy_setopt(
+        curl,
+        CURLOPT_USERAGENT,
+        "Regards/1.0");
+}
 
-    CURLcode res = curl_easy_perform(curl);
+bool CHttpRequest::DownloadFile(
+    const wxString& url,
+    const wxString& outputFile,
+    wxProgressDialog* dlg)
+{
+    using CurlPtr =
+        std::unique_ptr<CURL,
+        decltype(&curl_easy_cleanup)>;
 
-    if (res != CURLE_OK)
+    CurlPtr curl(
+        curl_easy_init(),
+        &curl_easy_cleanup);
+
+    if (!curl)
+        return false;
+
+    ConfigureCurl(curl.get());
+
+#ifdef _WIN32
+    FILE* file = nullptr;
+
+    if (_wfopen_s(
+        &file,
+        outputFile.wc_str(),
+        L"wb") != 0)
     {
-        fprintf(stderr,
-            "curl_easy_perform failed: %s\n",
-            curl_easy_strerror(res));
+        return false;
+    }
+#else
+    FILE* file =
+        fopen(
+            outputFile.mb_str(),
+            "wb");
 
-        curl_easy_cleanup(curl);
+    if (!file)
+        return false;
+#endif
 
-        return "";
+    DownloadContext context;
+    context.dialog = dlg;
+    context.file = file;
+
+    curl_easy_setopt(
+        curl.get(),
+        CURLOPT_URL,
+        url.ToUTF8().data());
+
+    curl_easy_setopt(
+        curl.get(),
+        CURLOPT_WRITEFUNCTION,
+        WriteToFile);
+
+    curl_easy_setopt(
+        curl.get(),
+        CURLOPT_WRITEDATA,
+        &context);
+
+    if (dlg)
+    {
+        curl_easy_setopt(
+            curl.get(),
+            CURLOPT_NOPROGRESS,
+            0L);
+
+        curl_easy_setopt(
+            curl.get(),
+            CURLOPT_XFERINFOFUNCTION,
+            ProgressCallback);
+
+        curl_easy_setopt(
+            curl.get(),
+            CURLOPT_XFERINFODATA,
+            &context);
+    }
+
+    CURLcode result =
+        curl_easy_perform(curl.get());
+
+    fclose(file);
+
+    if (result != CURLE_OK)
+    {
+        wxRemoveFile(outputFile);
+        return false;
     }
 
     long httpCode = 0;
 
     curl_easy_getinfo(
-        curl,
+        curl.get(),
         CURLINFO_RESPONSE_CODE,
         &httpCode);
 
-    if (httpCode != 200)
+    if (httpCode < 200 ||
+        httpCode >= 300)
     {
-        fprintf(stderr,
-            "HTTP Error: %ld\n",
-            httpCode);
-
-        curl_easy_cleanup(curl);
-
-        return "";
+        wxRemoveFile(outputFile);
+        return false;
     }
 
-    xml = wxString(data.data.c_str(), wxConvUTF8);
+    return true;
+}
 
-    curl_easy_cleanup(curl);
 
-    return xml;
+HttpResponse CHttpRequest::Get(const wxString& url)
+{
+    HttpResponse response;
+
+    using CurlPtr =
+        std::unique_ptr<CURL,
+        decltype(&curl_easy_cleanup)>;
+
+    CurlPtr curl(
+        curl_easy_init(),
+        &curl_easy_cleanup);
+
+    if (!curl)
+    {
+        response.errorMessage =
+            "curl_easy_init failed";
+
+        return response;
+    }
+
+    ConfigureCurl(curl.get());
+
+    std::string buffer;
+
+    curl_easy_setopt(
+        curl.get(),
+        CURLOPT_URL,
+        url.ToUTF8().data());
+
+    curl_easy_setopt(
+        curl.get(),
+        CURLOPT_WRITEFUNCTION,
+        WriteToString);
+
+    curl_easy_setopt(
+        curl.get(),
+        CURLOPT_WRITEDATA,
+        &buffer);
+
+    response.curlCode =
+        curl_easy_perform(curl.get());
+
+    if (response.curlCode != CURLE_OK)
+    {
+        response.errorMessage =
+            curl_easy_strerror(
+                response.curlCode);
+
+        return response;
+    }
+
+    curl_easy_getinfo(
+        curl.get(),
+        CURLINFO_RESPONSE_CODE,
+        &response.httpCode);
+
+    response.body =
+        wxString::FromUTF8(buffer);
+
+    return response;
 }

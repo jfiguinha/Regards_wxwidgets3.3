@@ -1575,16 +1575,10 @@ wxBitmap wxFileIconsTable::GetIcon(const wxArtID& id, const wxSize& sz)
 wxBitmap wxFileIconsTable::LoadBitmap(const wxString &icon)
 {
     wxBitmap bmp;
-    wxString resourcePath = CFileUtility::GetResourcesFolderPathWithExt("bitmap");
-#ifdef WIN32
-	resourcePath.append("\\");
-#else
-    resourcePath.append("/");
-#endif
-    wxString path_icon = resourcePath.append(icon);
-	if (!bmp.LoadFile(path_icon))
+    wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPathWithExt("bitmap"), icon);
+	if (!bmp.LoadFile(resourcePath.GetFullPath()))
 	{
-		cv::Mat icon = cv::imread(path_icon.ToStdString(), cv::IMREAD_UNCHANGED);
+		cv::Mat icon = cv::imread(resourcePath.GetFullPath().ToStdString(), cv::IMREAD_UNCHANGED);
 		bmp = CLibPicture::ConvertRegardsBitmapToWXImage(icon);
 	}
     

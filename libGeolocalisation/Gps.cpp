@@ -33,15 +33,14 @@ bool CGps::IsLocalisationAvailable(const wxString& server, const wxString& apiKe
 	httpAdress.append(L"&type=postcode");
 	httpAdress.append(L"&apiKey=");
 	httpAdress.append(apiKey);
-	wxString xml = Regards::Internet::CHttpRequest::ExecuteRequest(httpAdress);
+	///wxString xml = Regards::Internet::CHttpRequest::ExecuteRequest(httpAdress);
 
-	size_t pos_error = xml.find("error");
-	size_t pos_Unauthorized = xml.find("Unauthorized");
-
-	if(pos_error != -1 || pos_Unauthorized != -1)
-	{
+	HttpResponse response = Regards::Internet::CHttpRequest::Get(httpAdress);
+	wxString xml = "";
+	if (response.Success())
+		xml = response.body;
+	else
 		return false;
-	}
 
 	return true;
 }
@@ -138,15 +137,16 @@ bool CGps::GeolocalisationGPS(const wxString& latitude, const wxString& longitud
 		httpAdress.append(L"&apiKey=");
 		httpAdress.append(apiKey);
 		//wxString mystring2(chars, wxConvUTF8);
-		wxString xml = Regards::Internet::CHttpRequest::ExecuteRequest(httpAdress);
 
-		//printf("URL  : %s \n", CConvertUtility::ConvertToStdString(httpAdress));
-		//printf("Data : %s \n", data.data);
-
-		geoPluginVector.clear();
-		ImportationGeocodePlugin(xml);
-
-		if(xml.size() == 0)
+		HttpResponse response = Regards::Internet::CHttpRequest::Get(httpAdress);
+		wxString xml = "";
+		if (response.Success())
+		{
+			xml = response.body;
+			geoPluginVector.clear();
+			ImportationGeocodePlugin(xml);
+		}
+		else
 			returnValue = false;
 	}
 	catch (...)

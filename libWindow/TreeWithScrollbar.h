@@ -16,7 +16,7 @@ namespace Regards::Window
 		CTreeWithScrollbar(const wxString& windowName, wxWindow* parent, wxWindowID id,
 		                   const CThemeScrollBar& themeScroll, const CThemeTree& theme, const wxString& label = "",
 		                   const bool& showTitle = false);
-		~CTreeWithScrollbar(void) {};
+		~CTreeWithScrollbar(void) = default;
 		void UpdateScreenRatio() override;
 
 		void ClosePane() override

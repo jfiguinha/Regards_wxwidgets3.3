@@ -2,11 +2,12 @@
 #include "ModelManager.h"
 #include <LibResource.h>
 #include <FileUtility.h>
-#include "DownloadFile.h"
 #include <wx/wfstream.h>
 #include <wx/txtstrm.h>
 #include <wx/progdlg.h>
 #include <wx/filename.h>
+#include <httprequest.h>
+#include <wx/zipstrm.h>
 using namespace Regards::Viewer;
 using namespace Regards::Internet;
 
@@ -55,8 +56,95 @@ bool CModelManager::VerifyAndUpdate()
 }
 
 
+bool CModelManager::ExtractZipFiles(
+    const wxString& zipFile,
+    const wxString& targetDir,
+    wxWindow* parent)
+{
+    wxFileInputStream input(zipFile);
+
+    if (!input.IsOk())
+    {
+        wxLogError("Cannot open '%s'", zipFile);
+        return false;
+    }
+
+    wxZipInputStream zip(input);
+
+    const int totalEntries =
+        std::max(
+            1,
+            static_cast<int>(
+                zip.GetTotalEntries()));
+
+    wxProgressDialog progress(
+        "Extraction",
+        "Please wait...",
+        totalEntries,
+        parent,
+        wxPD_APP_MODAL |
+        wxPD_AUTO_HIDE |
+        wxPD_SMOOTH);
+
+    int current = 0;
+
+    std::unique_ptr<wxZipEntry> entry;
+
+    while ((entry.reset(zip.GetNextEntry())),
+        entry)
+    {
+        wxString output =
+            targetDir +
+            wxFILE_SEP_PATH +
+            entry->GetInternalName();
+
+        wxFileName fn(output);
+
+        if (entry->IsDir())
+        {
+            wxFileName::Mkdir(
+                output,
+                wxS_DIR_DEFAULT,
+                wxPATH_MKDIR_FULL);
+        }
+        else
+        {
+            wxFileName::Mkdir(
+                fn.GetPath(),
+                wxS_DIR_DEFAULT,
+                wxPATH_MKDIR_FULL);
+
+            wxFileOutputStream file(output);
+
+            if (!file.IsOk())
+            {
+                wxLogError(
+                    "Cannot create '%s'",
+                    output);
+
+                return false;
+            }
+
+            zip.Read(file);
+        }
+
+        ++current;
+
+        if (!progress.Update(
+            std::min(current, totalEntries),
+            entry->GetName()))
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 void CModelManager::NewModelsAvailable()
 {
+	bool isOk = false;
 	bool fileExist = false;
 	wxString localVersion = CLibResource::LoadStringFromResource("LBLMODELHASH", 1);
 	wxString line = "";
@@ -65,7 +153,7 @@ void CModelManager::NewModelsAvailable()
 	wxString resourcePath = CFileUtility::GetDocumentFolderPathWithFilename("model");
 	wxFileName fileHash(resourcePath,"hash.txt");
     const wxString serverURL = CLibResource::LoadStringFromResource("LBLWEBSITEMODELDOWNLOAD", 1);
-    CDownloadFile downloader(serverURL);
+
     
 	if (wxFileExists(fileHash.GetFullPath()))
 	{
@@ -87,16 +175,14 @@ void CModelManager::NewModelsAvailable()
             wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_CAN_ABORT |
             wxPD_ELAPSED_TIME | wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
 
-
-        downloader.DownloadFile(&dialog, tempModel,
-                                CFileUtility::GetResourcesFolderPathWithExt("ca-bundle.crt"));
+		isOk = Regards::Internet::CHttpRequest::DownloadFile(serverURL, tempModel, &dialog);
         dialog.Close();
 	}
 
 
 	if (wxFileExists(tempModel))
 	{
-		downloader.ExtractZipFiles(tempModel, resourcePath, parent_);
+		ExtractZipFiles(tempModel, resourcePath, parent_);
 	}
 
 }

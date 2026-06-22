@@ -946,19 +946,27 @@ void CMainWindow::NewVersionAvailable(void* param)
     wxString localVersion  = CLibResource::LoadStringFromResource("REGARDSVERSION", 1);
     wxString serverURL     = CLibResource::LoadStringFromResource("ADRESSEWEBVERSION", 1);
 
-    wxString serverVersion = Regards::Internet::CHttpRequest::ExecuteRequest(serverURL);
-    serverVersion = serverVersion.SubString(0, serverVersion.length() - 2);
-
-    localVersion.Replace(".", "");
-    serverVersion.Replace(".", "");
-
-    long lv = 0, sv = 0;
-    localVersion.ToLong(&lv);
-    serverVersion.ToLong(&sv);
+    Regards::Internet::HttpResponse response = Regards::Internet::CHttpRequest::Get(serverURL);
 
     int hasUpdate = 0;
-    if (serverVersion != "error" && !serverVersion.empty() && lv < sv)
-        hasUpdate = 1;
+
+    if (response.Success())
+    {
+        wxString serverVersion = response.body;
+        serverVersion = serverVersion.SubString(0, serverVersion.length() - 2);
+
+        localVersion.Replace(".", "");
+        serverVersion.Replace(".", "");
+
+        long lv = 0, sv = 0;
+        localVersion.ToLong(&lv);
+        serverVersion.ToLong(&sv);
+
+        
+        if (serverVersion != "error" && !serverVersion.empty() && lv < sv)
+            hasUpdate = 1;
+    }
+
 
     wxCommandEvent evt(wxVERSION_UPDATE_EVENT);
     evt.SetInt(hasUpdate);

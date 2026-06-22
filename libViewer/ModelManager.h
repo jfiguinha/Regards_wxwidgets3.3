@@ -14,6 +14,11 @@ namespace Regards::Viewer
         bool VerifyAndUpdate();
 
     private:
+
+        bool ExtractZipFiles(
+            const wxString& zipFile,
+            const wxString& targetDir,
+            wxWindow* parent);
         void NewModelsAvailable();
   
         wxWindow* parent_ = nullptr;
