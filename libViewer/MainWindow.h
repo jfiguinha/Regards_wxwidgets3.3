@@ -111,16 +111,16 @@ namespace Regards::Viewer
         void SetDataToStatusBar(void* thumbnailMessage, const wxString& message);
 
         // ── Widgets UI ────────────────────────────────────────────────
-        wxGauge *                           progressBar = nullptr;
-        std::unique_ptr<wxStatusBar>        statusBar          = nullptr;
-        std::unique_ptr<CCentralWindow>     centralWnd         = nullptr;
-        std::unique_ptr<CToolbarViewerMode> toolbarViewerMode  = nullptr;
-        IStatusBarInterface* statusBarViewer   = nullptr;
+        wxGauge *                           progressBar        = nullptr;
+        wxStatusBar *                       statusBar          = nullptr;
+        CCentralWindow *                    centralWnd         = nullptr;
+        CToolbarViewerMode *                toolbarViewerMode  = nullptr;
+        IStatusBarInterface*                statusBarViewer   = nullptr;
         std::unique_ptr<wxTimer>            loadPictureStartTimer = nullptr;
 
         // ── Services délégués ─────────────────────────────────────────
-        std::unique_ptr<ThumbnailScheduler>   scheduler;
-        std::unique_ptr<FolderRefreshService> folderService;
+        std::unique_ptr<ThumbnailScheduler>        scheduler;
+        std::unique_ptr<FolderRefreshService>      folderService;
         std::unique_ptr<CMainViewerController>     viewerCtrl;
 
         // ── Processus de fond ─────────────────────────────────────────

@@ -1,7 +1,6 @@
 #include <header.h>
 #include "TreeWithScrollbar.h"
-#include "ScrollbarWnd.h"
-#include "TreeWindow.h"
+
 
 using namespace Regards::Window;
 
@@ -13,10 +12,10 @@ CTreeWithScrollbar::CTreeWithScrollbar(const wxString& windowName, wxWindow* par
 	scrollWindow = nullptr;
 	treeWindow = nullptr;
 	this->showTitle = showTitle;
-	treeWindow = std::make_unique<CTreeWindow>(this, wxID_ANY, theme);
+	treeWindow = new CTreeWindow(this, wxID_ANY, theme);
 	if (showTitle)
 	{
-		titleBar = std::make_unique<CTitleBar>(this, wxID_ANY, (CTitleBarInterface*)this);
+		titleBar = new CTitleBar(this, wxID_ANY, (CTitleBarInterface*)this);
 		titleBar->SetTitle(label);
 		titleBar->SetClosable(false);
 		titleBar->SetRefresh(false);
@@ -24,7 +23,19 @@ CTreeWithScrollbar::CTreeWithScrollbar(const wxString& windowName, wxWindow* par
 	}
 	else
 		titleBar = nullptr;
-	scrollWindow = std::make_unique<CScrollbarWnd>(this, treeWindow.get(), wxID_ANY);
+	scrollWindow = new CScrollbarWnd(this, treeWindow, wxID_ANY);
+}
+
+CTreeWithScrollbar::~CTreeWithScrollbar(void)
+{
+	if (treeWindow != nullptr)
+		delete(treeWindow);
+
+	if (scrollWindow != nullptr)
+		delete(scrollWindow);
+
+	if (titleBar != nullptr)
+		delete(titleBar);
 }
 
 void CTreeWithScrollbar::SetLabel(const wxString& label)

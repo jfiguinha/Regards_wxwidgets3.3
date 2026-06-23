@@ -52,9 +52,7 @@ void CClickToolbar::SetVertical(const bool& vertical)
 	needToRefresh = true;
 }
 
-CClickToolbar::~CClickToolbar()
-{
-}
+
 
 int CClickToolbar::GetWidth()
 {

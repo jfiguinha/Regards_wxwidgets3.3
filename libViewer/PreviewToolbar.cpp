@@ -117,11 +117,6 @@ void CPreviewToolbar::EnableNavigationButton()
 	}
 }
 
-
-CPreviewToolbar::~CPreviewToolbar()
-{
-}
-
 void CPreviewToolbar::SetFullscreen()
 {
 	wxString libelleFullscreen = CLibResource::LoadStringFromResource(L"LBLSCREEN", 1);

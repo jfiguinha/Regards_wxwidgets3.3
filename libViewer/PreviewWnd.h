@@ -36,6 +36,7 @@ namespace Regards
 		public:
 			CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal = true);
 			~CPreviewWnd() override;
+
 			bool SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail, const bool& isAnimation = false);
 			bool SetVideo(const wxString& filename, const bool& play = false);
 			void SetEffect(const bool& effect);
@@ -92,7 +93,7 @@ namespace Regards
 
 			CAnimationToolbar* animationToolbar = nullptr;
 			CPreviewToolbar* previewToolbar = nullptr;
-			std::unique_ptr<CBitmapInfos> bitmapInfos = nullptr;
+			CBitmapInfos * bitmapInfos = nullptr;
 			CFiltreToolbar* filtreToolbar = nullptr;
 
 			enum class MediaMode

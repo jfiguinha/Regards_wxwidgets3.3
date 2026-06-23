@@ -12,7 +12,7 @@ namespace Regards::Viewer
 	public:
 		CToolbarPhoto(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, CToolbarInterface* toolbarInterface,
 		              const bool& vertical);
-		~CToolbarPhoto() override;
+		~CToolbarPhoto() = default;
 		void SetFolderPush();
 		void SetCriteriaPush();
 		void SetFaceListPush();

@@ -16,9 +16,7 @@ namespace Regards
 		public:
 			CWindowMain(const wxString& name, wxWindow* parent, const wxWindowID id);
 
-			~CWindowMain() override
-			{
-			}
+			~CWindowMain() = default;
 
 
 			virtual void SaveParameter()

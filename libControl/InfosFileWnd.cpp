@@ -47,7 +47,7 @@ void CInfosFileWnd::InfosUpdate(const wxString& filename)
 	if (filename != this->filename)
 	{
 		this->filename = filename;
-		auto infosFileWnd = new CInfosFile(treeWindow->GetTheme(), treeWindow.get());
+		auto infosFileWnd = new CInfosFile(treeWindow->GetTheme(), treeWindow);
 		auto threadInfos = new CThreadLoadInfos();
 		threadInfos->infosFileWnd = infosFileWnd;
 		threadInfos->panelInfos = this;

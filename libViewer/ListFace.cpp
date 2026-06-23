@@ -83,7 +83,7 @@ CListFace::CListFace(wxWindow* parent, wxWindowID id)
 	{
 		CThemeSplitter theme;
 		viewerTheme->GetSplitterTheme(&theme);
-		windowManager = std::make_unique<CWindowManager>(this, wxID_ANY, theme);
+		windowManager = new CWindowManager(this, wxID_ANY, theme);
            
         if(windowManager != nullptr)
         {
@@ -92,26 +92,26 @@ CListFace::CListFace(wxWindow* parent, wxWindowID id)
                 CThemeScrollBar theme;
                 viewerTheme->GetScrollTheme(&theme);
                 viewerTheme->GetThumbnailTheme(&themeThumbnail);
-                thumbnailFace = std::make_unique<CThumbnailFace>(windowManager.get(), THUMBNAILFACE, themeThumbnail, checkValidity);
-                thumbscrollbar = std::make_unique<CScrollbarWnd>(windowManager.get(), thumbnailFace.get(), wxID_ANY);
+                thumbnailFace = new CThumbnailFace(windowManager, THUMBNAILFACE, themeThumbnail, checkValidity);
+                thumbscrollbar = new CScrollbarWnd(windowManager, thumbnailFace, wxID_ANY);
                 thumbscrollbar->ShowVerticalScroll();
                 thumbnailFace->SetNoVScroll(false);
                 thumbnailFace->SetCheck(true);
                 thumbnailFace->ChangeTabValue(valueZoom, positionTab);
                 thumbnailFace->init();
 
-                windowManager->AddWindow(thumbscrollbar.get(), Pos::wxCENTRAL, false, 0, rect, wxID_ANY, false);
+                windowManager->AddWindow(thumbscrollbar, Pos::wxCENTRAL, false, 0, rect, wxID_ANY, false);
             }
             
             {
                 CThemeToolbar theme;
                 viewerTheme->GetBitmapToolbarTheme(&theme);
 
-                thumbFaceToolbar = std::make_unique<CThumbnailFaceToolBar>(windowManager.get(), wxID_ANY, theme, false);
+                thumbFaceToolbar = new CThumbnailFaceToolBar(windowManager, wxID_ANY, theme, false);
                 thumbFaceToolbar->SetTabValue(valueZoom);
                 thumbFaceToolbar->SetTrackBarPosition(positionTab - 1);
 
-                windowManager->AddWindow(thumbFaceToolbar.get(), Pos::wxBOTTOM, true, thumbFaceToolbar->GetHeight(), rect, wxID_ANY,
+                windowManager->AddWindow(thumbFaceToolbar, Pos::wxBOTTOM, true, thumbFaceToolbar->GetHeight(), rect, wxID_ANY,
                      false);
             }
             
@@ -129,10 +129,10 @@ CListFace::CListFace(wxWindow* parent, wxWindowID id)
                 
 
                 viewerTheme->GetThumbnailToolbarTheme(theme);
-                thumbFacePertinenceToolbar = std::make_unique<CThumbnailFacePertinenceToolBar>(windowManager.get(), wxID_ANY, theme, false);
+                thumbFacePertinenceToolbar = new CThumbnailFacePertinenceToolBar(windowManager, wxID_ANY, theme, false);
                 thumbFacePertinenceToolbar->SetTabValue(value);
                 thumbFacePertinenceToolbar->SetTrackBarPosition(position);
-                windowManager->AddWindow(thumbFacePertinenceToolbar.get(), Pos::wxTOP, true, thumbFacePertinenceToolbar->GetHeight(),
+                windowManager->AddWindow(thumbFacePertinenceToolbar, Pos::wxTOP, true, thumbFacePertinenceToolbar->GetHeight(),
                                          rect, wxID_ANY, false);
 
             }
@@ -165,7 +165,7 @@ CListFace::CListFace(wxWindow* parent, wxWindowID id)
 
 CThumbnailFace* CListFace::GetThumbnailFace()
 {
-	return thumbnailFace.get();
+	return thumbnailFace;
 }
 
 vector<int> CListFace::GetFaceSelectID()

@@ -36,10 +36,6 @@ CKeywordWndToolbar::CKeywordWndToolbar(wxWindow* parent, wxWindowID id)
 	}
 }
 
-CKeywordWndToolbar::~CKeywordWndToolbar()
-{
-}
-
 void CKeywordWndToolbar::Init(const wxString& filename)
 {
 	this->filename = filename;

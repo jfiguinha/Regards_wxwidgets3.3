@@ -10,7 +10,7 @@ namespace Regards::Viewer
 	{
 	public:
 		CThumbnailToolBar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical);
-		~CThumbnailToolBar() override;
+		~CThumbnailToolBar() = default;
 
 		void SetTrackBarPosition(const int& iPos) override;
 		void SetTabValue(vector<int> value);

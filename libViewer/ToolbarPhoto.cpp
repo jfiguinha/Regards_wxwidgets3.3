@@ -17,10 +17,6 @@ CToolbarPhoto::CToolbarPhoto(wxWindow* parent, wxWindowID id, const CThemeToolba
 	criteria = CreateTexte(L"LBLCRITERIA", WM_CRITERIA);
 }
 
-CToolbarPhoto::~CToolbarPhoto()
-{
-}
-
 void CToolbarPhoto::SetFolderPush()
 {
 	folder->SetPush(true);

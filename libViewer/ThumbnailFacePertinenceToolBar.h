@@ -13,7 +13,7 @@ namespace Regards::Viewer
 	public:
 		CThumbnailFacePertinenceToolBar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme,
 		                                const bool& vertical);
-		~CThumbnailFacePertinenceToolBar() override;
+		~CThumbnailFacePertinenceToolBar() = default;
 
 		void SetTrackBarPosition(const int& iPos) override;
 		void SetTabValue(vector<int> value);

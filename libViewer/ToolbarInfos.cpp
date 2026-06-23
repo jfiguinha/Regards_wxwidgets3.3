@@ -23,10 +23,6 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
 	histogramParameter = CreateTexte("LBLHISTOGRAM", WM_HISTOGRAM);
 }
 
-CToolbarInfos::~CToolbarInfos()
-{
-}
-
 void CToolbarInfos::SetHistogramPush()
 {
 	histogramParameter->SetPush(true);

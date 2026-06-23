@@ -15,7 +15,7 @@ namespace Regards::Window
 	public:
 		CClickToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, CToolbarInterface* interfaceToolbar,
 		              const int& idMessage, const bool& vertical);
-		~CClickToolbar() override;
+		~CClickToolbar()  = default;
 		void SetVertical(const bool& vertical);
 		int GetWidth() override;
 		int GetHeight() override;

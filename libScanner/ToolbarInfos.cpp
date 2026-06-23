@@ -19,10 +19,6 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
 	effectParameter = CreateTexte("LBLEFFECTPARAMETER", WM_EFFECTPARAMETER);
 }
 
-CToolbarInfos::~CToolbarInfos()
-{
-}
-
 void CToolbarInfos::SetInfosPush()
 {
 	infos->SetPush(true);

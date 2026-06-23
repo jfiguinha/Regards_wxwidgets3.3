@@ -84,7 +84,7 @@ namespace Regards::Window
 	{
 	public:
 		CTabWindow(const wxString& windowName, wxWindow* parent, wxWindowID id);
-		~CTabWindow() = default;
+		~CTabWindow();
 		void UpdateScreenRatio() override;
 
 	private:
@@ -97,7 +97,7 @@ namespace Regards::Window
 		void HideAllWindow();
 		virtual void LoadInfo() = 0;
 		std::unique_ptr<CModificationManager> modificationManager = nullptr;
-		vector<std::unique_ptr<CTabWindowData>> listWindow;
+		vector<CTabWindowData *> listWindow;
 		CToolbarWindow* toolbarWindow = nullptr;
 		int windowVisible;
 		int width;

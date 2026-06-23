@@ -12,7 +12,7 @@ namespace Regards::Scanner
 	public:
 		CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, CToolbarInterface* toolbarInterface,
 		              const bool& vertical);
-		~CToolbarInfos() override;
+		~CToolbarInfos() = default;
 		void SetInfosActif();
 		void SetInfosPush();
 		void SetOcrPush();

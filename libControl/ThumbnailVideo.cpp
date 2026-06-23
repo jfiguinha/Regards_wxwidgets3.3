@@ -564,7 +564,7 @@ void CThumbnailVideo::SetFile(const wxString& videoFile, const int& size)
 {
 	process_end = false;
     
-   // printf("CThumbnailVideo::SetFile : %s \n", videoFile.ToStdString().c_str());
+   // printf("CThumbnailVideo::SetFile : %s \n", videoFile.utf8_string().c_str());
 
 	CLibPicture libPicture;
 	iFormat = libPicture.TestImageFormat(videoFile);

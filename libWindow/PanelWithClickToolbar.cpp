@@ -20,9 +20,9 @@ CPanelWithClickToolbar::CPanelWithClickToolbar(wxWindow* parent, const wxString&
 	//----------------------------------------------------------------------------------------
 	//Panel Thumbnail Video
 	//----------------------------------------------------------------------------------------
-	paneWindow = std::make_unique<CPane>(this, wxID_ANY, this, PANE_WITHCLICKTOOLBAR, themePane, refreshButton);
+	paneWindow = new CPane(this, wxID_ANY, this, PANE_WITHCLICKTOOLBAR, themePane, refreshButton);
 	paneWindow->SetTitle(paneLibelle);
-	clickWindow = std::make_unique<CClickToolbar>(this, wxID_ANY, themeToolbar, this, PANE_WITHCLICKTOOLBAR, vertical);
+	clickWindow = new CClickToolbar(this, wxID_ANY, themeToolbar, this, PANE_WITHCLICKTOOLBAR, vertical);
 
 	Connect(wxEVENT_SHOWPANE, wxCommandEventHandler(CPanelWithClickToolbar::ShowPane));
 	Connect(wxEVENT_CLOSEPANE, wxCommandEventHandler(CPanelWithClickToolbar::ClosePaneEvent));
@@ -70,14 +70,14 @@ void CPanelWithClickToolbar::ClosePaneEvent(wxCommandEvent& event)
 
 wxWindow* CPanelWithClickToolbar::GetPaneWindow()
 {
-	return paneWindow.get();
+	return paneWindow;
 }
 
 wxWindow* CPanelWithClickToolbar::GetWindow()
 {
 	if (isPanelVisible)
-		return paneWindow.get();
-	return clickWindow.get();
+		return paneWindow;
+	return clickWindow;
 }
 
 
@@ -107,7 +107,7 @@ void CPanelWithClickToolbar::SetWindow(CWindowMain* windowMain)
 	}
 
 	mainWindow = windowMain;
-	mainWindow->Reparent(paneWindow.get());
+	mainWindow->Reparent(paneWindow);
 	paneWindow->SetOtherWindow(windowMain);
 
 	if (needToResize)
@@ -119,7 +119,8 @@ void CPanelWithClickToolbar::SetWindow(CWindowMain* windowMain)
 
 CPanelWithClickToolbar::~CPanelWithClickToolbar()
 {
-
+	delete(clickWindow);
+	delete(paneWindow);
 }
 
 void CPanelWithClickToolbar::UpdateScreenRatio()

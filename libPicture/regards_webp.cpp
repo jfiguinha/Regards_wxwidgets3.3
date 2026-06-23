@@ -97,7 +97,7 @@ End:
 	for (int i = 0; i < nbFrame; i++)
 	{
 		wxString filename = "d:\\toto" + to_string(i) + ".jpg";
-		cv::imwrite(filename.ToStdString(), pictureList[i]);
+		cv::imwrite(filename.utf8_string(), pictureList[i]);
 	}
 	*/
 	return pictureList;

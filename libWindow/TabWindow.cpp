@@ -11,6 +11,15 @@ CTabWindow::CTabWindow(const wxString& windowName, wxWindow* parent, wxWindowID 
 
 }
 
+CTabWindow::~CTabWindow()
+{
+	for (CTabWindowData* element : listWindow)
+		delete element;
+
+	listWindow.clear();
+}
+
+
 void CTabWindow::UpdateScreenRatio()
 {
 	for (auto& window : listWindow)

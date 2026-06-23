@@ -131,7 +131,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 		{
 			if (bitmapViewer != nullptr)
 			{
-				auto filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow.get(), isVideo, bitmapWindowId);
+				auto filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
 				int typeData = CFiltreData::TypeApplyFilter(numItem);
 
 				switch (typeData)
@@ -206,7 +206,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 	else
 	{
 		auto showVideo = static_cast<CShowElement*>(this->FindWindowById(SHOWBITMAPVIEWERID));
-		auto filtreEffect = new CFiltreEffect(showVideo, treeWindow.get(), isVideo, bitmapWindowId);
+		auto filtreEffect = new CFiltreEffect(showVideo, treeWindow, isVideo, bitmapWindowId);
 		switch (numItem)
 		{
 		case IDM_FILTRE_VIDEO:

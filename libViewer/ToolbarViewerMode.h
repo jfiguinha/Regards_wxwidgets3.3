@@ -12,7 +12,7 @@ namespace Regards::Viewer
 	public:
 		CToolbarViewerMode(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, CToolbarInterface* toolbarInterface,
 			const bool& vertical);
-		~CToolbarViewerMode() override;
+		~CToolbarViewerMode() = default;
 		void SetFaceWindowPush();
 		void SetViewerWindowPush();
 		void SetExplorerWindowPush();

@@ -31,12 +31,6 @@ void CBitmapInfosCheckBox::SetFilename(const wxString& libelle)
 	}
 }
 
-
-CBitmapInfosCheckBox::~CBitmapInfosCheckBox()
-{
-	//delete fileGeolocalisation;
-}
-
 int CBitmapInfosCheckBox::GetHeight()
 {
 	return bitmapInfosTheme.GetHeight();

@@ -17,9 +17,6 @@ CKeywordManagementWindow::CKeywordManagementWindow(wxWindow* parent, wxWindowID 
 	Connect(wxEVENT_REFRESHDATA, wxCommandEventHandler(CKeywordManagementWindow::UpdateKeyword));
 }
 
-CKeywordManagementWindow::~CKeywordManagementWindow()
-{
-}
 
 void CKeywordManagementWindow::UpdateKeyword(wxCommandEvent& event)
 {
@@ -29,7 +26,7 @@ void CKeywordManagementWindow::UpdateKeyword(wxCommandEvent& event)
 void CKeywordManagementWindow::Init(const wxString& filename)
 {
 	this->filename = filename;
-	auto keyword = new CKeywordWnd(this, treeWindow->GetTheme(), treeWindow.get());
+	auto keyword = new CKeywordWnd(this, treeWindow->GetTheme(), treeWindow);
 	keyword->Init(filename);
 	treeWindow->SetTreeControl(keyword);
 	delete(keywordWndOld);

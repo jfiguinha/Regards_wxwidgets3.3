@@ -57,18 +57,18 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		CThemeTree theme;
 		viewerTheme->GetTreeTheme(&theme);
 
-		infosFileWnd = std::make_unique<CInfosFileWnd>(this, wxID_ANY, themeScroll, theme);
-		ocrWnd = std::make_unique<COcrWnd>(this, SCANNER_OCRPAGE);
+		infosFileWnd = new CInfosFileWnd(this, wxID_ANY, themeScroll, theme);
+		ocrWnd = new COcrWnd(this, SCANNER_OCRPAGE);
 
 		infosFileWnd->Show(true);
 
-		auto tabInfosFile = std::make_unique<CTabWindowData>();
-		tabInfosFile->SetWindow(infosFileWnd.get());
+		auto tabInfosFile = new CTabWindowData();
+		tabInfosFile->SetWindow(infosFileWnd);
 		tabInfosFile->SetId(WM_INFOS);
 		listWindow.push_back(std::move(tabInfosFile));
 
-		auto tabOcr = std::make_unique<CTabWindowData>();
-		tabOcr->SetWindow(ocrWnd.get());
+		auto tabOcr = new CTabWindowData();
+		tabOcr->SetWindow(ocrWnd);
 		tabOcr->SetId(WM_OCR);
 		listWindow.push_back(std::move(tabOcr));
 	}
@@ -81,11 +81,11 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
 
-		filtreEffectWnd = std::make_unique<CFiltreEffectScrollWnd>(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
+		filtreEffectWnd = new CFiltreEffectScrollWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
 		filtreEffectWnd->Show(false);
 
-		auto tabInfosFile = std::make_unique<CTabWindowData>();
-		tabInfosFile->SetWindow(filtreEffectWnd.get());
+		auto tabInfosFile = new CTabWindowData();
+		tabInfosFile->SetWindow(filtreEffectWnd);
 		tabInfosFile->SetId(WM_EFFECTPARAMETER);
 		listWindow.push_back(std::move(tabInfosFile));
 	}
@@ -97,11 +97,11 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
-		historyEffectWnd = std::make_unique<CInfoEffectWnd>(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
+		historyEffectWnd = new CInfoEffectWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERIDPDF);
 		historyEffectWnd->Show(false);
 
-		auto tabInfosFile = std::make_unique<CTabWindowData>();
-		tabInfosFile->SetWindow(historyEffectWnd.get());
+		auto tabInfosFile = new CTabWindowData();
+		tabInfosFile->SetWindow(historyEffectWnd);
 		tabInfosFile->SetId(WM_HISTORY);
 		listWindow.push_back(std::move(tabInfosFile));
 	}
@@ -123,13 +123,13 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		if (config != nullptr)
 			checkValidity = config->GetCheckThumbnailValidity();
 
-		thumbnailEffectWnd = std::make_unique<CThumbnailViewerEffectWnd>(this, wxID_ANY, themeScroll, themeThumbnail,
+		thumbnailEffectWnd = new CThumbnailViewerEffectWnd(this, wxID_ANY, themeScroll, themeThumbnail,
 		                                                   PANELINFOSWNDSCANNERID, checkValidity);
 
 		thumbnailEffectWnd->Show(false);
 
-		auto tabInfosFileEffect = std::make_unique<CTabWindowData>();
-		tabInfosFileEffect->SetWindow(thumbnailEffectWnd.get());
+		auto tabInfosFileEffect = new CTabWindowData();
+		tabInfosFileEffect->SetWindow(thumbnailEffectWnd);
 		tabInfosFileEffect->SetId(WM_EFFECT);
 		listWindow.push_back(std::move(tabInfosFileEffect));
 	}
@@ -140,7 +140,7 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		webBrowser->Show(false);
 
 		/*
-		CTabWindowData * tabInfosFile = std::make_unique<CTabWindowData>();
+		CTabWindowData * tabInfosFile = new CTabWindowData();
 		tabInfosFile->window = webBrowser;
 		tabInfosFile->windowName = WM_HTMLEDITOR;
 		listWindow.push_back(std::move(tabInfosFile);
@@ -151,10 +151,10 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 	{
 		CThemeToolbar theme;
 		viewerTheme->GetInfosToolbarTheme(&theme);
-		infosToolbar = std::make_unique<CToolbarInfos>(this, wxID_ANY, theme, this, false);
+		infosToolbar = new CToolbarInfos(this, wxID_ANY, theme, this, false);
 	}
 
-	toolbarWindow = infosToolbar.get();
+	toolbarWindow = infosToolbar;
 	Connect(wxEVENT_APPLYEFFECT, wxCommandEventHandler(CPanelInfosWnd::ApplyEffect));
 	Connect(wxEVENT_SHOWFILTRE, wxCommandEventHandler(CPanelInfosWnd::ShowFiltreEvent));
 }
@@ -187,12 +187,12 @@ void CPanelInfosWnd::ApplyEffect(wxCommandEvent& event)
 	int numItem = event.GetInt();
 	//Test si l'history fonctionne ou pas 
 	HistoryUpdate();
-	filtreEffectWnd->ApplyEffect(numItem, historyEffectWnd.get(), _filename, false, PANELINFOSWNDSCANNERID, PDFWINDOWID);
+	filtreEffectWnd->ApplyEffect(numItem, historyEffectWnd, _filename, false, PANELINFOSWNDSCANNERID, PDFWINDOWID);
 }
 
 void CPanelInfosWnd::OnFiltreOk(const int& numFiltre)
 {
-	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd.get());
+	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
 	ClickShowButton(WM_EFFECT);
 	infosToolbar->SetEffectParameterInactif();
 }

@@ -11,7 +11,7 @@ namespace Regards::Control
 	public:
 		CBitmapToolbar(wxWindow* parent, wxWindowID id, wxWindowID viewerId, const CThemeToolbar& theme,
 		               const bool& vertical, const bool& exportPicture);
-		~CBitmapToolbar() override;
+		~CBitmapToolbar() = default;
 		//void SetBitmapDisplayPt(CBitmapWndViewer * bitmapWindow);
 		void SetTrackBarPosition(const int& iPos) override;
 		void SetTabValue(vector<int> value);

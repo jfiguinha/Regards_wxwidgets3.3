@@ -297,8 +297,8 @@ public:
             std::vector<wxString> list = CConvertUtility::split(To_Display, ':');
             if (list.size() == 2)
             {
-                aspectRatio.num = std::stof(list[0].ToStdString());
-                aspectRatio.den = std::stoi(list[1].ToStdString());
+                aspectRatio.num = std::stof(list[0].utf8_string());
+                aspectRatio.den = std::stoi(list[1].utf8_string());
             }
             else
             {

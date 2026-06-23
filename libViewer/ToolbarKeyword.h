@@ -9,7 +9,7 @@ namespace Regards::Viewer
 	{
 	public:
 		CToolbarKeyword(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical);
-		~CToolbarKeyword() override;
+		~CToolbarKeyword() = default;
 
 		void ClickButton(const int& id)
 		{

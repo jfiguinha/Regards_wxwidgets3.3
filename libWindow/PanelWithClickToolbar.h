@@ -44,10 +44,10 @@ namespace Regards::Window
 		void RefreshPane(const int& id) override;
 		void Resize() override;
 
-		std::unique_ptr<CPane> paneWindow;
+		CPane * paneWindow;
 		//CScrollbarWnd * scrollWindow;
 		CWindowMain* mainWindow;
-		std::unique_ptr<CClickToolbar> clickWindow;
+		CClickToolbar * clickWindow;
 		bool isPanelVisible;
 		bool isVertical;
 	};

@@ -31,11 +31,6 @@ CToolbarPDF::CToolbarPDF(wxWindow* parent, wxWindowID id, const CThemeToolbar& t
 	imageFirst = CreateButton(L"IDB_EXIT", L"LBLQUIT", IDM_QUITTER);
 }
 
-CToolbarPDF::~CToolbarPDF()
-{
-}
-
-
 void CToolbarPDF::EventManager(const int& id)
 {
 	switch (id)

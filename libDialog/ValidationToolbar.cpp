@@ -15,11 +15,6 @@ CValidationToolbar::CValidationToolbar(wxWindow* parent, wxWindowID id, const CT
 	cancel = CreateButton("IDB_CANCEL", "IDS_LBLCANCEL", WM_CANCEL);
 }
 
-
-CValidationToolbar::~CValidationToolbar()
-{
-}
-
 void CValidationToolbar::EventManager(const int& id)
 {
 	switch (id)

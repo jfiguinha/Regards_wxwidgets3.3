@@ -137,7 +137,7 @@ bool CSqlLib::OpenConnection(const wxString& path, bool readonly, bool load_inme
 
         if (!RecoverDatabaseFile(m_dbPath))
         {
-            reportError("Récupération impossible pour : " + m_dbPath.ToStdString());
+            reportError("Récupération impossible pour : " + m_dbPath.utf8_string());
             return false;
         }
 

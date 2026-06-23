@@ -13,8 +13,8 @@ namespace Regards::Window
 	class CCalendarSelect
 	{
 	public:
-		CCalendarSelect();
-		~CCalendarSelect();
+		CCalendarSelect() = default;
+		~CCalendarSelect() = default;
 
 		bool SelectNewDate(wxWindow* window, const wxDateTime& dateSelect);
 		bool SelectNewDate(wxWindow* window, const wxString& dataInfos);

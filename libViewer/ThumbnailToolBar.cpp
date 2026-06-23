@@ -79,10 +79,6 @@ CThumbnailToolBar::CThumbnailToolBar(wxWindow* parent, wxWindowID id, const CThe
 	navElement.push_back(plus.get());
 }
 
-CThumbnailToolBar::~CThumbnailToolBar()
-{
-}
-
 void CThumbnailToolBar::ZoomOn()
 {
 	if (slide != nullptr)

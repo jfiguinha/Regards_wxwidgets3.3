@@ -19,7 +19,7 @@ namespace Regards
 		public:
 			CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme,
 			                CToolbarInterface* toolbarInterface, const bool& vertical);
-			~CPreviewToolbar() override;
+			~CPreviewToolbar() = default;
 
 			void SetFullscreen();
 			void SetScreen();

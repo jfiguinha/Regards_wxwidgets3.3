@@ -13,14 +13,6 @@
 using namespace Regards::Window;
 
 
-CCalendarSelect::CCalendarSelect()
-{
-}
-
-CCalendarSelect::~CCalendarSelect()
-{
-}
-
 bool CCalendarSelect::SelectNewDate(wxWindow* window, const wxString& dataInfos)
 {
 	CCalendarDialogBox calendarBox(window);

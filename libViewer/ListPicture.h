@@ -40,7 +40,7 @@ namespace Regards
 
 			CThumbnailFolder* GetPtThumbnailFolder()
 			{
-				return thumbnailFolder.get();
+				return thumbnailFolder;
 			}
 			
 
@@ -69,11 +69,11 @@ namespace Regards
 			void CreateFolder(const wxString& newFolder);
 
 			int typeAffichage;
-			std::unique_ptr<CWindowManager> windowManager;
-			std::unique_ptr<CScrollbarWnd> thumbscrollbar;
-			std::unique_ptr<CThumbnailToolBar> thumbToolbar;
-			std::unique_ptr<CThumbnailToolBarZoom> thumbToolbarZoom;
-			std::unique_ptr<CThumbnailFolder> thumbnailFolder;
+			CWindowManager * windowManager;
+			CScrollbarWnd * thumbscrollbar;
+			CThumbnailToolBar * thumbToolbar;
+			CThumbnailToolBarZoom * thumbToolbarZoom;
+			CThumbnailFolder * thumbnailFolder;
 		};
 	}
 }

@@ -617,7 +617,7 @@ void CRegardsPDF::AddPage(const wxString& fileToAdd, const wxString& filename, c
 		bool isRemove = wxRemoveFile(filename);
 		if (!isRemove)
 		{
-			printf("Unable to remove this file : %s \n", filename.ToStdString().c_str());
+			printf("Unable to remove this file : %s \n", filename.utf8_string().c_str());
 		}
 	}
 

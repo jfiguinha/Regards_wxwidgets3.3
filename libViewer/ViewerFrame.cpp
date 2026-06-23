@@ -88,13 +88,13 @@ CViewerFrame::CViewerFrame(const wxString& title, const wxPoint& pos, const wxSi
     const bool openFirstFile = !fileToOpen_.IsEmpty();
 
     // 4. Fenêtre principale
-    mainWindow_ = std::make_unique<CMainWindow>(this, MAINVIEWERWINDOWID, this, fileToOpen_);
+    mainWindow_ = new CMainWindow(this, MAINVIEWERWINDOWID, this, fileToOpen_);
 
     // 5. Services
     fileWatcherService_  = std::make_unique<CFileWatcherService>(this);
     printService_        = std::make_unique<CPrintService>(this);
     scannerLauncher_     = std::make_unique<CScannerLauncher>();
-    navigationCtrl_      = std::make_unique<CViewerNavigationController>(this, mainWindow_.get());
+    navigationCtrl_      = std::make_unique<CViewerNavigationController>(this, mainWindow_);
 
     // 6. Timers propres à la frame
     InitTimers();
@@ -126,6 +126,12 @@ CViewerFrame::~CViewerFrame()
         exitTimer->Stop();
 
     viewerParam_->SaveFile();
+
+    if (mainWindow_ != nullptr)
+        delete(mainWindow_);
+
+    if (mainWindowWaiting != nullptr)
+        delete(mainWindowWaiting);
     
 	if (!onExit)
 		Exit();
@@ -301,13 +307,13 @@ void CViewerFrame::CheckAllProcessEnd(wxTimerEvent& event)
 		{
 			if (window != nullptr)
 			{
-                //printf("CheckAllProcessEnd %s \n", window->GetWaitingMessage().ToStdString().c_str());
+                //printf("CheckAllProcessEnd %s \n", window->GetWaitingMessage().utf8_string().c_str());
                 
 				if (!window->GetProcessEnd())
 				{
                     wxTheApp->Yield();
                     
-                    //printf("CheckAllProcessEnd %s not end \n", window->GetWaitingMessage().ToStdString().c_str());
+                    //printf("CheckAllProcessEnd %s not end \n", window->GetWaitingMessage().utf8_string().c_str());
                     
 					const wxString message = window->GetWaitingMessage();
 					mainWindowWaiting->SetTexte(message);
@@ -337,7 +343,7 @@ void CViewerFrame::Exit()
         if(mainWindow_ != nullptr)
             mainWindow_->Show(false);
         
-		mainWindowWaiting = std::make_unique<CWaitingWindow>(this, wxID_ANY);
+		mainWindowWaiting = new CWaitingWindow(this, wxID_ANY);
         if(mainWindowWaiting != nullptr)
         {
             mainWindowWaiting->Show(true);

@@ -204,11 +204,6 @@ void CCategoryFolderWindow::RefreshCriteriaSearch(wxCommandEvent& event)
 		pimpl->catalogWnd->RefreshCriteriaSearch();
 }
 
-CCategoryFolderWindow::~CCategoryFolderWindow()
-{
-
-}
-
 void CCategoryFolderWindow::InitSaveParameter()
 {
 	auto config = CMainParamInit::getInstance();
@@ -251,7 +246,7 @@ void CCategoryFolderWindow::UpdateCriteria(const bool& need_to_send_message)
 	auto windowMain = static_cast<CWindowMain*>(this->FindWindowById(MAINVIEWERWINDOWID));
 	if (windowMain != nullptr && treeWindow != nullptr)
 	{
-		auto catalogWnd = new CCategoryWnd(windowMain, treeWindow->GetTheme(), treeWindow.get());
+		auto catalogWnd = new CCategoryWnd(windowMain, treeWindow->GetTheme(), treeWindow);
 		catalogWnd->Init();
 		treeWindow->SetTreeControl(catalogWnd);
         

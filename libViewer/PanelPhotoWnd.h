@@ -28,8 +28,8 @@ namespace Regards::Viewer
 		void RemoveFolder(const wxString& folder);
 		wxString AddFolder(const wxString& folder, wxString* file, const bool& showDialog = true);
 
-		std::unique_ptr<CCategoryFolderWindow> categoryFolderWnd;
-		std::unique_ptr<wxGenericDirCtrl> folderWnd;
-		std::unique_ptr<CToolbarPhoto> photoToolbar;
+		CCategoryFolderWindow * categoryFolderWnd;
+		wxGenericDirCtrl * folderWnd;
+		CToolbarPhoto * photoToolbar;
 	};
 }

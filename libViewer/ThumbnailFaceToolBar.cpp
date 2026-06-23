@@ -28,9 +28,6 @@ CThumbnailFaceToolBar::CThumbnailFaceToolBar(wxWindow* parent, wxWindowID id, co
 
 }
 
-CThumbnailFaceToolBar::~CThumbnailFaceToolBar()
-{
-}
 
 bool CThumbnailFaceToolBar::ZoomOn()
 {

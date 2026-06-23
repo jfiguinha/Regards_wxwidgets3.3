@@ -21,11 +21,6 @@ CToolbarKeyword::CToolbarKeyword(wxWindow* parent, wxWindowID id, const CThemeTo
 	libelle = CreateTexte(L"LBLADDKEYWORD", WM_ADDKEYWORD);
 }
 
-CToolbarKeyword::~CToolbarKeyword()
-{
-}
-
-
 void CToolbarKeyword::EventManager(const int& id)
 {
 	switch (id)

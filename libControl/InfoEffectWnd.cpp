@@ -22,10 +22,6 @@ CInfoEffectWnd::CInfoEffectWnd(wxWindow* parent, const wxWindowID id, const CThe
 	historyEffectOld = nullptr;
 }
 
-CInfoEffectWnd::~CInfoEffectWnd(void)
-{
-}
-
 void CInfoEffectWnd::AddModification(CImageLoadingFormat* bitmap, const wxString& libelle)
 {
 	if (historyEffectOld != nullptr)
@@ -38,7 +34,7 @@ void CInfoEffectWnd::HistoryUpdate(CImageLoadingFormat* bitmap, const wxString& 
 {
 	if (historyEffectOld == nullptr || historyEffectOld->GetFilename() != filename)
 	{
-		auto historyEffect = new CInfoEffect(treeWindow.get(), modificationManager, bitmapWindowId);
+		auto historyEffect = new CInfoEffect(treeWindow, modificationManager, bitmapWindowId);
 		historyEffect->Init(bitmap, filename, historyLibelle);
 		treeWindow->SetTreeControl(historyEffect);
 		historyEffectOld.reset(historyEffect);

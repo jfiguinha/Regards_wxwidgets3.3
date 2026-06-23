@@ -47,10 +47,6 @@ void CSlideToolbar::SetZoomMode()
 	zoom->SetVisible(true);
 }
 
-CSlideToolbar::~CSlideToolbar()
-{
-}
-
 int CSlideToolbar::GetMode()
 {
 	return id;

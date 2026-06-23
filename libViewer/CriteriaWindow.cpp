@@ -48,11 +48,6 @@ void CCriteriaWindow::SetFile(const wxString& filename)
 		keywordWnd->Init(filename);
 }
 
-CCriteriaWindow::~CCriteriaWindow()
-{
-}
-
-
 void CCriteriaWindow::UpdateScreenRatio()
 {
 	if (criteriaTreeWnd != nullptr)

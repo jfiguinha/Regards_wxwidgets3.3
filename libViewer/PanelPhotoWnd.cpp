@@ -43,7 +43,7 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
         
         viewerTheme->GetTreeTheme(&themeTree);
         
-		folderWnd = std::make_unique<wxGenericDirCtrl>(this, FOLDERWINDOWID, wxDirDialogDefaultFolderStr, wxDefaultPosition,
+		folderWnd = new wxGenericDirCtrl(this, FOLDERWINDOWID, wxDirDialogDefaultFolderStr, wxDefaultPosition,
 		                                 wxDefaultSize, wxDIRCTRL_DIR_ONLY);
 		if (folderWnd->GetTreeCtrl() != nullptr)
 		{
@@ -68,10 +68,10 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 		}
 
 
-		auto tabInfosFile = std::make_unique<CTabWindowData>();
-		tabInfosFile->SetWindow(folderWnd.get());
+		auto tabInfosFile = new CTabWindowData();
+		tabInfosFile->SetWindow(folderWnd);
 		tabInfosFile->SetId(WM_FOLDER);
-		listWindow.push_back(std::move(tabInfosFile));
+		listWindow.push_back(tabInfosFile);
 	}
 
 	if (viewerTheme != nullptr)
@@ -82,11 +82,11 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 		viewerTheme->GetScrollTheme(&themeScroll);
 		viewerTheme->GetTreeTheme(&theme);
 
-		categoryFolderWnd = std::make_unique<CCategoryFolderWindow>(this, CATEGORYFOLDERWINDOWID, themeScroll, theme);
+		categoryFolderWnd = new CCategoryFolderWindow(this, CATEGORYFOLDERWINDOWID, themeScroll, theme);
 		categoryFolderWnd->Show(false);
 
-		auto tabInfosFile = std::make_unique<CTabWindowData>();
-		tabInfosFile->SetWindow(categoryFolderWnd.get());
+		auto tabInfosFile = new CTabWindowData();
+		tabInfosFile->SetWindow(categoryFolderWnd);
 		tabInfosFile->SetId(WM_CRITERIA);
 		listWindow.push_back(std::move(tabInfosFile));
 	}
@@ -95,10 +95,10 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 	{
 		CThemeToolbar theme;
 		viewerTheme->GetInfosToolbarTheme(&theme);
-		photoToolbar = std::make_unique<CToolbarPhoto>(this, wxID_ANY, theme, this, false);
+		photoToolbar = new CToolbarPhoto(this, wxID_ANY, theme, this, false);
 	}
 
-	toolbarWindow = photoToolbar.get();
+	toolbarWindow = photoToolbar;
 	photoToolbar->SetFolderPush();
 	windowVisible = WM_FOLDER;
 

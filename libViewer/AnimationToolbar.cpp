@@ -32,11 +32,6 @@ CAnimationToolbar::CAnimationToolbar(wxWindow* parent, wxWindowID id, const CThe
 	this->toolbarInterface = toolbarInterface;
 }
 
-
-CAnimationToolbar::~CAnimationToolbar()
-{
-}
-
 void CAnimationToolbar::NextPicture()
 {
 	auto mainWindow = static_cast<CCentralWindow*>(this->FindWindowById(CENTRALVIEWERWINDOWID));

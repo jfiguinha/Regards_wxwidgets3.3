@@ -19,7 +19,7 @@ namespace Regards::Viewer
 	public:
 		CCategoryFolderWindow(wxWindow* parent, wxWindowID idCTreeWithScrollbarViewer,
 		                      const CThemeScrollBar& themeScroll, const CThemeTree& theme);
-		~CCategoryFolderWindow() override;
+		~CCategoryFolderWindow() = default;
 
 		void InitSaveParameter();
 		void init();

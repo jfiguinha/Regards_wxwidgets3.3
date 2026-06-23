@@ -19,7 +19,7 @@ namespace Regards
 		public:
 			CAnimationToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme,
 			                  CToolbarInterface* toolbarInterface, const bool& vertical);
-			~CAnimationToolbar() override;
+			~CAnimationToolbar() = default;
 			void AnimationStart();
 			void AnimationStop();
 

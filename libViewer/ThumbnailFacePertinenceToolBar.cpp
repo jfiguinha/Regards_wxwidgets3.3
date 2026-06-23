@@ -37,9 +37,6 @@ CThumbnailFacePertinenceToolBar::CThumbnailFacePertinenceToolBar(wxWindow* paren
 	plus = CreateButton(L"IDB_PLUS", L"LBLZOOMON", WM_ZOOMON);
 }
 
-CThumbnailFacePertinenceToolBar::~CThumbnailFacePertinenceToolBar()
-{
-}
 
 void CThumbnailFacePertinenceToolBar::ZoomOn()
 {

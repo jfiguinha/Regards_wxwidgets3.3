@@ -39,7 +39,7 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 		{
 			CThemeBitmapInfos theme;
 			viewerTheme->GetBitmapInfosTheme(&theme);
-			bitmapInfos = std::make_unique<CBitmapInfos>(this, wxID_ANY, theme);
+			bitmapInfos = new CBitmapInfos(this, wxID_ANY, theme);
 		}
 
 		{
@@ -84,7 +84,11 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 
 CPreviewWnd::~CPreviewWnd()
 {
-
+	delete(showElement);
+	delete(previewToolbar);
+	delete(animationToolbar);
+	delete(bitmapInfos);
+	delete(filtreToolbar);
 }
 
 void CPreviewWnd::StartAnimation(wxCommandEvent& event)

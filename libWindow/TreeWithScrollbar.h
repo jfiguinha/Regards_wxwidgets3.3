@@ -2,6 +2,8 @@
 #include <WindowMain.h>
 #include "TitleBarInterface.h"
 #include "TitleBar.h"
+#include "ScrollbarWnd.h"
+#include "TreeWindow.h"
 using namespace std;
 
 namespace Regards::Window
@@ -16,7 +18,7 @@ namespace Regards::Window
 		CTreeWithScrollbar(const wxString& windowName, wxWindow* parent, wxWindowID id,
 		                   const CThemeScrollBar& themeScroll, const CThemeTree& theme, const wxString& label = "",
 		                   const bool& showTitle = false);
-		~CTreeWithScrollbar(void) = default;
+		~CTreeWithScrollbar(void);
 		void UpdateScreenRatio() override;
 
 		void ClosePane() override
@@ -33,8 +35,8 @@ namespace Regards::Window
 		bool showTitle = false;
 
 		
-		std::unique_ptr<CTitleBar> titleBar;
-		std::unique_ptr<CTreeWindow> treeWindow;
-		std::unique_ptr<CScrollbarWnd> scrollWindow;
+		CTitleBar * titleBar;
+		CTreeWindow * treeWindow;
+		CScrollbarWnd * scrollWindow;
 	};
 }

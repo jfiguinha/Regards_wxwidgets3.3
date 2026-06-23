@@ -66,10 +66,6 @@ CToolbarViewerMode::CToolbarViewerMode(wxWindow* parent, wxWindowID id, const CT
 	}
 }
 
-CToolbarViewerMode::~CToolbarViewerMode()
-{
-}
-
 void CToolbarViewerMode::SetUpdateVisible(const bool& isVisible)
 {
 	imageNewVersion->SetVisible(isVisible);

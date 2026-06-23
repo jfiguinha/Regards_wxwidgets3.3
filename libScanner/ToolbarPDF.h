@@ -10,7 +10,7 @@ namespace Regards::Scanner
 	{
 	public:
 		CToolbarPDF(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical);
-		~CToolbarPDF() override;
+		~CToolbarPDF() = default;
 
 	private:
 		void EventManager(const int& id) override;

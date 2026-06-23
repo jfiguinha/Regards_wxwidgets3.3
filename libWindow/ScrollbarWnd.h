@@ -2,12 +2,10 @@
 #include <WindowMain.h>
 #include <WindowOpenGLMain.h>
 #include "WindowManager.h"
-
+#include <ScrollbarHorizontalWnd.h>
+#include <ScrollbarVerticalWnd.h>
 namespace Regards::Window
 {
-	class CScrollbarHorizontalWnd;
-	class CScrollbarVerticalWnd;
-
 
 	class CControlSize
 	{
@@ -74,8 +72,8 @@ namespace Regards::Window
 		void OnScrollMove(wxCommandEvent& event);
 
 		// Owned by wxWidgets window tree via windowManager — do not delete manually
-		std::unique_ptr<CScrollbarHorizontalWnd> scrollHorizontal;
-		std::unique_ptr<CScrollbarVerticalWnd> scrollVertical;
+		CScrollbarHorizontalWnd * scrollHorizontal;
+		CScrollbarVerticalWnd * scrollVertical;
 
 		bool showV;
 		bool showH;
@@ -89,7 +87,7 @@ namespace Regards::Window
 		int defaultLineSize;
 
 		// [QUALITE] loadingTimer supprimé : alloué mais jamais démarré ni géré
-		std::unique_ptr<CWindowManager> windowManager;
+		CWindowManager * windowManager;
 		std::unique_ptr<CWindowToAdd> centralWindow;
 		std::unique_ptr<CWindowToAdd> windowToaddCentral;
 	};

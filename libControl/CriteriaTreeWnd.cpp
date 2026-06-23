@@ -210,7 +210,7 @@ void CCriteriaTreeWnd::ShowKeyWord(wxCommandEvent& event)
 
 void CCriteriaTreeWnd::UpdateTreeData()
 {
-	auto criteriaTree = new CCriteriaTree(treeWindow->GetTheme(), treeWindow.get());
+	auto criteriaTree = new CCriteriaTree(treeWindow->GetTheme(), treeWindow);
 	criteriaTree->SetFile(filename, numPhotoId);
 	//criteriaTree->CreateElement();
 	treeWindow->SetTreeControl(criteriaTree);
