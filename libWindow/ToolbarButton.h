@@ -11,7 +11,7 @@ namespace Regards::Window
 	{
 	public:
 		CToolbarButton(const CThemeToolbarButton& theme);
-		~CToolbarButton() override;
+		~CToolbarButton() = default;
 
 		void SetLibelle(const wxString& libelle);
 		void SetButtonResourceId(const wxString& resourceId);

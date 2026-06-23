@@ -21,7 +21,7 @@ namespace Regards::Window
 	public:
 		CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInterface* interfaceControl, bool isVideo,
 		              int bitmapWindowId);
-		~CFiltreEffect(void) override;
+		~CFiltreEffect(void) = default;
 		virtual void Init(CEffectParameter* effectParameter, cv::Mat source, const wxString& filename,
 		                  const int& filtre);
 		void SlidePosChange(CTreeElement* treeElement, const int& position, CTreeElementValue* value,

@@ -16,9 +16,6 @@ namespace Regards::Window
 		{
 		};
 
-		~CTabWindowData()
-		{
-		};
 
 		void SetWindow(wxWindow* window)
 		{

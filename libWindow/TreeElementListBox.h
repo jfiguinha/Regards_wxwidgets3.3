@@ -15,7 +15,7 @@ namespace Regards::Window
 	{
 	public:
 		CTreeElementListBox(CTreeElementSlideInterface* eventInterface);
-		~CTreeElementListBox() override;
+		~CTreeElementListBox() = default;
 
 		void DrawElement(wxDC* deviceContext, const int& x, const int& y) override;
 		void ClickElement(wxWindow* window, const int& x, const int& y) override;

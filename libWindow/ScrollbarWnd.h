@@ -22,7 +22,7 @@ namespace Regards::Window
 			const wxString& windowName = "ScrollBar");
 		CScrollbarWnd(wxWindow* parent, CWindowOpenGLMain* centralWindow, wxWindowID id,
 			const wxString& windowName = "ScrollBar");
-		~CScrollbarWnd() override;
+		~CScrollbarWnd() = default;
 
 		void UpdateScreenRatio() override;
 

@@ -100,13 +100,6 @@ void CBitmapWnd3D::OnTimer(wxTimerEvent& event)
 	bitmapWndRender->OnTimer(event);
 }
 
-//-----------------------------------------------------------------
-//Destructeur
-//-----------------------------------------------------------------
-CBitmapWnd3D::~CBitmapWnd3D(void)
-{
-}
-
 void CBitmapWnd3D::OnRButtonDown(wxMouseEvent& event)
 {
 	bitmapWndRender->OnRButtonDown(event); //

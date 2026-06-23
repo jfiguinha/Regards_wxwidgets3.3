@@ -21,9 +21,8 @@ namespace Regards
 		public:
 			CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* interfaceControl);
 
-			~CCriteriaTree(void) override
-			{
-			};
+			~CCriteriaTree(void) = default;
+
 			void SetFile(const wxString& filename, const int& numPhotoId);
 			wxString GetFilename();
 			void UpdateScreenRatio() override;

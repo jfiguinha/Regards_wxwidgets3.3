@@ -207,13 +207,6 @@ CCentralWindow::~CCentralWindow()
     CMainParam* config = CMainParamInit::getInstance();
     if (config != nullptr)
         config->SetLastShowPicture(viewerController->GetFilename());
-
-    delete(thumbnailVideo);
-    delete(panelInfosWindow);
-    delete(previewWindow);
-    delete(scrollPictureWindow);
-    delete(scrollVideoWindow);
-    delete(windowManager);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -336,13 +336,6 @@ void CBitmapWndRender::SetRatioPos(const int& pos)
 	RefreshWindow();
 }
 
-//-----------------------------------------------------------------
-//Destructeur
-//-----------------------------------------------------------------
-CBitmapWndRender::~CBitmapWndRender(void)
-{
-
-}
 
 void CBitmapWndRender::SetKey(const int& iKey)
 {

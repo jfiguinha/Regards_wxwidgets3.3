@@ -40,11 +40,6 @@ CTreeElementSlide& CTreeElementSlide::operator=(const CTreeElementSlide& other)
 }
 
 
-CTreeElementSlide::~CTreeElementSlide()
-{
-}
-
-
 void CTreeElementSlide::SetPosition(const int& position)
 {
 	this->position = position;

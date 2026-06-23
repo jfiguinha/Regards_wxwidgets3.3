@@ -126,12 +126,6 @@ CViewerFrame::~CViewerFrame()
         exitTimer->Stop();
 
     viewerParam_->SaveFile();
-
-    if (mainWindow_ != nullptr)
-        delete(mainWindow_);
-
-    if (mainWindowWaiting != nullptr)
-        delete(mainWindowWaiting);
     
 	if (!onExit)
 		Exit();

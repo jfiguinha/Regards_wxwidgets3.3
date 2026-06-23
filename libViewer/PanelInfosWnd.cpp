@@ -298,18 +298,6 @@ wxString CPanelInfosWnd::GetFilename()
 	return filename;
 }
 
-CPanelInfosWnd::~CPanelInfosWnd()
-{
-	delete(infosFileWnd);
-	delete(historyEffectWnd);
-	delete(filtreEffectWnd);
-	delete(thumbnailEffectWnd);
-	delete(infosToolbar);
-	delete(webBrowser);
-	delete(criteriaTreeWnd);
-	delete(picturePanel);
-}
-
 void CPanelInfosWnd::SetAnimationFile(const wxString& filename)
 {
 	if (this->filename != filename)

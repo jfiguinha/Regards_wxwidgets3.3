@@ -45,10 +45,6 @@ CFiltreEffect::CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInt
 	rowWidth.push_back(0);
 }
 
-CFiltreEffect::~CFiltreEffect(void)
-{
-}
-
 void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value,
                                  const int& typeValue, const int& type)
 {

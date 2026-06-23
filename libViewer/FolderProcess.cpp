@@ -74,12 +74,6 @@ CFolderProcess::CFolderProcess(CMainWindow* mainWindow)
 	this->mainWindow = mainWindow;
 }
 
-CFolderProcess::~CFolderProcess()
-{
-
-}
-
-
 //---------------------------------------------------------------
 //
 //---------------------------------------------------------------

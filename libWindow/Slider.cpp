@@ -41,10 +41,6 @@ CSlider::CSlider(wxWindow* parent, wxWindowID id, CSliderInterface* sliderEvent,
 	Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(CSlider::OnMouseLeave));
 }
 
-CSlider::~CSlider()
-{
-}
-
 void CSlider::DrawShapeElement(wxDC* dc, const wxRect& rc)
 {
 	wxRect rcPast;

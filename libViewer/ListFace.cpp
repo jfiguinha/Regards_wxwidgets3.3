@@ -743,12 +743,6 @@ CListFace::~CListFace()
 	CMainParam* config = CMainParamInit::getInstance();
 	if (config != nullptr)
 		config->SetSlideFacePos(positionTab);
-
-	delete(thumbnailFace);
-	delete(thumbFaceToolbar);
-	delete(thumbscrollbar);
-	delete(thumbFacePertinenceToolbar);
-	delete(windowManager);
 }
 
 int CListFace::GetThumbnailHeight()

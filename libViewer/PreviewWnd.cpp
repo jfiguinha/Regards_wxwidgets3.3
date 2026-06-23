@@ -81,16 +81,6 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 	Connect(wxEVENT_ANIMATIONSTART, wxCommandEventHandler(CPreviewWnd::StartAnimation));
 }
 
-
-CPreviewWnd::~CPreviewWnd()
-{
-	delete(showElement);
-	delete(previewToolbar);
-	delete(animationToolbar);
-	delete(bitmapInfos);
-	delete(filtreToolbar);
-}
-
 void CPreviewWnd::StartAnimation(wxCommandEvent& event)
 {
 	if (animationToolbar != nullptr)

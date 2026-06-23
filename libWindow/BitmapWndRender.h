@@ -34,7 +34,7 @@ namespace Regards::Window
 	{
 	public:
 		CBitmapWndRender(CSliderInterface* slider, wxWindowID idMain, const CThemeBitmapWindow& theme);
-		~CBitmapWndRender(void) override;
+		~CBitmapWndRender(void) = default
 
 		void SetParent(wxWindow* parent) override;
 		int GetWidth() override;

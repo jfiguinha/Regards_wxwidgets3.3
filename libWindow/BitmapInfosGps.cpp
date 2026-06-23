@@ -20,12 +20,6 @@ void CBitmapInfosGps::SetInfos(const wxString& localisation, const wxString& lat
 	this->longitude = longitude;
 }
 
-
-CBitmapInfosGps::~CBitmapInfosGps()
-{
-	//delete fileGeolocalisation;
-}
-
 int CBitmapInfosGps::GetHeight()
 {
 	return bitmapInfosTheme.GetHeight();

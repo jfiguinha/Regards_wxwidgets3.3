@@ -35,7 +35,7 @@ namespace Regards
 		{
 		public:
 			CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal = true);
-			~CPreviewWnd() override;
+			~CPreviewWnd() = default;
 
 			bool SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail, const bool& isAnimation = false);
 			bool SetVideo(const wxString& filename, const bool& play = false);

@@ -15,7 +15,6 @@ CSplitter::CSplitter(wxWindow* parent, wxWindowID id, const CThemeSplitter& them
 	m_impl->separationBar = std::make_unique<CSeparationBar>(this, this, wxID_ANY, m_impl->themeSplitter.themeSeparation);
 }
 
-CSplitter::~CSplitter() = default;
 
 void CSplitter::GenerateHorizontalRenderBitmap()
 {

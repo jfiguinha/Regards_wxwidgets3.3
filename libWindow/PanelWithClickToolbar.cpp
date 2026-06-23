@@ -117,12 +117,6 @@ void CPanelWithClickToolbar::SetWindow(CWindowMain* windowMain)
 	}
 }
 
-CPanelWithClickToolbar::~CPanelWithClickToolbar()
-{
-	delete(clickWindow);
-	delete(paneWindow);
-}
-
 void CPanelWithClickToolbar::UpdateScreenRatio()
 {
 	clickWindow->UpdateScreenRatio();

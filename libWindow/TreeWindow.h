@@ -14,7 +14,7 @@ namespace Regards::Window
 	{
 	public:
 		CTreeWindow(wxWindow* parent, wxWindowID id, const CThemeTree& theme);
-		~CTreeWindow() override;
+		~CTreeWindow() = default;
 
 		int GetWidth() override;
 		int GetHeight() override;

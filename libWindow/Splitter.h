@@ -19,7 +19,7 @@ namespace Regards::Window
 	{
 	public:
 		CSplitter(wxWindow* parent, wxWindowID id, const CThemeSplitter& theme, const bool& horizontal = false);
-		~CSplitter() override;
+		~CSplitter() = default;
 
 		// Window management
 		void SetWindow(wxWindow* window1, wxWindow* window2);

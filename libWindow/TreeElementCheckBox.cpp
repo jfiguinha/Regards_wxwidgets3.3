@@ -20,9 +20,6 @@ CTreeElementCheckBox& CTreeElementCheckBox::operator=(const CTreeElementCheckBox
 	return *this;
 }
 
-CTreeElementCheckBox::~CTreeElementCheckBox()
-{
-}
 
 void CTreeElementCheckBox::SetTheme(CThemeTreeCheckBox* theme)
 {

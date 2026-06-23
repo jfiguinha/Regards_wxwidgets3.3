@@ -54,11 +54,6 @@ void CCategoryWnd::RefreshListPhoto()
 	queryService_->UpdateAndNotify(vectorPosElementDynamic, oldSqlRequest_);
 }
 
-CCategoryWnd::~CCategoryWnd()
-{
-}
-
-
 void CCategoryWnd::Init()
 {
 	persistence_->Load();

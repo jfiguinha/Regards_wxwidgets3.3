@@ -30,10 +30,6 @@ CThumbnailProcess::CThumbnailProcess(CMainWindow* parent, int maxConcurrent)
     }
 }
 
-CThumbnailProcess::~CThumbnailProcess()
-{
-}
-
 void CThumbnailProcess::ProcessThumbnail(wxString filename, int type, long longWindow, int& nbProcess)
 {
     if (nbProcess >= m_maxConcurrent)

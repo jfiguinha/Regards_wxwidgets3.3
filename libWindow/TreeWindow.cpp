@@ -147,9 +147,6 @@ void CTreeWindow::MoveRight()
 	}
 }
 
-CTreeWindow::~CTreeWindow()
-{
-}
 
 int CTreeWindow::GetWidth()
 {

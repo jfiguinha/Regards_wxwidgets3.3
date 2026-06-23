@@ -17,7 +17,7 @@ namespace Regards::Window
 		CPanelWithClickToolbar(wxWindow* parent, const wxString& windowName, wxWindowID id, const CThemePane& themePane,
 		                       const CThemeToolbar& themeToolbar, const wxString& paneLibelle,
 		                       const bool& isPanelVisible, const bool& refreshButton, const bool& vertical);
-		~CPanelWithClickToolbar() override;
+		~CPanelWithClickToolbar() = default;
 		wxWindow* GetPaneWindow();
 		wxWindow* GetWindow();
 		void UpdateScreenRatio() override;

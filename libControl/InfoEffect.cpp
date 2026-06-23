@@ -37,12 +37,6 @@ CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModifi
 	this->modificationManager = modificationManager;
 	rowWidth.push_back(0);
 }
-;
-
-
-CInfoEffect::~CInfoEffect()
-{
-}
 
 
 //////////////////////////////////////////////////////////////////

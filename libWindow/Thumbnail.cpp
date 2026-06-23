@@ -632,6 +632,8 @@ CThumbnail::~CThumbnail()
     
     if(iconeList != nullptr)
     {
+		iconeList->EraseThumbnailListWithIcon();
+
         delete iconeList;
         iconeList = nullptr;
     }

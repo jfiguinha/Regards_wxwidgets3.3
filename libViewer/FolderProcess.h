@@ -78,7 +78,7 @@ namespace Regards::Viewer
 	{
 	public:
 		CFolderProcess(CMainWindow* mainWindow);
-		~CFolderProcess();
+		~CFolderProcess() = default;
 		void RefreshFolder(bool& folderChange, int& nbFile);
 		//void UpdateFolderStatic();
 

@@ -10,7 +10,7 @@ namespace Regards::Window
 	{
 	public:
 		CSlider(wxWindow* parent, wxWindowID id, CSliderInterface* sliderEvent, const CThemeSlider& themeSlider);
-		~CSlider() override;
+		~CSlider() = default;
 
 		int GetWidth() override;
 		int GetHeight() override;

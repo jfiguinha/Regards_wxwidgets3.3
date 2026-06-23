@@ -20,7 +20,7 @@ namespace Regards::Window
 	{
 	public:
 		CBitmapWnd3D(wxWindow* parent, wxWindowID id);
-		~CBitmapWnd3D(void) override;
+		~CBitmapWnd3D(void) = default;
 
 		void SetBitmapRenderInterface(IBitmapRenderInterface* bitmapWndRender) override;
 

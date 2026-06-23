@@ -67,11 +67,6 @@ CMainWindow::~CMainWindow()
 {
     if (loadPictureStartTimer->IsRunning())
         loadPictureStartTimer->Stop();
-
-    delete(toolbarViewerMode);
-    delete(progressBar);
-    delete(statusBar);
-    delete(centralWnd);
 }
 
 // ═════════════════════════════════════════════════════════════════════════════

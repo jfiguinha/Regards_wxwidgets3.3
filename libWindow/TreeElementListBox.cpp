@@ -51,9 +51,6 @@ CTreeElementListBox& CTreeElementListBox::operator=(const CTreeElementListBox& o
 	return *this;
 }
 
-CTreeElementListBox::~CTreeElementListBox()
-{
-}
 
 void CTreeElementListBox::SetElementPos(const int& x, const int& y)
 {

@@ -9,7 +9,7 @@ namespace Regards::Viewer
     {
     public:
         CThumbnailProcess(CMainWindow* parent, int maxConcurrent = 0);
-        ~CThumbnailProcess();
+        ~CThumbnailProcess() = default;
             
         void ProcessThumbnail(wxString filename, int type, long longWindow, int& nbProcess);
 

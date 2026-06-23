@@ -24,9 +24,8 @@ namespace Regards
 		public:
 			CInfosFile(CThemeTree* theme, CTreeElementControlInterface* interfaceControl);
 
-			~CInfosFile(void) override
-			{
-			};
+			~CInfosFile(void) = default;
+
 			void SetFile(const wxString& filename);
 			const wxString GetFilename();
 			void UpdateScreenRatio() override;

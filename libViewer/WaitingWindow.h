@@ -10,7 +10,7 @@ namespace Regards::Viewer
 	public:
 		CWaitingWindow(wxWindow* parent, wxWindowID id);
 
-		~CWaitingWindow() override;
+		~CWaitingWindow() = default;
 
 		void UpdateScreenRatio() override;
 

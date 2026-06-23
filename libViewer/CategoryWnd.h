@@ -29,7 +29,7 @@ namespace Regards
 		{
 		public:
 			CCategoryWnd(CWindowMain* windowMain, CThemeTree* theme, CTreeElementControlInterface* interfaceControl);
-			~CCategoryWnd() override;
+			~CCategoryWnd() = default;
 			void Init();
 			void RefreshCriteriaSearch();
 			void UpdateScreenRatio() override;

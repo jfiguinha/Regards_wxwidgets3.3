@@ -26,18 +26,6 @@ CTreeWithScrollbar::CTreeWithScrollbar(const wxString& windowName, wxWindow* par
 	scrollWindow = new CScrollbarWnd(this, treeWindow, wxID_ANY);
 }
 
-CTreeWithScrollbar::~CTreeWithScrollbar(void)
-{
-	if (treeWindow != nullptr)
-		delete(treeWindow);
-
-	if (scrollWindow != nullptr)
-		delete(scrollWindow);
-
-	if (titleBar != nullptr)
-		delete(titleBar);
-}
-
 void CTreeWithScrollbar::SetLabel(const wxString& label)
 {
 	if (titleBar != nullptr)

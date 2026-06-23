@@ -20,11 +20,7 @@ CWaitingWindow::CWaitingWindow(wxWindow* parent, wxWindowID id) : CWindowMain("C
 #else
 	m_animationCtrl->Play(true);
 #endif
-};
-
-CWaitingWindow::~CWaitingWindow()
-{
-};
+}
 
 void CWaitingWindow::UpdateScreenRatio()
 {

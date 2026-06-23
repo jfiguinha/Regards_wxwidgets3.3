@@ -39,7 +39,7 @@ namespace Regards
 		{
 		public:
 			CPanelInfosWnd(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface);
-			~CPanelInfosWnd() override;
+			~CPanelInfosWnd() = default;
 			void OnFiltreOk(const int& numFiltre);
 			void OnFiltreCancel();
 			void SetBitmapFile(const wxString& filename, const bool& isThumbnail);

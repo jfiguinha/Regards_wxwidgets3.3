@@ -29,19 +29,6 @@ CScrollbarWnd::CScrollbarWnd(wxWindow* parent, CWindowOpenGLMain* centralWindow,
 }
 
 
-CScrollbarWnd::~CScrollbarWnd()
-{
-	if (scrollHorizontal != nullptr)
-		delete scrollHorizontal;
-
-	if (scrollVertical != nullptr)
-		delete scrollVertical;
-
-	if (windowManager != nullptr)
-		delete windowManager;
-}
-
-
 void CScrollbarWnd::DefaultConstructor()
 {
 	wxRect rect;
