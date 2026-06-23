@@ -179,8 +179,8 @@ public:
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
 
-		frameViewer = WxPtr<CViewerFrame>(new CViewerFrame("Regards Viewer", wxDefaultPosition,
-		                               wxSize(screen.GetWidth(), screen.GetHeight()), this, fileToOpen), [](CViewerFrame* p){ if(p) p->Destroy(); });
+		frameViewer = std::make_unique<CViewerFrame>("Regards Viewer", wxDefaultPosition,
+		                               wxSize(screen.GetWidth(), screen.GetHeight()), this, fileToOpen);
 		frameViewer->Centre(wxBOTH);
 		frameViewer->Show(true);
 #endif
@@ -195,7 +195,7 @@ public:
 		}
         else
         {
-            frameStart = WxPtr<MyFrameIntro>(new MyFrameIntro("Welcome to Regards", "REGARDS V2", wxPoint(50, 50), wxSize(450, 340), this), [](MyFrameIntro* p){ if(p) p->Destroy(); });
+            frameStart = std::make_unique<MyFrameIntro>("Welcome to Regards", "REGARDS V2", wxPoint(50, 50), wxSize(450, 340), this);
             frameStart->Centre(wxBOTH);
             frameStart->Show(true);
         }
