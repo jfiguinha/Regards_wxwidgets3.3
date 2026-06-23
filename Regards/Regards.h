@@ -103,12 +103,8 @@ using namespace Regards::Viewer;
 
 
 #include <wx/glcanvas.h>
-#include <memory>
-#include <functional>
 
-// unique_ptr for wx top-level windows that calls Destroy() as deleter
-template<typename T>
-using WxPtr = std::unique_ptr<T, std::function<void(T*)>>;
+
 int args[] = {
 	wx_GL_COMPAT_PROFILE,
 	WX_GL_SAMPLES, 4,
@@ -238,11 +234,11 @@ private:
 	wxString m_strImageFilterList;
 	wxString m_strImageFilter;
 
-	WxPtr<CScannerFrame> framePDF;
-	WxPtr<CVideoConverterFrame> frameVideoConverter;
-	WxPtr<CTestFrame> testFrame;
-	WxPtr<MyFrameIntro> frameStart;
-	WxPtr<CViewerFrame> frameViewer;
+	std::unique_ptr<CScannerFrame> framePDF;
+	std::unique_ptr<CVideoConverterFrame> frameVideoConverter;
+	std::unique_ptr<CTestFrame> testFrame;
+	std::unique_ptr<MyFrameIntro> frameStart;
+	std::unique_ptr<CViewerFrame> frameViewer;
 	
 	bool startVideoConverter = false;
 	bool startRegardsPDF = false;

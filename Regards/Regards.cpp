@@ -532,7 +532,7 @@ void MyApp::LaunchApplication()
 	{
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
-		frameVideoConverter = WxPtr<CVideoConverterFrame>(new CVideoConverterFrame("RegardsConverter", wxDefaultPosition, wxSize(50, 50), this), [](CVideoConverterFrame* p){ if(p) p->Destroy(); });
+		frameVideoConverter = std::make_unique<CVideoConverterFrame>(new CVideoConverterFrame("RegardsConverter", wxDefaultPosition, wxSize(50, 50), this), [](CVideoConverterFrame* p){ if(p) p->Destroy(); });
 		frameVideoConverter->Centre(wxBOTH);
 		frameVideoConverter->SetFocus();  // focus on my window
 		frameVideoConverter->Raise();  // bring window to front
@@ -543,7 +543,7 @@ void MyApp::LaunchApplication()
 	{
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
-		testFrame = WxPtr<CTestFrame>(new CTestFrame("RegardsTest", wxDefaultPosition, wxSize(50, 50)), [](CTestFrame* p){ if(p) p->Destroy(); });
+		testFrame = std::make_unique<CTestFrame>(new CTestFrame("RegardsTest", wxDefaultPosition, wxSize(50, 50)), [](CTestFrame* p){ if(p) p->Destroy(); });
 		testFrame->Centre(wxBOTH);
 		testFrame->SetFocus();  // focus on my window
 		testFrame->Raise();  // bring window to front
@@ -554,7 +554,7 @@ void MyApp::LaunchApplication()
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
 		//	CScannerFrame(const wxString &title, ISCannerInterface * mainInterface, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
-		framePDF = WxPtr<CScannerFrame>(new CScannerFrame("RegardsPDF", this, wxDefaultPosition, wxSize(screen.GetWidth(), screen.GetHeight())), [](CScannerFrame* p){ if(p) p->Destroy(); });
+		framePDF = std::make_unique<CScannerFrame>(new CScannerFrame("RegardsPDF", this, wxDefaultPosition, wxSize(screen.GetWidth(), screen.GetHeight())), [](CScannerFrame* p){ if(p) p->Destroy(); });
 		framePDF->Centre(wxBOTH);
 		framePDF->SetFocus();  // focus on my window
 		framePDF->Raise();  // bring window to front
