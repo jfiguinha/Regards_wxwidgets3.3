@@ -40,9 +40,6 @@ CKeywordWnd::CKeywordWnd(CWindowMain* windowMain, CThemeTree* theme, CTreeElemen
 	this->windowMain = windowMain;
 }
 
-CKeywordWnd::~CKeywordWnd()
-{
-}
 
 void CKeywordWnd::Init(const wxString& filename)
 {

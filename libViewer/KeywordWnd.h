@@ -32,7 +32,7 @@ namespace Regards
 		{
 		public:
 			CKeywordWnd(CWindowMain* windowMain, CThemeTree* theme, CTreeElementControlInterface* interfaceControl);
-			~CKeywordWnd() override;
+			~CKeywordWnd() = default;
 			void Init(const wxString& filename);
 			void UpdateScreenRatio() override;
 

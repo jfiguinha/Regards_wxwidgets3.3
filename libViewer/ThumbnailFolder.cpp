@@ -28,13 +28,6 @@ CThumbnailFolder::CThumbnailFolder(wxWindow* parent, wxWindowID id, const CTheme
 }
 
 
-CThumbnailFolder::~CThumbnailFolder(void)
-{
-	// listSeparator (vector<unique_ptr<CInfosSeparationBar>>) et tous ses éléments
-	// sont libérés automatiquement quand listSeparator (unique_ptr) est détruit.
-	// Plus aucun delete manuel nécessaire ici.
-}
-
 void CThumbnailFolder::OnPictureClick(const int& numPhotoId)
 {
 	CMainWindow* mainWindow = (CMainWindow*)this->FindWindowById(MAINVIEWERWINDOWID);

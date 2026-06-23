@@ -15,7 +15,7 @@ namespace Regards::Viewer
 	public:
 		CThumbnailFolder(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface,
 			const CThemeThumbnail& themeThumbnail, const bool& testValidity);
-		~CThumbnailFolder(void) override;
+		~CThumbnailFolder(void) = default;
 
 		void Init(const int& typeAffichage, const bool& isDeleteFolder, const bool& isSqlUpdate);
 		std::unique_ptr<CInfosSeparationBarExplorer> AddSeparatorBar(PhotosVector* _pictures, CIconeList* iconeListLocal, const wxString& libelle, int& nbElement) override;

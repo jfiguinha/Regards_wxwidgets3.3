@@ -20,7 +20,7 @@ namespace Regards::Viewer
 	public:
 		CThumbnailViewerPicture(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface,
 		                        const CThemeThumbnail& themeThumbnail, const bool& testValidity);
-		~CThumbnailViewerPicture(void) override;
+		~CThumbnailViewerPicture(void) = default;
 		void ApplyListeFile(const bool& isDeleteFolder, const bool& isSqlUpdate);
 		vector<wxString> GetFileList();
 

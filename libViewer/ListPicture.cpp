@@ -129,7 +129,11 @@ CListPicture::~CListPicture()
 	if (config != nullptr)
 		config->SetSlideFolderPos(positionTab);
 
-
+	delete(thumbToolbar);
+	delete(thumbToolbarZoom);
+	delete(thumbnailFolder);
+	delete(thumbscrollbar);
+	delete(windowManager);
 }
 
 int CListPicture::GetThumbnailHeight()

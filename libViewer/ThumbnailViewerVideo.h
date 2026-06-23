@@ -9,7 +9,7 @@ namespace Regards::Viewer
 	public:
 		CThumbnailViewerVideo(wxWindow* parent, wxWindowID id, const CThemeThumbnail& themeThumbnail,
 		                      const bool& testValidity);
-		~CThumbnailViewerVideo(void) override;
+		~CThumbnailViewerVideo(void) = default;
 
 		wxString GetFilename()
 		{

@@ -13,11 +13,6 @@ CThumbnailViewerVideo::CThumbnailViewerVideo(wxWindow* parent, wxWindowID id, co
 	moveOnPaint = false;
 }
 
-
-CThumbnailViewerVideo::~CThumbnailViewerVideo(void)
-{
-}
-
 void CThumbnailViewerVideo::OnPictureClick(const int& numPhotoId)
 {
 	auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));

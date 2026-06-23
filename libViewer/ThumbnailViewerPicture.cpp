@@ -23,9 +23,6 @@ CThumbnailViewerPicture::CThumbnailViewerPicture(wxWindow* parent, wxWindowID id
 }
 
 
-CThumbnailViewerPicture::~CThumbnailViewerPicture(void)
-{}
-
 void CThumbnailViewerPicture::OnPictureClick(const int& numPhotoId)
 {
 	auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));
