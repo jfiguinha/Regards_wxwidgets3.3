@@ -237,8 +237,6 @@ private:
 	wxString appName = "";
 	wxString m_strImageFilterList;
 	wxString m_strImageFilter;
-	wxLogNull* logNo;
-	void LoadPicture(const int& svgWidth, const int& svgHeight);
 
 	WxPtr<CScannerFrame> framePDF;
 	WxPtr<CVideoConverterFrame> frameVideoConverter;

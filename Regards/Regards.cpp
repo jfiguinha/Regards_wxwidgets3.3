@@ -41,12 +41,12 @@ extern int Start(int argc, char **argv);
 // Simple logging helpers to unify output (uses std::cout / std::cerr as requested)
 static void LogInfo(const wxString& msg)
 {
-	std::cout << msg.ToStdString() << std::endl;
+	std::cout << msg.utf8_string() << std::endl;
 }
 
 static void LogError(const wxString& msg)
 {
-	std::cerr << msg.ToStdString() << std::endl;
+	std::cerr << msg.utf8_string() << std::endl;
 }
 
 MyApp::MyApp()
@@ -172,7 +172,7 @@ int MyApp::Close()
 #endif
 
 #if defined(__WXMSW__) && defined(_DEBUG)
-	_CrtDumpMemoryLeaks();
+	//_CrtDumpMemoryLeaks();
 #endif
 
 	// unique_ptr will free resources when reset/destroyed
@@ -418,11 +418,6 @@ bool MyApp::InitializeDatabase()
 {
 	sqlite3_initialize();
 	return true;
-}
-
-void MyApp::LoadPicture(const int& svgWidth, const int& svgHeight)
-{
-
 }
 
 
