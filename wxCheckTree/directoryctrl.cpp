@@ -1572,14 +1572,14 @@ wxBitmap wxFileIconsTable::GetIcon(const wxArtID& id, const wxSize& sz)
 }
 
 
-wxBitmap wxFileIconsTable::LoadBitmap(const wxString &icon)
+wxBitmap wxFileIconsTable::LoadBitmap(const wxString &icon, wxBitmapType type)
 {
     wxBitmap bmp;
     wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPathWithExt("bitmap"), icon);
-	if (!bmp.LoadFile(resourcePath.GetFullPath()))
+	if (!bmp.LoadFile(resourcePath.GetFullPath(), type))
 	{
-		cv::Mat icon = cv::imread(resourcePath.GetFullPath().ToStdString(), cv::IMREAD_UNCHANGED);
-		bmp = CLibPicture::ConvertRegardsBitmapToWXImage(icon);
+		cv::Mat mat_picture = cv::imread(resourcePath.GetFullPath().utf8_string(), cv::IMREAD_UNCHANGED);
+		bmp = CLibPicture::ConvertRegardsBitmapToWXImage(mat_picture);
 	}
     
     return bmp;
