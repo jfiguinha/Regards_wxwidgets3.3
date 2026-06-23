@@ -34,7 +34,9 @@ void CToolbarInfos::SetHistogramPush()
 
 void CToolbarInfos::SetInfosPush()
 {
+	SetAllDisable();
 	infos->SetPush(true);
+	this->Refresh(false);
 }
 
 void CToolbarInfos::SetMapPush()

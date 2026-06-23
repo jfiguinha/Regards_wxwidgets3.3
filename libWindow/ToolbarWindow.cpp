@@ -183,7 +183,6 @@ void CToolbarWindow::DrawButton(wxDC* dc, CToolbarElement* nav)
 	rc.width = nav->GetWidth();
 	rc.height = nav->GetHeight();
 	DrawBackground(&memDC, rc);
-
 	nav->DrawButton(&memDC, 0, 0);
 	memDC.SelectObject(wxNullBitmap);
 
@@ -199,8 +198,7 @@ void CToolbarWindow::OnLButtonDown(wxMouseEvent& event)
 	const int xPos = event.GetX();
 	const int yPos = event.GetY();
 	bool repeatable = false;
-
-	wxClientDC dc(this);
+	bool needToRedraw = false;
 
 	for (auto& nav : navElement)
 	{
@@ -210,7 +208,7 @@ void CToolbarWindow::OnLButtonDown(wxMouseEvent& event)
 		{
 			nav->ClickElement(this, xPos, yPos);
 			nav->SetPush(true);
-			RedrawElement(&dc, nav);
+			needToRedraw = true;
 			navPush = nav;
 
 			if (navPush->GetRepeatable())
@@ -224,12 +222,15 @@ void CToolbarWindow::OnLButtonDown(wxMouseEvent& event)
 		else
 		{
 			nav->SetPush(false);
-			RedrawElement(&dc, nav);
+			needToRedraw = true;
 		}
 	}
 
 	if (!repeatable && navPush)
 		EventManager(navPush->GetCommandId());
+
+	if (needToRedraw)
+		needToRefresh = true;
 }
 
 void CToolbarWindow::OnLButtonUp(wxMouseEvent& event)
@@ -326,6 +327,7 @@ void CToolbarWindow::SetAllDisable()
 {
 	for (CToolbarElement* nav : navElement)
 	{
+		nav->SetPush(false);
 		nav->SetInactif();
 	}
 }
