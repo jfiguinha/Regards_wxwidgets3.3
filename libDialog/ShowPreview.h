@@ -33,7 +33,7 @@ namespace Regards
 		public:
 			CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config);
 			~CShowPreview() override;
-			void SetParameter(const wxString& videoFilename, CVideoOptionCompress* videoOptionCompress);
+			void SetParameter(const wxString& videoFilename, CFFmpegTranscoding * transcodeFFmpeg);
 			//bool SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail);
 			//CRegardsBitmap* GetBitmap(const bool& source);
 			void UpdateScreenRatio() override;
@@ -51,7 +51,7 @@ namespace Regards
 			void SetTrackBarPosition(const int& iPos) override
 			{
 			};
-			void UpdateBitmap(CVideoOptionCompress* videoOptionCompress, const wxString& extension,
+			void UpdateBitmap(const wxString& extension,
 			                  const bool& updatePicture = true);
 
 		private:
@@ -86,8 +86,7 @@ namespace Regards
 			bool defaultViewer;
 			//bool bitmapWndLocal;
 			std::unique_ptr<Video::CVideoThumb> videoOriginal = nullptr;
-			CVideoOptionCompress videoOptionCompress;
-			std::unique_ptr<CFFmpegTranscoding> transcodeFFmpeg = nullptr;
+			CFFmpegTranscoding* transcodeFFmpeg = nullptr;
 			cv::Mat decodeFrame;
 			cv::Mat decodeFrameOriginal;
 

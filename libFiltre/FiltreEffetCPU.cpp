@@ -21,6 +21,7 @@
 #include <avir.h>
 #include "InterpolationFilters.h"
 #include <wx/filename.h>
+#include <effect_id.h>
 using namespace Regards::OpenCV;
 using namespace Regards::OpenGL;
 using namespace Regards::DeepLearning;

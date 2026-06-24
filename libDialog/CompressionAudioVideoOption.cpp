@@ -7,12 +7,12 @@
 #include "MainTheme.h"
 #include "MainThemeInit.h"
 #include <RegardsConfigParam.h>
-#include <videothumb.h>
-#include "ShowPreview.h"
+
 #include <LibResource.h>
 #include <picture_utility.h>
 #include <WindowUtility.h>
 #include <ffmpeg_application.h>
+#include <ffmpeg_transcoding.h>
 #include <ParamInit.h>
 extern "C" {
 #include <libavutil/error.h>
@@ -53,7 +53,8 @@ static void GetTimeToHourMinuteSecond(const long& timeToSplit, int& hour, int& m
 CompressionAudioVideoOption::CompressionAudioVideoOption(wxWindow* parent)
 {
 	isOk = false;
-	videoEffectParameter = new CVideoEffectParameter();
+	videoEffectParameter = std::make_unique<CVideoEffectParameter>();
+	transcodeFFmpeg = std::make_unique<CFFmpegTranscoding>();
 	//(*Initialize(CompressionAudioVideoOption)
 	wxXmlResource::Get()->LoadObject(this, parent,_T("CompressionAudioVideoOption"),_T("wxDialog"));
 	btnCancel = static_cast<wxButton*>(FindWindow(XRCID("ID_BTCANCEL")));
@@ -191,7 +192,7 @@ CompressionAudioVideoOption::CompressionAudioVideoOption(wxWindow* parent)
 		theme.font.SetColorFont(*wxBLACK);
 	}
 	wxColour bgColor = labelTimeStart->GetParent()->GetBackgroundColour();
-	sliderVideoPosition = new CSliderVideoSelection(labelTimeStart->GetParent(), wxID_ANY, this, theme);
+	sliderVideoPosition = std::make_unique<CSliderVideoSelection>(labelTimeStart->GetParent(), wxID_ANY, this, theme);
 	auto size = wxSize(slVideo->GetSize().x, theme.GetHeight());
 	sliderVideoPosition->SetSize(size);
 	sliderVideoPosition->SetPosition(slVideo->GetPosition());
@@ -247,11 +248,11 @@ CompressionAudioVideoOption::CompressionAudioVideoOption(wxWindow* parent)
 #endif
 
 #ifdef __APPLE__
-	showBitmapWindow = new CShowPreview(this, SHOWBITMAPVIEWERDLGID, viewerTheme);
+	showBitmapWindow = std::make_unique<CShowPreview>(this, SHOWBITMAPVIEWERDLGID, viewerTheme);
 	showBitmapWindow->Show(true);
 	showBitmapWindow->SetSize(panel->GetPosition().x + 20, panel->GetPosition().y + 25, panel->GetSize().x - 40, panel->GetSize().y - 100);
 #else
-	showBitmapWindow = new CShowPreview(panel, SHOWBITMAPVIEWERDLGID, viewerTheme);
+	showBitmapWindow = std::make_unique<CShowPreview>(panel, SHOWBITMAPVIEWERDLGID, viewerTheme);
 	showBitmapWindow->Show(true);
 	showBitmapWindow->SetSize(bitmapPreview->GetPosition().x, bitmapPreview->GetPosition().y,
 	                          bitmapPreview->GetSize().x, bitmapPreview->GetSize().y);
@@ -263,37 +264,43 @@ CompressionAudioVideoOption::CompressionAudioVideoOption(wxWindow* parent)
 
 void CompressionAudioVideoOption::SetBitmap(const long& pos)
 {
-	int orientation = ffmpegTranscoding->GetOrientation();
-	cv::Mat bitmap_local = ffmpegTranscoding->GetVideoFramePos(pos, 340, 240);
-	if (!bitmap_local.empty())
+	if (ffmpegTranscoding != nullptr)
 	{
-		CPictureUtility::RotateExif(bitmap_local, orientation);
-		wxImage picture = CLibPicture::ConvertRegardsBitmapToWXImage(bitmap_local);
-		int x = 0;
-		int y = 0;
-		x = (340 - picture.GetWidth()) / 2;
-		y = (240 - picture.GetHeight()) / 2;
+		int orientation = ffmpegTranscoding->GetOrientation();
+		cv::Mat bitmap_local = ffmpegTranscoding->GetVideoFramePos(pos, 340, 240);
+		if (!bitmap_local.empty())
+		{
+			CPictureUtility::RotateExif(bitmap_local, orientation);
+			wxImage picture = CLibPicture::ConvertRegardsBitmapToWXImage(bitmap_local);
+			int x = 0;
+			int y = 0;
+			x = (340 - picture.GetWidth()) / 2;
+			y = (240 - picture.GetHeight()) / 2;
 
-		wxBitmap test_bitmap(340, 240);
-		wxMemoryDC temp_dc;
-		temp_dc.SelectObject(test_bitmap);
-		CWindowUtility winUtility;
-		winUtility.FillRect(&temp_dc, wxRect(0, 0, 340, 240), *wxBLACK);
-		temp_dc.DrawBitmap(picture, x, y);
-		temp_dc.SelectObject(wxNullBitmap);
-		bitmap->SetBitmap(test_bitmap);
+			wxBitmap test_bitmap(340, 240);
+			wxMemoryDC temp_dc;
+			temp_dc.SelectObject(test_bitmap);
+			CWindowUtility winUtility;
+			winUtility.FillRect(&temp_dc, wxRect(0, 0, 340, 240), *wxBLACK);
+			temp_dc.DrawBitmap(picture, x, y);
+			temp_dc.SelectObject(wxNullBitmap);
+			bitmap->SetBitmap(test_bitmap);
+		}
 	}
+
 }
 
 
 void CompressionAudioVideoOption::SetFile(const wxString& videoFilename,
                                           const wxString& videoOutputFilename)
 {
-	CVideoOptionCompress videoOptionCompress;
-	GetCompressionOption(&videoOptionCompress);
-	showBitmapWindow->SetParameter(videoFilename, &videoOptionCompress);
-	//showBitmapWindow->UpdateBitmap(&videoOptionCompress, extension);
+	CVideoOptionCompress* videoOptionCompress = transcodeFFmpeg->GetVideoCompressionPt();
+	CVideoThumb* videoThumb = new CVideoThumb(videoFilename);
 
+	ffmpegTranscoding.reset(videoThumb);
+
+	GetCompressionOption(videoOptionCompress);
+	showBitmapWindow->SetParameter(videoFilename, transcodeFFmpeg.get());
 
 	wxFileName filepath(videoOutputFilename);
 	extension = filepath.GetExt();
@@ -345,11 +352,8 @@ void CompressionAudioVideoOption::SetFile(const wxString& videoFilename,
 		cbAudioCodec->SetStringSelection("VORBIS");
 	}
 
-	if (ffmpegTranscoding != nullptr)
-		delete ffmpegTranscoding;
 
-	ffmpegTranscoding = new CVideoThumb(videoFilename);
-	//ffmpegTranscoding->SetFilename(videoFilename);
+
 	timeTotal = ffmpegTranscoding->GetMovieDuration();
 	slVideo->SetMax(timeTotal);
 
@@ -525,7 +529,7 @@ void CompressionAudioVideoOption::OnbtnPreviewClick(wxCommandEvent& event)
 #ifdef USE_PREVIEW_INTEGRATE
 	CVideoOptionCompress videoOptionCompress;
 	GetCompressionOption(&videoOptionCompress);
-	showBitmapWindow->UpdateBitmap(&videoOptionCompress, extension);
+	showBitmapWindow->UpdateBitmap(extension);
 #else
 
 	if (previewDlg->IsShown())
@@ -625,27 +629,6 @@ void CompressionAudioVideoOption::OnVideoSliderChange(wxCommandEvent& event)
 		GetTimeToHourMinuteSecond(value, hour, minute, second);
 		labelTimeEnd->SetTime(hour, minute, second);
 	}
-}
-
-CompressionAudioVideoOption::~CompressionAudioVideoOption()
-{
-	if (ffmpegTranscoding)
-	{
-		delete ffmpegTranscoding;
-		ffmpegTranscoding = nullptr;
-	}
-
-	if (sliderVideoPosition)
-	{
-		delete sliderVideoPosition;
-		sliderVideoPosition = nullptr;
-	}
-
-	if (showBitmapWindow != nullptr)
-		delete showBitmapWindow;
-
-	if (videoEffectParameter != nullptr)
-		delete videoEffectParameter;
 }
 
 wxString CompressionAudioVideoOption::ConvertSecondToTime(int64_t sec)

@@ -34,6 +34,39 @@ END_EVENT_TABLE()
 
 using namespace Regards::Picture;
 
+#define LOG_ERROR(msg) \
+    std::cerr << "[ERROR] " << __FUNCTION__ << " : " << msg << std::endl
+
+template<typename Func>
+bool ExecuteFFmpeg(Func&& func)
+{
+	try
+	{
+		CFFmpegApp app(false);
+		func(app);
+		return true;
+	}
+	catch (const std::exception& e)
+	{
+		LOG_ERROR(e.what());
+		return false;
+	}
+}
+
+
+// ---------------------------------------------------------------------------
+// Internal helpers
+// ---------------------------------------------------------------------------
+namespace {
+
+	void RemoveIfExists(const wxString& path)
+	{
+		if (wxFileExists(path))
+			wxRemoveFile(path);
+	}
+
+} // namespace
+
 // ----------------------------------------------------------------------------
 // main frame
 // ----------------------------------------------------------------------------
@@ -45,10 +78,9 @@ CVideoConverterFrame::CVideoConverterFrame(const wxString& title, const wxPoint&
 	SetIcon(wxICON(sample));
 	this->videoInterface = videoInterface;
 	Connect(wxEVENT_ENDCOMPRESSION, wxCommandEventHandler(CVideoConverterFrame::OnEndDecompressFile));
-
+	
 
 }
-
 
 void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
 {
@@ -60,65 +92,41 @@ void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
 
 		outputFile = ffmpegEncoder->GetOutputFilename();
 
-		delete ffmpegEncoder;
-		ffmpegEncoder = nullptr;
+		ffmpegEncoder.reset();
 	}
-	if (wxFileExists(tempAudioVideoFile))
-		wxRemoveFile(tempAudioVideoFile);
 
-	if (wxFileExists(tempVideoFile))
-		wxRemoveFile(tempVideoFile);
+	{
+		static const wxString file[] = { tempAudioVideoFile , tempVideoFile, filepathVideo };
+		for (auto filepath : file)
+			RemoveIfExists(filepath);
+	}
 
 	if (needToRemux)
 	{
-		if (wxFileExists(filepathVideo))
-			wxRemoveFile(filepathVideo);
-
-		if (isAudio)
+		if (isAudio && wxFileExists(fileOut) && wxFileExists(fileOutAudio))
 		{
-			if (wxFileExists(fileOut) && wxFileExists(fileOutAudio))
-			{
-				CFFmpegApp fmpegApp(false);
-				try
+			ExecuteFFmpeg([&](CFFmpegApp& app)
 				{
-					fmpegApp.ExecuteFFmpegMuxVideoAudio(fileOut, fileOutAudio, filepathVideo);
-				}
-				catch (int e)
-				{
-					////fmpegApp.Cleanup(e);
-				}
-			}
+					app.ExecuteFFmpegMuxVideoAudio(fileOut, fileOutAudio, filepathVideo);
+				});
 		}
-		else
+		else if (wxFileExists(fileOut) && wxFileExists(fileOutVideo))
 		{
-			if (wxFileExists(fileOut) && wxFileExists(fileOutVideo))
-			{
-				CFFmpegApp fmpegApp(false);
-				try
+			ExecuteFFmpeg([&](CFFmpegApp& app)
 				{
-					fmpegApp.ExecuteFFmpegMuxVideoAudio(fileOutVideo, fileOut, filepathVideo);
-				}
-				catch (int e)
-				{
-					//fmpegApp.Cleanup(e);
-				}
-			}
+					app.ExecuteFFmpegMuxVideoAudio(fileOutVideo, fileOut, filepathVideo);
+				});
+			
 		}
 
 		//Cleanup
-		if (wxFileExists(fileOutVideo))
-			wxRemoveFile(fileOutVideo);
-
-		if (wxFileExists(fileOutAudio))
-			wxRemoveFile(fileOutAudio);
-
-		if (wxFileExists(fileOut))
-			wxRemoveFile(fileOut);
+		static const wxString file[] = {fileOutVideo , fileOutAudio,fileOut};
+		for (auto filepath : file)
+			RemoveIfExists(filepath);
 	}
 	else
 	{
-		if (wxFileExists(fileOut))
-			wxRemoveFile(fileOut);
+		RemoveIfExists(fileOut);
 	}
 
 
@@ -129,123 +137,113 @@ void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
 
 }
 
-
-void CVideoConverterFrame::ExportVideo(wxString filename)
+wxString CVideoConverterFrame::SelectFile()
 {
-	bool exit_frame = true;
-	CLibPicture libPicture;
-	if (!wxFileExists(filename))
+	wxFileDialog openFileDialog(this, _("Open video file"), "", "",
+		"mp4 files (*.mp4)|*.mp4", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+	wxString documentPath = CFileUtility::GetDocumentFolderPath();
+	openFileDialog.SetDirectory(documentPath);
+
+	if (openFileDialog.ShowModal() == wxID_CANCEL)
+		return "";
+	
+
+	return openFileDialog.GetPath();
+}
+
+wxString CVideoConverterFrame::SelectOutputFile(wxString& filename)
+{
+	wxString filepath;
+	wxFileName videoFilename(filename);
+	wxString savevideofile = CLibResource::LoadStringFromResource(L"LBLSAVEVIDEOFILE", 1);
+	wxString filename_label = CLibResource::LoadStringFromResource(L"LBLFILESNAME", 1);
+
+
+	wxString filenameToSave = videoFilename.GetName();
+
+
+	wxFileDialog saveFileDialog(nullptr, savevideofile, "", filenameToSave,
+		"mp4 " + filename_label + " (*.mp4)|*.mp4|webm " + filename_label +
+		" (*.webm)|*.webm|mov " + filename_label + " (*.mov)|*.mov|mkv " + filename_label +
+		" (*.mkv)|*.mkv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+	wxString documentPath = CFileUtility::GetDocumentFolderPath();
+	saveFileDialog.SetDirectory(documentPath);
+
+	if (saveFileDialog.ShowModal() == wxID_CANCEL)
 	{
-		wxFileDialog openFileDialog(this, _("Open video file"), "", "",
-				"mp4 files (*.mp4)|*.mp4", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
-                
-        wxString documentPath = CFileUtility::GetDocumentFolderPath();
-        openFileDialog.SetDirectory(documentPath);
-        
-		if (openFileDialog.ShowModal() == wxID_CANCEL)
-		{
-			if (videoInterface != nullptr)
-			{
-				videoInterface->Close();
-			}
-
-			return;
-		}
-
-		filename = openFileDialog.GetPath();
+		return ""; // the user changed idea...
 	}
 
-	if (!libPicture.TestIsVideo(filename))
-	{
-		if (videoInterface != nullptr)
-		{
-			videoInterface->Close();
-		}
+	filepath = saveFileDialog.GetPath();
+	int index = saveFileDialog.GetFilterIndex();
 
+	wxWindow* videoWindow = this->FindWindowById(SHOWBITMAPVIEWERID);
+	if (videoWindow != nullptr)
+	{
+		wxCommandEvent event(wxEVENT_PAUSEMOVIE);
+		wxPostEvent(videoWindow, event);
+	}
+
+	wxFileName file_path(filepath);
+	wxString extension = file_path.GetExt();
+
+	const wxString ext = wxFileName(filepath).GetExt();
+	if (ext != "mp4" && ext != "webm" && ext != "mov" && ext != "mkv")
+	{
+		static const wxString kExts[] = { "mp4", "webm", "mov", "mkv" };
+		filepath += "." + kExts[std::min(index, 3)];
+	}
+	return filepath;
+}
+
+void CVideoConverterFrame::ExitApplication()
+{
+	if (videoInterface != nullptr)
+	{
+		videoInterface->Close();
+	}
+}
+
+void CVideoConverterFrame::ExportVideo(wxString fileIn)
+{
+	CMediaInfo metadata;
+	bool exit_frame = true;
+	bool result = false;
+	CLibPicture libPicture;
+	fileOut = "";
+	wxString filename = fileIn;
+
+	if (!wxFileExists(filename))
+		filename = SelectFile();
+
+	if (filename.empty() || !libPicture.TestIsVideo(filename))
+	{
+		ExitApplication();
 		return;
 	}
-		
-
-	CMediaInfo metadata;
+	
 	int rotation = metadata.GetVideoRotation(filename);
-
 	int ret = 0;
-	//CVideoControlSoft* videoControlSoft = (CVideoControlSoft*)this->FindWindowById(VIDEOCONTROL);
-
-	wxString filepath = "";
-	if (filepath == "")
+	wxString filepath = SelectOutputFile(filename);
+	if(filepath.empty())
 	{
-		wxFileName videoFilename(filename);
-		wxString savevideofile = CLibResource::LoadStringFromResource(L"LBLSAVEVIDEOFILE", 1);
-		wxString filename_label = CLibResource::LoadStringFromResource(L"LBLFILESNAME", 1);
-
-
-		wxString filenameToSave = videoFilename.GetName();
-
-
-		wxFileDialog saveFileDialog(nullptr, savevideofile, "", filenameToSave,
-			"mp4 " + filename_label + " (*.mp4)|*.mp4|webm " + filename_label +
-			" (*.webm)|*.webm|mov " + filename_label + " (*.mov)|*.mov|mkv " + filename_label +
-			" (*.mkv)|*.mkv", wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-            
-        wxString documentPath = CFileUtility::GetDocumentFolderPath();
-        saveFileDialog.SetDirectory(documentPath);
-
-		if (saveFileDialog.ShowModal() == wxID_CANCEL)
-		{
-			if (videoInterface != nullptr)
-			{
-				videoInterface->Close();
-			}
-			return; // the user changed idea...
-		}
-		filepath = saveFileDialog.GetPath();
-		int index = saveFileDialog.GetFilterIndex();
-
-		wxWindow* videoWindow = this->FindWindowById(SHOWBITMAPVIEWERID);
-		if (videoWindow != nullptr)
-		{
-			wxCommandEvent event(wxEVENT_PAUSEMOVIE);
-			wxPostEvent(videoWindow, event);
-		}
-
-		wxFileName file_path(filepath);
-		wxString extension = file_path.GetExt();
-
-		if (extension != "mp4" && extension != "webm" && extension != "mov" && extension != "mkv")
-		{
-			switch (index)
-			{
-			case 0:
-				filepath += ".mp4";
-				break;
-			case 1:
-				filepath += ".webm";
-				break;
-			case 2:
-				filepath += ".mov";
-				break;
-			case 3:
-				filepath += ".mkv";
-				break;
-			default:;
-			}
-		}
+		ExitApplication();
+		return;
 	}
 
-	auto compressAudioVideoOption = new CompressionAudioVideoOption(this);
-
-	compressAudioVideoOption->SetFile(filename, filepath);
-
-
-
-	compressAudioVideoOption->ShowModal();
 	wxString filename_in = filename;
+	auto compressAudioVideoOption = std::make_unique<CompressionAudioVideoOption>(this);
+	compressAudioVideoOption->SetFile(filename, filepath);
+	compressAudioVideoOption->ShowModal();
 	if (compressAudioVideoOption->IsOk())
 	{
 		if (ffmpegEncoder == nullptr)
 		{
-			auto videoCompressOption = new CVideoOptionCompress();
+			ffmpegEncoder = std::make_unique<CFFmpegTranscoding>();
+
+			auto videoCompressOption = ffmpegEncoder->GetVideoCompressionPt();
 			compressAudioVideoOption->GetCompressionOption(videoCompressOption);
 
 			if ((videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy) || (!videoCompressOption
@@ -257,23 +255,20 @@ void CVideoConverterFrame::ExportVideo(wxString filename)
 				{
 					if (wxFileExists(filename))
 					{
-						CFFmpegApp fmpegApp(false);
-						try
-						{
-							wxFileName file_temp(filepath);
-							fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), file_temp.GetPath(),
-								true);
 
-							wxString timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
-							wxString timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
-							fmpegApp.ExecuteFFmpegCutVideo(filename, timeInput, timeOutput, fileOut);
+						bool result = ExecuteFFmpeg([&](CFFmpegApp& app)
+							{
+								wxFileName file_temp(filepath);
+								fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), file_temp.GetPath(),
+									true);
 
-							filename_in = fileOut;
-						}
-						catch (int e)
+								wxString timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
+								wxString timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
+								app.ExecuteFFmpegCutVideo(filename, timeInput, timeOutput, fileOut);
+							});
+
+						if (!result)
 						{
-							//fmpegApp.Cleanup(e);
-							filename_in = fileOut;
 							ret = -1;
 						}
 					}
@@ -287,29 +282,16 @@ void CVideoConverterFrame::ExportVideo(wxString filename)
 					{
 						if (videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy)
 						{
-							if (wxFileExists(filepath))
-							{
-#ifdef WIN32
-								std::remove(filepath);
-#else
-								wxRemoveFile(filepath);
-#endif
-							}
+							RemoveIfExists(filepath);
 							wxCopyFile(filename_in, filepath);
 						}
 						else if (!videoCompressOption->audioDirectCopy && !videoCompressOption->videoDirectCopy)
 						{
-							if (wxFileExists(filepath))
-							{
-#ifdef WIN32
-								std::remove(filepath);
-#else
-								wxRemoveFile(filepath);
-#endif
-							}
+							RemoveIfExists(filepath);
+
 							wxString decoder = "";
-							ffmpegEncoder = new CFFmpegTranscoding();
-							ffmpegEncoder->EncodeFile(this, filename_in, filepath, videoCompressOption, rotation);
+							
+							ffmpegEncoder->EncodeFile(this, filename_in, filepath, rotation);
 						}
 					}
 					else
@@ -335,33 +317,26 @@ void CVideoConverterFrame::ExportVideo(wxString filename)
 				if (wxFileExists(filename_in))
 				{
 					{
-						CFFmpegApp fmpegApp(false);
-						try
-						{
-							wxFileName file_temp(filepath);
-							fileOutAudio = CFileUtility::GetTempFile("temp_audio." + file_temp.GetExt(),
-								file_temp.GetPath(), true);
-							fmpegApp.ExecuteFFmpegExtractAudio(filename_in, timeInput, timeOutput, fileOutAudio);
-						}
-						catch (int e)
-						{
-							//fmpegApp.Cleanup(e);
-						}
+
+						ExecuteFFmpeg([&](CFFmpegApp& app)
+							{
+								wxFileName file_temp(filepath);
+								fileOutAudio = CFileUtility::GetTempFile("temp_audio." + file_temp.GetExt(),
+									file_temp.GetPath(), true);
+								app.ExecuteFFmpegExtractAudio(filename_in, timeInput, timeOutput, fileOutAudio);
+							});
 					}
 
 					{
-						CFFmpegApp fmpegApp(false);
-						try
-						{
-							wxFileName file_temp(filepath);
-							fileOutVideo = CFileUtility::GetTempFile("temp_video." + file_temp.GetExt(),
-								file_temp.GetPath(), true);
-							fmpegApp.ExecuteFFmpegExtractVideo(filename_in, timeInput, timeOutput, fileOutVideo);
-						}
-						catch (int e)
-						{
-							//fmpegApp.Cleanup(e);
-						}
+
+						ExecuteFFmpeg([&](CFFmpegApp& app)
+							{
+								wxFileName file_temp(filepath);
+								fileOutVideo = CFileUtility::GetTempFile("temp_video." + file_temp.GetExt(),
+									file_temp.GetPath(), true);
+								app.ExecuteFFmpegExtractVideo(filename_in, timeInput, timeOutput, fileOutVideo);
+							});
+
 					}
 				}
 				else
@@ -373,9 +348,7 @@ void CVideoConverterFrame::ExportVideo(wxString filename)
 					{
 						if (wxFileExists(fileOutVideo))
 						{
-							wxString decoder = "";
-							ffmpegEncoder = new CFFmpegTranscoding();
-							ffmpegEncoder->EncodeFile(this, fileOutVideo, fileOut, videoCompressOption, rotation);
+							ffmpegEncoder->EncodeFile(this, fileOutVideo, fileOut, rotation);
 							isAudio = true;
 						}
 						else
@@ -385,9 +358,7 @@ void CVideoConverterFrame::ExportVideo(wxString filename)
 					{
 						if (wxFileExists(fileOutAudio))
 						{
-							wxString decoder = "";
-							ffmpegEncoder = new CFFmpegTranscoding();
-							ffmpegEncoder->EncodeFile(this, fileOutAudio, fileOut, videoCompressOption, rotation);
+							ffmpegEncoder->EncodeFile(this, fileOutAudio, fileOut, rotation);
 							isAudio = false;
 						}
 						else
@@ -415,8 +386,6 @@ void CVideoConverterFrame::ExportVideo(wxString filename)
 
 	}
 
-	delete compressAudioVideoOption;
-
 	if (exit_frame)
 	{
 		if (videoInterface != nullptr)
@@ -433,10 +402,5 @@ void CVideoConverterFrame::OnCloseWindow(wxCloseEvent& event)
 	{
 		videoInterface->Close();
 	}
-
-}
-
-CVideoConverterFrame::~CVideoConverterFrame()
-{
 
 }

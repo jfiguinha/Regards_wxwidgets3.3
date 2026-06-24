@@ -256,8 +256,7 @@ void CMainViewerController::OnEditFile(wxString& localFilename)
 
 void CMainViewerController::OnExportDiaporama()
 {
-    CExportDiaporama exportDiaporama(eventSink);
-    exportDiaporama.OnExportDiaporama();
+    CExportDiaporama::OnExportDiaporama(eventSink);
 }
 
 // ── Barre de statut ───────────────────────────────────────────────────────────

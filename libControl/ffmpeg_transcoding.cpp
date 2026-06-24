@@ -16,10 +16,16 @@ CFFmpegTranscoding::CFFmpegTranscoding() :
 	mainWindow(nullptr),
 	videoCompressOption(nullptr)
 {
+	videoCompressOption = std::make_unique< CVideoOptionCompress>();
 }
 
 CFFmpegTranscoding::~CFFmpegTranscoding()
 {
+}
+
+CVideoOptionCompress* CFFmpegTranscoding::GetVideoCompressionPt()
+{
+	return videoCompressOption.get();
 }
 
 wxString CFFmpegTranscoding::GetOutputFilename()
@@ -27,8 +33,7 @@ wxString CFFmpegTranscoding::GetOutputFilename()
 	return output;
 }
 
-int CFFmpegTranscoding::EncodeFrame(const wxString& input, const wxString& output, const int& position,
-                                    CVideoOptionCompress* videoCompressOption)
+int CFFmpegTranscoding::EncodeFrame(const wxString& input, const wxString& output, const int& position)
 {
 #ifdef WIN32_MFT
 	CMFTEncoding mftEncoding;
@@ -39,7 +44,7 @@ int CFFmpegTranscoding::EncodeFrame(const wxString& input, const wxString& outpu
 	}
 #else
 	CFFmpegTranscodingPimpl ffmpegtranscoding;
-	int ret = ffmpegtranscoding.EncodeOneFrame(nullptr, input, output, position, videoCompressOption);
+	int ret = ffmpegtranscoding.EncodeOneFrame(nullptr, input, output, position, videoCompressOption.get());
 	if (!ffmpegtranscoding.GetFrameOutput().empty())
 	{
 		data = ffmpegtranscoding.GetFrameOutput();
@@ -93,7 +98,7 @@ void CFFmpegTranscoding::EncodeFileThread(void* data)
 	CFFmpegTranscodingPimpl ffmpegtranscoding;
 
 	int ret = ffmpegtranscoding.EncodeFile(ffmpeg_encoding->input, ffmpeg_encoding->output,
-	                                       ffmpeg_encoding->m_dlgProgress, ffmpeg_encoding->videoCompressOption);
+	                                       ffmpeg_encoding->m_dlgProgress.get(), ffmpeg_encoding->videoCompressOption.get());
 	if (ret < 0)
 	{
 		wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
@@ -115,11 +120,6 @@ int CFFmpegTranscoding::EndDecodeFile(const int& returnValue)
 
 	wxSleep(1);
 
-	delete encode_thread;
-
-	delete m_dlgProgress;
-
-	delete videoCompressOption;
 
 	if (returnValue == 0)
 	{
@@ -130,18 +130,22 @@ int CFFmpegTranscoding::EndDecodeFile(const int& returnValue)
 	return 0;
 }
 
-int CFFmpegTranscoding::EncodeFile(wxWindow* mainWindow, const wxString& input, const wxString& output,
-                                   CVideoOptionCompress* videoCompressOption, int rotation)
+int CFFmpegTranscoding::EncodeFile(wxWindow* mainWindow, const wxString& input, const wxString& output, int rotation)
 {
 	this->mainWindow = mainWindow;
 	this->input = input;
 	this->output = output;
-	this->videoCompressOption = videoCompressOption;
 
-	m_dlgProgress = new CompressVideo(nullptr, rotation);
+	if (encode_thread != nullptr)
+		encode_thread.reset();
+	if (m_dlgProgress != nullptr)
+		m_dlgProgress.reset();
+
+
+	m_dlgProgress = std::make_unique<CompressVideo>(nullptr, rotation);
 	m_dlgProgress->SetFocus();  // focus on my window
 	m_dlgProgress->Raise();  // bring window to front
 	m_dlgProgress->Show();
-	encode_thread = new std::thread(EncodeFileThread, this);
+	encode_thread = std::make_unique<std::thread>(EncodeFileThread, this);
 	return 0;
 }

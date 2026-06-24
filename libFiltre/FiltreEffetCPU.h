@@ -5,17 +5,7 @@
 class Chqdn3d;
 using namespace Regards::OpenGL;
 
-#define BOXFILTER 1001
-#define HERMITEFILTER 1002
-#define HANNINGFILTER 1003
-#define CATROMFILTER 1004
-#define MITCHELLFILTER 1005
-#define TRIANGLEFILTER 1006
-#define QUADRATICFILTER 1007
-#define BLACKMANFILTER 1008
-#define HAMMINGFILTER 1009
-#define GAUSSIANFILTER 1010
-#define BILINEARFILTER 1011
+
 
 class CFiltreEffetCPU : public IFiltreEffet
 {

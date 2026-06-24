@@ -8,18 +8,21 @@ class CVideoConverterFrame : public wxFrame
 public:
 	// ctor(s)
 	CVideoConverterFrame(const wxString &title, const wxPoint &pos, const wxSize &size, IVideoConverterInterface * videoInterface, long style = wxDEFAULT_FRAME_STYLE);
-    ~CVideoConverterFrame();
+    ~CVideoConverterFrame() = default;
 	void ExportVideo(wxString filename);
 
 
 private:
 	void OnEndDecompressFile(wxCommandEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
-	
+	wxString SelectOutputFile(wxString& filename);
+	void ExitApplication();
+	wxString SelectFile();
+
 	IVideoConverterInterface* videoInterface;
 
 	//CompressionAudioVideoOption* compressAudioVideoOption = nullptr;
-	CFFmpegTranscoding* ffmpegEncoder = nullptr;
+	std::unique_ptr<CFFmpegTranscoding> ffmpegEncoder = nullptr;
 	wxString fileOut = "";
 	wxString fileOutAudio = "";
 	wxString fileOutVideo = "";

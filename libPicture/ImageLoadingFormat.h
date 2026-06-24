@@ -1,7 +1,7 @@
 #pragma once
 #include <PictureArray.h>
 class CxImage;
-class FIBITMAP;
+struct FIBITMAP;
 class CRgbaquad;
 
 class CImageLoadingFormat

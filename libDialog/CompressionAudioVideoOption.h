@@ -13,33 +13,26 @@
 #include <wx/timectrl.h>
 #include <wx/spinctrl.h>
 #include <wx/dateevt.h>
+#include <videothumb.h>
+#include "ShowPreview.h"
+#include <ffmpeg_transcoding.h>
 
-namespace Regards::Control
-{
-	class CShowPreview;
-}
 
 using namespace Regards::Control;
 
 //(*Headers(TiffOption)
-//*)
-class CPreviewDlg;
+
 class CImageLoadingFormat;
 class CVideoOptionCompress;
-;
 class CSliderVideoSelection;
 class CVideoEffectParameter;
 
-namespace Regards::Video
-{
-	class CVideoThumb;
-}
 
 class CompressionAudioVideoOption : public wxDialog
 {
 public:
 	CompressionAudioVideoOption(wxWindow* parent);
-	~CompressionAudioVideoOption() override;
+	~CompressionAudioVideoOption() = default;
 	void GetCompressionOption(CVideoOptionCompress* videoOptionCompress);
 	void SetFile(const wxString& videoFilename, const wxString& videoOutputFilename);
 	wxButton* btnCancel;
@@ -144,17 +137,15 @@ private:
 	double timeTotal;
 	bool isOk;
 	wxString videoFilename;
-	Regards::Video::CVideoThumb * ffmpegTranscoding = nullptr;
-#ifndef USE_PREVIEW_INTEGRATE
-		CPreviewDlg * previewDlg;
-#endif
-	CSliderVideoSelection* sliderVideoPosition;
-	CVideoEffectParameter* videoEffectParameter;
 	//int ret = 0;
 	wxImage scale;
 	wxString extension;
-	//bool skipEvent = false;
-	//bool previewShow = false;
-	CShowPreview* showBitmapWindow;
+
+
+	std::unique_ptr<Regards::Video::CVideoThumb>  ffmpegTranscoding = nullptr;
+	std::unique_ptr<CSliderVideoSelection> sliderVideoPosition = nullptr;
+	std::unique_ptr<CVideoEffectParameter> videoEffectParameter = nullptr;
+	std::unique_ptr<CFFmpegTranscoding> transcodeFFmpeg = nullptr;
+	std::unique_ptr<CShowPreview> showBitmapWindow = nullptr;
 	DECLARE_EVENT_TABLE()
 };

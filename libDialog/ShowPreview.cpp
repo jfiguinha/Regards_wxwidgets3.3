@@ -105,18 +105,15 @@ CShowPreview::CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config)
 	progressValue = 0;
 
 	wxString resourcePath = CFileUtility::GetResourcesFolderPath();
-	//videoOriginal
 
-
-	transcodeFFmpeg = std::make_unique<CFFmpegTranscoding>();
 }
 
 void CShowPreview::SetParameter(const wxString& videoFilename,
-                                CVideoOptionCompress* videoOptionCompress)
+	CFFmpegTranscoding* transcodeFFmpeg)
 {
 	isFirstPicture = true;
 	wxString decoder = "";
-	this->videoOptionCompress = *videoOptionCompress;
+	this->transcodeFFmpeg = transcodeFFmpeg;
 	progressValue = 0;
 	filename = videoFilename;
 
@@ -245,7 +242,7 @@ void CShowPreview::SlidePosChange(const int& position, const wxString& key)
 		moveSlider = true;
 		showOriginal = true;
 		this->position = position;
-		UpdateBitmap(nullptr, "");
+		UpdateBitmap("");
 	}
 	else
 	{
@@ -253,7 +250,7 @@ void CShowPreview::SlidePosChange(const int& position, const wxString& key)
 		showOriginal = oldShowOriginal;
 		moveSlider = false;
 		this->position = position;
-		UpdateBitmap(nullptr, "");
+		UpdateBitmap("");
 	}
 }
 
@@ -262,7 +259,7 @@ void CShowPreview::MoveSlider(const int64_t& position)
 	showOriginal = oldShowOriginal;
 	moveSlider = false;
 	this->position = position;
-	UpdateBitmap(nullptr, "");
+	UpdateBitmap("");
 }
 
 void CShowPreview::ThreadLoading(void* data)
@@ -280,8 +277,7 @@ void CShowPreview::ThreadLoading(void* data)
 			showPreview->extension = filename.GetExt();
 		}
 		fileTemp = CFileUtility::GetTempFile("video_temp." + showPreview->extension, true);
-		ret = showPreview->transcodeFFmpeg->EncodeFrame(showPreview->filename, fileTemp, showPreview->position,
-		                                                &showPreview->videoOptionCompress);
+		ret = showPreview->transcodeFFmpeg->EncodeFrame(showPreview->filename, fileTemp, showPreview->position);
 		showPreview->decodeFrameOriginal = showPreview->transcodeFFmpeg->GetFrameOutputWithOutEffect();
 
 		if (ret == 0)
@@ -316,17 +312,11 @@ void CShowPreview::ThreadLoading(void* data)
 	}
 }
 
-void CShowPreview::UpdateBitmap(CVideoOptionCompress* videoOptionCompress, const wxString& extension,
+void CShowPreview::UpdateBitmap(const wxString& extension,
                                 const bool& updatePicture)
 {
 	wxString decoder = "";
-
-	if (videoOptionCompress != nullptr)
-	{
-		this->videoOptionCompress = *videoOptionCompress;
-		this->extension = extension;
-	}
-
+	this->extension = extension;
 
 	sliderVideo->Start();
 

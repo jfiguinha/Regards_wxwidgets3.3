@@ -139,6 +139,9 @@
     <ClCompile Include="picture_factory.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="VideoThumbPimpl.cpp">
+      <Filter>ThumbnailVideoGenerator</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="raw.h">
@@ -305,6 +308,9 @@
     </ClInclude>
     <ClInclude Include="yuv422.h">
       <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="VideoThumbPimpl.h">
+      <Filter>ThumbnailVideoGenerator</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

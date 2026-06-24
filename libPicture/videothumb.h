@@ -1,20 +1,19 @@
 #pragma once
+#include "FFmpegVideoThumb.h"
+#include "VideoThumbPimpl.h"
 
 class CImageVideoThumbnail;
-class CVideoThumbPimpl;
 struct AspectRatio;
 
 namespace Regards
 {
 	namespace Video
 	{
-
-        
 		class CVideoThumb
 		{
 		public:
 			CVideoThumb(const wxString& fileName, const bool& applyOrientation = true, const bool& invertRotation = true);
-			~CVideoThumb();
+			~CVideoThumb() = default;
 			bool isOk();
 			cv::Mat GetVideoFrame(const int& thumbnailWidth, const int& thumbnailHeight);
 			cv::Mat GetVideoFramePos(const int64& timePosition, const int& thumbnailWidth, const int& thumbnailHeight);
