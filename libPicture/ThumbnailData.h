@@ -4,7 +4,7 @@
 #include <appcontext.h>
 extern AppContext application_context;
 
-class CRegardsBitmap;
+;
 
 #define TYPEPHOTO 1
 #define TYPECATALOG 2

@@ -2,7 +2,7 @@
 #include "Icone.h"
 //#include <ThumbnailData.h>
 //#include <Photos.h>
-class CRegardsBitmap;
+;
 class CThumbnailData;
 
 

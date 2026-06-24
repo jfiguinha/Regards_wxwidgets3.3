@@ -1,7 +1,7 @@
 #pragma once
 #include "WindowMain.h"
 
-class CRegardsBitmap;
+;
 
 namespace Regards::Window
 {

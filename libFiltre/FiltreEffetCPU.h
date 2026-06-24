@@ -1,7 +1,7 @@
 #pragma once
 #include "IFiltreEffet.h"
 
-class CRegardsBitmap;
+;
 class Chqdn3d;
 using namespace Regards::OpenGL;
 

@@ -6,7 +6,7 @@
 #include <VideoCompressOption.h>
 using namespace Regards::Window;
 
-class CRegardsBitmap;
+;
 class CFFmpegDecodeFrameFilter;
 class CFFmpegTranscoding;
 

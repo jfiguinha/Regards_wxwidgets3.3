@@ -8,7 +8,7 @@
 #include <BitmapDisplay.h>
 using namespace std;
 using namespace std::chrono;
-class CRegardsBitmap;
+;
 class CFiltreEffet;
 class CImageLoadingFormat;
 class CRegardsFloatBitmap;

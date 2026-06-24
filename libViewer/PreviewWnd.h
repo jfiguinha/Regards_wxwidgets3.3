@@ -4,7 +4,7 @@
 #include <ToolbarInterface.h>
 ;
 
-class CRegardsBitmap;
+;
 class CImageLoadingFormat;
 
 namespace Regards

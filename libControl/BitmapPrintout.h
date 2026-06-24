@@ -21,7 +21,7 @@
 using namespace std;
 
 class CImageLoadingFormat;
-class CRegardsBitmap;
+;
 
 namespace Regards
 {

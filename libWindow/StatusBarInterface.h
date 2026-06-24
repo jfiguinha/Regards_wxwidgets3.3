@@ -1,6 +1,6 @@
 #pragma once
 class CImageLoadingFormat;
-class CRegardsBitmap;
+;
 
 class IStatusBarInterface
 {

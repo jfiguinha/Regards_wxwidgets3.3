@@ -9,7 +9,7 @@
 #endif
 //(*Headers(TiffOption)
 //*)
-class CRegardsBitmap;
+;
 
 class CompressVideo : public wxDialog
 {

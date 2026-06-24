@@ -7,7 +7,7 @@ using namespace Regards::OpenGL;
 class Chqdn3d;
 class CImageLoadingFormat;
 class CRegardsFloatBitmap;
-class CRegardsBitmap;
+;
 class CEffectParameter;
 class IFiltreEffet;
 

@@ -26,7 +26,7 @@ using namespace Regards::Control;
 class CPreviewDlg;
 class CImageLoadingFormat;
 class CVideoOptionCompress;
-class CRegardsBitmap;
+;
 class CSliderVideoSelection;
 class CVideoEffectParameter;
 

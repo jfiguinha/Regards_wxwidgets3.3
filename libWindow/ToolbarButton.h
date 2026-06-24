@@ -3,7 +3,7 @@
 #include "ToolbarElement.h"
 using namespace Regards::Window;
 
-class CRegardsBitmap;
+;
 
 namespace Regards::Window
 {

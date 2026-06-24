@@ -1,6 +1,6 @@
 #pragma once
 #include "RenderBitmapOpenGL.h"
-class CRegardsBitmap;
+;
 class CImageLoadingFormat;
 class CEffectParameter;
 class IBitmapDisplay;

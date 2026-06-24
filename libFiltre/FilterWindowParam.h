@@ -12,7 +12,7 @@
 #include <MouseUpdate.h>
 
 class CFiltreEffet;
-class CRegardsBitmap;
+;
 class CImageLoadingFormat;
 class IBitmapDisplay;
 

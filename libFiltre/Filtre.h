@@ -2,7 +2,7 @@
 #include "RGBAQuad.h"
 using namespace std;
 
-class CRegardsBitmap;
+;
 
 namespace Regards::FiltreEffet
 {

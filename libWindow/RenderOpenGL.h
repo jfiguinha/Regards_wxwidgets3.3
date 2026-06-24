@@ -15,7 +15,7 @@ using namespace Regards::OpenGL;
 
 //#define RENDEROPENGL WM_USER+1
 
-class CRegardsBitmap;
+;
 class Character;
 class CFreeTypeFace;
 

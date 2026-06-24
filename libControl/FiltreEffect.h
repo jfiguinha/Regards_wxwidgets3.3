@@ -6,7 +6,7 @@
 #include "FilterWindowParam.h"
 using namespace Regards::Window;
 
-class CRegardsBitmap;
+;
 
 #define TYPE_SLIDE 1
 #define TYPE_CHECKBOX 2

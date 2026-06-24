@@ -1,6 +1,6 @@
 #pragma once
 #include <ThumbnailData.h>
-class CRegardsBitmap;
+;
 class CImageLoadingFormat;
 
 class CThumbnailDataFace : public CThumbnailData

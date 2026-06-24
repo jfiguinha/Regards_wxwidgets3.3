@@ -5,7 +5,7 @@
 #else
 #include <CL/cl.h>
 #endif
-class CRegardsBitmap;
+;
 class CRegardsFloatBitmap;
 
 namespace Regards::OpenCL

@@ -4,7 +4,7 @@
 #include <exiv2/image.hpp>
 #include <exiv2/iptc.hpp>
 
-class CRegardsBitmap;
+;
 
 namespace Regards
 {

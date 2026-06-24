@@ -2,7 +2,7 @@
 #include "WindowMain.h"
 #include "IBitmapWnd.h"
 using namespace std;
-class CRegardsBitmap;
+;
 class CFiltreEffet;
 class CImageLoadingFormat;
 class CRegardsFloatBitmap;

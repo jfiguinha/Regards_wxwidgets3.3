@@ -355,10 +355,9 @@ void CBitmapWndViewer::ExportPicture()
 
 void CBitmapWndViewer::SavePicture()
 {
-	CImageLoadingFormat* imageLoading = GetBitmap(true);
-	CSavePicture::SavePicture(nullptr, imageLoading, filename);
-	if (imageLoading != nullptr)
-		delete imageLoading;
+	std::unique_ptr<CImageLoadingFormat> imageLoading;
+	imageLoading.reset(GetBitmap(true));
+	CSavePicture::SavePicture(nullptr, imageLoading.get(), filename);
 }
 
 void CBitmapWndViewer::DeterminePos(wxRect& rc, const int& nTailleAffichageWidth, const int& nTailleAffichageHeight,

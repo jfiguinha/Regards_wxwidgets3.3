@@ -1,7 +1,7 @@
 #pragma once
 #include <IEffectVideo.h>
 
-class CRegardsBitmap;
+;
 class CRegardsFloatBitmap;
 class CVideoEffectParameter;
 class Chqdn3d;

@@ -21,7 +21,7 @@ extern "C" {
 
 
 using namespace Regards::OpenCV;
-class CRegardsBitmap;
+;
 class CompressVideo;
 class CFiltreEffet;
 class CffmpegToBitmap;

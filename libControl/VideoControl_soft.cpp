@@ -17,7 +17,7 @@
 #include <SqlPhotos.h>
 #include <RegardsConfigParam.h>
 #include <MediaInfo.h>
-#include <VideoStabilization.h>
+
 #include <FiltreEffetCPU.h>
 #include <aspectratio.h>
 #include <ParamInit.h>
@@ -212,11 +212,11 @@ void CVideoControlSoft::SetParent(wxWindow* parent)
 {
 	parentRender = parent;
 
-	fpsTimer = new wxTimer(parentRender, TIMER_FPS);
-	playStartTimer = new wxTimer(parentRender, TIMER_PLAYSTART);
-	playStopTimer = new wxTimer(parentRender, TIMER_PLAYSTOP);
-	assSubtitleTimer = new wxTimer(parentRender, TIMER_SUBTITLE);
-	ffmfc = new CFFmfc(parentRender, wxID_ANY);
+	fpsTimer = std::make_unique<wxTimer>(parentRender, TIMER_FPS);
+	playStartTimer = std::make_unique<wxTimer>(parentRender, TIMER_PLAYSTART);
+	playStopTimer = std::make_unique<wxTimer>(parentRender, TIMER_PLAYSTOP);
+	assSubtitleTimer = std::make_unique<wxTimer>(parentRender, TIMER_SUBTITLE);
+	ffmfc = std::make_unique<CFFmfc>(parentRender, wxID_ANY);
 }
 
 
@@ -968,32 +968,6 @@ CVideoControlSoft::~CVideoControlSoft()
 	if (playStopTimer->IsRunning())
 		playStopTimer->Stop();
 
-
-
-	if (hq3d != nullptr)
-		delete hq3d;
-
-	if (openCVStabilization != nullptr)
-		delete openCVStabilization;
-
-	delete playStartTimer;
-	delete assSubtitleTimer;
-	delete fpsTimer;
-
-	if (renderBitmapOpenGL != nullptr)
-	{
-		delete renderBitmapOpenGL;
-	}
-
-	if (openclEffectYUV != nullptr)
-		delete openclEffectYUV;
-
-	if (ffmfc)
-		delete ffmfc;
-
-	if (pictureFrame != nullptr)
-		delete pictureFrame;
-
 }
 
 void CVideoControlSoft::OnSetSubtitle(wxCommandEvent& event)
@@ -1090,10 +1064,7 @@ int CVideoControlSoft::Play(const wxString& movie)
 
 		if (movie != filename)
 		{
-			if (openCVStabilization != nullptr)
-				delete openCVStabilization;
-
-			openCVStabilization = nullptr;
+			openCVStabilization.reset();
 
 			if (playStartTimer->IsRunning())
 				playStartTimer->Stop();
@@ -1225,7 +1196,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 	if (renderBitmapOpenGL == nullptr)
 	{
 		this->renderOpenGL = renderOpenGL;
-		renderBitmapOpenGL = new CRenderVideoOpenGL(renderOpenGL);
+		renderBitmapOpenGL = std::make_unique<CRenderVideoOpenGL>(renderOpenGL);
 	}
 
    // printf("CVideoControlSoft::OnPaint3D 1 \n");
@@ -1234,7 +1205,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 	{
 		if (openclEffectYUV == nullptr)
 		{
-			openclEffectYUV = new COpenCLEffectVideo();
+			openclEffectYUV = std::make_unique<COpenCLEffectVideo>();
 		}
 	}
 
@@ -1905,7 +1876,6 @@ void CVideoControlSoft::OnRButtonDown(wxMouseEvent& event)
 
 void CVideoControlSoft::OnSetData(wxCommandEvent& event)
 {
-	CDataAVFrame* old = pictureFrame;
 	CDataAVFrame* dataFrame = static_cast<CDataAVFrame*>(event.GetClientData());
 	if (dataFrame != nullptr)
 	{
@@ -1915,10 +1885,7 @@ void CVideoControlSoft::OnSetData(wxCommandEvent& event)
 		heightVideo = dataFrame->height;
 		ratioVideo = static_cast<float>(dataFrame->width) / static_cast<float>(dataFrame->height);
 		video_aspect_ratio = dataFrame->sample_aspect_ratio;
-		pictureFrame = dataFrame;
-
-		if (old != nullptr)
-			delete old;
+		pictureFrame.reset(dataFrame);
 
 		needToRefresh = false;
 		parentRender->Refresh();
@@ -2123,8 +2090,8 @@ void CVideoControlSoft::RenderToTexture()
     if (videoEffectParameter.stabilizeVideo)
     {
         if (openCVStabilization == nullptr)
-            openCVStabilization = new Regards::OpenCV::COpenCVStabilization(videoEffectParameter.stabilizeImageBuffere, openclEffectYUV->GetType());
-		openclEffectYUV->ApplyStabilization(&videoEffectParameter, openCVStabilization);
+            openCVStabilization = std::make_unique<Regards::OpenCV::COpenCVStabilization>(videoEffectParameter.stabilizeImageBuffere, openclEffectYUV->GetType());
+		openclEffectYUV->ApplyStabilization(&videoEffectParameter, openCVStabilization.get());
     }
 
 	if(videoEffectParameter.interpolationQuality == 1)
@@ -2164,7 +2131,7 @@ bool CVideoControlSoft::ApplyOpenCVEffect(cv::Mat& image)
 	if (videoEffectParameter.stabilizeVideo)
 	{
 		if (openCVStabilization == nullptr)
-			openCVStabilization = new Regards::OpenCV::COpenCVStabilization(videoEffectParameter.stabilizeImageBuffere, TYPE_CPU);
+			openCVStabilization = std::make_unique<Regards::OpenCV::COpenCVStabilization>(videoEffectParameter.stabilizeImageBuffere, TYPE_CPU);
 
 		openCVStabilization->SetNbFrameBuffer(videoEffectParameter.stabilizeImageBuffere);
 
@@ -2226,7 +2193,7 @@ void CVideoControlSoft::RenderFFmpegToTexture()
 		if (videoEffectParameter.denoiseEnable && videoEffectParameter.effectEnable)
 		{
 			if (hq3d == nullptr)
-				hq3d = new Chqdn3d(widthVideo, heightVideo, videoEffectParameter.denoisingLevel, videoEffectParameter.templateWindowSize, videoEffectParameter.searchWindowSize);
+				hq3d =  std::make_unique<Chqdn3d>(widthVideo, heightVideo, videoEffectParameter.denoisingLevel, videoEffectParameter.templateWindowSize, videoEffectParameter.searchWindowSize);
 			else
 				hq3d->UpdateParameter(widthVideo, heightVideo, videoEffectParameter.denoisingLevel, videoEffectParameter.templateWindowSize, videoEffectParameter.searchWindowSize);
 			hq3d->ApplyDenoise3D(cvImage);

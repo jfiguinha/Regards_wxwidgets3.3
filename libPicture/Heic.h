@@ -1,6 +1,6 @@
 #pragma once
 #ifdef LIBHEIC
-class CRegardsBitmap;
+;
 struct heif_image_handle;
 struct heif_context;
 

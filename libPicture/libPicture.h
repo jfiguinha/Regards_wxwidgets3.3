@@ -17,7 +17,7 @@
 
 // Forward declarations — inchangées par rapport à l'original
 class CxImage;
-class CRegardsBitmap;
+;
 class CVideoThumbnail;
 class CImageVideoThumbnail;
 class CImageLoadingFormat;

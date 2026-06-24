@@ -16,7 +16,7 @@ class CompressVideo;
 class CMFTEncodingPimp;
 class CompressVideo;
 class CVideoOptionCompress;
-class CRegardsBitmap;
+;
 
 class CMFTEncoding
 {
