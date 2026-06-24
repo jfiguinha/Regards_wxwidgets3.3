@@ -23,16 +23,14 @@ private:
 
 	//CompressionAudioVideoOption* compressAudioVideoOption = nullptr;
 	std::unique_ptr<CFFmpegTranscoding> ffmpegEncoder = nullptr;
+
 	wxString fileOut = "";
 	wxString fileOutAudio = "";
 	wxString fileOutVideo = "";
-	wxString filepathVideo = "";
-	wxString firstFileToShow = "";
+	wxString fileOutputPath = "";
 	bool needToRemux = false;
 	bool isAudio = false;
 	bool init = false;
 
-	wxString tempVideoFile = "";
-	wxString tempAudioVideoFile = "";
 	DECLARE_EVENT_TABLE()
 };
