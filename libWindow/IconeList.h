@@ -30,6 +30,7 @@ namespace Regards::Window
         
 	private:
         
+		std::mutex mutexList;
 		IconeVector pIconeList;
 		tbb::concurrent_unordered_map<int, CIcone*> pIconeByPhotoId;
         tbb::concurrent_unordered_map<wxString, CIcone*> pIconeByFilename;

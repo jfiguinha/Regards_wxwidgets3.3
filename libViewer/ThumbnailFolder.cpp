@@ -56,10 +56,9 @@ std::unique_ptr<CInfosSeparationBarExplorer> CThumbnailFolder::AddSeparatorBar(P
 		tbb::parallel_for(0, size, 1, [=](int i)
 			//for (int i = 0; i < size; i++)
 			{
-				CPhotos photo = _pictures->at(i);
+				auto& photo = _pictures->at(i);
 				wxString filename = photo.GetPath();
-				bool find = true;
-				find = iconeList->IfElementExistByFilename(photo.GetPath());
+				bool find = iconeList->IfElementExistByFilename(photo.GetPath());
 				if (!find)
 				{
 					auto thumbnailData = new CThumbnailDataSQL(photo.GetPath(), testValidity, false);
@@ -95,7 +94,7 @@ std::unique_ptr<CInfosSeparationBarExplorer> CThumbnailFolder::AddSeparatorBar(P
 	{
 		tbb::parallel_for(0, size, 1, [=](int i)
 			{
-				CPhotos photo = _pictures->at(i);
+				auto& photo = _pictures->at(i);
 				CIcone* icone = iconeList->FindElementByFilename(photo.GetPath());
 				if (icone != nullptr)
 				{
@@ -440,6 +439,9 @@ void CThumbnailFolder::ResizeThumbnail()
 
 bool CThumbnailFolder::ItemCompFonct(int xPos, int yPos, CIcone* icone, CWindowMain* parent) /* Définit une fonction. */
 {
+	if (icone == nullptr || parent == nullptr)
+		return false;
+
 	if (icone->GetVisibility())
 	{
 		if (icone != nullptr && parent != nullptr)

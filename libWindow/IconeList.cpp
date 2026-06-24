@@ -96,6 +96,8 @@ void CIconeList::RemoveElement(int numElement)
 
 CIcone* CIconeList::GetElement(const int& numElement)
 {
+	std::unique_lock lock(mutexList);
+
 	CIcone* icone = nullptr;
 	if (numElement < pIconeList.size())
 		icone = pIconeList[numElement];
@@ -105,6 +107,8 @@ CIcone* CIconeList::GetElement(const int& numElement)
 
 void CIconeList::AddElement(CIcone* icone)
 {
+	std::unique_lock lock(mutexList);
+
     if (icone == nullptr)
         return;
 
@@ -229,27 +233,40 @@ void CIconeList::EraseThumbnailList()
 
 // Compares two intervals
 // according to starting times.
-bool compareInterval(CIcone* i1, CIcone* i2)
+bool compareInterval(CIcone* lhs, CIcone* rhs)
 {
-	if (i1 != nullptr && i2 != nullptr)
-		return (i1->GetNumElement() < i2->GetNumElement());
-	return false;
-}
+	if (lhs == rhs)
+		return false;
 
+	if (lhs == nullptr)
+		return true;
+
+	if (rhs == nullptr)
+		return false;
+
+	return lhs->GetNumElement() < rhs->GetNumElement();
+}
 void CIconeList::SortById()
 {
+	std::unique_lock lock(mutexList);
 	tbb::parallel_sort(pIconeList.begin(), pIconeList.end(), compareInterval);
 }
 
 
-// Compares two intervals
-// according to starting times.
-bool compareFilename(CIcone* i1, CIcone* i2)
+bool compareFilename(CIcone* lhs, CIcone* rhs)
 {
-	if (i1 != nullptr && i2 != nullptr)
-		return (i1->GetFilename() < i2->GetFilename());
-	return false;
+	if (lhs == rhs)
+		return false;
+
+	if (lhs == nullptr)
+		return true;
+
+	if (rhs == nullptr)
+		return false;
+
+	return lhs->GetFilename() < rhs->GetFilename();
 }
+
 
 void CIconeList::SortByFilename()
 {
