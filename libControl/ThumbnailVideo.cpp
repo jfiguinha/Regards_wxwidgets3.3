@@ -343,15 +343,13 @@ void CThumbnailVideo::InitWithDefaultPicture(const wxString& szFileName, const i
 
 	}
 
-	auto oldIconeList = iconeList;
-	iconeList = iconeListLocal;
+	auto old = std::move(iconeList);
+	iconeList.reset(iconeListLocal);
 
 	nbElementInIconeList = iconeList->GetNbElement();
 
-    //printf("CThumbnailVideo::InitWithDefaultPicture \n");
-    oldIconeList->EraseThumbnailListWithIcon();
-    delete oldIconeList;
-    //EraseThumbnailList(oldIconeList);
+	old->EraseThumbnailListWithIcon();
+
 
 	threadDataProcess = true;
 

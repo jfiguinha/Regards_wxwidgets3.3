@@ -86,7 +86,7 @@ void CThumbnailFileSelection::InitTypeAffichage(const int& typeAffichage)
 	if (typeLocal == THUMB_SHOW_ALL)
 	{
 		wxString libellePhoto = CLibResource::LoadStringFromResource(L"LBLSELECTPAGE", 1);
-		AddSeparatorBar(iconeList, libellePhoto, i);
+		AddSeparatorBar(iconeList.get(), libellePhoto, i);
 	}
 
 	nbElementInIconeList = iconeList->GetNbElement();

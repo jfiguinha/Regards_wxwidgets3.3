@@ -367,7 +367,7 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	render = false;
 	check = false;
 	threadDataProcess = true;
-	iconeList = new CIconeList();
+	iconeList = std::make_unique<CIconeList>();
 	this->testValidity = testValidity;
 	thumbnailSizeX = 0;
 	thumbnailSizeY = 0;
@@ -633,9 +633,6 @@ CThumbnail::~CThumbnail()
     if(iconeList != nullptr)
     {
 		iconeList->EraseThumbnailListWithIcon();
-
-        delete iconeList;
-        iconeList = nullptr;
     }
 }
 

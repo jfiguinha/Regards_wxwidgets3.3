@@ -25,7 +25,7 @@ namespace Regards::Window
 	public:
 		CTreeControl() : eventControl(nullptr) { nbRow = 0; };
 		CTreeControl(CThemeTree* theme, CTreeElementControlInterface* interfaceControl);
-		~CTreeControl() override;
+		virtual ~CTreeControl();
 
 		CTreeControl& operator=(const CTreeControl& other);
 

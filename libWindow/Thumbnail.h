@@ -246,7 +246,7 @@ namespace Regards::Window
         
         //std::unordered_map<int, CIcone*> iconByPhotoId;
         
-        CIconeList * iconeList = nullptr;
+		std::unique_ptr<CIconeList> iconeList = nullptr;
 		std::unique_ptr<wxAnimation> m_animation;
 		std::unique_ptr<wxTimer> timerAnimation;
         

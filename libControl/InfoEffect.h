@@ -10,7 +10,7 @@ namespace Regards::Control
 	public:
 		CInfoEffect(CTreeElementControlInterface* interfaceControl, CModificationManager* modificationManager,
 		            int bitmapWindowId);
-		~CInfoEffect() = default
+		~CInfoEffect() = default;
 
 		wxString GetFilename();
 		void Init(CImageLoadingFormat* bitmap, const wxString& libelle, const wxString& key);

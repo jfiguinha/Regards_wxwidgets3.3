@@ -254,7 +254,7 @@ void CThumbnailFace::init()
 	for (int i = 0; i < listFace.size(); i++)
 	{
 		std::vector<CFaceFilePath> listPhotoFace = sqlFindFacePhoto.GetListPhotoFace(listFace.at(i).numFace, pertinence);
-		AddSeparatorBar(iconeList, listFace.at(i).faceName, listFace.at(i), listPhotoFace, nbElement, iconIndex);
+		AddSeparatorBar(iconeList.get(), listFace.at(i).faceName, listFace.at(i), listPhotoFace, nbElement, iconIndex);
 	}
 
 

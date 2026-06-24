@@ -187,7 +187,12 @@ void CThumbnailMultiPage::InitWithDefaultPicture(const wxString& filename,
 		processIdle = false;
 	}
 
-	iconeList = iconeListLocal;
+	auto old = std::move(iconeList);
+	iconeList.reset(iconeListLocal);
+
+	nbElementInIconeList = iconeList->GetNbElement();
+
+	old->EraseThumbnailListWithIcon();
 
 	nbElementInIconeList = iconeList->GetNbElement();
 

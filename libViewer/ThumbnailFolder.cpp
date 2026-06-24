@@ -146,27 +146,27 @@ void CThumbnailFolder::ChangeTypeAffichage(const int& typeAffichage, bool needFi
 	if (typeLocal == SHOW_ALL)
 	{
 		CTreatmentDataFolder dataYear;
-		dataYear.MainTreatment(_listSeparator.get(), iconeList, this, i);
+		dataYear.MainTreatment(_listSeparator.get(), iconeList.get(), this, i);
 	}
 	else if (typeLocal == SHOW_BYYEAR)
 	{
 		CTreatmentDataYear dataYear;
-		dataYear.MainTreatment(_listSeparator.get(), iconeList, this, i);
+		dataYear.MainTreatment(_listSeparator.get(), iconeList.get(), this, i);
 	}
 	else if (typeLocal == SHOW_BYMONTH)
 	{
 		CTreatmentDataMonth dataMonth;
-		dataMonth.MainTreatment(_listSeparator.get(), iconeList, this, i);
+		dataMonth.MainTreatment(_listSeparator.get(), iconeList.get(), this, i);
 	}
 	else if (typeLocal == SHOW_BYLOCALISATION)
 	{
 		CTreatmentDataLocalisation dataLocalisation;
-		dataLocalisation.MainTreatment(_listSeparator.get(), iconeList, this, i);
+		dataLocalisation.MainTreatment(_listSeparator.get(), iconeList.get(), this, i);
 	}
 	else if (typeLocal == SHOW_BYDAY)
 	{
 		CTreatmentDataDay dataDay;
-		dataDay.MainTreatment(_listSeparator.get(), iconeList, this, i);
+		dataDay.MainTreatment(_listSeparator.get(), iconeList.get(), this, i);
 	}
 
 
@@ -227,7 +227,7 @@ void CThumbnailFolder::Init(const int& typeAffichage, const bool& isDeleteFolder
 		int size = iconeList->GetNbElement();
 		if (size > 0)
 		{
-			auto newIconeList = std::make_unique<CIconeList>();
+			CIconeList * newIconeList = new CIconeList();
 
 			tbb::parallel_for(0, size, 1, [&](int i)
 				{
@@ -244,8 +244,12 @@ void CThumbnailFolder::Init(const int& typeAffichage, const bool& isDeleteFolder
 
 			if (newIconeList->GetNbElement() > 0)
 			{
-				delete iconeList;
-				iconeList = newIconeList.release();
+				auto old = std::move(iconeList);
+				iconeList.reset(newIconeList);
+
+				nbElementInIconeList = iconeList->GetNbElement();
+
+				//old->EraseThumbnailListWithIcon();
 			}
 			// sinon newIconeList est détruit automatiquement en sortant de portée
 			// (plus de delete explicite nécessaire)

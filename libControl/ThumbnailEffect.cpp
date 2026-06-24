@@ -338,16 +338,13 @@ void CThumbnailEffect::SetFile(const wxString& filename, CImageLoadingFormat* im
 		}
 	}
 
-	oldIconeList = iconeList;
-	iconeList = iconeListLocal;
+	auto old = std::move(iconeList);
+	iconeList.reset(iconeListLocal);
 
 	nbElementInIconeList = iconeList->GetNbElement();
 
-	//EraseThumbnailList(oldIconeList);
-    oldIconeList->EraseThumbnailListWithIcon();
-    delete oldIconeList;
-    //oldIconeList->EraseThumbnailList();
-    //delete oldIconeList;
+	old->EraseThumbnailListWithIcon();
+
 
 	threadDataProcess = true;
 	processIdle = true;

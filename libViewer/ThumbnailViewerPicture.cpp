@@ -123,8 +123,12 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
 
 				if (newIconeList->GetNbElement() > 0)
 				{
-					delete iconeList;
-					iconeList = newIconeList;
+					auto old = std::move(iconeList);
+					iconeList.reset(newIconeList);
+
+					nbElementInIconeList = iconeList->GetNbElement();
+
+					//old->EraseThumbnailListWithIcon();
 				}
 				else
 				{
