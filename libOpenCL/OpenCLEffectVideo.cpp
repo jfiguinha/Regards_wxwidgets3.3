@@ -3,7 +3,7 @@
 #include "OpenCLEffectVideo.h"
 #include "EffectVideoParameter.h"
 #include "OpenCLFilter.h"
-#include "hqdn3d.h"
+
 #include "VideoStabilization.h"
 #include <FaceDetector.h>
 #include <appcontext.h>
@@ -15,7 +15,7 @@ using namespace Regards::OpenCV;
 
 COpenCLEffectVideo::COpenCLEffectVideo()
 {
-	openclFilter = new COpenCLFilter();
+	openclFilter = std::make_unique<COpenCLFilter>();
 	openclFilter->SetIsVideo(true);
 	bool useMemory = (cv::ocl::Device::getDefault().type() == CL_DEVICE_TYPE_GPU) ? false : true;
 	flag = useMemory ? CL_MEM_USE_HOST_PTR : CL_MEM_COPY_HOST_PTR;
@@ -58,14 +58,6 @@ Regards::Picture::CPictureArray COpenCLEffectVideo::GetMatrix(const bool& src)
 	
 }
 
-COpenCLEffectVideo::~COpenCLEffectVideo()
-{
-	if (openclFilter != nullptr)
-		delete openclFilter;
-
-	if (hq3d != nullptr)
-		delete hq3d;
-}
 
 void COpenCLEffectVideo::ConvertToBgr()
 {
@@ -709,7 +701,7 @@ uint8_t* COpenCLEffectVideo::HQDn3D(uint8_t* y, int width, int height, const dou
 	{
 
 		if (hq3d == nullptr)
-			hq3d = new Chqdn3d(width, height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+			hq3d = std::make_unique<Chqdn3d>(width, height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
 		else if (hq3d != nullptr)
 		{
 			hq3d->UpdateParameter(width, height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
@@ -753,7 +745,7 @@ void COpenCLEffectVideo::HQDn3D(const double& LumSpac, const double& temporalLum
 		}
 
 		if (hq3d == nullptr)
-			hq3d = new Chqdn3d(width, height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+			hq3d = std::make_unique<Chqdn3d>(width, height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
 		else if (hq3d != nullptr)
 		{
 			hq3d->UpdateParameter(width, height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);

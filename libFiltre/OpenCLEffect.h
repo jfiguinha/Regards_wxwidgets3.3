@@ -124,7 +124,7 @@ namespace Regards::FiltreEffet
 		int Stylization(const double& sigma_s, const double& sigma_r) override;
         
 	protected:
-		COpenCLFilter* openclFilter;
+		std::unique_ptr<COpenCLFilter> openclFilter;
 		wxImage GetwxImage(cv::UMat& input);
 		int GetSizeData() const;
 		cl_mem_flags flag;

@@ -14,20 +14,10 @@
 #include <Draw.h>
 #include <BitmapDisplay.h>
 
-bool CFilterWindowParam::supportOpenCL = false;
 
-CFilterWindowParam::CFilterWindowParam(): m_pShader(nullptr)
+CFilterWindowParam::CFilterWindowParam()
 {
-	supportOpenCL = cv::ocl::haveOpenCL();
-}
 
-CFilterWindowParam::~CFilterWindowParam()
-{
-}
-
-void CFilterWindowParam::InitFilterOpenCLCompatible()
-{
-	supportOpenCL = cv::ocl::haveOpenCL();
 }
 
 CImageLoadingFormat* CFilterWindowParam::ApplyMouseMoveEffect(CEffectParameter* effectParameter,
@@ -85,7 +75,7 @@ void CFilterWindowParam::ApplyPreviewEffect(CEffectParameter* effectParameter, I
                                             CFiltreEffet* filtreEffet, CDraw* dessing, int& widthOutput,
                                             int& heightOutput)
 {
-	if (CFiltreData::IsOpenCLCompatible(GetNameFilter()) && supportOpenCL)
+	if (CFiltreData::IsOpenCLCompatible(GetNameFilter()) && cv::ocl::haveOpenCL())
 		filtreEffet->RenderEffect(GetNameFilter(), effectParameter);
 	else
 	{
@@ -94,14 +84,13 @@ void CFilterWindowParam::ApplyPreviewEffect(CEffectParameter* effectParameter, I
 		{
 			CImageLoadingFormat image;
 			image.SetPicture(bitmap);
-			auto filtre = new CFiltreEffet(bitmapViewer->GetBackColor(), false, false, &image);
+			auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
 			filtre->RenderEffect(GetNameFilter(), effectParameter);
-			auto imageLoad = new CImageLoadingFormat();
+			auto imageLoad = std::make_unique<CImageLoadingFormat>();
 			cv::Mat mat = filtre->GetBitmap(true);
 			imageLoad->SetPicture(mat);
-			filtreEffet->SetBitmap(imageLoad);
-			delete filtre;
-			delete imageLoad;
+			filtreEffet->SetBitmap(imageLoad.get());
+
 		}
 	}
 }
@@ -218,7 +207,7 @@ CImageLoadingFormat* CFilterWindowParam::RenderEffect(CEffectParameter* effectPa
 		RotateExif(bitmapViewer->GetOrientation(), filtre);
 	}
 
-	if (CFiltreData::IsOpenCLCompatible(numFiltre) && supportOpenCL)
+	if (CFiltreData::IsOpenCLCompatible(numFiltre) && cv::ocl::haveOpenCL())
 	{
 		if (filtre != nullptr)
 		{

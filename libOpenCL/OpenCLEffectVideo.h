@@ -1,10 +1,10 @@
 #pragma once
 #include <IEffectVideo.h>
-
-;
+#include "hqdn3d.h"
+#include "OpenCLFilter.h"
 class CRegardsFloatBitmap;
 class CVideoEffectParameter;
-class Chqdn3d;
+
 
 using namespace Regards::OpenGL;
 using namespace Regards::OpenCV;
@@ -25,7 +25,7 @@ namespace Regards
 		public:
 			COpenCLEffectVideo();
 
-			virtual ~COpenCLEffectVideo();
+			virtual ~COpenCLEffectVideo() = default;
 
 			int GetType()
 			{
@@ -77,14 +77,14 @@ namespace Regards
 				const int& nWidth, const int& nHeight, bool bgraOutput);
 
 
-			COpenCLFilter* openclFilter = nullptr;
+			std::unique_ptr<COpenCLFilter> openclFilter = nullptr;
 			wxString filename;
 			cv::Mat convertSrc;
 			cv::UMat paramSrc;
 			cv::UMat paramOutput;
 
 			cl_mem_flags flag;
-			Chqdn3d* hq3d = nullptr;
+			std::unique_ptr<Chqdn3d> hq3d = nullptr;
 			bool interpolatePicture = false;
 			bool needToTranscode = false;
 			bool isOk = false;

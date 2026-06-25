@@ -11,25 +11,17 @@ using namespace Regards::FiltreEffet;
 
 CCrop::CCrop()
 {
-	ptSelection = new CPenDrawInfo[4];
 	for (auto i = 0; i < 4; i++)
 	{
-		ptSelection[i].x = 0;
-		ptSelection[i].y = 0;
-		ptSelection[i].size = 0;
+		CPenDrawInfo drawInfo;
+		drawInfo.x = 0;
+		drawInfo.y = 0;
+		drawInfo.size = 0;
+		ptSelection.push_back(drawInfo);
 	}
 	iSelect = 0;
 	marge = 4;
 }
-
-CCrop::~CCrop()
-{
-	if (ptSelection != nullptr)
-		delete[] ptSelection;
-
-	ptSelection = nullptr;
-}
-
 
 void CCrop::Dessiner(wxDC* deviceContext, const long& m_lHScroll, const long& m_lVScroll, const float& ratio,
                      const wxColour& rgb, const wxColour& rgbFirst, const wxColour& rgbSecond, const int32_t& style)

@@ -109,14 +109,14 @@ namespace Regards
 			                    float ratioX, float ratioY, int x, int y, float left, float top);
 
 			cl_mem_flags flag;
-			Chqdn3d* hq3d = nullptr;
+			std::unique_ptr<Chqdn3d> hq3d = nullptr;
 			double oldLevelDenoise = 0;
 			int oldwidthDenoise = 0;
 			int oldheightDenoise = 0;
-			CAvirFilterParam* param = nullptr;
+			std::unique_ptr<CAvirFilterParam> param = nullptr;
 			bool isVideo = false;
-			std::map<wxString, OpenCLMemoryTemp *> openclMemTempMap;
-            CSuperSampling * superSampling;
+			std::map<wxString,OpenCLMemoryTemp *> openclMemTempMap;
+			std::unique_ptr<CSuperSampling> superSampling;
 
 		};
 	}

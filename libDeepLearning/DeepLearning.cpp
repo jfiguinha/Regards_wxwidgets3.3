@@ -34,9 +34,10 @@ void CDeepLearning::LoadRessource(const bool& openCLCompatible, const bool& cuda
 		std::lock_guard<std::mutex> lock(muLoading);
 		isload = true;
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
-
+		std::cerr << "CDeepLearning LoadRessource Execution Error : " << e.what() << std::endl;
+		return;
 	}
 }
 
@@ -59,9 +60,9 @@ bool CDeepLearning::IsResourceReady()
 		std::lock_guard<std::mutex> lock(muLoading);
 		isLoading = isload;
 	}
-	catch (...)
+	catch (const std::exception& e)
 	{
-
+		std::cerr << "CDeepLearning::IsResourceReady Execution Error: " << e.what() << std::endl;
 	}
 	return isLoading;
 }

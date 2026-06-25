@@ -167,26 +167,17 @@ COpenCLFilter::COpenCLFilter()
 	bool useMemory = (ocl::Device::getDefault().type() == CL_DEVICE_TYPE_GPU) ? false : true;
 	flag = useMemory ? CL_MEM_USE_HOST_PTR : CL_MEM_COPY_HOST_PTR;
 	hq3d = nullptr;
-    superSampling = new CSuperSampling();
+    superSampling = std::make_unique<CSuperSampling>();
 
 }
 
 COpenCLFilter::~COpenCLFilter()
 {
-	if (hq3d != nullptr)
-		delete hq3d;
-
-	if (param != nullptr)
-	{
-		delete param;
-		param = nullptr;
-	}
-    
+   
     for (auto& pair : openclMemTempMap)
         delete pair.second;
     openclMemTempMap.clear();
-    
-    delete superSampling;
+
 
 }
 
@@ -1658,11 +1649,10 @@ uint8_t * COpenCLFilter::HQDn3D(const double& LumSpac, const double& temporalLum
 	
 	uint8_t* dataOut = nullptr;
 	if (hq3d == nullptr)
-		hq3d = new Chqdn3d(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+		hq3d = std::make_unique<Chqdn3d>(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
 	else if (oldLevelDenoise != LumSpac || inputData.cols != oldwidthDenoise || inputData.rows != oldheightDenoise)
 	{
-		delete hq3d;
-		hq3d = new Chqdn3d(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+		hq3d.reset(new Chqdn3d(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault));
 	}
 	try
 	{
@@ -1682,11 +1672,10 @@ void COpenCLFilter::HQDn3D(const double& LumSpac, const double& temporalLumaDefa
 {
 	
 	if (hq3d == nullptr)
-		hq3d = new Chqdn3d(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+		hq3d = std::make_unique<Chqdn3d>(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
 	else if (oldLevelDenoise != LumSpac || inputData.cols != oldwidthDenoise || inputData.rows != oldheightDenoise)
 	{
-		delete hq3d;
-		hq3d = new Chqdn3d(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+		hq3d.reset(new Chqdn3d(inputData.cols, inputData.rows, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault));
 	}
 	try
 	{
@@ -2024,7 +2013,7 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 				bool useParam = false;
 				if (param == nullptr)
 				{
-					param = new CAvirFilterParam();
+					param = std::make_unique<CAvirFilterParam>();
 					param->width = src.cols;
 					param->height = src.rows;
 					param->widthOut = widthOut;
@@ -2034,8 +2023,7 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 				{
 					if (param->width != src.cols || param->height != src.rows || param->widthOut != widthOut  || param->heightOut != heightOut)
 					{
-						delete param;
-						param = new CAvirFilterParam();
+						param.reset(new CAvirFilterParam());
 						param->width = src.cols;
 						param->height = src.rows;
 						param->widthOut = widthOut;
@@ -2052,11 +2040,11 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 				
 				if(useParam)
                 {
-					out = ImageResizer.resizeImageOpenCLWithStep(src, param);
+					out = ImageResizer.resizeImageOpenCLWithStep(src, param.get());
                 }
 				else
                 {
-					out = ImageResizer.resizeImageOpenCL(src, src.cols, src.rows, widthOut, heightOut, 4, 0, param, &Vars);
+					out = ImageResizer.resizeImageOpenCL(src, src.cols, src.rows, widthOut, heightOut, 4, 0, param.get(), &Vars);
                 }
 				
 				cvDestBgra = out;

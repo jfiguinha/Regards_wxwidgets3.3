@@ -12,7 +12,7 @@ namespace Regards::FiltreEffet
 	{
 	public:
 		CCrop();
-		~CCrop() override;
+		~CCrop() = default;
 		void GetPos(wxRect& rc) override;
 		void InitPoint(const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll,
 		               const float& ratio) override;
@@ -25,7 +25,7 @@ namespace Regards::FiltreEffet
 		               const long& m_lVScroll, const float& ratio) override;
 
 	private:
-		CPenDrawInfo* ptSelection;
+		vector<CPenDrawInfo> ptSelection;
 		int iSelect;
 		int marge;
 	};

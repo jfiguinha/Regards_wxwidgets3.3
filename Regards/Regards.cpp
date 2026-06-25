@@ -480,8 +480,6 @@ bool MyApp::InitializeResources()
 		exit(0);
 	}
 
-	CFilterWindowParam::InitFilterOpenCLCompatible();
-
 	//Chargement des ressources
 	wxXmlResource::Get()->InitAllHandlers();
 

@@ -1,8 +1,7 @@
 #pragma once
 #include "IFiltreEffet.h"
+#include <hqdn3d.h>
 
-;
-class Chqdn3d;
 using namespace Regards::OpenGL;
 
 
@@ -11,7 +10,7 @@ class CFiltreEffetCPU : public IFiltreEffet
 {
 public:
 	CFiltreEffetCPU(CRgbaquad back_color, CImageLoadingFormat* bitmap);
-	~CFiltreEffetCPU() override;
+	~CFiltreEffetCPU() =default;
 
 	int GetType() 
 	{
@@ -97,7 +96,7 @@ private:
 	void ChangeFacialSkinColor(cv::Mat smallImgBGR, cv::Mat bigEdges);
 	void RemovePepperNoise(cv::Mat& mask);
 
-	Chqdn3d* hq3d = nullptr;
+	std::unique_ptr<Chqdn3d> hq3d = nullptr;
 	int oldLevelDenoise = 4;
 	int oldwidthDenoise = 0;
 	int oldheightDenoise = 0;

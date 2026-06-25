@@ -27,7 +27,7 @@ class CFilterWindowParam : public IMouseUpdate
 {
 public:
 	CFilterWindowParam();
-	virtual ~CFilterWindowParam();
+	virtual ~CFilterWindowParam() = default;
 
 	virtual wxString GetFilterLabel() = 0;
 
@@ -77,8 +77,7 @@ public:
 	virtual bool SupportMouseSelection();
 	virtual bool SupportMouseClick();
 	virtual void SetCursor();
-	static void InitFilterOpenCLCompatible();
-	//static void SetOpenCLCompatible(const bool & openCLCompatible);
+
 	virtual CDraw* GetDrawingPt()
 	{
 		return nullptr;
@@ -124,6 +123,5 @@ protected:
 	cv::Mat source;
 	wxString filename = "";
 	int orientation;
-	GLSLShader* m_pShader;
-	static bool supportOpenCL;
+
 };

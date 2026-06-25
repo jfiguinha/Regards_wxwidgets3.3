@@ -7,7 +7,7 @@
 #include <DeepLearning.h>
 #include "Wave.h"
 #include <ImageLoadingFormat.h>
-#include <hqdn3d.h>
+
 #include "MeanShift.h"
 #include <opencv2/xphoto.hpp>
 #include <FaceDetector.h>
@@ -1297,28 +1297,8 @@ int CFiltreEffetCPU::SharpenMasking(const float& sharpness)
 	return 0;
 }
 
-CFiltreEffetCPU::~CFiltreEffetCPU()
-{
-	if (hq3d != nullptr)
-		delete hq3d;
-}
-
 wxImage CFiltreEffetCPU::GetwxImage()
 {
-	/*
-	CImageLoadingFormat picture;
-
-	if (preview)
-		picture.SetPicture(paramOutput);
-	else
-		picture.SetPicture(input);
-
-
-	
-	return picture.GetwxImage();
-	*/
-
-
 	Mat im2;
 
 	if (preview)
@@ -1575,13 +1555,12 @@ int CFiltreEffetCPU::HQDn3D(const double& LumSpac, const double& temporalLumaDef
 
 	if (hq3d == nullptr)
 	{
-		hq3d = new Chqdn3d(image.size().width, image.size().height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+		hq3d = std::make_unique<Chqdn3d>(image.size().width, image.size().height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
 	}
 	else if (oldLevelDenoise != LumSpac || image.size().width != oldwidthDenoise || image.size().height
 		!= oldheightDenoise)
 	{
-		delete hq3d;
-		hq3d = new Chqdn3d(image.size().width, image.size().height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault);
+		hq3d.reset(new Chqdn3d(image.size().width, image.size().height, LumSpac, temporalLumaDefault, temporalSpatialLumaDefault));
 	}
 
 	hq3d->ApplyDenoise3D(image);

@@ -16,7 +16,7 @@ COpenCLEffect::COpenCLEffect(const CRgbaquad& backColor, CImageLoadingFormat* bi
 	this->backColor = backColor;
 	flag = CL_MEM_COPY_HOST_PTR;
 	SetBitmap(bitmap);
-	openclFilter = new COpenCLFilter();
+	openclFilter = std::make_unique<COpenCLFilter>();
 }
 
 bool COpenCLEffect::StabilizeVideo(OpenCV::COpenCVStabilization* stabilization)
@@ -108,7 +108,6 @@ void COpenCLEffect::SetBitmap(CImageLoadingFormat* bitmap)
 
 COpenCLEffect::~COpenCLEffect()
 {
-	delete openclFilter;
 	input.release();
 	paramOutput.release();
 }

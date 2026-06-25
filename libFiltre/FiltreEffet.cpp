@@ -174,14 +174,14 @@ CFiltreEffet::CFiltreEffet(const CRgbaquad& backColor, const bool& useOpenCL, co
 	{
 		if (cv::ocl::haveOpenCL())
 		{
-			filtreEffet = new COpenCLEffect(backColor, bitmap);
+			filtreEffet = std::make_unique<COpenCLEffect>(backColor, bitmap);
 			this->numLib = LIBOPENCL;
 		}
 	}
 
 	if (this->numLib == LIBCPU)
 	{
-		filtreEffet = new CFiltreEffetCPU(backColor, bitmap);
+		filtreEffet = std::make_unique<CFiltreEffetCPU>(backColor, bitmap);
 	}
 }
 
@@ -189,12 +189,6 @@ void CFiltreEffet::SetBitmap(CImageLoadingFormat* bitmap)
 {
 	if (filtreEffet != nullptr)
 		filtreEffet->SetBitmap(bitmap);
-}
-
-CFiltreEffet::~CFiltreEffet()
-{
-	if (filtreEffet != nullptr)
-		delete(filtreEffet);
 }
 
 int CFiltreEffet::RedEye()
