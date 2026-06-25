@@ -1,6 +1,5 @@
 #include <header.h>
 #include "ExportDiaporama.h"
-#include "ffmpeg_application.h"
 #include <SqlFindPhotos.h>
 #include <LibResource.h>
 #include <FileUtility.h>
@@ -9,18 +8,10 @@
 #include <ConvertUtility.h>
 #include <RegardsConfigParam.h>
 #include <ParamInit.h>
-#include <ffmpeg_transcoding.h>
-#include <window_id.h>
-#include <MediaInfo.h>
+#include <ffmpeg_application.h>
 #include <CompressionAudioVideoOption.h>
 #include <MainParam.h>
 #include <MainParamInit.h>
-#include <VideoCompressOption.h>
-
-extern "C"
-{
-#include <libavutil/error.h>
-}
 
 using namespace std;
 using namespace Regards::Sqlite;

@@ -10,22 +10,13 @@
 #include <FileUtility.h>
 #include <LibResource.h>
 #include <libPicture.h>
-extern "C" {
-#include <libswscale/swscale.h>
-}
+
 #if defined(__WXMSW__)
 #include "../include/window_id.h"
 #else
 #include <window_id.h>
 #endif
 
-#ifndef wxHAS_IMAGES_IN_RESOURCES
-#ifdef __WXGTK__
-#include "../Resource/sample.xpm"
-#else
-#include "../../Resource/sample.xpm"
-#endif
-#endif
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
 BEGIN_EVENT_TABLE(CVideoConverterFrame, wxFrame)
