@@ -60,14 +60,14 @@ namespace Regards::Scanner
 		int nbThumbnail;
 		bool showValidationToolbar = false;
 		//Thumbnail Video
-		std::unique_ptr<CScrollbarWnd> scrollVideoWindow;
-		std::unique_ptr<CThumbnailMultiPage> thumbnailVideo;
-		std::unique_ptr<CFiltreToolbar> filtreToolbar;
-		std::unique_ptr<CWindowManager> windowManager;
-		std::unique_ptr<CPanelInfosWnd> panelInfosWindow;
+		CScrollbarWnd * scrollVideoWindow;
+		CThumbnailMultiPage * thumbnailVideo;
+		CFiltreToolbar * filtreToolbar;
+		CWindowManager * windowManager;
+		CPanelInfosWnd * panelInfosWindow;
 
 		//CPreviewThumbnailSplitter * previewThumbnailSplitter;
-		std::unique_ptr<CShowElement> showBitmapWindow;
+		CShowElement * showBitmapWindow;
 		bool checkValidity;
 		bool isFullscreen;
 		wxString filename;

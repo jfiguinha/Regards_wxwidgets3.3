@@ -6,6 +6,7 @@
 #include <wx/filename.h>
 #include <MediaInfo.h>
 #include <ffmpeg_application.h>
+#include <MediaExtractor.h>
 #include <ConvertUtility.h>
 #include <FileUtility.h>
 #include <LibResource.h>
@@ -235,6 +236,14 @@ void CVideoConverterFrame::ExportVideo(wxString fileIn)
 		if ((videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy) || (!videoCompressOption
 			->audioDirectCopy && !videoCompressOption->videoDirectCopy))
 		{
+			wxFileName file_temp(fileOutputPath);
+			fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), file_temp.GetPath(),
+				true);
+
+			wxString timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
+			wxString timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
+			result = Regards::Media::ExecuteFFmpegCutVideo(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOut.utf8_string());
+			/*
 			bool result = ExecuteFFmpeg([&](CFFmpegApp& app)
 				{
 					wxFileName file_temp(fileOutputPath);
@@ -244,7 +253,7 @@ void CVideoConverterFrame::ExportVideo(wxString fileIn)
 					wxString timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
 					wxString timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
 					ret = app.ExecuteFFmpegCutVideo(filename, timeInput, timeOutput, fileOut);
-				});
+				});*/
 
 			if (videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy)
 			{
@@ -263,6 +272,13 @@ void CVideoConverterFrame::ExportVideo(wxString fileIn)
 		{
 			if (videoCompressOption->audioDirectCopy)
 			{
+
+				wxFileName file_temp(fileOutputPath);
+				fileOutVideo = CFileUtility::GetTempFile("temp_video." + file_temp.GetExt(),
+					file_temp.GetPath(), true);
+				result = Regards::Media::ExecuteFFmpegExtractVideo(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOutVideo.utf8_string());
+
+				/*
 				result = ExecuteFFmpeg([&](CFFmpegApp& app)
 					{
 						wxFileName file_temp(fileOutputPath);
@@ -270,7 +286,7 @@ void CVideoConverterFrame::ExportVideo(wxString fileIn)
 							file_temp.GetPath(), true);
 						ret = app.ExecuteFFmpegExtractVideo(filename, timeInput, timeOutput, fileOutVideo);
 					});
-
+				*/
 				if (result && wxFileExists(fileOutVideo))
 				{
 					ffmpegEncoder->EncodeFile(this, fileOutVideo, fileOut, rotation);
@@ -282,6 +298,11 @@ void CVideoConverterFrame::ExportVideo(wxString fileIn)
 			}
 			else if (videoCompressOption->videoDirectCopy)
 			{
+				wxFileName file_temp(fileOutputPath);
+				fileOutAudio = CFileUtility::GetTempFile("temp_audio." + file_temp.GetExt(),
+					file_temp.GetPath(), true);
+				result = Regards::Media::ExecuteFFmpegExtractAudio(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOutAudio.utf8_string());
+				/*
 				result = ExecuteFFmpeg([&](CFFmpegApp& app)
 					{
 						wxFileName file_temp(fileOutputPath);
@@ -289,7 +310,7 @@ void CVideoConverterFrame::ExportVideo(wxString fileIn)
 							file_temp.GetPath(), true);
 						ret = app.ExecuteFFmpegExtractAudio(filename, timeInput, timeOutput, fileOutAudio);
 					});
-
+					*/
 				if (result && wxFileExists(fileOutAudio))
 				{
 					ret = ffmpegEncoder->EncodeFile(this, fileOutAudio, fileOut, rotation);

@@ -16,7 +16,7 @@ namespace Regards::Scanner
 	{
 	public:
 		CCentralWindow(wxWindow* parent, wxWindowID id, CScannerFrame* frame);
-		~CCentralWindow() override;
+		~CCentralWindow() = default;
 
 		wxString LoadFile();
 		wxString LoadFile(const wxString& filename);

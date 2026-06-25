@@ -133,30 +133,13 @@ int CCentralWindow::OnOpen(const int& type)
 	//bool isOk = false;
 
 	//Check Temp Folder
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
+	//wxFileName tempFolder = wxFileName(CFileUtility::GetDocumentFolderPath());
+	//tempFolder.AppendDir("temp");
 
 
 	if (type != ADDFILE)
 	{
-#ifdef WIN32
-		filename = tempFolder + "\\local_pdf_file.pdf";
-#else
-		filename = tempFolder + "/local_pdf_file.pdf";
-#endif
-
-		if (wxFileExists(filename))
-		{
-#ifdef WIN32
-			std::remove(filename);
-#else
-			wxRemoveFile(filename);
-#endif
-		}
+		filename = CFileUtility::GetTempFile("local_pdf_file.pdf", true);
 	}
 
 	wxString file = "";
@@ -238,20 +221,7 @@ void CCentralWindow::OnSave(wxCommandEvent& event)
 {
 	if (filename != "")
 	{
-		wxString tempFolder = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-		tempFolder.append("\\temp");
-#else
-		tempFolder.append("/temp");
-#endif
-
-
-#ifdef WIN32
-		filename = tempFolder + "\\local_pdf_file.pdf";
-#else
-		filename = tempFolder + "/local_pdf_file.pdf";
-#endif
+		filename = CFileUtility::GetTempFile("local_pdf_file.pdf", true);
 
 		//wxString filenameTitle = CLibResource::LoadStringFromResource(L"LBLFILESNAME", 1);
 		wxString savePdfFile = CLibResource::LoadStringFromResource(L"LBLSAVEPDFFILE", 1);
@@ -345,29 +315,7 @@ int CCentralWindow::LoadPictureFile(wxArrayString& listFile, wxString filenameOu
 
 wxString CCentralWindow::ProcessLoadFiles(wxArrayString& listFile)
 {
-	wxString temporyFile = "";
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
-
-#ifdef WIN32
-	temporyFile = tempFolder + "\\temporary_file.pdf";
-#else
-	temporyFile = tempFolder + "/temporary_file.pdf";
-#endif
-
-	if (wxFileExists(temporyFile))
-	{
-#ifdef WIN32
-		std::remove(temporyFile);
-#else
-		wxRemoveFile(temporyFile);
-#endif
-	}
-
+	wxString temporyFile = CFileUtility::GetTempFile("temporary_file.pdf", true);
 
 	CLibPicture libPicture;
 
@@ -471,16 +419,6 @@ void CCentralWindow::RedrawBarPos()
 	{
 		previewWindow->SetSize(0, topHeight, width, height - topHeight);
 	}
-}
-
-
-CCentralWindow::~CCentralWindow()
-{
-	if (previewWindow != nullptr)
-		delete previewWindow;
-
-	if (toolbarPDF != nullptr)
-		delete(toolbarPDF);
 }
 
 void CCentralWindow::UpdateScreenRatio()

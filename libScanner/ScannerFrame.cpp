@@ -130,10 +130,6 @@ void CScannerFrame::OnCloseWindow(wxCloseEvent& event)
 	}
 }
 
-CScannerFrame::~CScannerFrame()
-{
-}
-
 int CScannerFrame::OnOpen()
 {
 	int value = -1;

@@ -10,7 +10,7 @@ namespace Regards::Scanner
 	public:
 		CThumbnailMultiPage(wxWindow* parent, wxWindowID id, const CThemeThumbnail& themeThumbnail,
 		                    const bool& testValidity);
-		~CThumbnailMultiPage(void) override;
+		~CThumbnailMultiPage(void) = default;
 		void SetFile(const wxString& filename, std::vector<std::unique_ptr<CImageVideoThumbnail>>& videoThumbnail);
 		void SetVideoPosition(const int64_t& videoPos);
 

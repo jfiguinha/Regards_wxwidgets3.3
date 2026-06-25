@@ -54,7 +54,7 @@ public:
 	CScannerFrame(const wxString &title, ISCannerInterface * mainInterface, const wxPoint &pos, const wxSize &size,
 		long style = wxDEFAULT_FRAME_STYLE);
 
-    ~CScannerFrame();
+    ~CScannerFrame() = default;
 
 	void PrintPreview(const wxString& filename);
 	void PrintPreview(cv::Mat& picture);

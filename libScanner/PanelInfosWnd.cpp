@@ -248,10 +248,6 @@ wxString CPanelInfosWnd::GetFilename()
 	return _filename;
 }
 
-CPanelInfosWnd::~CPanelInfosWnd()
-{
-	delete(webBrowser);
-}
 
 void CPanelInfosWnd::SetFile(wxString filename)
 {

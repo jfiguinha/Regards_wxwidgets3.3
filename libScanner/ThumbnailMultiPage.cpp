@@ -25,9 +25,6 @@ CThumbnailMultiPage::CThumbnailMultiPage(wxWindow* parent, wxWindowID id, const 
 	threadDataProcess = true;
 }
 
-CThumbnailMultiPage::~CThumbnailMultiPage(void)
-{
-}
 
 void CThumbnailMultiPage::OnPictureClick(const int& numPhotoId)
 {

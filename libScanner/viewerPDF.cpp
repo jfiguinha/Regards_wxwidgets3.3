@@ -19,6 +19,7 @@
 #include "OcrWnd.h"
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
+#include <wx/filename.h>
 using namespace Regards::Picture;
 using namespace Regards::Window;
 using namespace Regards::Scanner;
@@ -48,7 +49,7 @@ CViewerPDF::CViewerPDF(wxWindow* parent, CScannerFrame* frame, wxWindowID id)
 	{
 		CThemeSplitter theme;
 		viewerTheme->GetSplitterTheme(&theme);
-		windowManager = std::make_unique<CWindowManager>(this, wxID_ANY, theme);
+		windowManager = new CWindowManager(this, wxID_ANY, theme);
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -74,13 +75,13 @@ CViewerPDF::CViewerPDF(wxWindow* parent, CScannerFrame* frame, wxWindowID id)
 		viewerTheme->GetScrollTheme(&themeScroll);
 		viewerTheme->GetThumbnailTheme(&themeVideo);
 
-		thumbnailVideo = std::make_unique<CThumbnailMultiPage>(windowManager.get(), wxID_ANY, themeVideo, checkValidity);
-		scrollVideoWindow = std::make_unique<CScrollbarWnd>(windowManager.get(), thumbnailVideo.get(), wxID_ANY);
+		thumbnailVideo = new CThumbnailMultiPage(windowManager, wxID_ANY, themeVideo, checkValidity);
+		scrollVideoWindow = new CScrollbarWnd(windowManager, thumbnailVideo, wxID_ANY);
 		scrollVideoWindow->HideVerticalScroll();
 		scrollVideoWindow->SetPageSize(200);
 		scrollVideoWindow->SetLineSize(200);
 
-		windowManager->AddPanel(scrollVideoWindow.get(), Pos::wxTOP, true,
+		windowManager->AddPanel(scrollVideoWindow, Pos::wxTOP, true,
 		                        themeVideo.themeIcone.GetHeight() + theme.GetHeight() * 2, rect, libelle,
 		                        "ThumbnailImageList", true, THUMBNAILPDFPANEL, true);
 	}
@@ -93,8 +94,8 @@ CViewerPDF::CViewerPDF(wxWindow* parent, CScannerFrame* frame, wxWindowID id)
 		viewerTheme->GetPaneTheme(&theme);
 		CThemeToolbar themeClickInfosToolbar;
 		viewerTheme->GetClickToolbarTheme(&themeClickInfosToolbar);
-		panelInfosWindow = std::make_unique<CPanelInfosWnd>(windowManager.get(), PANELINFOSWNDSCANNERID);
-		windowManager->AddPanel(panelInfosWindow.get(), Pos::wxRIGHT, false, 0, rect, libelle, "PictureInfosPanel", true,
+		panelInfosWindow = new CPanelInfosWnd(windowManager, PANELINFOSWNDSCANNERID);
+		windowManager->AddPanel(panelInfosWindow, Pos::wxRIGHT, false, 0, rect, libelle, "PictureInfosPanel", true,
 		                        PANELCLICKINFOSWNDID, false, true);
 	}
 
@@ -102,8 +103,8 @@ CViewerPDF::CViewerPDF(wxWindow* parent, CScannerFrame* frame, wxWindowID id)
 	{
 		CThemeToolbar theme;
 		viewerTheme->GetFiltreToolbarTheme(&theme);
-		filtreToolbar = std::make_unique<CFiltreToolbar>(this, wxID_ANY, theme, false);
-		windowManager->AddWindow(filtreToolbar.get(), Pos::wxBOTTOM, true, filtreToolbar->GetHeight(), rect, wxID_ANY, false);
+		filtreToolbar = new CFiltreToolbar(this, wxID_ANY, theme, false);
+		windowManager->AddWindow(filtreToolbar, Pos::wxBOTTOM, true, filtreToolbar->GetHeight(), rect, wxID_ANY, false);
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -111,9 +112,9 @@ CViewerPDF::CViewerPDF(wxWindow* parent, CScannerFrame* frame, wxWindowID id)
 	//----------------------------------------------------------------------------------------
 	if (viewerTheme != nullptr)
 	{
-		showBitmapWindow = std::make_unique<CShowElement>(windowManager.get(), SHOWBITMAPVIEWERIDPDF, BITMAPWINDOWVIEWERIDPDF,
+		showBitmapWindow = new CShowElement(windowManager, SHOWBITMAPVIEWERIDPDF, BITMAPWINDOWVIEWERIDPDF,
 		                                    SCANNER_MAINVIEWERWINDOWID, this, viewerTheme, false);
-		windowManager->AddWindow(showBitmapWindow.get(), Pos::wxCENTRAL, false, 0, rect, SCANNER_MAINVIEWERWINDOWID, false);
+		windowManager->AddWindow(showBitmapWindow, Pos::wxCENTRAL, false, 0, rect, SCANNER_MAINVIEWERWINDOWID, false);
 	}
 
 
@@ -291,33 +292,9 @@ void CViewerPDF::ImagePrecedente()
 
 wxString CViewerPDF::SetImage(wxImage imageFile)
 {
-	wxString file;
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
-
-#ifdef WIN32
-	file = tempFolder + "\\temp.pdf";
-#else
-	file = tempFolder + "/temp.pdf";
-#endif
-
-	if (wxFileExists(file))
-	{
-#ifdef WIN32
-		std::remove(file);
-#else
-		wxRemoveFile(file);
-#endif
-	}
-
-	//wxImage * imageTemp = new wxImage(imageFile);
-	imageFile.SaveFile(file);
-
-	return file;
+	wxString temporyFile = CFileUtility::GetTempFile("temp.pdf", true);
+	imageFile.SaveFile(temporyFile);
+	return temporyFile;
 }
 
 void CViewerPDF::LoadFile(const wxString& filename)
