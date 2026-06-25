@@ -6,9 +6,10 @@
 #include <ParamInit.h>
 #include "ViewerParamInit.h"
 #include "ViewerParam.h"
-#include <ffmpeg_application.h>
 #include <opencv2/core/ocl.hpp>
 #include <Gps.h>
+#include <MediaExtractor.h>
+
 using namespace Regards::Viewer;
 #ifndef WX_PRECOMP
 //(*InternalHeadersPCH(ConfigRegards)
@@ -103,7 +104,7 @@ ConfigRegards::ConfigRegards(wxWindow* parent)
 			encoderHardware = config->GetHardwareEncoder();
 
 		bool findEncoder = false;
-		std::vector<wxString> listHard = CFFmpegApp::GetHardwareList();
+		std::vector<wxString> listHard = Regards::Media::GetHardwareList();
 		if (listHard.size() > 0)
 		{
 			for (wxString hardware : listHard)
@@ -138,6 +139,8 @@ ConfigRegards::ConfigRegards(wxWindow* parent)
 
 	SetAutoLayout(TRUE);
 }
+
+
 
 void ConfigRegards::OnbtnPathVideoClick(wxCommandEvent& event)
 {

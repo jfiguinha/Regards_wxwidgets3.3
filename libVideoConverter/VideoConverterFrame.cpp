@@ -5,7 +5,7 @@
 #include <VideoCompressOption.h>
 #include <wx/filename.h>
 #include <MediaInfo.h>
-#include <ffmpeg_application.h>
+
 #include <MediaExtractor.h>
 #include <ConvertUtility.h>
 #include <FileUtility.h>

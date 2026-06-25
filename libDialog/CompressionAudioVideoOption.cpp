@@ -11,12 +11,10 @@
 #include <LibResource.h>
 #include <picture_utility.h>
 #include <WindowUtility.h>
-#include <ffmpeg_application.h>
+
 #include <ffmpeg_transcoding.h>
 #include <ParamInit.h>
-extern "C" {
-#include <libavutil/error.h>
-}
+#include <MediaExtractor.h>
 
 
 #ifndef WX_PRECOMP
@@ -222,7 +220,7 @@ CompressionAudioVideoOption::CompressionAudioVideoOption(wxWindow* parent)
 		encoderHardware = config->GetHardwareEncoder();
 
 	bool findEncoder = false;
-	std::vector<wxString> listHard = CFFmpegApp::GetHardwareList();
+	std::vector<wxString> listHard = Regards::Media::GetHardwareList();
 	if (listHard.size() > 0)
 	{
 		for (wxString hardware : listHard)

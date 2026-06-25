@@ -209,4 +209,7 @@ namespace Regards::Media {
         const std::string& outputFile,
         const std::string& timeVideo);
 
+
+    [[nodiscard]] std::vector<wxString> GetHardwareList();
+
 } // namespace Regards::Media

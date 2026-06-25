@@ -81,7 +81,7 @@ private:
 	void OnBtnMusicDiaporamaClick(wxCommandEvent& event);
 	void OnbtnPathVideoClick(wxCommandEvent& event);
 	void OnBtnPathPictureClick(wxCommandEvent& event);
-
+	
 
 	//(*Handlers(ConfigRegards)
 	void init();

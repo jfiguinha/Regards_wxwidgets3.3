@@ -1235,4 +1235,22 @@ namespace Regards::Media {
         }
     }
 
+    std::vector<wxString> GetHardwareList()
+    {
+        std::vector<wxString> list;
+        enum AVHWDeviceType type = AV_HWDEVICE_TYPE_NONE;
+        while ((type = av_hwdevice_iterate_types(type)) != AV_HWDEVICE_TYPE_NONE)
+        {
+            wxString encoder = av_hwdevice_get_type_name(type);
+            if (encoder == "cuda")
+                list.push_back("nvenc");
+            else if (encoder == "qsv")
+                list.push_back("qsv");
+            else if (encoder == "amf")
+                list.push_back("amf");
+        }
+
+        return list;
+    }
+
 } // namespace Regards::Media
