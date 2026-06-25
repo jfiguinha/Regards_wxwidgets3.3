@@ -276,7 +276,7 @@ void CShowPreview::ThreadLoading(void* data)
 			wxFileName filename(showPreview->filename);
 			showPreview->extension = filename.GetExt();
 		}
-		fileTemp = CFileUtility::GetTempFile("video_temp." + showPreview->extension, true);
+		fileTemp = CFileUtility::GetTempFile("video_temp." + showPreview->extension);
 		ret = showPreview->transcodeFFmpeg->EncodeFrame(showPreview->filename, fileTemp, showPreview->position);
 		showPreview->decodeFrameOriginal = showPreview->transcodeFFmpeg->GetFrameOutputWithOutEffect();
 

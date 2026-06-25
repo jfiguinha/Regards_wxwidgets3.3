@@ -54,8 +54,8 @@ wxString CFileUtility::GetResourcesFolderPathWithExt(const wxString & folder)
 
 wxString CFileUtility::GetTempFile(wxString filename, wxString folder, const bool& removeFile)
 {
-	wxFileName file(GetOrCreateSubFolder(folder),
-		filename);
+	wxString local_folder = GetOrCreateSubFolder(folder);
+	wxFileName file(local_folder, filename);
 	if (removeFile && wxFileExists(file.GetFullPath()))
 	{
 		if (!wxRemoveFile(file.GetFullPath()))
@@ -123,7 +123,8 @@ wxString CFileUtility::GetResourcesFolderPath()
 
 wxString CFileUtility::GetFaceZScorePath(const int& numFace)
 {
-	wxFileName file(GetOrCreateSubFolder("Face"),
+	wxString local_folder = GetOrCreateSubFolder("Face");
+	wxFileName file(local_folder,
 		wxString::Format("%d.bin", numFace));
 
 	return file.GetFullPath();
@@ -131,7 +132,8 @@ wxString CFileUtility::GetFaceZScorePath(const int& numFace)
 
 wxString CFileUtility::GetFaceThumbnailPath(const int& numFace)
 {
-	wxFileName file(GetOrCreateSubFolder("Face"),
+	wxString local_folder = GetOrCreateSubFolder("Face");
+	wxFileName file(local_folder,
 		wxString::Format("%d.jpg", numFace));
 
 	return file.GetFullPath();
@@ -139,6 +141,7 @@ wxString CFileUtility::GetFaceThumbnailPath(const int& numFace)
 
 wxString CFileUtility::GetVideoThumbnailPath(const wxString& videoPath, const int& numFrame)
 {
+	wxString local_folder = GetOrCreateSubFolder("ThumbnailVideo");
 	wxFileName sourceFile(videoPath);
 
 	wxString fileName = wxString::Format(
@@ -148,7 +151,7 @@ wxString CFileUtility::GetVideoThumbnailPath(const wxString& videoPath, const in
 	);
 
 	wxFileName thumbnailFile(
-		GetOrCreateSubFolder("ThumbnailVideo"),
+		local_folder,
 		fileName
 	);
 
@@ -158,13 +161,13 @@ wxString CFileUtility::GetVideoThumbnailPath(const wxString& videoPath, const in
 wxString CFileUtility::GetThumbnailPath(const wxString& path)
 {
 	wxFileName sourceFile(path);
-
+	wxString local_folder = GetOrCreateSubFolder("Thumbnail");
 	wxString fileName = wxString::Format(
 		"%s.jpg",
 		sourceFile.GetName());
 
 	wxFileName thumbnailFile(
-		GetOrCreateSubFolder("Thumbnail"),
+		local_folder,
 		fileName
 	);
 

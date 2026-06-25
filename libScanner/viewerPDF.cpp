@@ -292,7 +292,7 @@ void CViewerPDF::ImagePrecedente()
 
 wxString CViewerPDF::SetImage(wxImage imageFile)
 {
-	wxString temporyFile = CFileUtility::GetTempFile("temp.pdf", true);
+	wxString temporyFile = CFileUtility::GetTempFile("temp.pdf");
 	imageFile.SaveFile(temporyFile);
 	return temporyFile;
 }

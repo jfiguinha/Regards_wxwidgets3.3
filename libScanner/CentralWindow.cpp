@@ -139,7 +139,7 @@ int CCentralWindow::OnOpen(const int& type)
 
 	if (type != ADDFILE)
 	{
-		filename = CFileUtility::GetTempFile("local_pdf_file.pdf", true);
+		filename = CFileUtility::GetTempFile("local_pdf_file.pdf");
 	}
 
 	wxString file = "";
@@ -221,7 +221,7 @@ void CCentralWindow::OnSave(wxCommandEvent& event)
 {
 	if (filename != "")
 	{
-		filename = CFileUtility::GetTempFile("local_pdf_file.pdf", true);
+		filename = CFileUtility::GetTempFile("local_pdf_file.pdf");
 
 		//wxString filenameTitle = CLibResource::LoadStringFromResource(L"LBLFILESNAME", 1);
 		wxString savePdfFile = CLibResource::LoadStringFromResource(L"LBLSAVEPDFFILE", 1);
@@ -315,7 +315,7 @@ int CCentralWindow::LoadPictureFile(wxArrayString& listFile, wxString filenameOu
 
 wxString CCentralWindow::ProcessLoadFiles(wxArrayString& listFile)
 {
-	wxString temporyFile = CFileUtility::GetTempFile("temporary_file.pdf", true);
+	wxString temporyFile = CFileUtility::GetTempFile("temporary_file.pdf");
 
 	CLibPicture libPicture;
 

@@ -8,33 +8,14 @@
 #include <ConvertUtility.h>
 #include <RegardsConfigParam.h>
 #include <ParamInit.h>
-#include <ffmpeg_application.h>
 #include <CompressionAudioVideoOption.h>
 #include <MainParam.h>
 #include <MainParamInit.h>
-
+#include <MediaExtractor.h>
 using namespace std;
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 
-#define LOG_ERROR(msg) \
-    std::cerr << "[ERROR] " << __FUNCTION__ << " : " << msg << std::endl
-
-template<typename Func>
-bool ExecuteFFmpeg(Func&& func)
-{
-    try
-    {
-        CFFmpegApp app(false);
-        func(app);
-        return true;
-    }
-    catch (const std::exception& e)
-    {
-        LOG_ERROR(e.what());
-        return false;
-    }
-}
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -114,21 +95,14 @@ void CExportDiaporama::OnExportDiaporama(wxWindow* parent)
     {
         const wxString ext = wxFileName(musicPath).GetExt();
         const wxString movieTimeStr = CConvertUtility::GetTimeLibelle(time_movie);
-        const wxString tempAudio = CFileUtility::GetTempFile("audio." + ext);
+        const wxString tempAudio = CFileUtility::GetTempFile("audio." + ext, true);
 
+        bool result = Regards::Media::CreateLoopedAudio(musicPath.utf8_string(), tempAudio.utf8_string(), movieTimeStr.utf8_string());
+        if (result)
         {
-            ExecuteFFmpeg([&](CFFmpegApp& app)
-                {
-                    app.CropAudio(musicPath, movieTimeStr, ext, tempAudio);
-                });
+            result = Regards::Media::ExecuteFFmpegMuxVideoAudio(m_tempVideoFile.utf8_string(), tempAudio.utf8_string(), m_tempAudioVideoFile.utf8_string());
         }
-        {
-            ExecuteFFmpeg([&](CFFmpegApp& app)
-                {
-                    app.ExecuteFFmpegApp(m_tempVideoFile, tempAudio, movieTimeStr, m_tempAudioVideoFile);
-                });
-        }
-
+        
         RemoveIfExists(tempAudio);
         RemoveIfExists(m_tempVideoFile);       // FIX: was never deleted in original
         wxRenameFile(m_tempAudioVideoFile, filepath);

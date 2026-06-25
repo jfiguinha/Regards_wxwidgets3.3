@@ -341,14 +341,7 @@ wxString CScannerFrame::ScanPage()
 	
 	if (!wxFileExists(pdfFile))
 		pdfFile = "";
-    
-    /*
-    CScannerWindow d(this, -1, _("Acquire"));
-    if (d.ShowModal() == wxID_OK)
-    {
-        //image = d.GetImage();
-    }
-    */
+
 
 #else
 #if __WXSCANSANE__
@@ -430,13 +423,8 @@ wxString CScannerFrame::ScanPage()
 	{
 		pdfFile = CFileUtility::GetTempFile("scanner.pdf");
 		if (wxFileExists(pdfFile))
-		{
-#ifdef WIN32
-			std::remove(pdfFile);
-#else
 			wxRemoveFile(pdfFile);
-#endif
-		}
+
 		CRegardsPDF::SaveToPDF(&image, pdfFile);
 	}
 #endif

@@ -229,13 +229,7 @@ bool CRegardsPDF::SaveToPDF(wxImage* poImage, const wxString& pdfFile, int optio
 		fileToSave = CFileUtility::GetTempFile("scanner.tif");
 
 	if (wxFileExists(fileToSave))
-	{
-#ifdef WIN32
-		std::remove(fileToSave);
-#else
 		wxRemoveFile(fileToSave);
-#endif
-	}
 
 	if (option == 0)
 		poImage->SaveFile(fileToSave, wxBITMAP_TYPE_JPEG);

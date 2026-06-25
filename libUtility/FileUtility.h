@@ -21,12 +21,12 @@ public:
 	static wxString GetVideoThumbnailPath(const wxString& path, const int& numFrame);
 	static wxString GetFaceThumbnailPath(const int& numFace);
 	static wxString GetTempFile(wxString filename, const bool& removeFile = true);
-	static wxString GetTempFile(wxString filename, wxString folder, const bool& removeFile = true);
+
 	static wxString GetFaceZScorePath(const int& numFace);
 	static wxString GetOrCreateSubFolder(const wxString& folderName);
 	static std::string GetFullpathModel(const wxString& filename);
 private:
-	
+	static wxString GetTempFile(wxString filename, wxString folder, const bool& removeFile);
 #if defined(__APPLE__)
 	static wxString GetAppleExecFolderPath(const wxString& folder);
 #endif

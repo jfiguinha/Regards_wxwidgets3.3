@@ -148,10 +148,6 @@ namespace Regards::Media {
         }
 
     } // anonymous namespace
-
-    // ─────────────────────────────────────────────────────────────
-    //  Extraction principale
-    // ─────────────────────────────────────────────────────────────
     ExtractionResult MediaExtractor::Extract(
         const std::string& outputPath,
         const TimeRange& range,
@@ -160,170 +156,357 @@ namespace Regards::Media {
         ExtractionResult result;
         result.outputPath = outputPath;
 
-        if (!range.IsValid()) {
-            result.errorMessage = "TimeRange invalide (start >= end ou valeurs négatives).";
+        if (range.start > 0 && range.end > 0 && !range.IsValid())
+        {
+            result.errorMessage =
+                "TimeRange invalide (start >= end ou valeurs négatives).";
             return result;
         }
 
-        try {
-            // ── 1. Ouvrir le fichier source ───────────────────────────────
+        try
+        {
+            //------------------------------------------------------------------
+            // Ouverture entrée
+            //------------------------------------------------------------------
+
             AVFormatContext* rawIn = nullptr;
+
             ThrowIfError(
-                avformat_open_input(&rawIn, m_inputPath.c_str(), nullptr, nullptr),
-                "avformat_open_input"
-            );
+                avformat_open_input(
+                    &rawIn,
+                    m_inputPath.c_str(),
+                    nullptr,
+                    nullptr),
+                "avformat_open_input");
+
             UniqueInputFmt inCtx(rawIn);
-            ThrowIfError(avformat_find_stream_info(inCtx.get(), nullptr),
+
+            ThrowIfError(
+                avformat_find_stream_info(
+                    inCtx.get(),
+                    nullptr),
                 "avformat_find_stream_info");
 
-            // ── 2. Identifier les flux à copier ───────────────────────────
-            const int vIdx = (opts.mode != ExtractionMode::AudioOnly)
-                ? FindBestStream(inCtx.get(), AVMEDIA_TYPE_VIDEO, opts.videoIdx)
+            //------------------------------------------------------------------
+            // Sélection des flux
+            //------------------------------------------------------------------
+
+            const int vIdx =
+                (opts.mode != ExtractionMode::AudioOnly)
+                ? FindBestStream(
+                    inCtx.get(),
+                    AVMEDIA_TYPE_VIDEO,
+                    opts.videoIdx)
                 : -1;
-            const int aIdx = (opts.mode != ExtractionMode::VideoOnly)
-                ? FindBestStream(inCtx.get(), AVMEDIA_TYPE_AUDIO, opts.audioIdx)
+
+            const int aIdx =
+                (opts.mode != ExtractionMode::VideoOnly)
+                ? FindBestStream(
+                    inCtx.get(),
+                    AVMEDIA_TYPE_AUDIO,
+                    opts.audioIdx)
                 : -1;
 
             if (vIdx < 0 && aIdx < 0)
-                throw std::runtime_error("Aucun flux vidéo/audio trouvé pour le mode demandé.");
+                throw std::runtime_error(
+                    "Aucun flux vidéo/audio trouvé.");
 
-            // Carte : index flux source → index flux destination
+            //------------------------------------------------------------------
+            // Sortie
+            //------------------------------------------------------------------
+
             const unsigned nbStreams = inCtx->nb_streams;
+
             std::vector<int> streamMap(nbStreams, -1);
 
-            // ── 3. Créer le contexte de sortie ────────────────────────────
             AVFormatContext* rawOut = nullptr;
+
             ThrowIfError(
-                avformat_alloc_output_context2(&rawOut, nullptr, nullptr, outputPath.c_str()),
-                "avformat_alloc_output_context2"
-            );
+                avformat_alloc_output_context2(
+                    &rawOut,
+                    nullptr,
+                    nullptr,
+                    outputPath.c_str()),
+                "avformat_alloc_output_context2");
+
             UniqueOutputFmt outCtx(rawOut);
 
-            int outStreamIdx = 0;
-            for (unsigned i = 0; i < nbStreams; ++i) {
-                const bool isVideo = (static_cast<int>(i) == vIdx);
-                const bool isAudio = (static_cast<int>(i) == aIdx);
-                if (!isVideo && !isAudio) continue;
+            int outIndex = 0;
 
-                AVStream* inStream = inCtx->streams[i];
-                AVStream* outStream = avformat_new_stream(outCtx.get(), nullptr);
+            for (unsigned i = 0; i < nbStreams; ++i)
+            {
+                bool keep =
+                    (static_cast<int>(i) == vIdx) ||
+                    (static_cast<int>(i) == aIdx);
+
+                if (!keep)
+                    continue;
+
+                AVStream* inStream =
+                    inCtx->streams[i];
+
+                AVStream* outStream =
+                    avformat_new_stream(
+                        outCtx.get(),
+                        nullptr);
+
                 if (!outStream)
-                    throw std::runtime_error("avformat_new_stream a échoué.");
+                    throw std::runtime_error(
+                        "avformat_new_stream");
 
                 ThrowIfError(
-                    avcodec_parameters_copy(outStream->codecpar, inStream->codecpar),
-                    "avcodec_parameters_copy"
-                );
-                outStream->codecpar->codec_tag = 0;  // laisser FFmpeg choisir
-                streamMap[i] = outStreamIdx++;
+                    avcodec_parameters_copy(
+                        outStream->codecpar,
+                        inStream->codecpar),
+                    "avcodec_parameters_copy");
+
+                outStream->codecpar->codec_tag = 0;
+
+                streamMap[i] = outIndex++;
             }
 
-            if (outStreamIdx == 0)
-                throw std::runtime_error("Aucun flux ajouté au fichier de sortie.");
+            if (outIndex == 0)
+                throw std::runtime_error(
+                    "Aucun flux à copier.");
 
-            // ── 4. Ouvrir le fichier de sortie ────────────────────────────
-            if (!(outCtx->oformat->flags & AVFMT_NOFILE)) {
+            //------------------------------------------------------------------
+            // Ouverture sortie
+            //------------------------------------------------------------------
+
+            if (!(outCtx->oformat->flags & AVFMT_NOFILE))
+            {
                 ThrowIfError(
-                    avio_open(&outCtx->pb, outputPath.c_str(), AVIO_FLAG_WRITE),
-                    "avio_open"
-                );
+                    avio_open(
+                        &outCtx->pb,
+                        outputPath.c_str(),
+                        AVIO_FLAG_WRITE),
+                    "avio_open");
             }
-            ThrowIfError(avformat_write_header(outCtx.get(), nullptr),
+
+            ThrowIfError(
+                avformat_write_header(
+                    outCtx.get(),
+                    nullptr),
                 "avformat_write_header");
 
-            // ── 5. Seek vers start_time ───────────────────────────────────
+            //------------------------------------------------------------------
+            // Seek
+            //------------------------------------------------------------------
+
             const int64_t seekTarget =
-                static_cast<int64_t>(range.start * AV_TIME_BASE);
+                static_cast<int64_t>(
+                    (range.start > 0 ? range.start : 1) * AV_TIME_BASE);
 
-            if (opts.accurate) {
-                // Seek précis : on cherche le keyframe précédent, puis on lit jusqu'à start
+            if (opts.accurate)
+            {
                 ThrowIfError(
-                    avformat_seek_file(inCtx.get(), -1,
-                        INT64_MIN, seekTarget, seekTarget, 0),
-                    "avformat_seek_file (accurate)"
-                );
+                    avformat_seek_file(
+                        inCtx.get(),
+                        -1,
+                        INT64_MIN,
+                        seekTarget,
+                        seekTarget,
+                        0),
+                    "avformat_seek_file");
             }
-            else {
+            else
+            {
                 ThrowIfError(
-                    av_seek_frame(inCtx.get(), -1, seekTarget, AVSEEK_FLAG_BACKWARD),
-                    "av_seek_frame"
-                );
+                    av_seek_frame(
+                        inCtx.get(),
+                        -1,
+                        seekTarget,
+                        AVSEEK_FLAG_BACKWARD),
+                    "av_seek_frame");
             }
 
-            // ── 6. Calcul de la durée totale pour la progression ──────────
-            const double totalRange = range.end.value_or(m_durationSecs) - range.start;
+            //------------------------------------------------------------------
+            // Offsets temporels
+            //------------------------------------------------------------------
 
-            // ── 7. Boucle de copie des paquets ────────────────────────────
+            std::vector<int64_t> firstTs(
+                nbStreams,
+                AV_NOPTS_VALUE);
+
+            //------------------------------------------------------------------
+            // Progression
+            //------------------------------------------------------------------
+
+            double endTime = range.end > 0 ? range.end.value_or(m_durationSecs) : m_durationSecs;
+
+            const double totalRange =
+                endTime - range.start;
+
+            //------------------------------------------------------------------
+            // Lecture
+            //------------------------------------------------------------------
+
             UniquePacket pkt(av_packet_alloc());
-            if (!pkt) throw std::runtime_error("av_packet_alloc a échoué.");
+
+            if (!pkt)
+                throw std::runtime_error(
+                    "av_packet_alloc");
 
             int64_t bytesWritten = 0;
 
-            while (true) {
-                const int ret = av_read_frame(inCtx.get(), pkt.get());
-                if (ret == AVERROR_EOF) break;
-                ThrowIfError(ret, "av_read_frame");
+            while (true)
+            {
+                int ret =
+                    av_read_frame(
+                        inCtx.get(),
+                        pkt.get());
 
-                const int srcIdx = pkt->stream_index;
-                const int dstIdx = (srcIdx < static_cast<int>(nbStreams)) ? streamMap[srcIdx] : -1;
+                if (ret == AVERROR_EOF)
+                    break;
 
-                if (dstIdx < 0) {
+                ThrowIfError(
+                    ret,
+                    "av_read_frame");
+
+                const int srcIdx =
+                    pkt->stream_index;
+
+                const int dstIdx =
+                    (srcIdx < static_cast<int>(nbStreams))
+                    ? streamMap[srcIdx]
+                    : -1;
+
+                if (dstIdx < 0)
+                {
                     av_packet_unref(pkt.get());
                     continue;
                 }
 
-                AVStream* inStream = inCtx->streams[srcIdx];
-                AVStream* outStream = outCtx->streams[dstIdx];
+                AVStream* inStream =
+                    inCtx->streams[srcIdx];
 
-                // Convertir les timestamps dans la time_base de sortie
-                pkt->pts = av_rescale_q_rnd(
-                    pkt->pts, inStream->time_base, outStream->time_base,
-                    static_cast<AVRounding>(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-                pkt->dts = av_rescale_q_rnd(
-                    pkt->dts, inStream->time_base, outStream->time_base,
-                    static_cast<AVRounding>(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-                pkt->duration = av_rescale_q(
-                    pkt->duration, inStream->time_base, outStream->time_base);
+                AVStream* outStream =
+                    outCtx->streams[dstIdx];
+
+                //------------------------------------------------------------------
+                // Timestamp source
+                //------------------------------------------------------------------
+
+                int64_t ts =
+                    (pkt->pts != AV_NOPTS_VALUE)
+                    ? pkt->pts
+                    : pkt->dts;
+
+                if (ts == AV_NOPTS_VALUE)
+                {
+                    av_packet_unref(pkt.get());
+                    continue;
+                }
+
+                const double pktTimeSecs =
+                    ts * av_q2d(
+                        inStream->time_base);
+
+                //------------------------------------------------------------------
+                // Avant début
+                //------------------------------------------------------------------
+
+                if (pktTimeSecs < range.start)
+                {
+                    av_packet_unref(pkt.get());
+                    continue;
+                }
+
+                //------------------------------------------------------------------
+                // Après fin
+                //------------------------------------------------------------------
+
+                if (pktTimeSecs > endTime)
+                {
+                    av_packet_unref(pkt.get());
+                    break;
+                }
+
+                //------------------------------------------------------------------
+                // Initialisation offset flux
+                //------------------------------------------------------------------
+
+                if (firstTs[srcIdx] == AV_NOPTS_VALUE)
+                    firstTs[srcIdx] = ts;
+
+                //------------------------------------------------------------------
+                // Recentrage à zéro
+                //------------------------------------------------------------------
+
+                if (pkt->pts != AV_NOPTS_VALUE)
+                    pkt->pts -= firstTs[srcIdx];
+
+                if (pkt->dts != AV_NOPTS_VALUE)
+                    pkt->dts -= firstTs[srcIdx];
+
+                //------------------------------------------------------------------
+                // Conversion time_base
+                //------------------------------------------------------------------
+
+                av_packet_rescale_ts(
+                    pkt.get(),
+                    inStream->time_base,
+                    outStream->time_base);
+
+                pkt->stream_index =
+                    dstIdx;
+
                 pkt->pos = -1;
-                pkt->stream_index = dstIdx;
 
-                // Vérifier si on a dépassé end_time
-                if (range.end.has_value()) {
-                    const double pktTimeSecs =
-                        static_cast<double>(pkt->pts) * av_q2d(outStream->time_base);
-                    if (pktTimeSecs > *range.end) {
+                //------------------------------------------------------------------
+                // Ecriture
+                //------------------------------------------------------------------
+
+                ThrowIfError(
+                    av_interleaved_write_frame(
+                        outCtx.get(),
+                        pkt.get()),
+                    "av_interleaved_write_frame");
+
+                bytesWritten += pkt->size;
+
+                //------------------------------------------------------------------
+                // Progression
+                //------------------------------------------------------------------
+
+                if (opts.progressCallback &&
+                    totalRange > 0.0)
+                {
+                    const double progress =
+                        std::clamp(
+                            (pktTimeSecs - range.start) /
+                            totalRange,
+                            0.0,
+                            1.0);
+
+                    if (!opts.progressCallback(progress))
+                    {
                         av_packet_unref(pkt.get());
                         break;
                     }
-
-                    // Progression
-                    if (opts.progressCallback && totalRange > 0.0) {
-                        const double elapsed = pktTimeSecs - range.start;
-                        const double progress = std::clamp(elapsed / totalRange, 0.0, 1.0);
-                        if (!opts.progressCallback(progress)) {
-                            av_packet_unref(pkt.get());
-                            break; // annulation
-                        }
-                    }
                 }
 
-                bytesWritten += pkt->size;
-                ThrowIfError(av_interleaved_write_frame(outCtx.get(), pkt.get()),
-                    "av_interleaved_write_frame");
                 av_packet_unref(pkt.get());
             }
 
-            ThrowIfError(av_write_trailer(outCtx.get()), "av_write_trailer");
+            //------------------------------------------------------------------
+            // Finalisation
+            //------------------------------------------------------------------
 
-            // ── 8. Remplir le résultat ────────────────────────────────────
+            ThrowIfError(
+                av_write_trailer(
+                    outCtx.get()),
+                "av_write_trailer");
+
             result.success = true;
             result.bytesWritten = bytesWritten;
-            result.durationSecs = range.end.value_or(m_durationSecs) - range.start;
+            result.durationSecs = totalRange;
 
             if (opts.progressCallback)
                 opts.progressCallback(1.0);
         }
-        catch (const std::exception& e) {
+        catch (const std::exception& e)
+        {
             result.success = false;
             result.errorMessage = e.what();
         }
@@ -347,8 +530,9 @@ namespace Regards::Media {
                 const double start = Timecode::FromString(timestart).ToSeconds();
                 const double stop = Timecode::FromString(timestop).ToSeconds();
 
-                if (stop <= start)
-                    return false;
+                if(start != 0 && stop != 0)
+                    if (stop <= start)
+                        return false;
 
                 MediaExtractor extractor(fileIn);
 
@@ -429,199 +613,624 @@ namespace Regards::Media {
         const std::string& fileAudio,
         const std::string& fileOutput)
     {
-        try {
-            // ── 1. Ouvrir les deux fichiers source ────────────────────────
+        try
+        {
+            //==================================================================
+            // Ouverture vidéo
+            //==================================================================
+
             AVFormatContext* rawVideo = nullptr;
+
             ThrowIfError(
-                avformat_open_input(&rawVideo, fileVideo.c_str(), nullptr, nullptr),
-                "avformat_open_input (vidéo)"
-            );
+                avformat_open_input(
+                    &rawVideo,
+                    fileVideo.c_str(),
+                    nullptr,
+                    nullptr),
+                "avformat_open_input(video)");
+
             UniqueInputFmt inVideo(rawVideo);
-            ThrowIfError(avformat_find_stream_info(inVideo.get(), nullptr),
-                "avformat_find_stream_info (vidéo)");
+
+            ThrowIfError(
+                avformat_find_stream_info(
+                    inVideo.get(),
+                    nullptr),
+                "avformat_find_stream_info(video)");
+
+            //==================================================================
+            // Ouverture audio
+            //==================================================================
 
             AVFormatContext* rawAudio = nullptr;
+
             ThrowIfError(
-                avformat_open_input(&rawAudio, fileAudio.c_str(), nullptr, nullptr),
-                "avformat_open_input (audio)"
-            );
+                avformat_open_input(
+                    &rawAudio,
+                    fileAudio.c_str(),
+                    nullptr,
+                    nullptr),
+                "avformat_open_input(audio)");
+
             UniqueInputFmt inAudio(rawAudio);
-            ThrowIfError(avformat_find_stream_info(inAudio.get(), nullptr),
-                "avformat_find_stream_info (audio)");
 
-            // ── 2. Sélectionner les flux à muxer ─────────────────────────
-            const int vIdx = av_find_best_stream(inVideo.get(), AVMEDIA_TYPE_VIDEO,
-                -1, -1, nullptr, 0);
+            ThrowIfError(
+                avformat_find_stream_info(
+                    inAudio.get(),
+                    nullptr),
+                "avformat_find_stream_info(audio)");
+
+            //==================================================================
+            // Recherche des flux
+            //==================================================================
+
+            const int vIdx =
+                av_find_best_stream(
+                    inVideo.get(),
+                    AVMEDIA_TYPE_VIDEO,
+                    -1,
+                    -1,
+                    nullptr,
+                    0);
+
             if (vIdx < 0)
-                throw std::runtime_error("Aucun flux vidéo trouvé dans : " + fileVideo);
+                throw std::runtime_error("Flux vidéo introuvable");
 
-            const int aIdx = av_find_best_stream(inAudio.get(), AVMEDIA_TYPE_AUDIO,
-                -1, -1, nullptr, 0);
+            const int aIdx =
+                av_find_best_stream(
+                    inAudio.get(),
+                    AVMEDIA_TYPE_AUDIO,
+                    -1,
+                    -1,
+                    nullptr,
+                    0);
+
             if (aIdx < 0)
-                throw std::runtime_error("Aucun flux audio trouvé dans : " + fileAudio);
+                throw std::runtime_error("Flux audio introuvable");
 
             AVStream* srcVideo = inVideo->streams[vIdx];
             AVStream* srcAudio = inAudio->streams[aIdx];
 
-            // ── 3. Créer le contexte de sortie ────────────────────────────
+            //==================================================================
+            // Sortie
+            //==================================================================
+
             AVFormatContext* rawOut = nullptr;
+
             ThrowIfError(
-                avformat_alloc_output_context2(&rawOut, nullptr, nullptr, fileOutput.c_str()),
-                "avformat_alloc_output_context2"
-            );
+                avformat_alloc_output_context2(
+                    &rawOut,
+                    nullptr,
+                    nullptr,
+                    fileOutput.c_str()),
+                "avformat_alloc_output_context2");
+
             UniqueOutputFmt outCtx(rawOut);
 
-            // Flux vidéo de sortie
-            AVStream* outVideo = avformat_new_stream(outCtx.get(), nullptr);
+            AVStream* outVideo =
+                avformat_new_stream(outCtx.get(), nullptr);
+
             if (!outVideo)
-                throw std::runtime_error("avformat_new_stream (vidéo) a échoué.");
+                throw std::runtime_error("Création flux vidéo impossible");
+
             ThrowIfError(
-                avcodec_parameters_copy(outVideo->codecpar, srcVideo->codecpar),
-                "avcodec_parameters_copy (vidéo)"
-            );
+                avcodec_parameters_copy(
+                    outVideo->codecpar,
+                    srcVideo->codecpar),
+                "copy video codecpar");
+
             outVideo->codecpar->codec_tag = 0;
 
-            // Flux audio de sortie
-            AVStream* outAudio = avformat_new_stream(outCtx.get(), nullptr);
+            AVStream* outAudio =
+                avformat_new_stream(outCtx.get(), nullptr);
+
             if (!outAudio)
-                throw std::runtime_error("avformat_new_stream (audio) a échoué.");
+                throw std::runtime_error("Création flux audio impossible");
+
             ThrowIfError(
-                avcodec_parameters_copy(outAudio->codecpar, srcAudio->codecpar),
-                "avcodec_parameters_copy (audio)"
-            );
+                avcodec_parameters_copy(
+                    outAudio->codecpar,
+                    srcAudio->codecpar),
+                "copy audio codecpar");
+
             outAudio->codecpar->codec_tag = 0;
 
-            // Indices des flux de sortie
-            const int outVIdx = outVideo->index;  // généralement 0
-            const int outAIdx = outAudio->index;  // généralement 1
+            //==================================================================
+            // Ouverture fichier sortie
+            //==================================================================
 
-            // ── 4. Ouvrir le fichier de sortie ────────────────────────────
-            if (!(outCtx->oformat->flags & AVFMT_NOFILE)) {
+            if (!(outCtx->oformat->flags & AVFMT_NOFILE))
+            {
                 ThrowIfError(
-                    avio_open(&outCtx->pb, fileOutput.c_str(), AVIO_FLAG_WRITE),
-                    "avio_open"
-                );
+                    avio_open(
+                        &outCtx->pb,
+                        fileOutput.c_str(),
+                        AVIO_FLAG_WRITE),
+                    "avio_open");
             }
-            ThrowIfError(avformat_write_header(outCtx.get(), nullptr),
+
+            ThrowIfError(
+                avformat_write_header(
+                    outCtx.get(),
+                    nullptr),
                 "avformat_write_header");
 
-            // ── 5. Boucle de mux : lecture alternée des deux sources ─────
-            //  On maintient un offset de DTS pour recaler chaque flux à 0
-            //  dès le premier paquet reçu.
-            UniquePacket pkt(av_packet_alloc());
-            if (!pkt) throw std::runtime_error("av_packet_alloc a échoué.");
+            //==================================================================
+            // Paquets indépendants
+            //==================================================================
 
-            // Offsets initiaux (AV_NOPTS_VALUE = pas encore connu)
-            int64_t videoOffset = AV_NOPTS_VALUE;
-            int64_t audioOffset = AV_NOPTS_VALUE;
+            UniquePacket videoPkt(av_packet_alloc());
+            UniquePacket audioPkt(av_packet_alloc());
 
-            // État de lecture pour chaque source
+            if (!videoPkt || !audioPkt)
+                throw std::runtime_error("av_packet_alloc");
+
             bool videoEof = false;
             bool audioEof = false;
 
-            // Dernier DTS écrit par flux (pour l'interleaving manuel)
-            int64_t lastVideoDts = AV_NOPTS_VALUE;
-            int64_t lastAudioDts = AV_NOPTS_VALUE;
+            bool haveVideo = false;
+            bool haveAudio = false;
 
-            auto ReadNext = [&](AVFormatContext* ctx, int wantedStream,
-                bool& eof) -> bool
+            auto ReadVideoPacket = [&]()
                 {
-                    while (!eof) {
-                        const int ret = av_read_frame(ctx, pkt.get());
-                        if (ret == AVERROR_EOF) { eof = true; return false; }
-                        ThrowIfError(ret, "av_read_frame");
-                        if (pkt->stream_index == wantedStream) return true;
-                        av_packet_unref(pkt.get());
+                    av_packet_unref(videoPkt.get());
+
+                    while (true)
+                    {
+                        int ret = av_read_frame(
+                            inVideo.get(),
+                            videoPkt.get());
+
+                        if (ret == AVERROR_EOF)
+                        {
+                            videoEof = true;
+                            return false;
+                        }
+
+                        ThrowIfError(ret, "read video");
+
+                        if (videoPkt->stream_index == vIdx)
+                            return true;
+
+                        av_packet_unref(videoPkt.get());
                     }
-                    return false;
                 };
 
-            // Lecture initiale pour amorcer la comparaison de DTS
-            bool hasVideo = ReadNext(inVideo.get(), vIdx, videoEof);
-            bool hasAudio = ReadNext(inAudio.get(), aIdx, audioEof);
+            auto ReadAudioPacket = [&]()
+                {
+                    av_packet_unref(audioPkt.get());
 
-            while (hasVideo || hasAudio) {
+                    while (true)
+                    {
+                        int ret = av_read_frame(
+                            inAudio.get(),
+                            audioPkt.get());
 
-                // Choisir quelle source écrire en premier (DTS le plus petit)
-                const bool writeVideo = [&] {
-                    if (!hasVideo) return false;
-                    if (!hasAudio) return true;
-                    // Comparer les DTS ramenés en time_base commune (AV_TIME_BASE)
-                    const int64_t vDts = (pkt->dts != AV_NOPTS_VALUE)
-                        ? av_rescale_q(pkt->dts, srcVideo->time_base, AV_TIME_BASE_Q)
-                        : INT64_MAX;
-                    // On récupère le DTS audio depuis la source en cours —
-                    // on a besoin du paquet audio, donc on le lit maintenant si vide.
-                    return true; // simplifié : on alterne vidéo puis audio
-                    }();
+                        if (ret == AVERROR_EOF)
+                        {
+                            audioEof = true;
+                            return false;
+                        }
 
-                // ── Écriture d'un paquet vidéo ──
-                if (writeVideo && hasVideo) {
-                    // Calculer l'offset au premier paquet
-                    if (videoOffset == AV_NOPTS_VALUE)
-                        videoOffset = (pkt->dts != AV_NOPTS_VALUE) ? pkt->dts : pkt->pts;
+                        ThrowIfError(ret, "read audio");
 
-                    pkt->stream_index = outVIdx;
-                    pkt->pts = av_rescale_q_rnd(
-                        pkt->pts - videoOffset,
-                        srcVideo->time_base, outVideo->time_base,
-                        static_cast<AVRounding>(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-                    pkt->dts = av_rescale_q_rnd(
-                        pkt->dts - videoOffset,
-                        srcVideo->time_base, outVideo->time_base,
-                        static_cast<AVRounding>(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-                    pkt->duration = av_rescale_q(
-                        pkt->duration, srcVideo->time_base, outVideo->time_base);
-                    pkt->pos = -1;
+                        if (audioPkt->stream_index == aIdx)
+                            return true;
 
-                    // Garantir la monotonie DTS
-                    if (lastVideoDts != AV_NOPTS_VALUE && pkt->dts <= lastVideoDts)
-                        pkt->dts = lastVideoDts + 1;
-                    lastVideoDts = pkt->dts;
+                        av_packet_unref(audioPkt.get());
+                    }
+                };
 
-                    ThrowIfError(
-                        av_interleaved_write_frame(outCtx.get(), pkt.get()),
-                        "av_interleaved_write_frame (vidéo)"
-                    );
-                    av_packet_unref(pkt.get());
-                    hasVideo = ReadNext(inVideo.get(), vIdx, videoEof);
+            haveVideo = ReadVideoPacket();
+            haveAudio = ReadAudioPacket();
+
+            //==================================================================
+            // Offsets pour démarrer à t=0
+            //==================================================================
+
+            int64_t firstVideoDts = AV_NOPTS_VALUE;
+            int64_t firstAudioDts = AV_NOPTS_VALUE;
+
+            //==================================================================
+            // Mux
+            //==================================================================
+
+            while (haveVideo || haveAudio)
+            {
+                bool writeVideo;
+
+                if (!haveAudio)
+                {
+                    writeVideo = true;
+                }
+                else if (!haveVideo)
+                {
+                    writeVideo = false;
+                }
+                else
+                {
+                    int64_t vDts =
+                        (videoPkt->dts == AV_NOPTS_VALUE)
+                        ? INT64_MAX
+                        : av_rescale_q(
+                            videoPkt->dts,
+                            srcVideo->time_base,
+                            AV_TIME_BASE_Q);
+
+                    int64_t aDts =
+                        (audioPkt->dts == AV_NOPTS_VALUE)
+                        ? INT64_MAX
+                        : av_rescale_q(
+                            audioPkt->dts,
+                            srcAudio->time_base,
+                            AV_TIME_BASE_Q);
+
+                    writeVideo = (vDts <= aDts);
                 }
 
-                // ── Écriture d'un paquet audio ──
-                if (hasAudio) {
-                    if (audioOffset == AV_NOPTS_VALUE)
-                        audioOffset = (pkt->dts != AV_NOPTS_VALUE) ? pkt->dts : pkt->pts;
+                if (writeVideo)
+                {
+                    if (firstVideoDts == AV_NOPTS_VALUE)
+                    {
+                        firstVideoDts =
+                            (videoPkt->dts != AV_NOPTS_VALUE)
+                            ? videoPkt->dts
+                            : 0;
+                    }
 
-                    pkt->stream_index = outAIdx;
-                    pkt->pts = av_rescale_q_rnd(
-                        pkt->pts - audioOffset,
-                        srcAudio->time_base, outAudio->time_base,
-                        static_cast<AVRounding>(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-                    pkt->dts = av_rescale_q_rnd(
-                        pkt->dts - audioOffset,
-                        srcAudio->time_base, outAudio->time_base,
-                        static_cast<AVRounding>(AV_ROUND_NEAR_INF | AV_ROUND_PASS_MINMAX));
-                    pkt->duration = av_rescale_q(
-                        pkt->duration, srcAudio->time_base, outAudio->time_base);
-                    pkt->pos = -1;
+                    if (videoPkt->pts != AV_NOPTS_VALUE)
+                        videoPkt->pts -= firstVideoDts;
 
-                    if (lastAudioDts != AV_NOPTS_VALUE && pkt->dts <= lastAudioDts)
-                        pkt->dts = lastAudioDts + 1;
-                    lastAudioDts = pkt->dts;
+                    if (videoPkt->dts != AV_NOPTS_VALUE)
+                        videoPkt->dts -= firstVideoDts;
+
+                    av_packet_rescale_ts(
+                        videoPkt.get(),
+                        srcVideo->time_base,
+                        outVideo->time_base);
+
+                    videoPkt->stream_index = outVideo->index;
+                    videoPkt->pos = -1;
 
                     ThrowIfError(
-                        av_interleaved_write_frame(outCtx.get(), pkt.get()),
-                        "av_interleaved_write_frame (audio)"
-                    );
-                    av_packet_unref(pkt.get());
-                    hasAudio = ReadNext(inAudio.get(), aIdx, audioEof);
+                        av_interleaved_write_frame(
+                            outCtx.get(),
+                            videoPkt.get()),
+                        "write video");
+
+                    haveVideo = ReadVideoPacket();
+                }
+                else
+                {
+                    if (firstAudioDts == AV_NOPTS_VALUE)
+                    {
+                        firstAudioDts =
+                            (audioPkt->dts != AV_NOPTS_VALUE)
+                            ? audioPkt->dts
+                            : 0;
+                    }
+
+                    if (audioPkt->pts != AV_NOPTS_VALUE)
+                        audioPkt->pts -= firstAudioDts;
+
+                    if (audioPkt->dts != AV_NOPTS_VALUE)
+                        audioPkt->dts -= firstAudioDts;
+
+                    av_packet_rescale_ts(
+                        audioPkt.get(),
+                        srcAudio->time_base,
+                        outAudio->time_base);
+
+                    audioPkt->stream_index = outAudio->index;
+                    audioPkt->pos = -1;
+
+                    ThrowIfError(
+                        av_interleaved_write_frame(
+                            outCtx.get(),
+                            audioPkt.get()),
+                        "write audio");
+
+                    haveAudio = ReadAudioPacket();
                 }
             }
 
-            ThrowIfError(av_write_trailer(outCtx.get()), "av_write_trailer");
+            ThrowIfError(
+                av_write_trailer(outCtx.get()),
+                "av_write_trailer");
+
             return true;
         }
-        catch (const std::exception&) {
+        catch (const std::exception&)
+        {
+            return false;
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────
+//  ExecuteFFmpegMuxVideoAudio
+//  Combine le flux vidéo de fileVideo et le flux audio de fileAudio
+//  dans fileOutput (stream copy, sans ré-encodage).
+//
+//  Stratégie :
+//    • On ouvre deux contextes d'entrée indépendants.
+//    • On sélectionne le meilleur flux vidéo dans inVideo
+//      et le meilleur flux audio dans inAudio.
+//    • On crée deux flux dans le contexte de sortie.
+//    • On lit en alternance les paquets des deux sources,
+//      en recalant les timestamps pour qu'ils démarrent à 0.
+// ─────────────────────────────────────────────────────────────
+    bool CreateLoopedAudio(
+        const std::string& inputAudioFile,
+        const std::string& outputFile,
+        const std::string& timeVideo)
+    {
+        try
+        {
+            //------------------------------------------------------------------
+            // Ouverture entrée
+            //------------------------------------------------------------------
+            const double targetDurationSeconds = Timecode::FromString(timeVideo).ToSeconds();
+            AVFormatContext* rawIn = nullptr;
+
+            ThrowIfError(
+                avformat_open_input(
+                    &rawIn,
+                    inputAudioFile.c_str(),
+                    nullptr,
+                    nullptr),
+                "avformat_open_input");
+
+            UniqueInputFmt inCtx(rawIn);
+
+            ThrowIfError(
+                avformat_find_stream_info(
+                    inCtx.get(),
+                    nullptr),
+                "avformat_find_stream_info");
+
+            //------------------------------------------------------------------
+            // Flux audio
+            //------------------------------------------------------------------
+
+            const int audioIdx =
+                av_find_best_stream(
+                    inCtx.get(),
+                    AVMEDIA_TYPE_AUDIO,
+                    -1,
+                    -1,
+                    nullptr,
+                    0);
+
+            if (audioIdx < 0)
+                throw std::runtime_error(
+                    "Aucun flux audio trouvé.");
+
+            AVStream* inStream =
+                inCtx->streams[audioIdx];
+
+            //------------------------------------------------------------------
+            // Durée audio
+            //------------------------------------------------------------------
+
+            int64_t streamDurationTs =
+                inStream->duration;
+
+            if (streamDurationTs <= 0)
+            {
+                throw std::runtime_error(
+                    "Durée du flux audio inconnue.");
+            }
+
+            const double streamDurationSecs =
+                streamDurationTs *
+                av_q2d(inStream->time_base);
+
+            if (streamDurationSecs <= 0.0)
+            {
+                throw std::runtime_error(
+                    "Durée audio invalide.");
+            }
+
+            //------------------------------------------------------------------
+            // Sortie
+            //------------------------------------------------------------------
+
+            AVFormatContext* rawOut = nullptr;
+
+            ThrowIfError(
+                avformat_alloc_output_context2(
+                    &rawOut,
+                    nullptr,
+                    nullptr,
+                    outputFile.c_str()),
+                "avformat_alloc_output_context2");
+
+            UniqueOutputFmt outCtx(rawOut);
+
+            AVStream* outStream =
+                avformat_new_stream(
+                    outCtx.get(),
+                    nullptr);
+
+            if (!outStream)
+                throw std::runtime_error(
+                    "avformat_new_stream");
+
+            ThrowIfError(
+                avcodec_parameters_copy(
+                    outStream->codecpar,
+                    inStream->codecpar),
+                "avcodec_parameters_copy");
+
+            outStream->codecpar->codec_tag = 0;
+
+            //------------------------------------------------------------------
+            // Ouverture sortie
+            //------------------------------------------------------------------
+
+            if (!(outCtx->oformat->flags & AVFMT_NOFILE))
+            {
+                ThrowIfError(
+                    avio_open(
+                        &outCtx->pb,
+                        outputFile.c_str(),
+                        AVIO_FLAG_WRITE),
+                    "avio_open");
+            }
+
+            ThrowIfError(
+                avformat_write_header(
+                    outCtx.get(),
+                    nullptr),
+                "avformat_write_header");
+
+            //------------------------------------------------------------------
+            // Variables boucle
+            //------------------------------------------------------------------
+
+            UniquePacket pkt(av_packet_alloc());
+
+            if (!pkt)
+                throw std::runtime_error(
+                    "av_packet_alloc");
+
+            int64_t ptsOffset = 0;
+            int64_t firstPts = AV_NOPTS_VALUE;
+
+            double producedDuration = 0.0;
+
+            //------------------------------------------------------------------
+            // Boucle principale
+            //------------------------------------------------------------------
+
+            while (producedDuration < targetDurationSeconds)
+            {
+                ThrowIfError(
+                    av_seek_frame(
+                        inCtx.get(),
+                        audioIdx,
+                        0,
+                        AVSEEK_FLAG_BACKWARD),
+                    "av_seek_frame");
+
+                while (true)
+                {
+                    int ret =
+                        av_read_frame(
+                            inCtx.get(),
+                            pkt.get());
+
+                    if (ret == AVERROR_EOF)
+                        break;
+
+                    ThrowIfError(
+                        ret,
+                        "av_read_frame");
+
+                    if (pkt->stream_index != audioIdx)
+                    {
+                        av_packet_unref(pkt.get());
+                        continue;
+                    }
+
+                    //----------------------------------------------------------
+                    // Timestamp de référence
+                    //----------------------------------------------------------
+
+                    int64_t ts =
+                        (pkt->pts != AV_NOPTS_VALUE)
+                        ? pkt->pts
+                        : pkt->dts;
+
+                    if (ts == AV_NOPTS_VALUE)
+                    {
+                        av_packet_unref(pkt.get());
+                        continue;
+                    }
+
+                    if (firstPts == AV_NOPTS_VALUE)
+                        firstPts = ts;
+
+                    //----------------------------------------------------------
+                    // Temps absolu produit
+                    //----------------------------------------------------------
+
+                    const double currentTime =
+                        producedDuration +
+                        ((ts - firstPts) *
+                            av_q2d(inStream->time_base));
+
+                    if (currentTime >= targetDurationSeconds)
+                    {
+                        av_packet_unref(pkt.get());
+                        goto finish;
+                    }
+
+                    //----------------------------------------------------------
+                    // Décalage timestamps
+                    //----------------------------------------------------------
+
+                    if (pkt->pts != AV_NOPTS_VALUE)
+                    {
+                        pkt->pts =
+                            pkt->pts -
+                            firstPts +
+                            ptsOffset;
+                    }
+
+                    if (pkt->dts != AV_NOPTS_VALUE)
+                    {
+                        pkt->dts =
+                            pkt->dts -
+                            firstPts +
+                            ptsOffset;
+                    }
+
+                    //----------------------------------------------------------
+                    // Conversion vers time_base sortie
+                    //----------------------------------------------------------
+
+                    av_packet_rescale_ts(
+                        pkt.get(),
+                        inStream->time_base,
+                        outStream->time_base);
+
+                    pkt->stream_index =
+                        outStream->index;
+
+                    pkt->pos = -1;
+
+                    //----------------------------------------------------------
+                    // Écriture
+                    //----------------------------------------------------------
+
+                    ThrowIfError(
+                        av_interleaved_write_frame(
+                            outCtx.get(),
+                            pkt.get()),
+                        "av_interleaved_write_frame");
+
+                    av_packet_unref(pkt.get());
+                }
+
+                //--------------------------------------------------------------
+                // Boucle suivante
+                //--------------------------------------------------------------
+
+                ptsOffset += streamDurationTs;
+                producedDuration += streamDurationSecs;
+            }
+
+        finish:
+
+            ThrowIfError(
+                av_write_trailer(
+                    outCtx.get()),
+                "av_write_trailer");
+
+            return true;
+        }
+        catch (const std::exception&)
+        {
             return false;
         }
     }

@@ -204,4 +204,9 @@ namespace Regards::Media {
         const std::string& fileAudio,
         const std::string& fileOutput);
 
+    [[nodiscard]] bool CreateLoopedAudio(
+        const std::string& inputAudioFile,
+        const std::string& outputFile,
+        const std::string& timeVideo);
+
 } // namespace Regards::Media
