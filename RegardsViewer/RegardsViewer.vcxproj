@@ -1362,9 +1362,6 @@ XCOPY /E /H /C /I "$(SolutionDir)Regards\Resources" $(SolutionDir)$(Platform)\$(
     <ProjectReference Include="..\CxImage\cximage.vcxproj">
       <Project>{c739151f-5384-41df-a1a6-f089e2c1ad56}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\Otherlib\libffmpeg\libffmpeg.vcxproj">
-      <Project>{ce591fa1-6863-4410-a259-2567261afa51}</Project>
-    </ProjectReference>
     <ProjectReference Include="..\Otherlib\libheif\libheif.vcxproj">
       <Project>{27ae55ec-bd2c-4843-8333-26b52bf4fbba}</Project>
     </ProjectReference>

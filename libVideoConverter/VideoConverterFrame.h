@@ -8,8 +8,8 @@ class CVideoConverterFrame : public wxFrame
 public:
 	// ctor(s)
 	CVideoConverterFrame(const wxString &title, const wxPoint &pos, const wxSize &size, IVideoConverterInterface * videoInterface, long style = wxDEFAULT_FRAME_STYLE);
-    ~CVideoConverterFrame() = default;
-	void ExportVideo(wxString filename);
+    ~CVideoConverterFrame();
+	void ExportVideo(const wxString & filename);
 
 
 private:

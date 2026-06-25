@@ -54,6 +54,13 @@ CVideoConverterFrame::CVideoConverterFrame(const wxString& title, const wxPoint&
 
 }
 
+CVideoConverterFrame::~CVideoConverterFrame()
+{
+	RemoveIfExists(fileOut);
+	RemoveIfExists(fileOutAudio);
+	RemoveIfExists(fileOutVideo);
+}
+
 void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
 {
 	bool result = false;
@@ -156,7 +163,7 @@ void CVideoConverterFrame::ExitApplication()
 	}
 }
 
-void CVideoConverterFrame::ExportVideo(wxString fileIn)
+void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 {
 	CMediaInfo metadata;
 	bool exit_frame = false;
