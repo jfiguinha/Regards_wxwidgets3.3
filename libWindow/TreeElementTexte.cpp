@@ -2,12 +2,15 @@
 #include "TreeElementTexte.h"
 using namespace Regards::Window;
 
+mutex CTreeElementTexte::muTexteSize;
+
 
 CTreeElementTexte::CTreeElementTexte()
-	: canUpdate(false),
-	position(RENDERFONT_LEFT),
-	textSizeValid(false)
-{}
+{
+	canUpdate = false;
+	isClick = false;
+	position = RENDERFONT_LEFT;
+}
 
 CTreeElementTexte& CTreeElementTexte::operator=(const CTreeElementTexte& other)
 {
@@ -15,22 +18,25 @@ CTreeElementTexte& CTreeElementTexte::operator=(const CTreeElementTexte& other)
 	xPos = other.xPos;
 	yPos = other.yPos;
 	numRow = other.numRow;
-	textSizeValid = other.textSizeValid;
 	numColumn = other.numColumn;
 	themeTexte = other.themeTexte;
 	canUpdate = other.canUpdate;
+	isClick = other.isClick;
 	libelle = other.libelle;
 	position = other.position;
 	return *this;
 }
 
+/**
+ * \brief
+ */
+CTreeElementTexte::~CTreeElementTexte()
+{
+}
 
 void CTreeElementTexte::SetTheme(CThemeTreeTexte* theme)
 {
 	themeTexte = *theme;
-	textSizeValid = false;
-	isFontOk = false;
-	GenerateFont();
 }
 
 void CTreeElementTexte::MouseOver(wxDC* deviceContext, const int& x, const int& y, bool& update)
@@ -46,7 +52,7 @@ void CTreeElementTexte::MouseOver(wxDC* deviceContext, const int& x, const int& 
 void CTreeElementTexte::SetLibelle(const wxString& libelle)
 {
 	this->libelle = libelle;
-	textSizeValid = false;
+
 	wxSize size = GetSizeText();
 	if (themeTexte.GetWidth() < size.x)
 		themeTexte.SetWidth(size.x);
@@ -55,34 +61,21 @@ void CTreeElementTexte::SetLibelle(const wxString& libelle)
 		themeTexte.SetHeight(size.y);
 }
 
-void CTreeElementTexte::GenerateFont()
-{
-	if (!isFontOk)
-	{
-		font = wxFont(themeTexte.font.GetFontSize(), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
-		isFontOk = true;
-	}
-}
-
 wxSize CTreeElementTexte::GetSizeText()
 {
-	if (textSizeValid)
-		return cachedTextSize;
-
-	wxBitmap bitmap(1, 1);
+	wxSize size;
+	wxFont font(themeTexte.font.GetFontSize(), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+	wxBitmap bitmap(250, 250);
 	wxMemoryDC dc(bitmap);
-
 	dc.SetFont(font);
-	cachedTextSize = dc.GetTextExtent(libelle);
-
+	size = dc.GetTextExtent(libelle);
 	dc.SelectObject(wxNullBitmap);
-
-	textSizeValid = true;
-	return cachedTextSize;
+	return size;
 }
 
 void CTreeElementTexte::DrawText(wxDC* dc, const int& xPos, const int& yPos)
 {
+	wxFont font(themeTexte.font.GetFontSize(), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
 	dc->SetFont(font);
 	dc->SetTextForeground(themeTexte.font.GetColorFont());
 	dc->DrawText(libelle, xPos, yPos);
@@ -120,3 +113,7 @@ void CTreeElementTexte::DrawElement(wxDC* deviceContext, const int& x, const int
 	DrawText(deviceContext, xPos, yPos);
 }
 
+void CTreeElementTexte::SetClick(const bool& value)
+{
+	isClick = value;
+}
