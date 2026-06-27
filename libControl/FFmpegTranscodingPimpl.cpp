@@ -17,7 +17,7 @@
 #include <ConvertUtility.h>
 #include <MediaInfo.h>
 #include <picture_utility.h>
-
+#include <wx/time.h>
 extern "C" {
     #include <libavcodec/avcodec.h>
     #include <libavcodec/packet.h>
@@ -2375,6 +2375,8 @@ int CFFmpegTranscodingPimpl::ProcessEncodeFile(AVFrame* dst)
 	/* read all packets */
 	while (m_dlgProgress->IsOk())
 	{
+		wxMilliSleep(50);
+
 		if ((ret = av_read_frame(ifmt_ctx, &packet)) < 0)
 			break;
 

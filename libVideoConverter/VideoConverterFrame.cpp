@@ -199,6 +199,8 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 
 		wxString timeInput = "00:00:00";
 		wxString timeOutput = "00:00:00";
+		wxFileName file_temp(fileOutputPath);
+		fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), true);
 
 		auto videoCompressOption = ffmpegEncoder->GetVideoCompressionPt();
 		compressAudioVideoOption->GetCompressionOption(videoCompressOption);
@@ -212,8 +214,7 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 		if ((videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy) || (!videoCompressOption
 			->audioDirectCopy && !videoCompressOption->videoDirectCopy))
 		{
-			wxFileName file_temp(fileOutputPath);
-			fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), true);
+
 
 			wxString timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
 			wxString timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
