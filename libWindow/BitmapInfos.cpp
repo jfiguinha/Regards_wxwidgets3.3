@@ -364,6 +364,7 @@ void CBitmapInfos::DrawInformations(wxDC* dc)
 	size = GetSizeTexte(dc, message, font);
 	DrawTexte(dc, message, (GetWindowWidth() / scale_factor - size.x) / 2, (GetWindowHeight() / scale_factor) / 2,
 	          font);
+
 }
 
 void CBitmapInfos::on_paint(wxPaintEvent& event)

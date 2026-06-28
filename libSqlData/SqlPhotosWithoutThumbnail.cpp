@@ -26,6 +26,7 @@ int CSqlPhotosWithoutThumbnail::GetPhotoElement()
 
 void CSqlPhotosWithoutThumbnail::GetPhotoList(std::deque<wxString> * photoList, int nbElement)
 {
+	photoList->clear();
 	this->photoList = photoList;
 	if (photoList != nullptr)
 	{

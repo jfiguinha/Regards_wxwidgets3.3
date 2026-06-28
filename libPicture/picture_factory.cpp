@@ -551,12 +551,12 @@ int ImageLoader::GetFrameCount(const wxString& szFileName)
     case GIF:
     {
         wxFileName fichier(szFileName);
-        auto* cx = new CxImage();
+        auto cx = std::make_unique<CxImage>();
         cx->SetRetreiveAllFrames(true);
         cx->Load(CConvertUtility::ConvertToStdString(szFileName).c_str(),
                  CxImage::GetTypeIdFromName(fichier.GetExt()));
         int n = cx->GetNumFrames();
-        delete cx;
+       
         return n;
     }
     case MPG2: case MPEG: case AVCHD: case WINREC:
@@ -584,12 +584,12 @@ uint32_t ImageLoader::GetFrameDelay(const wxString& szFileName)
 #endif
     case GIF:
     {
-        auto* cx = new CxImage();
+        auto cx = std::make_unique<CxImage>();
         cx->SetRetreiveAllFrames(true);
         cx->Load(CConvertUtility::ConvertToStdString(szFileName).c_str(),
                  CxImage::GetTypeIdFromName("gif"));
         delay = cx->GetFrameDelay();
-        delete cx;
+       
         break;
     }
     default:
@@ -618,7 +618,7 @@ int ImageLoader::GetDimensions(const wxString& fileName,
         return 0;
     }
 
-    CxImage* image    = nullptr;
+    std::unique_ptr<CxImage> image = nullptr;
     wxImage  imageWx;
     int      typeImg  = TYPE_IMAGE_CXIMAGE;
 
@@ -670,13 +670,13 @@ int ImageLoader::GetDimensions(const wxString& fileName,
         break;
     }
 #else
-        image = new CxImage(fileName.ToStdWstring(),
+        image = std::make_unique<CxImage>(fileName.ToStdWstring(),
                             CxImage::GetTypeIdFromName("jpg"), true);
         break;
 #endif
 
     case JBIG:
-        image = new CxImage(fileName.ToStdWstring(),
+        image = std::make_unique<CxImage>(fileName.ToStdWstring(),
                             CxImage::GetTypeIdFromName("jbg"), true);
         break;
 
@@ -734,7 +734,6 @@ int ImageLoader::GetDimensions(const wxString& fileName,
         height   = image->GetHeight();
         EXIFINFO* exif = image->GetExifInfo();
         rotation = exif ? exif->Orientation : 0;
-        delete image;
     }
     else if (typeImg == TYPE_IMAGE_WXIMAGE && imageWx.IsOk())
     {
@@ -1246,10 +1245,10 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
         // ── JBIG ─────────────────────────────────────────────────────────────
         case JBIG:
         {
-            auto* cx = new CxImage(fileName.ToStdWstring(),
+            auto cx = std::make_unique<CxImage>(fileName.ToStdWstring(),
                                    CxImage::GetTypeIdFromName("jbg"));
-            bitmap->SetPicture(cx);
-            delete cx;
+            bitmap->SetPicture(cx.get());
+           
             break;
         }
 
@@ -1266,7 +1265,7 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
         case GIF:
         {
             wxFileName fichier(fileName);
-            auto* cx = new CxImage();
+            auto cx = std::make_unique<CxImage>();
             cx->SetRetreiveAllFrames(true);
             cx->Load(CConvertUtility::ConvertToStdString(fileName).c_str(),
                      CxImage::GetTypeIdFromName(fichier.GetExt()));
@@ -1276,8 +1275,8 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
                 bitmap->SetPicture(frame);
             }
             else
-                bitmap->SetPicture(cx);
-            delete cx;
+                bitmap->SetPicture(cx.get());
+           
             break;
         }
 
@@ -1286,7 +1285,7 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
         case AVI:  case MP4:  case WMV:   case WEBM:
         case MKV:  case AV1:  case Y4M:   case MOV:
         {
-            CVideoThumb* thumb = new CVideoThumb(fileName);
+            auto thumb = std::make_unique<CVideoThumb>(fileName, true, false);
             int          orientation = 0;
             const int    percent     =
                 static_cast<int>((static_cast<float>(numPicture) / 20.f) * 100.f);
@@ -1297,7 +1296,7 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
             bitmap->SetPicture(mat);
             bitmap->SetOrientation(orientation);
             bitmap->SetFilename(fileName);
-            delete thumb;
+
             break;
         }
 
@@ -1932,14 +1931,14 @@ CImageLoadingFormat* VideoThumbnailService::LoadVideoFrame(
         {
             bitmap = new CImageLoadingFormat();
             bitmap->SetFilename(fileName);
-            CVideoThumb* thumb = new CVideoThumb(fileName);
+            auto thumb = std::make_unique<CVideoThumb>(fileName);
             cv::Mat mat = thumb->GetVideoFramePercent(percent, tw, th);
             if (mat.empty())
                 mat = application_context.GetDefaultPicture();
             bitmap->SetPicture(mat);
             bitmap->SetOrientation(thumb->GetOrientation());
             bitmap->SetFilename(fileName);
-            delete thumb;
+
             break;
         }
         default:

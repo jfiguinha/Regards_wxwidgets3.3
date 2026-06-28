@@ -23,7 +23,7 @@ namespace Regards
 			void GetVideoListFrame(std::vector<std::unique_ptr<CImageVideoThumbnail>> & listPicture, const int& widthThumbnail, const int& heightThumbnail);
 			int64_t GetMovieDuration();
             AspectRatio GetAspectRatio();
-    
+
 		private:
 			std::unique_ptr<CVideoThumbPimpl> pimpl;
 			wxString fileName;
