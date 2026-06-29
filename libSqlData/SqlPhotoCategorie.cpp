@@ -23,6 +23,7 @@ bool CSqlPhotoCategorie::LoadPhotoCategorie(PhotoCategorieVector* photoCategorie
 	m_PhotoCategorieVector = photoCategorieVector;
 	if (m_PhotoCategorieVector != nullptr)
 	{
+		m_PhotoCategorieVector->clear();
 		std::vector<std::unique_ptr<CSqlParameter>> parameter;
 		parameter.push_back(std::make_unique<CSqlInt>(numLangue));
 		return ExecuteSqlWithStatement("SELECT NumCategorie, Libelle FROM CATEGORIE WHERE NumLangue = ?", parameter);

@@ -26,6 +26,8 @@ bool CSqlFindPhotos::SearchPhotosByCriteriaFolder(PhotosVector* photosVector)
 	m_photosVector = photosVector;
 	if (m_photosVector == nullptr)
 		return false;
+
+	m_photosVector->clear();
 	wxString sqlRequest = "SELECT * FROM SEARCH_VIEW";//  Order By Year, Month asc, Day asc, DayOfWeek asc, FullPath";
 	return (ExecuteRequest(sqlRequest) != -1) ? true : false;
 }
@@ -37,6 +39,8 @@ bool CSqlFindPhotos::GetAllPhotos(PhotosVector* photosVector)
 	m_photosVector = photosVector;
 	if (m_photosVector == nullptr)
 		return false;
+
+	m_photosVector->clear();
 	return (ExecuteRequest("SELECT NumPhoto,FullPath FROM PHOTOS") != -1) ? true : false;
 }
 
@@ -65,6 +69,7 @@ bool CSqlFindPhotos::GetAllVideo(PhotosVector* photosVector)
 	if (m_photosVector == nullptr)
 		return false;
 
+	m_photosVector->clear();
 	return (ExecuteRequest(
 			       "SELECT NumPhoto,FullPath FROM PHOTOS WHERE FullPath not in (SELECT FullPath FROM VIDEOTHUMBNAIL)")
 		       != -
@@ -81,6 +86,7 @@ bool CSqlFindPhotos::SearchPhotos(PhotosVector* photosVector, const wxString& li
 	if (m_photosVector == nullptr)
 		return false;
 
+	m_photosVector->clear();
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(libelleCriteria + "%"));
 	return ExecuteSqlWithStatement("SELECT NumPhoto,FullPath, CreateDate, GeoGps FROM PHOTOSSEARCHCRITERIA WHERE CreateDate like ?", parameter);
@@ -93,6 +99,7 @@ bool CSqlFindPhotos::SearchPhotos(PhotosVector* photosVector, const wxString& lo
 	if (m_photosVector == nullptr)
 		return false;
 
+	m_photosVector->clear();
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(localisation));
 	parameter.push_back(std::make_unique<CSqlString>(libelleCriteria));
@@ -106,6 +113,7 @@ bool CSqlFindPhotos::SearchPhotos(PhotosVector* photosVector)
 	if (m_photosVector == nullptr)
 		return false;
 
+	m_photosVector->clear();
 	return (ExecuteRequest(
 			       "SELECT NumPhoto,FullPath, CreateDate, GeoGps FROM PHOTOSSEARCHCRITERIA Group By NumPhoto ORDER BY FullPath, GeoGps")
 		       != -1)
@@ -120,6 +128,7 @@ bool CSqlFindPhotos::SearchPhotos(vector<wxString> * fileList)
 	if (fileList == nullptr)
 		return false;
 
+	fileList->clear();
 	return (ExecuteRequest(
 		"SELECT FullPath FROM PHOTOSSEARCHCRITERIA Group By NumPhoto ORDER BY FullPath, GeoGps")
 		!= -1)
@@ -135,6 +144,7 @@ bool CSqlFindPhotos::SearchPhotos(vector<int>* listPhoto)
 	if (listPhoto == nullptr)
 		return false;
 
+	listPhoto->clear();
 	return (ExecuteRequest("SELECT NumPhoto FROM PHOTOSSEARCHCRITERIA") != -1) ? true : false;
 }
 
@@ -147,7 +157,7 @@ bool CSqlFindPhotos::SearchPhotosByTypeAffichage(PhotosVector* photosVector, con
 	if (m_photosVector == nullptr)
 		return false;
 
-	//return (ExecuteRequest("SELECT NumPhoto,FullPath, CreateDate, GeoGps FROM  PHOTOSSEARCHCRITERIA ORDER BY CreateDate desc, GeoGps") != -1) ? true : false;
+	photosVector->clear();
 	return (ExecuteRequest(
 			       "SELECT NumPhoto,FullPath, CreateDate, GeoGps FROM  PHOTOSSEARCHCRITERIA Group By NumPhoto ORDER BY FullPath, GeoGps")
 		       != -1)
@@ -314,6 +324,7 @@ bool CSqlFindPhotos::SearchPhotos(PhotosVector* photosVector, const int& numCate
 	if (photosVector == nullptr)
 		return false;
 
+	photosVector->clear();
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
 	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));

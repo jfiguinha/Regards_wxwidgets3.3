@@ -40,6 +40,9 @@ CPhotos CSqlInsertFile::GetPhotoToProcess()
 void CSqlInsertFile::GetPhotoToProcessList(PhotosVector* photosVector)
 {
  	type = 1;
+	if (photosVector == nullptr)
+		return;
+	photosVector->clear();
     m_photosVector = photosVector;
 	ExecuteRequest("SELECT NumPhoto, FullPath, NumFolderCatalog, CriteriaInsert FROM PHOTOS where CriteriaInsert = 0 and Process = 0"); 
 }
@@ -132,6 +135,9 @@ void CSqlInsertFile::InsertPhotoFolderToRefresh(const wxString& folder)
 bool CSqlInsertFile::GetPhotoToAdd(vector<wxString>* listFile)
 {
 	type = 1;
+	if (listFile == nullptr)
+		return false;
+
 	listPathFile = listFile;
 	return (ExecuteRequest("SELECT FullPath FROM PHOTOFOLDER WHERE FullPath not in (Select FullPath From PHOTOS)") != -
 		       1)
@@ -153,7 +159,10 @@ int CSqlInsertFile::GetNumPhoto(const wxString& filepath)
 bool CSqlInsertFile::GetPhotoToRemove(vector<int>* listFile, const int& idFolder)
 {
 	type = 3;
+	if (listFile == nullptr)
+		return false;
 	listPhoto = listFile;
+	listPhoto->clear();
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(idFolder));
 	ExecuteSqlWithStatement("SELECT NumPhoto FROM PHOTOS WHERE NumFolderCatalog = ? and FullPath not in (Select FullPath From PHOTOFOLDER)", parameter);

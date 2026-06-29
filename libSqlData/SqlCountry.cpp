@@ -18,6 +18,10 @@ CSqlCountry::~CSqlCountry()
 /////////////////////////////////////////////////////////////////
 bool CSqlCountry::GetCountry(CountryVector* countryVector)
 {
+	if (countryVector == nullptr)
+		return false;
+
+	countryVector->clear();
 	m_countryVector = countryVector;
 	return (ExecuteRequest("SELECT NumCountry, CodeCountry, LibelleContinent, LibelleCountry FROM COUNTRY") != -1)
 		       ? true

@@ -54,7 +54,11 @@ bool CSqlGps::DeleteGps(const wxString& filepath)
 void CSqlGps::GetGps(PhotoGpsVector* photogpsVector, const wxString& filepath)
 {
 	typeResult = 0;
+	if (photogpsVector == nullptr)
+		return;
+
 	this->photogpsVector = photogpsVector;
+	photogpsVector->clear();
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(filepath));
 	ExecuteSqlWithStatement("SELECT id, FullPath, latitude, longitude FROM PHOTOGPS where FullPath = ?", parameter);

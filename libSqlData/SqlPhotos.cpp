@@ -101,6 +101,7 @@ void CSqlPhotos::GetPhotoCriteria(CriteriaVector* criteriaVector, const wxString
 	this->criteriaVector = criteriaVector;
 	if (criteriaVector != nullptr)
 	{
+		criteriaVector->clear();
 		std::vector<std::unique_ptr<CSqlParameter>> parameter;
 		parameter.push_back(std::make_unique<CSqlString>(filepath));
 		ExecuteSqlWithStatement("SELECT distinct C.NumCriteria, NumCategorie, Libelle FROM CRITERIA C INNER JOIN PHOTOSCRITERIA PC ON C.NUMCRITERIA = PC.NUMCRITERIA INNER JOIN PHOTOS P ON P.NUMPHOTO = PC.NUMPHOTO AND Libelle != 'Not Geolocalized' and FullPath = ?", parameter);
@@ -114,6 +115,7 @@ void CSqlPhotos::GetPhotoCriteriaByCategorie(CriteriaVector* criteriaVector, con
 	this->criteriaVector = criteriaVector;
 	if (criteriaVector != nullptr)
 	{
+		criteriaVector->clear();
 		std::vector<std::unique_ptr<CSqlParameter>> parameter;
 		parameter.push_back(std::make_unique<CSqlString>(filepath));
 		parameter.push_back(std::make_unique<CSqlInt>(numCategorie));

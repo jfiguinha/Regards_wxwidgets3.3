@@ -53,15 +53,8 @@ cv::Mat CVideoThumb::GetVideoFrame(const int& thumbnailWidth, const int& thumbna
 	cv::Mat image;
     if(pimpl != nullptr)
     {
-        try
-        {
-            pimpl->SetMoviePos(0);
-            pimpl->GetThumbnail(image, thumbnailWidth, thumbnailHeight, applyOrientation, invertRotation);
-        }
-        catch (...)
-        {
-        }
-    
+        pimpl->SetMoviePos(0);
+        pimpl->GetThumbnail(image, thumbnailWidth, thumbnailHeight, applyOrientation, invertRotation);   
     }
 	return image;
 }
@@ -72,14 +65,8 @@ cv::Mat CVideoThumb::GetVideoFramePos(const int64& timePosition, const int& thum
 	cv::Mat image;
     if(pimpl != nullptr)
     {
-        try
-        {
-            pimpl->SetMoviePos(timePosition);
-            pimpl->GetThumbnail(image, thumbnailWidth, thumbnailHeight, applyOrientation, invertRotation);
-        }
-        catch (...)
-        {
-        }
+		pimpl->SetMoviePos(timePosition);
+		pimpl->GetThumbnail(image, thumbnailWidth, thumbnailHeight, applyOrientation, invertRotation);
     }
 	return image;
 }
@@ -89,14 +76,8 @@ cv::Mat CVideoThumb::GetVideoFramePercent(const int& percent, const int& thumbna
 	cv::Mat image;
     if(pimpl != nullptr)
     {
-        try
-        {
-            pimpl->SetPercent(percent);
-            pimpl->GetThumbnail(image, thumbnailWidth, thumbnailHeight, applyOrientation, invertRotation);
-        }
-        catch (...)
-        {
-        }
+        pimpl->SetPercent(percent);
+        pimpl->GetThumbnail(image, thumbnailWidth, thumbnailHeight, applyOrientation, invertRotation);
     }
 	return image;
 }
@@ -122,20 +103,12 @@ void CVideoThumb::GetVideoListFrame(std::vector<std::unique_ptr<CImageVideoThumb
 				auto cxVideo = std::make_unique<CImageVideoThumbnail>();
 				cxVideo->rotation = 0;
 				cxVideo->filename = fileName;
-
-
-				try
-				{
-					pimpl->SetMoviePos(i);
-					pimpl->GetThumbnail(cxVideo->image, widthThumbnail, heightThumbnail, applyOrientation, invertRotation);
-				}
-				catch (...)
-				{
-				}
+				pimpl->SetMoviePos(i);
+				pimpl->GetThumbnail(cxVideo->image, widthThumbnail, heightThumbnail, applyOrientation, invertRotation);
 				cxVideo->timePosition = i;
 				listPicture.push_back(std::move(cxVideo));
 			}
-			catch (...)
+			catch (std::exception e)
 			{
 				printf("error CImageVideoThumbnail creation\n");
 			}
@@ -151,19 +124,12 @@ void CVideoThumb::GetVideoListFrame(std::vector<std::unique_ptr<CImageVideoThumb
 				cxVideo->rotation = 0;
 				cxVideo->percent = i;
 				cxVideo->filename = fileName;
-
-				try
-				{
-					pimpl->SetPercent(cxVideo->percent);
-					pimpl->GetThumbnail(cxVideo->image, widthThumbnail, heightThumbnail, applyOrientation, invertRotation);
-				}
-				catch (...)
-				{
-				}
+				pimpl->SetPercent(cxVideo->percent);
+				pimpl->GetThumbnail(cxVideo->image, widthThumbnail, heightThumbnail, applyOrientation, invertRotation);
 				cxVideo->timePosition = pimpl->m_seekTimeInSecond;
 				listPicture.push_back(std::move(cxVideo));
 			}
-			catch (...)
+			catch (std::exception e)
 			{
 				printf("error CImageVideoThumbnail creation\n");
 			}

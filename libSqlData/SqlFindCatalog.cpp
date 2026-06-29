@@ -15,6 +15,10 @@ CSqlFindCatalog::~CSqlFindCatalog()
 
 bool CSqlFindCatalog::GetCatalog(CatalogVector* catalogVector)
 {
+	if (catalogVector == nullptr)
+		return false;
+
+	m_catalogVector->clear();
 	m_catalogVector = catalogVector;
 	return (ExecuteRequest("SELECT NumCatalog, LibelleCatalog FROM CATALOG") != -1) ? true : false;
 }
