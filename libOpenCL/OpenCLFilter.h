@@ -98,8 +98,6 @@ namespace Regards
 			                              vector<COpenCLParameter*>& vecParam, const int& width, const int& height,
 			                              cl_mem& outBuffer);
 
-			int GetRgbaBitmap(cl_mem cl_image, cv::UMat& u);
-
 			cv::UMat Interpolation(const int& widthOut, const int& heightOut, cv::UMat& inputData, int width, int height, const int& method, bool bgraOutput);
 			cv::UMat Interpolation(const int& widthOut, const int& heightOut, cv::UMat& inputData, const int& method, int width, int height, int flipH, int flipV, int angle, bool bgraOutput);
 			cv::UMat Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method, cv::UMat& inputData, int width, int height, int flipH, int flipV, int angle, bool bgraOutput);
@@ -115,7 +113,7 @@ namespace Regards
 			int oldheightDenoise = 0;
 			std::unique_ptr<CAvirFilterParam> param = nullptr;
 			bool isVideo = false;
-			std::map<wxString,OpenCLMemoryTemp *> openclMemTempMap;
+			std::map<wxString,std::unique_ptr<OpenCLMemoryTemp>> openclMemTempMap;
 			std::unique_ptr<CSuperSampling> superSampling;
 
 		};

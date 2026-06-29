@@ -38,16 +38,7 @@ using namespace Regards::OpenCL;
 
 extern int Start(int argc, char **argv);
 
-// Simple logging helpers to unify output (uses std::cout / std::cerr as requested)
-static void LogInfo(const wxString& msg)
-{
-	std::cout << msg.utf8_string() << std::endl;
-}
 
-static void LogError(const wxString& msg)
-{
-	std::cerr << msg.utf8_string() << std::endl;
-}
 
 MyApp::MyApp()
 {
