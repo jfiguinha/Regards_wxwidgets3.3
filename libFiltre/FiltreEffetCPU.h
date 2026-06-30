@@ -95,7 +95,7 @@ private:
 	void RotateMatrix(const int& angle, cv::Mat& src);
 	void ChangeFacialSkinColor(cv::Mat smallImgBGR, cv::Mat bigEdges);
 	void RemovePepperNoise(cv::Mat& mask);
-
+	template<typename F> void ExecuteSafe(F&& func);
 	std::unique_ptr<Chqdn3d> hq3d = nullptr;
 	int oldLevelDenoise = 4;
 	int oldwidthDenoise = 0;

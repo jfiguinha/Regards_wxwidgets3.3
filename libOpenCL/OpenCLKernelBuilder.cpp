@@ -85,6 +85,24 @@ OpenCLKernelBuilder::IntArray(
     return *this;
 }
 
+OpenCLKernelBuilder&
+OpenCLKernelBuilder::ByteArray(
+    const wxString& name,
+    cl_context context,
+    uint8_t * values,
+    int size,
+    cl_mem_flags flags)
+{
+    auto p = std::make_unique<COpenCLParameterByteArray>();
+
+    p->SetLibelle(name);
+    p->SetValue(context, values, size, flags);
+
+    parameters_.push_back(std::move(p));
+
+    return *this;
+}
+
 std::vector<COpenCLParameter*>
 OpenCLKernelBuilder::GetParameters()
 {

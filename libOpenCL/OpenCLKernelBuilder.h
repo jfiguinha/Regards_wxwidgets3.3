@@ -40,6 +40,13 @@ namespace Regards
                 int size,
                 cl_mem_flags flags);
 
+            OpenCLKernelBuilder& ByteArray(
+                    const wxString& name,
+                    cl_context context,
+                    uint8_t* values,
+                    int size,
+                    cl_mem_flags flags);
+
             OpenCLKernelBuilder& IntArray(
                 const wxString& name,
                 cl_context context,

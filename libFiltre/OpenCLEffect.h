@@ -124,9 +124,11 @@ namespace Regards::FiltreEffet
 		int Stylization(const double& sigma_s, const double& sigma_r) override;
         
 	protected:
+
+		template<typename F> void ExecuteSafe(F&& func);
 		std::unique_ptr<COpenCLFilter> openclFilter;
 		wxImage GetwxImage(cv::UMat& input);
-		int GetSizeData() const;
+
 		cl_mem_flags flag;
 		wxString filename;
 		cv::Mat alphaChannel;

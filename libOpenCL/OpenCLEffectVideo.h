@@ -76,6 +76,8 @@ namespace Regards
 			void SetYUV420P(const cv::Mat& y, const cv::Mat& u, const cv::Mat& v, const int& linesize,
 				const int& nWidth, const int& nHeight, bool bgraOutput);
 
+			template<typename F> void ExecuteSafe(F&& func);
+			void TestBgraOutput();
 
 			std::unique_ptr<COpenCLFilter> openclFilter = nullptr;
 			wxString filename;
