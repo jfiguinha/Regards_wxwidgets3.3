@@ -16,6 +16,8 @@ namespace Regards::Viewer
 		};
 
 	private:
+
+		void SendEventMessage();
 		void EventManager(const int& id) override;
 		std::unique_ptr<CToolbarButton> add = nullptr;
 		std::unique_ptr<CToolbarTexte> libelle = nullptr;

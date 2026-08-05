@@ -252,9 +252,9 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 	//exiv2::CMetadataExiv2 pictureMetadata(filename);
 	if (libPicture.TestIsVideo(filename))
 	{
-		tbb::concurrent_vector<CMetadata> vectorMeta = CMediaInfo::ReadMetadata(filename);
+		std::vector<CMetadata> vectorMeta = CMediaInfo::ReadMetadata(filename);
 		{
-			tbb::concurrent_vector<CMetadata>::iterator it = std::find_if(vectorMeta.begin(), vectorMeta.end(), [&](CMetadata val) -> bool {return val.key == "General.com.apple.quicktime.creationdate"; });
+			std::vector<CMetadata>::iterator it = std::find_if(vectorMeta.begin(), vectorMeta.end(), [&](CMetadata val) -> bool {return val.key == "General.com.apple.quicktime.creationdate"; });
 			if (it != vectorMeta.end())
 			{
 				//Create Date
@@ -264,7 +264,7 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 
 		}
 		{
-			tbb::concurrent_vector<CMetadata>::iterator it = std::find_if(vectorMeta.begin(), vectorMeta.end(), [&](CMetadata val) -> bool {return val.key == "General.com.apple.quicktime.location.ISO6709"; });
+			std::vector<CMetadata>::iterator it = std::find_if(vectorMeta.begin(), vectorMeta.end(), [&](CMetadata val) -> bool {return val.key == "General.com.apple.quicktime.location.ISO6709"; });
 			if (it != vectorMeta.end())
 			{
 				wxString exifinfos = it->value;

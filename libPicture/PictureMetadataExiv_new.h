@@ -21,7 +21,7 @@ namespace Regards
 			bool HasExif();
 			bool HasThumbnail();
 			int GetOrientation();
-			tbb::concurrent_vector<CMetadata> GetMetadata();
+			std::vector<CMetadata> GetMetadata();
 			bool CopyMetadata(const wxString& output);
 			wxImage DecodeThumbnail(wxString& extension, int& orientation);
 			void SetDateTime(const wxString& dateTime);
@@ -34,15 +34,20 @@ namespace Regards
 			                 wxString& longitude);
 
 		private:
+
+
+
+
+			Exiv2::ExifData* GetExifData();
 			Exiv2::URationalValue::UniquePtr GetGpsRationalValue(const wxString& gpsValue);
 			wxString GetGpsfValue(const wxString& gpsValue);
 			wxImage LoadThumbnailFromExif(Exiv2::ExifData* dataIn, wxString& extension, int& orientation);
 			void AddAsciiValue(wxString key, wxString value, Exiv2::ExifData& exifData);
 			void AddRationalValue(wxString keyName, wxString value, Exiv2::ExifData& exifData);
 			wxString GetQuickTimeDate(int64_t dateQuicktime);
-			tbb::concurrent_vector<CMetadata> ReadExif(Exiv2::ExifData& exifData);
-			tbb::concurrent_vector<CMetadata> ReadIpct(Exiv2::IptcData& ipctData);
-			tbb::concurrent_vector<CMetadata> ReadXmp(Exiv2::XmpData& xmpData);
+			void ReadExif(Exiv2::ExifData& exifData, std::vector<CMetadata>& metadataList);
+			void ReadIpct(Exiv2::IptcData& ipctData, std::vector<CMetadata>& metadataList);
+			void ReadXmp(Exiv2::XmpData& xmpData, std::vector<CMetadata>& metadataList);
 			Exiv2::Image::UniquePtr exif;
 			bool isExif;
 			wxString filename;

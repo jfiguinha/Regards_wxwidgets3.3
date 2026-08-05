@@ -18,7 +18,7 @@ namespace Regards
 			bool HasThumbnail();
 			int GetOrientation();
 			void SetOrientation(const int& orientation);
-			tbb::concurrent_vector<CMetadata> GetMetadata();
+			std::vector<CMetadata> GetMetadata();
 			bool CopyMetadata(const wxString& output);
 			wxImage DecodeThumbnail(wxString& extension, int& orientation);
 			void SetDateTime(const wxString& dateTime);

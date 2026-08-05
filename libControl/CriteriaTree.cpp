@@ -28,6 +28,10 @@ using namespace Regards::Picture;
 extern AppContext application_context;
 PhotoCategorieVector CCriteriaTree::photoCategorieVector;
 
+// Category ids (as returned by CPhotoCategorie::GetId()):
+//   1 = GPS, 2 = Folder, 3 = Date, 4 = Faces, 5 = Usenet category label,
+//   6 = Stars, 7 = Keywords (currently disabled), other = generic criteria list
+
 CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* interfaceControl): yPos(0)
 {
 	rotation = 0;
@@ -44,7 +48,6 @@ CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* in
 	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
 	eventControl = interfaceControl;
 }
-;
 
 
 wxString CCriteriaTree::GetFilename()
@@ -52,43 +55,22 @@ wxString CCriteriaTree::GetFilename()
 	return filename;
 }
 
-void CCriteriaTree::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
-                              const int& posLargeur, const int& posHauteur, bool& update)
-{
-	if (element != nullptr)
-	{
-		CTreeElement* treeElement = element->GetTreeElement();
-		if (treeElement != nullptr)
-			treeElement->MouseOver(deviceContext, x, y, update);
-	}
-}
-
-
 void CCriteriaTree::UpdateScreenRatio()
 {
 	//this->UpdateElement();
 }
 
+// ============================================================================
+// SetFile / category loading & dispatch
+// ============================================================================
 
-
-void CCriteriaTree::AddTreeInfos(const wxString& exifKey,
-	const wxString& exifValue,
-	const int& index,
-	tree<CTreeData*>::iterator& top,
-	tree<CTreeData*>::iterator& child)
+void CCriteriaTree::LoadCategories()
 {
-
-	AddTreeInfosImpl<CTreeData>(
-		exifKey,
-		index,
-		top,
-		child,
-		[&](CTreeData* treeData)
-		{
-			treeData->SetIsParent(false);
-			treeData->SetValue(exifValue);
-			treeData->SetExifKey(exifKey);
-		});
+	if (photoCategorieVector.size() == 0)
+	{
+		CSqlPhotoCategorie sqlPhotoCategorie;
+		sqlPhotoCategorie.LoadPhotoCategorie(&photoCategorieVector, 1);
+	}
 }
 
 void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
@@ -99,231 +81,211 @@ void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
 	filename = picture;
 	this->numPhotoId = numPhotoId;
 
-	top = tr.begin();
-	tree<CTreeData*>::iterator top;
-	//	int item = 0;
-	//	int index = 0;
+	LoadCategories();
 
 	top = tr.begin();
-
-	auto child = top;
-
-	if (photoCategorieVector.size() == 0)
-	{
-		CSqlPhotoCategorie sqlPhotoCategorie;
-		sqlPhotoCategorie.LoadPhotoCategorie(&photoCategorieVector, 1);
-	}
+	child = top;
 
 	auto treeDataPicture = new CTreeData();
 	treeDataPicture->SetKey("Criteria");
 	child = tr.insert(top, treeDataPicture);
 
-	for (CPhotoCategorie photoCategorie : photoCategorieVector)
+	for (CPhotoCategorie & photoCategorie : photoCategorieVector)
 	{
-		if (photoCategorie.GetId() == 4)
-		{
-			CSqlFindFacePhoto sqlFindFacePhoto;
-			std::vector<CFaceName> listFaceName = sqlFindFacePhoto.GetListFaceName(picture);
-			wxString libelleCategorie = photoCategorie.GetLibelle();
-			for (int i = 0; i < listFaceName.size(); i++)
-			{
-				wxString value = listFaceName[i].faceName;
-				auto treeDataFileName = new CTreeDataLink();
-				treeDataFileName->SetIsParent(false);
-				treeDataFileName->SetKey(libelleCategorie);
-				treeDataFileName->SetValue(value);
-				treeDataFileName->SetType(2);
-				treeDataFileName->SetLinkType(0);
-				treeDataFileName->SetId(listFaceName[i].numFace);
-				treeDataFileName->SetLinkPath("");
-				tr.append_child(child, treeDataFileName);
-			}
-		}
-		else if (photoCategorie.GetId() == 2)
-		{
-			wxString libelleCategorie = photoCategorie.GetLibelle();
-			wxFileName dirname = wxFileName::DirName(picture);
-
-			auto treeDataFileName = new CTreeData();
-			treeDataFileName->SetIsParent(false);
-			treeDataFileName->SetKey(libelleCategorie);
-			treeDataFileName->SetValue(dirname.GetPath());
-			tr.append_child(child, treeDataFileName);
-		}
-		else if (photoCategorie.GetId() == 5)
-		{
-			wxString libelleCategorie = photoCategorie.GetLibelle();
-			auto treeDataFileName = new CTreeData();
-			treeDataFileName->SetIsParent(false);
-			treeDataFileName->SetKey("usenet.category");
-			treeDataFileName->SetValue(libelleCategorie);
-			tr.append_child(child, treeDataFileName);
-		}
-		else if (photoCategorie.GetId() == 6)
-		{
-			//Find Value
-			CriteriaVector criteriaVector;
-			CSqlPhotos sqlPhotos;
-			sqlPhotos.GetPhotoCriteriaByCategorie(&criteriaVector, picture, photoCategorie.GetId());
-
-			wxString libelleCategorie = photoCategorie.GetLibelle();
-			auto treeDataFileName = new CTreeDataStars();
-			treeDataFileName->SetNumPhotoId(numPhotoId);
-			treeDataFileName->SetIsParent(false);
-			treeDataFileName->SetKey(libelleCategorie);
-			if (criteriaVector.size() == 0)
-				treeDataFileName->SetValue("0");
-			else
-			{
-				CCriteria criteria = criteriaVector[0];
-				treeDataFileName->SetValue(criteria.GetLibelle());
-			}
-			treeDataFileName->SetType(6);
-			tr.append_child(child, treeDataFileName);
-		}
-		else
-		{
-			CriteriaVector criteriaVector;
-			CSqlPhotos sqlPhotos;
-			sqlPhotos.GetPhotoCriteriaByCategorie(&criteriaVector, picture, photoCategorie.GetId());
-			if (criteriaVector.size() == 0)
-			{
-				wxString libelleCategorie = photoCategorie.GetLibelle();
-				wxString value = "";
-				int linkType = 0;
-				if (photoCategorie.GetId() == 1)
-				{
-					linkType = photoCategorie.GetId();
-					value = CLibResource::LoadStringFromResource("LBLNOTGEO", 1);
-				}
-				if (photoCategorie.GetId() == 3)
-				{
-					linkType = photoCategorie.GetId();
-					value = "1970.01.01";
-				}
-
-				if (photoCategorie.GetId() == 7)
-				{
-					/*
-					CTreeDataLink * treeDataFileName = new CTreeDataLink();
-					treeDataFileName->SetIsParent(false);
-					treeDataFileName->SetKey(libelleCategorie);
-					treeDataFileName->SetValue("No Keyword");
-					treeDataFileName->SetType(2);
-					treeDataFileName->SetLinkType(7);
-					treeDataFileName->SetId(photoCategorie.GetId());
-					treeDataFileName->SetLinkPath("");
-					tr.append_child(child, treeDataFileName);
-					*/
-				}
-				else
-				{
-					auto treeDataFileName = new CTreeDataLink();
-					treeDataFileName->SetIsParent(false);
-					treeDataFileName->SetKey(libelleCategorie);
-					treeDataFileName->SetValue(value);
-					treeDataFileName->SetType(2);
-					treeDataFileName->SetLinkType(linkType);
-					treeDataFileName->SetLinkPath("");
-					tr.append_child(child, treeDataFileName);
-				}
-			}
-			else
-			{
-				if (photoCategorie.GetId() == 3)
-				{
-					CCriteria criteria = criteriaVector.at(0);
-					wxString libelleCategorie = photoCategorie.GetLibelle();
-					wxString value = criteria.GetLibelle();
-
-					auto treeDataFileName = new CTreeDataLink();
-					treeDataFileName->SetIsParent(false);
-					treeDataFileName->SetKey(libelleCategorie);
-					treeDataFileName->SetValue(value);
-					treeDataFileName->SetType(2);
-					treeDataFileName->SetLinkType(3);
-					treeDataFileName->SetId(criteria.GetId());
-					treeDataFileName->SetLinkPath("");
-					tr.append_child(child, treeDataFileName);
-				}
-				else if (photoCategorie.GetId() == 1)
-				{
-					CCriteria criteria = criteriaVector.at(0);
-					wxString libelleCategorie = photoCategorie.GetLibelle();
-					wxString value = criteria.GetLibelle();
-
-					if(value.find(application_context.special_key) == 0)
-						value = CLibResource::LoadStringFromResource("LBLNOTGEO", 1);
-
-					auto treeDataFileName = new CTreeDataLink();
-					treeDataFileName->SetIsParent(false);
-					treeDataFileName->SetKey(libelleCategorie);
-					treeDataFileName->SetValue(value);
-					treeDataFileName->SetType(2);
-					treeDataFileName->SetLinkType(1);
-					treeDataFileName->SetLinkPath("");
-					treeDataFileName->SetId(criteria.GetId());
-					tr.append_child(child, treeDataFileName);
-				}
-				/*
-				else if (photoCategorie.GetId() == 6)
-				{
-					CCriteria criteria = criteriaVector.at(0);
-					wxString libelleCategorie = photoCategorie.GetLibelle();
-					wxString value = criteria.GetLibelle();
-
-					CTreeDataStars * treeDataFileName = new CTreeDataStars();
-					treeDataFileName->SetNumPhotoId(numPhotoId);
-					treeDataFileName->SetIsParent(false);
-					treeDataFileName->SetKey(libelleCategorie);
-					treeDataFileName->SetValue(value);
-					treeDataFileName->SetType(6);
-					tr.append_child(child, treeDataFileName);
-				}*/
-				else if (photoCategorie.GetId() == 7)
-				{
-					/*
-					CCriteria criteria = criteriaVector.at(0);
-					wxString libelleCategorie = photoCategorie.GetLibelle();
-					wxString value = criteria.GetLibelle();
-
-					CTreeDataLink * treeDataFileName = new CTreeDataLink();
-					treeDataFileName->SetIsParent(false);
-					treeDataFileName->SetKey(libelleCategorie);
-					treeDataFileName->SetValue(value);
-					treeDataFileName->SetType(2);
-					treeDataFileName->SetLinkType(7);
-					treeDataFileName->SetId(criteria.GetId());
-					treeDataFileName->SetLinkPath("");
-					tr.append_child(child, treeDataFileName);
-					*/
-				}
-				else
-				{
-					for (CCriteria criteria : criteriaVector)
-					{
-						wxString libelleCategorie = photoCategorie.GetLibelle();
-						wxString value = criteria.GetLibelle();
-
-						auto treeDataFileName = new CTreeDataLink();
-						treeDataFileName->SetIsParent(false);
-						treeDataFileName->SetKey(libelleCategorie);
-						treeDataFileName->SetValue(value);
-						treeDataFileName->SetType(2);
-						treeDataFileName->SetLinkType(0);
-						treeDataFileName->SetId(criteria.GetId());
-						treeDataFileName->SetLinkPath("");
-						tr.append_child(child, treeDataFileName);
-					}
-				}
-			}
-		}
+		ProcessCategory(picture, photoCategorie, child);
 	}
 
-	CreateElement();
+	RenderTree();
 }
 
+void CCriteriaTree::ProcessCategory(const wxString& picture, CPhotoCategorie& photoCategorie,
+                                    tree<CTreeData*>::iterator& child)
+{
+	switch (photoCategorie.GetId())
+	{
+	case 4:
+		AddFaces(picture, photoCategorie, child);
+		break;
+	case 2:
+		AddFolder(picture, photoCategorie, child);
+		break;
+	case 5:
+		// Small enough to keep inline: just a label/value swap, no dedicated Add* needed.
+		CreateTextNode(child, "usenet.category", photoCategorie.GetLibelle());
+		break;
+	case 1:
+		AddGPS(picture, photoCategorie, child);
+		break;
+	case 3:
+		AddDate(picture, photoCategorie, child);
+		break;
+	case 6:
+		AddStars(picture, photoCategorie, child);
+		break;
+	default:
+		AddKeywords(picture, photoCategorie, child);
+		break;
+	}
+}
+
+// ============================================================================
+// Category handlers
+// ============================================================================
+
+void CCriteriaTree::AddFaces(const wxString& picture, CPhotoCategorie& photoCategorie,
+                             tree<CTreeData*>::iterator& child)
+{
+	CSqlFindFacePhoto sqlFindFacePhoto;
+	std::vector<CFaceName> listFaceName = sqlFindFacePhoto.GetListFaceName(picture);
+	wxString libelleCategorie = photoCategorie.GetLibelle();
+
+	for (size_t i = 0; i < listFaceName.size(); i++)
+	{
+		CreateLinkNode(child, libelleCategorie, listFaceName[i].faceName, 0, listFaceName[i].numFace);
+	}
+}
+
+void CCriteriaTree::AddFolder(const wxString& picture, CPhotoCategorie& photoCategorie,
+                              tree<CTreeData*>::iterator& child)
+{
+	wxFileName dirname = wxFileName::DirName(picture);
+	CreateTextNode(child, photoCategorie.GetLibelle(), dirname.GetPath());
+}
+
+void CCriteriaTree::AddGPS(const wxString& picture, CPhotoCategorie& photoCategorie,
+                           tree<CTreeData*>::iterator& child)
+{
+	CriteriaVector criteriaVector;
+	CSqlPhotos sqlPhotos;
+	sqlPhotos.GetPhotoCriteriaByCategorie(&criteriaVector, picture, photoCategorie.GetId());
+
+	wxString libelleCategorie = photoCategorie.GetLibelle();
+
+	if (criteriaVector.size() == 0)
+	{
+		wxString value = CLibResource::LoadStringFromResource("LBLNOTGEO", 1);
+		CreateLinkNode(child, libelleCategorie, value, 1, 0);
+	}
+	else
+	{
+		CCriteria criteria = criteriaVector.at(0);
+		wxString value = criteria.GetLibelle();
+
+		if (value.find(application_context.special_key) == 0)
+			value = CLibResource::LoadStringFromResource("LBLNOTGEO", 1);
+
+		CreateLinkNode(child, libelleCategorie, value, 1, criteria.GetId());
+	}
+}
+
+void CCriteriaTree::AddDate(const wxString& picture, CPhotoCategorie& photoCategorie,
+                            tree<CTreeData*>::iterator& child)
+{
+	CriteriaVector criteriaVector;
+	CSqlPhotos sqlPhotos;
+	sqlPhotos.GetPhotoCriteriaByCategorie(&criteriaVector, picture, photoCategorie.GetId());
+
+	wxString libelleCategorie = photoCategorie.GetLibelle();
+
+	if (criteriaVector.size() == 0)
+	{
+		CreateLinkNode(child, libelleCategorie, "1970.01.01", 3, 0);
+	}
+	else
+	{
+		CCriteria& criteria = criteriaVector.at(0);
+		CreateLinkNode(child, libelleCategorie, criteria.GetLibelle(), 3, criteria.GetId());
+	}
+}
+
+void CCriteriaTree::AddStars(const wxString& picture, CPhotoCategorie& photoCategorie,
+                             tree<CTreeData*>::iterator& child)
+{
+	CriteriaVector criteriaVector;
+	CSqlPhotos sqlPhotos;
+	sqlPhotos.GetPhotoCriteriaByCategorie(&criteriaVector, picture, photoCategorie.GetId());
+
+	wxString value = (criteriaVector.size() == 0) ? wxString("0") : criteriaVector[0].GetLibelle();
+	CreateStarNode(child, photoCategorie.GetLibelle(), value);
+}
+
+void CCriteriaTree::AddKeywords(const wxString& picture, CPhotoCategorie& photoCategorie,
+                                tree<CTreeData*>::iterator& child)
+{
+	if (photoCategorie.GetId() == 7)
+	{
+		// Keyword linking is currently disabled (feature not yet implemented upstream).
+		return;
+	}
+
+	CriteriaVector criteriaVector;
+	CSqlPhotos sqlPhotos;
+	sqlPhotos.GetPhotoCriteriaByCategorie(&criteriaVector, picture, photoCategorie.GetId());
+
+	wxString libelleCategorie = photoCategorie.GetLibelle();
+
+	if (criteriaVector.size() == 0)
+	{
+		CreateLinkNode(child, libelleCategorie, "", 0, 0);
+	}
+	else
+	{
+		for (CCriteria & criteria : criteriaVector)
+		{
+			CreateLinkNode(child, libelleCategorie, criteria.GetLibelle(), 0, criteria.GetId());
+		}
+	}
+}
+
+// ============================================================================
+// Tree node factories
+// ============================================================================
+
+void CCriteriaTree::CreateLinkNode(tree<CTreeData*>::iterator& parent, const wxString& key, const wxString& value,
+                                   const int& linkType, const int& id)
+{
+	auto treeDataFileName = new CTreeDataLink();
+	treeDataFileName->SetIsParent(false);
+	treeDataFileName->SetKey(key);
+	treeDataFileName->SetValue(value);
+	treeDataFileName->SetType(2);
+	treeDataFileName->SetLinkType(linkType);
+	treeDataFileName->SetId(id);
+	treeDataFileName->SetLinkPath("");
+	tr.append_child(parent, treeDataFileName);
+}
+
+void CCriteriaTree::CreateStarNode(tree<CTreeData*>::iterator& parent, const wxString& key, const wxString& value)
+{
+	auto treeDataFileName = new CTreeDataStars();
+	treeDataFileName->SetNumPhotoId(numPhotoId);
+	treeDataFileName->SetIsParent(false);
+	treeDataFileName->SetKey(key);
+	treeDataFileName->SetValue(value);
+	treeDataFileName->SetType(6);
+	tr.append_child(parent, treeDataFileName);
+}
+
+void CCriteriaTree::CreateTextNode(tree<CTreeData*>::iterator& parent, const wxString& key, const wxString& value)
+{
+	auto treeDataFileName = new CTreeData();
+	treeDataFileName->SetIsParent(false);
+	treeDataFileName->SetKey(key);
+	treeDataFileName->SetValue(value);
+	tr.append_child(parent, treeDataFileName);
+}
+
+// ============================================================================
+// Rendering
+// ============================================================================
+
 void CCriteriaTree::CreateElement()
+{
+	// Kept for API compatibility with any existing external callers.
+	RenderTree();
+}
+
+void CCriteriaTree::RenderTree()
 {
 	CTreeElementTriangle* treeElementTriangle = nullptr;
 	CPositionElement* posElement = nullptr;
@@ -332,7 +294,7 @@ void CCriteriaTree::CreateElement()
 	widthPosition = 0;
 	vectorPosElement.clear();
 	vectorPosElementDynamic.clear();
-	
+
 	tree<CTreeData*>::sibling_iterator it = tr.begin();
 	auto itend = tr.end();
 	yPos = 0;
@@ -345,7 +307,7 @@ void CCriteriaTree::CreateElement()
 		if (profondeur == 0)
 		{
 			int xPos = themeTree.GetMargeX();
-			int widthElement = 0;		
+			int widthElement = 0;
 
 			posElement = RenderTriangle(data,
 				xPos,
@@ -395,7 +357,7 @@ void CCriteriaTree::CreateElement()
 				rowWidth[0] = widthElement;
 
 			if (treeElementTriangle->GetOpen())
-				CreateChildTree(it);
+				RenderNode(it);
 		}
 		++it;
 	}
@@ -425,13 +387,11 @@ CPositionElement* CCriteriaTree::RenderTextLinkValue(
 }
 
 
-void CCriteriaTree::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
+void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 {
 	CPositionElement* pos_element;
 	tree<CTreeData*>::sibling_iterator it = tr.begin(parent);
-	//tree<CTreeData *>::iterator itend = tr.end(parent);
 	bool isVisible = true;
-	//int i =
 
 	for (auto i = 0; i < parent.number_of_children(); i++)
 	{
@@ -442,7 +402,6 @@ void CCriteriaTree::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 		{
 			int xPos = widthPosition * (profondeur + 1);
 			int widthElementColumn2 = 0;
-			//CTreeElementTexte* tree_element_texte;
 
 			if (data->GetType() == 2)
 			{
@@ -515,7 +474,6 @@ void CCriteriaTree::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 		else
 		{
 			int xPos = widthPosition * profondeur;
-			CTreeElementTexte* tree_element_texte;
 			CPositionElement* posElement = nullptr;
 
 			posElement = RenderTriangle(data,
@@ -551,9 +509,24 @@ void CCriteriaTree::CreateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 			if (rowWidth[0] < width_element)
 				rowWidth[0] = width_element;
 
-			CreateChildTree(it);
+			RenderNode(it);
 		}
 		++it;
+	}
+}
+
+// ============================================================================
+// Input handling
+// ============================================================================
+
+void CCriteriaTree::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
+                              const int& posLargeur, const int& posHauteur, bool& update)
+{
+	if (element != nullptr)
+	{
+		CTreeElement* treeElement = element->GetTreeElement();
+		if (treeElement != nullptr)
+			treeElement->MouseOver(deviceContext, x, y, update);
 	}
 }
 
@@ -584,7 +557,6 @@ void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
 	else if (element->GetType() == ELEMENT_TEXTEVALUE)
 	{
 		auto treeElementTexte = static_cast<CTreeElementTexteClick*>(treeElement);
-		//treeElementTexte->ClickElement(window, x, y);
 		if (treeElementTexte->GetTypeLink() == 3)
 		{
 			CLibPicture libpicture;
@@ -642,4 +614,28 @@ void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
 			wxQueueEvent(criteriaTreeWindow, event);
 		}
 	}
+}
+
+// ============================================================================
+// Legacy / currently unused
+// ============================================================================
+
+void CCriteriaTree::AddTreeInfos(const wxString& exifKey,
+	const wxString& exifValue,
+	const int& index,
+	tree<CTreeData*>::iterator& top,
+	tree<CTreeData*>::iterator& child)
+{
+
+	AddTreeInfosImpl<CTreeData>(
+		exifKey,
+		index,
+		top,
+		child,
+		[&](CTreeData* treeData)
+		{
+			treeData->SetIsParent(false);
+			treeData->SetValue(exifValue);
+			treeData->SetExifKey(exifKey);
+		});
 }

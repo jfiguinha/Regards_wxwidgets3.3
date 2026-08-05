@@ -6,6 +6,8 @@ using namespace Regards::Window;
 
 namespace Regards::Viewer
 {
+	class CListPicture;
+
 	class CThumbnailToolBar : public CToolbarWindow, public CSliderInterface
 	{
 	public:
@@ -30,7 +32,11 @@ namespace Regards::Viewer
 
 	private:
 		void EventManager(const int& id) override;
-
+		void PostEvent(wxEventType type);
+		CListPicture * GetListPicture();
+		void Zoom(int delta);
+		void SendZoomPosition(int position);
+	
 		std::unique_ptr<CToolbarSlide> slide;
 		std::unique_ptr<CToolbarButton> indexButton = nullptr;
 		std::unique_ptr<CToolbarButton> exportButton = nullptr;

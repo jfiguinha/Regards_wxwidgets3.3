@@ -65,56 +65,20 @@ int CRegardsPDF::GetNbFrame(const wxString& filename, bool& error)
 void CRegardsPDF::SavePictureToPdf(const wxString& fileName, CImageLoadingFormat* bitmap, const int& option,
                                    const int& quality)
 {
-	wxString fileToAdd = "";
-	wxString file = "";
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
+	wxString file = "";	
 
 
 	if (option == 0)
 	{
+		file = CFileUtility::GetTempFile("temporary.jpg");
 		wxLogNull logNo;
-#ifdef WIN32
-		file = tempFolder + "\\temporary.jpg";
-#else
-		file = tempFolder + "/temporary.jpg";
-#endif
-
-
-		if (wxFileExists(file))
-		{
-#ifdef WIN32
-			std::remove(file);
-#else
-			wxRemoveFile(file);
-#endif
-		}
-
 		wxImage image = bitmap->GetwxImage();
 		image.SetOption("wxIMAGE_OPTION_QUALITY", quality);
 		image.SaveFile(file, wxBITMAP_TYPE_JPEG);
 	}
 	else
 	{
-#ifdef WIN32
-		file = tempFolder + "\\temporary.tiff";
-#else
-		file = tempFolder + "/temporary.tiff";
-#endif
-
-		if (wxFileExists(file))
-		{
-#ifdef WIN32
-			std::remove(file);
-#else
-			wxRemoveFile(file);
-#endif
-		}
+		file = CFileUtility::GetTempFile("temporary.tiff");
 
 		wxImage image = bitmap->GetwxImage();
 		image.SetOption("wxIMAGE_OPTION_TIFF_COMPRESSION", 5);
@@ -133,11 +97,7 @@ void CRegardsPDF::SavePictureToPdf(const wxString& fileName, CImageLoadingFormat
 	//image.SetOption(wxIMAGE_OPTION_RESOLUTION, 200);//bitmap->GetResolution());
 
 	SaveToPDF(&image, fileName, file, option, quality);
-#ifdef WIN32
-	std::remove(file);
-#else
 	wxRemoveFile(file);
-#endif
 }
 
 
@@ -152,11 +112,7 @@ void CRegardsPDF::SavePicture(const wxString& file, CImageLoadingFormat* bitmap,
 
 		if (wxFileExists(file))
 		{
-#ifdef WIN32
-			std::remove(file);
-#else
 			wxRemoveFile(file);
-#endif
 		}
 
 		wxImage image = bitmap->GetwxImage();
@@ -167,11 +123,7 @@ void CRegardsPDF::SavePicture(const wxString& file, CImageLoadingFormat* bitmap,
 	{
 		if (wxFileExists(file))
 		{
-#ifdef WIN32
-			std::remove(file);
-#else
 			wxRemoveFile(file);
-#endif
 		}
 
 		wxImage image = bitmap->GetwxImage();
@@ -333,54 +285,21 @@ int CRegardsPDF::SavePicture(const wxString& fileName, CImageLoadingFormat* bitm
 void CRegardsPDF::AddPdfPage(wxPdfDocument* oPdfDocument, CImageLoadingFormat* imageFormat, int option, int quality,
                              int numpage)
 {
-	wxString file;
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
-
+	wxString file = "temporary" + to_string(numpage);
 
 	//Save
 	if (option == 0)
 	{
-#ifdef WIN32
-		file = tempFolder + "\\temporary" + to_string(numpage) + ".jpg";
-#else
-		file = tempFolder + "/temporary" + to_string(numpage) + ".jpg";
-#endif
-
-		if (wxFileExists(file))
-		{
-#ifdef WIN32
-			std::remove(file);
-#else
-			wxRemoveFile(file);
-#endif
-		}
+		file.append(".jpg");
+		file = CFileUtility::GetTempFile(file);
 
 		 SavePicture(file, imageFormat, option, quality);
 		//SavePicture(file, imageFormat);
 	}
 	else
 	{
-#ifdef WIN32
-		file = tempFolder + "\\temporary" + to_string(numpage) + ".tiff";
-#else
-		file = tempFolder + "/temporary" + to_string(numpage) + ".tiff";
-#endif
-
-		if (wxFileExists(file))
-		{
-#ifdef WIN32
-			std::remove(file);
-#else
-			wxRemoveFile(file);
-#endif
-		}
-
+		file.append(".tiff");
+		file = CFileUtility::GetTempFile(file);
 		SavePicture(file, imageFormat, option, quality);
 		//SavePicture(file, imageFormat);
 	}
@@ -432,30 +351,7 @@ void CRegardsPDF::AddPdfPage(wxPdfDocument* oPdfDocument, CImageLoadingFormat* i
 
 wxString CRegardsPDF::ExtractPage(const wxString& filename, const vector<int>& listPage)
 {
-	wxString file = "";
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
-
-#ifdef WIN32
-	file = tempFolder + "\\extract.pdf";
-#else
-	file = tempFolder + "/extract.pdf";
-#endif
-
-	if (wxFileExists(file))
-	{
-#ifdef WIN32
-		std::remove(file);
-#else
-		wxRemoveFile(file);
-#endif
-	}
-
+	wxString file = CFileUtility::GetTempFile("extract.pdf");
 
 	QPDF inpdf;
 	inpdf.processFile(CConvertUtility::ConvertToStdString(filename).c_str());
@@ -500,29 +396,7 @@ wxString CRegardsPDF::ExtractPage(const wxString& filename, const vector<int>& l
 void CRegardsPDF::AddPage(const wxString& fileToAdd, const wxString& filename, const vector<int>& listPage,
                           int oldAnimationPosition)
 {
-	wxString file = "";
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
-
-#ifdef WIN32
-		file = tempFolder + "\\add.pdf";
-#else
-		file = tempFolder + "/add.pdf";
-#endif
-
-	if (wxFileExists(file))
-	{
-#ifdef WIN32
-		std::remove(file);
-#else
-		wxRemoveFile(file);
-#endif
-	}
+	wxString file = CFileUtility::GetTempFile("add.pdf");
 
 	if (file != "")
 	{
@@ -622,29 +496,7 @@ void CRegardsPDF::AddPage(const wxString& fileToAdd, const wxString& filename, c
 
 void CRegardsPDF::RemovePage(const wxString& filename, const vector<int>& listPage)
 {
-	wxString file = "";
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-	wxString tempFolder = documentPath + "\\temp";
-#else
-	wxString tempFolder = documentPath + "/temp";
-#endif
-
-#ifdef WIN32
-	file = tempFolder + "\\delete.pdf";
-#else
-	file = tempFolder + "/delete.pdf";
-#endif
-
-	if (wxFileExists(file))
-	{
-#ifdef WIN32
-		std::remove(file);
-#else
-		wxRemoveFile(file);
-#endif
-	}
-
+	wxString file = CFileUtility::GetTempFile("delete.pdf");
 
 	{
 		wxString libelle = CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
@@ -689,11 +541,7 @@ void CRegardsPDF::RemovePage(const wxString& filename, const vector<int>& listPa
 #ifndef DEMO
 	if (wxFileExists(filename))
 	{
-#ifdef WIN32
 		std::remove(filename);
-#else
-		wxRemoveFile(filename);
-#endif
 	}
 
 	wxCopyFile(file, filename);

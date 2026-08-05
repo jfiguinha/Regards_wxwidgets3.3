@@ -98,7 +98,7 @@ void CInfosFile::SetFile(const wxString& picture)
 	if (filename == picture)
 		return;
 
-	tbb::concurrent_vector<CMetadata> listItem;
+	std::vector<CMetadata> listItem;
 	CLibPicture libPicture;
 	filename = picture;
 	int width = 0;

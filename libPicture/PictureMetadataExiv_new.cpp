@@ -69,7 +69,7 @@ wxString CPictureMetadataExiv::GetCreationDate()
 				date = md->value().toString();
 			}
 		}
-		catch (...)
+		catch(const std::exception& e)
 		{
 		}
 	}
@@ -90,7 +90,7 @@ void CPictureMetadataExiv::SetOrientation(const int& orientation)
 		exif->setExifData(exifData);
 		exif->writeMetadata();
 	}
-	catch (...)
+	catch(const std::exception& e)
 	{
 	}
 }
@@ -108,7 +108,7 @@ void CPictureMetadataExiv::SetDateTime(const wxString& dateTime)
 		exif->setExifData(exifData);
 		exif->writeMetadata();
 	}
-	catch (...)
+	catch(const std::exception& e)
 	{
 	}
 }
@@ -167,7 +167,7 @@ void CPictureMetadataExiv::SetGpsInfos(const wxString& latitudeRef, const wxStri
 		exif->setExifData(exifData);
 		exif->writeMetadata();
 	}
-	catch (...)
+	catch(const std::exception& e)
 	{
 	}
 }
@@ -318,7 +318,7 @@ bool CPictureMetadataExiv::CopyMetadata(const wxString& output)
 				return true;
 			}
 		}
-		catch (...)
+		catch(const std::exception& e)
 		{
 		}
 	}
@@ -340,7 +340,7 @@ bool CPictureMetadataExiv::HasThumbnail()
 					return true;
 			}
 		}
-		catch (...)
+		catch(const std::exception& e)
 		{
 		}
 	}
@@ -348,6 +348,8 @@ bool CPictureMetadataExiv::HasThumbnail()
 
 	return false;
 }
+
+
 
 int CPictureMetadataExiv::GetOrientation()
 {
@@ -368,7 +370,7 @@ int CPictureMetadataExiv::GetOrientation()
 				orientation = atoi(value.c_str());
 			}
 		}
-		catch (...)
+		catch (const std::exception& e)
 		{
 		}
 	}
@@ -379,70 +381,69 @@ int CPictureMetadataExiv::GetOrientation()
 
 Exiv2::URationalValue::UniquePtr CPictureMetadataExiv::GetGpsRationalValue(const wxString& gpsValue)
 {
-	double dblValue;
-	gpsValue.ToDouble(&dblValue);
-	Exiv2::URationalValue::UniquePtr rv(new Exiv2::URationalValue);
+	double decimalDegrees = 0.0;
+	if (!gpsValue.ToDouble(&decimalDegrees))
+		return std::make_unique<Exiv2::URationalValue>();
 
-	//Get Hour
-	int result = lround(dblValue);
-	rv->value_.push_back(std::make_pair(result, 1));
+	decimalDegrees = std::abs(decimalDegrees);
 
-	//Get Minute
-	dblValue = dblValue - result;
-	dblValue = 60.0 * dblValue;
-	result = lround(dblValue);
-	rv->value_.push_back(std::make_pair(result, 1));
+	const uint32_t degrees = static_cast<uint32_t>(std::floor(decimalDegrees));
 
-	//Get Seconds
-	dblValue = dblValue - result;
-	dblValue = (3600.0 * dblValue) * 100.0;
-	result = lround(dblValue);
-	rv->value_.push_back(std::make_pair(result, 100));
-	return rv;
+	const double minutesDecimal = (decimalDegrees - degrees) * 60.0;
+	const uint32_t minutes = static_cast<uint32_t>(std::floor(minutesDecimal));
+
+	const double secondsDecimal = (minutesDecimal - minutes) * 60.0;
+	const uint32_t seconds = static_cast<uint32_t>(std::round(secondsDecimal * 10000.0));
+
+	auto value = std::make_unique<Exiv2::URationalValue>();
+
+	value->value_.emplace_back(degrees, 1);
+	value->value_.emplace_back(minutes, 1);
+	value->value_.emplace_back(seconds, 10000);
+
+	return value;
 }
 
 wxString CPictureMetadataExiv::GetGpsfValue(const wxString& gpsValue)
 {
-	wxString returnValue = "";
-	vector<wxString> latValue;
-	int i = 0;
+	std::istringstream iss(CConvertUtility::ConvertToStdString(gpsValue));
 
-	//Conversion des valeurs des latitudes et des longitudes
-	latValue = CConvertUtility::split(gpsValue, ' ');
+	double decimalDegrees = 0.0;
 
-	float outputValue = 0.0;
-
-	if (latValue.size() == 3)
+	for (int i = 0; i < 3; ++i)
 	{
-		for (auto it = latValue.begin(); it != latValue.end(); ++it)
+		std::string token;
+		if (!(iss >> token))
+			return "";
+
+		const auto pos = token.find('/');
+		if (pos == std::string::npos)
+			return "";
+
+		const double numerator = std::stod(token.substr(0, pos));
+		const double denominator = std::stod(token.substr(pos + 1));
+
+		if (denominator == 0.0)
+			return "";
+
+		const double value = numerator / denominator;
+
+		switch (i)
 		{
-			vector<wxString> intValue = CConvertUtility::split(*it, '/');
-			if (intValue.size() != 2)
-				return "";
-
-			int valeur = atoi(intValue.at(0));
-			int diviseur = atoi(intValue.at(1));
-			if (diviseur == 0)
-				return "";
-
-			float value = static_cast<float>(valeur) / static_cast<float>(diviseur);
-			if (i == 1)
-			{
-				value = value / 60;
-			}
-			else if (i == 2)
-			{
-				value = value / 3600;
-			}
-
-			outputValue += value;
-			i++;
+		case 0:
+			decimalDegrees += value;
+			break;
+		case 1:
+			decimalDegrees += value / 60.0;
+			break;
+		case 2:
+			decimalDegrees += value / 3600.0;
+			break;
 		}
 	}
 
-	return to_string(outputValue);
+	return wxString::Format("%.8f", decimalDegrees);
 }
-
 
 void CPictureMetadataExiv::ReadVideo(bool& hasGps, bool& hasDataTime, wxString& dateTimeInfos, wxString& latitude,
 	wxString& longitude)
@@ -508,7 +509,7 @@ void CPictureMetadataExiv::ReadVideo(bool& hasGps, bool& hasDataTime, wxString& 
 				}
 			}
 		}
-		catch (...)
+		catch(const std::exception& e)
 		{
 		}
 	}
@@ -627,16 +628,15 @@ void CPictureMetadataExiv::ReadPicture(bool& hasGps, bool& hasDataTime, wxString
 			else
 				hasGps = false;
 		}
-		catch (...)
+		catch(const std::exception& e)
 		{
 		}
 	}
 }
 
-tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::ReadExif(Exiv2::ExifData& exifData)
-{
-	tbb::concurrent_vector<CMetadata> metadataList;
 
+void CPictureMetadataExiv::ReadExif(Exiv2::ExifData& exifData, std::vector<CMetadata>& metadataList)
+{
 	Exiv2::ExifData::const_iterator end = exifData.end();
 
 	for (Exiv2::ExifData::const_iterator i = exifData.begin(); i != end; ++i)
@@ -647,12 +647,10 @@ tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::ReadExif(Exiv2::ExifData
 
 		metadataList.push_back(metadata);
 	}
-	return metadataList;
 }
 
-tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::ReadXmp(Exiv2::XmpData& xmpData)
+void CPictureMetadataExiv::ReadXmp(Exiv2::XmpData& xmpData, std::vector<CMetadata>& metadataList)
 {
-	tbb::concurrent_vector<CMetadata> metadataList;
 	wxString exifinfos;
 	wxString informations;
 	bool apple = false;
@@ -678,12 +676,11 @@ tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::ReadXmp(Exiv2::XmpData& 
 		metadata.value = exifinfos;
 		metadataList.push_back(metadata);
 	}
-	return metadataList;
 }
 
-tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::ReadIpct(Exiv2::IptcData& ipctData)
+void CPictureMetadataExiv::ReadIpct(Exiv2::IptcData& ipctData, std::vector<CMetadata>& metadataList)
 {
-	tbb::concurrent_vector<CMetadata> metadataList;
+	
 	wxString exifinfos;
 	wxString informations;
 	auto end = ipctData.end();
@@ -720,12 +717,13 @@ tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::ReadIpct(Exiv2::IptcData
 			metadataList.push_back(metadata);
 		}
 	}
-	return metadataList;
+
 }
 
-tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::GetMetadata()
+
+std::vector<CMetadata> CPictureMetadataExiv::GetMetadata()
 {
-	tbb::concurrent_vector<CMetadata> metadataList;
+	std::vector<CMetadata> metadataList;
 	if (isExif && exif.get() != nullptr)
 	{
 		try
@@ -735,18 +733,18 @@ tbb::concurrent_vector<CMetadata> CPictureMetadataExiv::GetMetadata()
 			Exiv2::XmpData& xmpData = exif->xmpData();
 			if (!exifData.empty())
 			{
-				metadataList = ReadExif(exifData);
+				ReadExif(exifData, metadataList);
 			}
-			else if (!ipctData.empty())
+			if (!ipctData.empty())
 			{
-				metadataList = ReadIpct(ipctData);
+				ReadIpct(ipctData, metadataList);
 			}
-			else if (!xmpData.empty())
+			if (!xmpData.empty())
 			{
-				metadataList = ReadXmp(xmpData);
+				ReadXmp(xmpData, metadataList);
 			}
 		}
-		catch (...)
+		catch(const std::exception& e)
 		{
 		}
 	}
@@ -792,7 +790,7 @@ wxImage CPictureMetadataExiv::DecodeThumbnail(wxString& extension, int& orientat
 			bitmap = LoadThumbnailFromExif(&exifData, extension, orientation);
 		}
 	}
-	catch (...)
+	catch(const std::exception& e)
 	{
 	}
 	return bitmap;
