@@ -37,6 +37,25 @@ namespace Regards
 
 
 
+			bool ReadDateTime(const Exiv2::ExifData& exifData,
+				wxString& dateTime);
+
+			bool ReadGps(const Exiv2::ExifData& exifData,
+				wxString& latitude,
+				wxString& longitude);
+
+			bool ReadGpsTag(const Exiv2::ExifData& exifData,
+				const char* keyName,
+				wxString& value);
+
+			bool IsQuickTimeVideo(const Exiv2::XmpData& xmpData);
+			bool ReadVideoGps(const Exiv2::XmpData& xmpData,
+				wxString& latitude,
+				wxString& longitude);
+
+			bool ReadVideoDate(const Exiv2::XmpData& xmpData,
+				bool quickTime,
+				wxString& dateTime);
 
 			Exiv2::ExifData* GetExifData();
 			Exiv2::URationalValue::UniquePtr GetGpsRationalValue(const wxString& gpsValue);

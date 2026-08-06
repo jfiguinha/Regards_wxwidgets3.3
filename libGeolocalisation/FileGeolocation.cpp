@@ -261,11 +261,22 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 				hasDataTime = true;
 				dateTimeInfos = it->value;
 			}
+			if (!hasDataTime)
+			{
+				std::vector<CMetadata>::iterator it = std::find_if(vectorMeta.begin(), vectorMeta.end(), [&](CMetadata val) -> bool {return val.key == "General.Recorded date"; });
+				if (it != vectorMeta.end())
+				{
+					//Create Date
+					hasDataTime = true;
+					dateTimeInfos = it->value;
+				}
+			}
+
 
 		}
 		{
 			std::vector<CMetadata>::iterator it = std::find_if(vectorMeta.begin(), vectorMeta.end(), [&](CMetadata val) -> bool {return val.key == "General.com.apple.quicktime.location.ISO6709"; });
-			if (it != vectorMeta.end())
+			if(it != vectorMeta.end())
 			{
 				wxString exifinfos = it->value;
 				hasGps = true;
@@ -305,6 +316,35 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 				latitudeGps = to_string(flatitude);
 				longitudeGps = to_string(flongitude);
 			}
+			else
+			{
+				it = std::find_if(vectorMeta.begin(), vectorMeta.end(), [&](CMetadata val) -> bool {return val.key == "General.Recorded location"; });
+				if (it != vectorMeta.end())
+				{
+					wxString exifinfos = it->value;
+					std::vector<wxString> gpsInfos = CConvertUtility::split(exifinfos, ' ');
+					if (gpsInfos.size() == 3)
+					{
+						wxString latitude = gpsInfos[0];
+						std::vector<wxString> gpsInfosLat = CConvertUtility::split(latitude, '°');
+						if (gpsInfosLat[1] == 'S')
+							latitudeGps = "-" + gpsInfosLat[0];
+						else
+							latitudeGps = gpsInfosLat[0];
+
+						wxString longitude = gpsInfos[1];
+						std::vector<wxString> gpsInfosLong = CConvertUtility::split(longitude, '°');
+						if (gpsInfosLong[1] == 'W')
+							longitudeGps = "-" + gpsInfosLong[0];
+						else
+							longitudeGps = gpsInfosLong[0];
+
+						hasGps = true;
+					}
+					
+
+				}
+			}
 		}
 	}
 	else
@@ -313,7 +353,7 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 		pictureMetadata.ReadPicture(hasGps, hasDataTime, dateTimeInfos, latitudeGps, longitudeGps);
 	}
 
-	if (hasGps)
+	if (!hasGps)
 	{
 		PhotoGpsVector photogpsVector;
 		CriteriaVector criteriaVector;

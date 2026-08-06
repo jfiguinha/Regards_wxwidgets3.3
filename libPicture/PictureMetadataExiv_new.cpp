@@ -450,71 +450,113 @@ void CPictureMetadataExiv::ReadVideo(bool& hasGps, bool& hasDataTime, wxString& 
 {
 	hasGps = false;
 	hasDataTime = false;
-	if (isExif)
+
+	if (!exif)
+		return;
+
+	try
 	{
-		try
-		{
-			Exiv2::XmpData& xmpData = exif->xmpData();
-			if (xmpData.empty())
-				return;
+		Exiv2::XmpData& xmpData = exif->xmpData();
 
-			bool apple = false;
-			wxString exifinfos;
-			wxString informations;
+		if (xmpData.empty())
+			return;
 
-			auto end = xmpData.end();
-			for (auto md = xmpData.begin(); md != end; ++md)
-			{
-				informations = md->key();
-				exifinfos = toString(*md);
+		const bool isQuickTime = IsQuickTimeVideo(xmpData);
 
-				if (informations == "Xmp.video.MimeType")
-				{
-					if (exifinfos == "video/quicktime")
-						apple = true;
-				}
-				else if (informations == "Xmp.video.GPSCoordinates")
-				{
-					// Format XMP attendu : "+DD.DDDD+DDD.DDDD/" (lat lon, signe
-					// obligatoire devant chaque composante).
-					std::wstring s = exifinfos.ToStdWstring();
-					static const std::wregex re(LR"(^([+-][0-9]+(?:\.[0-9]+)?)([+-][0-9]+(?:\.[0-9]+)?))");
-					std::wsmatch m;
-
-					if (std::regex_search(s, m, re) && m.size() == 3)
-					{
-						hasGps = true;
-						double flatitude = std::stod(m[1].str());
-						double flongitude = std::stod(m[2].str());
-						latitude = to_string(flatitude);
-						longitude = to_string(flongitude);
-					}
-				}
-				else if (informations.Find("TrackCreateDate") >= 0)
-				{
-					if (apple)
-					{
-						int64_t dateTime = atol(exifinfos.c_str());
-						if (dateTime > 0)
-						{
-							dateTimeInfos = GetQuickTimeDate(dateTime);
-							hasDataTime = true;
-						}
-					}
-					else
-					{
-						dateTimeInfos = exifinfos;
-						hasDataTime = true;
-					}
-				}
-			}
-		}
-		catch(const std::exception& e)
-		{
-		}
+		hasGps = ReadVideoGps(xmpData, latitude, longitude);
+		hasDataTime = ReadVideoDate(xmpData, isQuickTime, dateTimeInfos);
+	}
+	catch (const Exiv2::Error&)
+	{
 	}
 }
 
+bool CPictureMetadataExiv::ReadVideoDate(const Exiv2::XmpData& xmpData,
+	bool quickTime,
+	wxString& dateTime)
+{
+	for (const auto& md : xmpData)
+	{
+		string key = md.key();
+		if (key.find("TrackCreateDate") < 0)
+			continue;
+
+		wxString value = toString(md);
+
+		if (!quickTime)
+		{
+			dateTime = value;
+			return true;
+		}
+
+		int64_t seconds = atoll(value.c_str());
+
+		if (seconds <= 0)
+			return false;
+
+		dateTime = GetQuickTimeDate(seconds);
+		return !dateTime.empty();
+	}
+
+	return false;
+}
+
+bool CPictureMetadataExiv::ReadVideoGps(const Exiv2::XmpData& xmpData,
+	wxString& latitude,
+	wxString& longitude)
+{
+	latitude.clear();
+	longitude.clear();
+
+	for (const auto& md : xmpData)
+	{
+		if (md.key() != "Xmp.video.GPSCoordinates")
+			continue;
+
+		wxString gps = toString(md);
+
+		if (gps.empty())
+			return false;
+
+		// Recherche du début de la longitude (+ ou - après le premier caractère)
+		int pos = -1;
+		for (size_t i = 1; i < gps.length(); ++i)
+		{
+			if (gps[i] == '+' || gps[i] == '-')
+			{
+				pos = static_cast<int>(i);
+				break;
+			}
+		}
+
+		if (pos < 0)
+			return false;
+
+		latitude = gps.substr(0, pos);
+		longitude = gps.substr(pos);
+
+		// Suppression du '/' final éventuel
+		if (!longitude.empty() && longitude.Last() == '/')
+			longitude.RemoveLast();
+
+		return !latitude.empty() && !longitude.empty();
+	}
+
+	return false;
+}
+
+bool CPictureMetadataExiv::IsQuickTimeVideo(const Exiv2::XmpData& xmpData)
+{
+	static const wxString MimeKey = "Xmp.video.MimeType";
+
+	for (const auto& md : xmpData)
+	{
+		if (md.key() == MimeKey)
+			return toString(md) == "video/quicktime";
+	}
+
+	return false;
+}
 
 wxString CPictureMetadataExiv::GetQuickTimeDate(int64_t dateQuicktime)
 {
@@ -542,98 +584,105 @@ wxString CPictureMetadataExiv::GetQuickTimeDate(int64_t dateQuicktime)
 	return message;
 }
 
+Exiv2::ExifData* CPictureMetadataExiv::GetExifData()
+{
+	if (!exif)
+		return nullptr;
+
+	Exiv2::ExifData& exifData = exif->exifData();
+
+	if (exifData.empty())
+		return nullptr;
+
+	return &exifData;
+}
 
 void CPictureMetadataExiv::ReadPicture(bool& hasGps, bool& hasDataTime, wxString& dateTimeInfos, wxString& latitude,
 	wxString& longitude)
 {
 	hasGps = false;
 	hasDataTime = false;
-	if (isExif)
-	{
-		try
-		{
-			Exiv2::ExifData& exifData = exif->exifData();
-			if (exifData.empty())
-				return;
 
-			latitude = "";
-			wxString latitudeRef = "";
-			longitude = "";
-			wxString longitudeRef = "";
+	auto* exifData = GetExifData();
+	if (!exifData || exifData->empty())
+		return;
 
-			Exiv2::ExifKey gpsTag("Exif.Image.GPSTag");
-			Exiv2::ExifKey gpsLatitudeRef("Exif.GPSInfo.GPSLatitudeRef");
-			Exiv2::ExifKey gpsLatitude("Exif.GPSInfo.GPSLatitude");
-			Exiv2::ExifKey gpsLongitudeRef("Exif.GPSInfo.GPSLongitudeRef");
-			Exiv2::ExifKey gpsLongitude("Exif.GPSInfo.GPSLongitude");
-			Exiv2::ExifKey dateTime("Exif.Image.DateTime");
-
-			Exiv2::ExifData::const_iterator md = exifData.findKey(dateTime);
-			if (exifData.end() != md)
-			{
-				hasDataTime = true;			
-				wxDateTime dt;
-				if (dt.ParseFormat(toString(*md), "%Y-%m-%d"))
-					dateTimeInfos = toString(*md);
-				else
-					hasDataTime = false;
-			}
-
-			md = exifData.findKey(gpsTag);
-			if (exifData.end() != md)
-			{
-				hasGps = true;
-				md = exifData.findKey(gpsLatitudeRef);
-				if (exifData.end() != md)
-				{
-					latitudeRef = md->value().toString();
-				}
-				md = exifData.findKey(gpsLatitude);
-				if (exifData.end() != md)
-				{
-					latitude = md->value().toString();
-				}
-				md = exifData.findKey(gpsLongitudeRef);
-				if (exifData.end() != md)
-				{
-					longitudeRef = md->value().toString();
-				}
-				md = exifData.findKey(gpsLongitude);
-				if (exifData.end() != md)
-				{
-					longitude = md->value().toString();
-				}
-
-				if (latitude != "" && longitude != "" && latitudeRef != "" && longitudeRef != "")
-				{
-					latitude = GetGpsfValue(latitude);
-					longitude = GetGpsfValue(longitude);
-
-					if (latitude == "" || longitude == "")
-					{
-						hasGps = false;
-					}
-					else
-					{
-						if (latitudeRef == "S")
-							latitude = "-" + latitude;
-
-						if (longitudeRef == "W")
-							longitude = "-" + longitude;
-					}
-				}
-				else
-					hasGps = false;
-			}
-			else
-				hasGps = false;
-		}
-		catch(const std::exception& e)
-		{
-		}
-	}
+	hasDataTime = ReadDateTime(*exifData, dateTimeInfos);
+	hasGps = ReadGps(*exifData, latitude, longitude);
 }
 
+bool CPictureMetadataExiv::ReadDateTime(const Exiv2::ExifData& exifData,
+	wxString& dateTime)
+{
+	static const Exiv2::ExifKey key("Exif.Image.DateTime");
+
+	auto it = exifData.findKey(key);
+	if (it == exifData.end())
+		return false;
+
+	dateTime = toString(*it);
+
+	wxDateTime dt;
+	return dt.ParseFormat(dateTime, "%Y:%m:%d %H:%M:%S");
+}
+
+bool CPictureMetadataExiv::ReadGpsTag(const Exiv2::ExifData& exifData,
+	const char* keyName,
+	wxString& value)
+{
+	Exiv2::ExifKey key(keyName);
+
+	auto it = exifData.findKey(key);
+
+	if (it == exifData.end())
+		return false;
+
+	value = it->value().toString();
+
+	return true;
+}
+
+bool CPictureMetadataExiv::ReadGps(const Exiv2::ExifData& exifData,
+	wxString& latitude,
+	wxString& longitude)
+{
+	wxString latitudeRef;
+	wxString longitudeRef;
+
+	if (!ReadGpsTag(exifData,
+		"Exif.GPSInfo.GPSLatitudeRef",
+		latitudeRef))
+		return false;
+
+	if (!ReadGpsTag(exifData,
+		"Exif.GPSInfo.GPSLatitude",
+		latitude))
+		return false;
+
+	if (!ReadGpsTag(exifData,
+		"Exif.GPSInfo.GPSLongitudeRef",
+		longitudeRef))
+		return false;
+
+	if (!ReadGpsTag(exifData,
+		"Exif.GPSInfo.GPSLongitude",
+		longitude))
+		return false;
+
+	latitude = GetGpsfValue(latitude);
+	longitude = GetGpsfValue(longitude);
+
+	if (latitude.empty() || longitude.empty())
+		return false;
+
+	if (latitudeRef == "S")
+		latitude.Prepend("-");
+
+	if (longitudeRef == "W")
+		longitude.Prepend("-");
+
+	return true;
+}
 
 void CPictureMetadataExiv::ReadExif(Exiv2::ExifData& exifData, std::vector<CMetadata>& metadataList)
 {

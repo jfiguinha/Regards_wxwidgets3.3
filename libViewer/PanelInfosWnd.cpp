@@ -324,11 +324,12 @@ void CPanelInfosWnd::SetVideoFile(const wxString& filename)
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
 
-		CFileGeolocation fileGeo("", "");
-		fileGeo.SetFile(filename, "");
-		bool hasGps = fileGeo.HasGps();
+		//CFileGeolocation fileGeo("", "");
+		//fileGeo.SetFile(filename, "");
+		//bool hasGps = fileGeo.HasGps();
 
 		auto fileGeolocalisation = GeolocHelper::CreateAndSetFile(filename);
+		bool hasGps = fileGeolocalisation->HasGps();
 
 		if (!this->isVideo)
 		{
@@ -367,9 +368,9 @@ void CPanelInfosWnd::SetBitmapFile(const wxString& filename, const bool& isThumb
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
 
-		CFileGeolocation fileGeo("","");
-		fileGeo.SetFile(filename, "");
-		bool hasGps = fileGeo.HasGps();
+		//CFileGeolocation fileGeo("","");
+		//fileGeo.SetFile(filename, "");
+		//bool hasGps = fileGeo.HasGps();
 
 		auto fileGeolocalisation = GeolocHelper::CreateAndSetFile(filename);
 

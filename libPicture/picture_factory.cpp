@@ -607,6 +607,12 @@ int ImageLoader::GetDimensions(const wxString& fileName,
     const int fmt = FormatDetector::DetectFormat(fileName);
     width = height = rotation = 0;
 
+    if (FormatDetector::IsVideo(fileName))
+    {
+        CMediaInfo::GetVideoDimensions(fileName, width, height);
+        return 0;
+    }
+
     // Tentative rapide via imageinfo (header-only)
     auto info = imageinfo::parse<imageinfo::FilePathReader>(
         CConvertUtility::ConvertToStdString(fileName).c_str());
