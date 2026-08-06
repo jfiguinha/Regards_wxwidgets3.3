@@ -353,7 +353,7 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 		pictureMetadata.ReadPicture(hasGps, hasDataTime, dateTimeInfos, latitudeGps, longitudeGps);
 	}
 
-	if (!hasGps)
+	if (hasGps)
 	{
 		PhotoGpsVector photogpsVector;
 		CriteriaVector criteriaVector;

@@ -309,6 +309,10 @@ void CScrollbarWnd::Resize()
 		windowManager->Refresh();
 	}
 
+	//Send Message to central window to resize it
+	centralWindow->GetWindow()->SetSize(0, 0,  effectiveW, effectiveH);
+
+
 	scrollVertical->SetShowWindow(showScrollV);
 	scrollHorizontal->SetShowWindow(showScrollH);
 }

@@ -43,10 +43,10 @@ deque<int> CSqlCriteria::GetListCriteriaToGeolocalize()
 bool CSqlCriteria::InsertCriteria(const int64_t& numCatalog, const int64_t& numCategorie, const wxString& libelle)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
 	parameter.push_back(std::make_unique<CSqlInt>(numCategorie));
+	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
 	parameter.push_back(std::make_unique<CSqlString>(libelle));
-	return ExecuteSqlWithStatementNoResult("INSERT INTO CRITERIA (NumCatalog,NumCategorie,Libelle) VALUES (?,?,?)", parameter);
+	return ExecuteSqlWithStatementNoResult("INSERT INTO CRITERIA (NumCategorie,NumCatalog,Libelle) VALUES (?,?,?)", parameter);
 }
 
 void CSqlCriteria::RemoveUnusedCriteria()
@@ -121,7 +121,7 @@ bool CSqlCriteria::DeleteCriteria(const int& numCriteria, const int& numCategory
 bool CSqlCriteria::DeleteCriteriaAlone()
 {
 	return (ExecuteRequestWithNoResult(
-			       "Delete from CRITERIA where NumCriteria not in (select NumCriteria From PhotosCRITERIA) and NumCategorie not in(5,6,7)")
+			       "Delete from CRITERIA where NumCriteria not in (select NumCriteria From PhotosCRITERIA) and NumCategorie not in (5,6,7)")
 		       != -1)
 		       ? true
 		       : false;
