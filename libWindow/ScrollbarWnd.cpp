@@ -312,6 +312,17 @@ void CScrollbarWnd::Resize()
 	//Send Message to central window to resize it
 	centralWindow->GetWindow()->SetSize(0, 0,  effectiveW, effectiveH);
 
+	if (oldshowScrollH != showScrollH)
+	{
+		oldshowScrollH = showScrollH;
+		wxCommandEvent evt(wxEVENT_SCROLLBARH);
+		evt.SetInt(showScrollH);
+		evt.SetExtraLong(scrollHorizontal->GetHeightSize());
+		centralWindow->GetWindow()->GetEventHandler()->AddPendingEvent(evt);
+	}
+
+
+
 
 	scrollVertical->SetShowWindow(showScrollV);
 	scrollHorizontal->SetShowWindow(showScrollH);

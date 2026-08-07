@@ -44,5 +44,8 @@ namespace Regards::Viewer
 		static std::mutex localmu;
 		int widthThumbnail;
 		int heightThumbnail;
+		bool isScrollBarH;
+		int scrollBarHSize;
+		int oldHeightIcone = 0;
 	};
 }

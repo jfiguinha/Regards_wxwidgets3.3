@@ -16,6 +16,17 @@ CThumbnailVertical::CThumbnailVertical(wxWindow* parent, const wxWindowID id, co
 CThumbnailVertical::~CThumbnailVertical(void)
 = default;
 
+void CThumbnailVertical::OnScrollBarH(wxCommandEvent& event)
+{
+	isScrollBarH = event.GetInt();
+	scrollBarHSize = event.GetExtraLong();
+	if (isScrollBarH)
+		themeThumbnail.themeIcone.SetHeight(themeIconeHeight);
+	else
+		themeThumbnail.themeIcone.SetHeight(themeIconeHeight + scrollBarHSize);
+
+	ResizeThumbnail();
+}
 
 CIcone * CThumbnailVertical::FindElementWithVScroll(const int& xPos, const int& yPos)
 {

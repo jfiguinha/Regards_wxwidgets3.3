@@ -385,7 +385,8 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	//this->statusbar = statusbar;
 
 	this->themeThumbnail = themeThumbnail;
-
+	themeIconeHeight = this->themeThumbnail.themeIcone.GetHeight();
+	themeIconeWidth = this->themeThumbnail.themeIcone.GetWidth();
 	Connect(wxEVT_PAINT, wxPaintEventHandler(CThumbnail::on_paint));
 	Connect(wxEVT_MOTION, wxMouseEventHandler(CThumbnail::OnMouseMove));
 	Connect(wxEVT_LEFT_DOWN, wxMouseEventHandler(CThumbnail::OnLButtonDown));
@@ -396,7 +397,8 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	Connect(wxEVT_KEY_UP, wxKeyEventHandler(CThumbnail::OnKeyUp));
 	Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(CThumbnail::OnEnterWindow));
 	Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(CThumbnail::OnLeaveWindow));
-
+	Connect(wxEVENT_SCROLLBARH, wxCommandEventHandler(CThumbnail::OnScrollBarH));
+	Connect(wxEVENT_SCROLLBARV, wxCommandEventHandler(CThumbnail::OnScrollBarV));
 
 	timeClick = std::make_unique<wxTimer>(this, TIMER_CLICK);
 	Connect(TIMER_CLICK, wxEVT_TIMER, wxTimerEventHandler(CThumbnail::OnTimerClick), nullptr, this);
@@ -447,6 +449,7 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	refreshActifTimer->Start(timeActif, TRUE);
 	refreshSelectTimer->Start(timeSelect, TRUE);
 }
+
 
 
 void CThumbnail::OnTimerClick(wxTimerEvent& event)
@@ -646,6 +649,17 @@ int CThumbnail::GetHeight()
 	return thumbnailSizeY;
 }
 
+void CThumbnail::OnScrollBarV(wxCommandEvent& event)
+{
+
+}
+
+void CThumbnail::OnScrollBarH(wxCommandEvent& event)
+{
+
+}
+
+
 int CThumbnail::GetIconeHeight()
 {
 	return themeThumbnail.themeIcone.GetHeight();
@@ -683,6 +697,9 @@ void CThumbnail::AfterSetList()
 
 void CThumbnail::SetIconeSize(const int& width, const int& height)
 {
+	themeIconeHeight = height;
+	themeIconeWidth = width;
+
 	themeThumbnail.themeIcone.SetWidth(width);
 	themeThumbnail.themeIcone.SetHeight(height);
 

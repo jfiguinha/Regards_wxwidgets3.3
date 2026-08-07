@@ -19,6 +19,7 @@ namespace Regards::Control
 		void UpdateScroll() override;
 		virtual void UpdateScrollWithoutVScroll();
 		virtual void UpdateScrollWithVScroll();
+		void OnScrollBarH(wxCommandEvent& event);
 
 		CIcone * FindElement(const int& xPos, const int& yPos) override;
 		virtual CIcone * FindElementWithVScroll(const int& xPos, const int& yPos);

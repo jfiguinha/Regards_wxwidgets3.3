@@ -31,7 +31,7 @@ int CSqlFacePhoto::UpdateVideoFace(const int& numFace, const int& videoPosition)
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numFace));
 	parameter.push_back(std::make_unique<CSqlInt>(videoPosition));
-	return ExecuteSqlWithStatementNoResult("INSERT INTO FACEVIDEO (NumFace, videoPosition) VALUES (? , ?)", parameter);
+	return ExecuteSqlWithStatementNoResult("INSERT INTO FACEVIDEO (NumFace, videoPosition) VALUES (?, ?)", parameter);
 }
 
 int CSqlFacePhoto::GetVideoFacePosition(const int& numFaceid)

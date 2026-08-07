@@ -46,7 +46,7 @@ std::vector<CFaceName> CSqlFindFacePhoto::GetListFaceName(const wxString& photoP
 	listFaceName.clear();
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlString>(photoPath));
-	ExecuteSqlWithStatement("SELECT NumFace, FaceName, isSelectable FROM FACE_NAME WHERE NumFace  in (select NumFaceCompatible from FACE_RECOGNITION where NumFace in (select NumFace from FACEPHOTO where FullPath = ?))", parameter);
+	ExecuteSqlWithStatement("SELECT NumFace, FaceName, isSelectable FROM FACE_NAME WHERE NumFace in (select NumFaceCompatible from FACE_RECOGNITION where NumFace in (select NumFace from FACEPHOTO where FullPath = ?))", parameter);
 	return listFaceName;
 }
 

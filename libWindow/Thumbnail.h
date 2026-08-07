@@ -56,8 +56,8 @@ namespace Regards::Window
 			return this;
 		}
 
-		int GetIconeHeight();
-		int GetIconeWidth();
+		virtual int GetIconeHeight();
+		virtual int GetIconeWidth();
 
 		virtual void SetActifItem(const int& idPhoto, const bool& move);
 		virtual void GetSelectItemFilename(vector<wxString>& vectorData);
@@ -125,7 +125,8 @@ namespace Regards::Window
 		void OnLeftPosition(wxCommandEvent& event);
 		void OnTopPosition(wxCommandEvent& event);
 		void OnRefreshThumbnail(wxCommandEvent& event);
-
+		virtual void OnScrollBarV(wxCommandEvent& event);
+		virtual void OnScrollBarH(wxCommandEvent& event);
 		void CalculControlSize();
 		virtual void OnPictureClick(const int& numPhotoId) = 0;
 		void InitScrollingPos();
@@ -239,6 +240,9 @@ namespace Regards::Window
 		bool enableDragAndDrop = false;
 		int nbElementInIconeList = 0;
 		bool firstRefresh = true;
+
+		int themeIconeHeight = 0;
+		int themeIconeWidth = 0;
 
 		bool stopToGetNbElement = false;
 		std::vector<wxString> listIconeToGenerate;

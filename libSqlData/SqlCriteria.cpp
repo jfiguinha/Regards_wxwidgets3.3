@@ -60,7 +60,7 @@ int64_t CSqlCriteria::GetCriteriaId(const int& numCriteria, const int& numFolder
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numFolder));
 	parameter.push_back(std::make_unique<CSqlInt>(numCriteria));
-	ExecuteSqlWithStatement("select distinct NumCriteria From PHOTOSCRITERIA inner join PHOTOS on PHOTOSCRITERIA.NumPhoto = PHOTOS.NumPhoto  where PHOTOS.NumFolderCatalog = ? and NumCriteria = ?", parameter);
+	ExecuteSqlWithStatement("select distinct NumCriteria From PHOTOSCRITERIA inner join PHOTOS on PHOTOSCRITERIA.NumPhoto = PHOTOS.NumPhoto where PHOTOS.NumFolderCatalog = ? and NumCriteria = ?", parameter);
 	return criteriaId;
 }
 

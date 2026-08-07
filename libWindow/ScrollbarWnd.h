@@ -90,5 +90,8 @@ namespace Regards::Window
 		CWindowManager * windowManager;
 		std::unique_ptr<CWindowToAdd> centralWindow;
 		std::unique_ptr<CWindowToAdd> windowToaddCentral;
+
+		bool oldshowScrollH = false;
+		bool oldshowScrollV = false;
 	};
 }
