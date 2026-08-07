@@ -9,10 +9,6 @@ CSqlFindCatalog::CSqlFindCatalog()
 }
 
 
-CSqlFindCatalog::~CSqlFindCatalog()
-{
-}
-
 bool CSqlFindCatalog::GetCatalog(CatalogVector* catalogVector)
 {
 	if (catalogVector == nullptr)

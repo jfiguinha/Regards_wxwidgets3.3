@@ -10,10 +10,6 @@ CSqlFindCriteria::CSqlFindCriteria()
 }
 
 
-CSqlFindCriteria::~CSqlFindCriteria()
-{
-}
-
 bool CSqlFindCriteria::SearchCriteriaAlone(CriteriaVector* criteriaVector)
 {
 	m_criteriaVector = criteriaVector;

@@ -14,7 +14,7 @@ namespace Regards
 		{
 		public:
 			CSqlThumbnail();
-			~CSqlThumbnail() override;
+			~CSqlThumbnail() = default;
 			wxString InsertThumbnail(const wxString& path, const int& width, const int& height,
 			                     const wxString& hash);
 			cv::Mat GetThumbnail(const wxString& path, bool& isDefault);

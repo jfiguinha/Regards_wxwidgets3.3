@@ -12,7 +12,7 @@ namespace Regards
 		{
 		public:
 			CSqlFindPhotos();
-			~CSqlFindPhotos() override;
+			~CSqlFindPhotos() = default;
 			void UpdatePhotosExtension();
 			bool SearchPhotos(PhotosVector* photosVector);
 			bool SearchPhotos(vector<int>* listPhoto);

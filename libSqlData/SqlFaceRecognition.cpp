@@ -10,10 +10,6 @@ CSqlFaceRecognition::CSqlFaceRecognition()
 }
 
 
-CSqlFaceRecognition::~CSqlFaceRecognition()
-{
-}
-
 int CSqlFaceRecognition::GetCompatibleFace(const int& numFace)
 {
 	type = 1;

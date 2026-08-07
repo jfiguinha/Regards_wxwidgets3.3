@@ -12,7 +12,7 @@ namespace Regards
 		{
 		public:
 			CSqlFindCriteria();
-			~CSqlFindCriteria() override;
+			~CSqlFindCriteria() = default;
 			bool SearchCriteria(CriteriaVector* criteriaVector, const int64_t& numCategorie, const int64_t& numCatalog);
 			bool SearchCriteriaAlone(CriteriaVector* criteriaVector);
 			bool SearchCriteria(CriteriaVector* criteriaVector, const wxString& key, const int64_t& numCategorie,

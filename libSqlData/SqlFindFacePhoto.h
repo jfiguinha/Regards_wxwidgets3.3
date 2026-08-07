@@ -13,7 +13,7 @@ namespace Regards
 		{
 		public:
 			CSqlFindFacePhoto();
-			~CSqlFindFacePhoto() override;
+			~CSqlFindFacePhoto() = default;
 			std::vector<wxString> GetPhotoListNotProcess();
 			std::vector<int> GetListFaceToRecognize();
 			std::vector<CFaceName> GetListFaceName();

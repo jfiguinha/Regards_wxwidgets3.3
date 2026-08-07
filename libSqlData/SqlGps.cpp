@@ -21,11 +21,6 @@ CSqlGps::CSqlGps(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
 	photogpsVector = nullptr;
 }
 
-
-CSqlGps::~CSqlGps()
-{
-}
-
 bool CSqlGps::InsertGps(const wxString& filepath, const wxString& latitude, const wxString& longitude)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;

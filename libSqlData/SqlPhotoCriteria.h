@@ -12,7 +12,7 @@ namespace Regards
 		{
 		public:
 			CSqlPhotoCriteria();
-			~CSqlPhotoCriteria() override;
+			~CSqlPhotoCriteria() = default;
 
 			bool InsertPhotoListCriteria(const CListCriteriaPhoto& listPhotoCriteria, bool& isNew,
 			                             bool criteriaUpdate = true);

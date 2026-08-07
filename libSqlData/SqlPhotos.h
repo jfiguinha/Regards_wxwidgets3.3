@@ -16,7 +16,7 @@ namespace Regards
 		{
 		public:
 			CSqlPhotos(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
-			~CSqlPhotos() override;
+			~CSqlPhotos() = default;
 			bool InsertPhoto(const wxString& filepath, const int64_t& idFolder);
 			int64_t GetPhotoId(const wxString& filepath, const int64_t& idFolder);
 			int64_t GetPhotoId(const wxString& filepath);

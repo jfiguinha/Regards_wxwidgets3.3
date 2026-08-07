@@ -22,11 +22,6 @@ CSqlVersion::CSqlVersion(CSqlLib* _sqlLibTransaction, const bool& useTransaction
 	result = "";
 }
 
-
-CSqlVersion::~CSqlVersion()
-{
-}
-
 bool CSqlVersion::InsertVersion(const wxString& version)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;

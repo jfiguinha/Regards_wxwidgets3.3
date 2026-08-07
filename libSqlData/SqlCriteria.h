@@ -12,7 +12,7 @@ namespace Regards
 		{
 		public:
 			CSqlCriteria(CSqlLib* _sqlLibTransaction = nullptr, const bool& useTransaction = false);
-			~CSqlCriteria() override;
+			~CSqlCriteria() = default;
 			bool DeleteCriteria(const int& numCriteria, const int& numCategory);
 			int64_t GetCriteriaId(const int& numCriteria, const int& numFolder);
 			int64_t GetCriteriaIdByCategorie(const int& numPhoto, const int& numCategorie);

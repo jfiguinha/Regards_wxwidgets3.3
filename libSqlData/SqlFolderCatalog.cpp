@@ -11,10 +11,6 @@ CSqlFolderCatalog::CSqlFolderCatalog()
 }
 
 
-CSqlFolderCatalog::~CSqlFolderCatalog()
-{
-}
-
 int64_t CSqlFolderCatalog::GetOrInsertFolderCatalog(const int64_t& numCatalog, const wxString& folderPath)
 {
 	int64_t numFolderId = GetFolderCatalogId(numCatalog, folderPath);

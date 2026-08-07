@@ -17,11 +17,6 @@ CSqlInsertFile::CSqlInsertFile()
 	type = 0;
 }
 
-
-CSqlInsertFile::~CSqlInsertFile()
-{
-}
-
 void CSqlInsertFile::UpdatePhotoProcess(const int& numPhoto)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;

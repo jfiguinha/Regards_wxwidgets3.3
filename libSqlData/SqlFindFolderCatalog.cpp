@@ -10,11 +10,6 @@ CSqlFindFolderCatalog::CSqlFindFolderCatalog()
 {
 }
 
-
-CSqlFindFolderCatalog::~CSqlFindFolderCatalog()
-{
-}
-
 int CSqlFindFolderCatalog::GetNbFolderCatalog(const int& numCatalog)
 {
 	nbCatalog = 0;

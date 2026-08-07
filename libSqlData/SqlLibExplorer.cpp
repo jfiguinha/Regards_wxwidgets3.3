@@ -111,11 +111,6 @@ CSqlLibExplorer::CSqlLibExplorer(const bool& readOnly, const wxString& libelleNo
 }
 
 
-CSqlLibExplorer::~CSqlLibExplorer()
-{
-}
-
-
 void CSqlLibExplorer::LoadAndRotate(const wxString& filePath, const int& rotate)
 {
 	if (!wxFileExists(filePath))

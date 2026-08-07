@@ -14,11 +14,6 @@ CSqlPhotos::CSqlPhotos(CSqlLib* _sqlLibTransaction, const bool& useTransaction)
 	this->m_useTransaction = useTransaction;
 }
 
-
-CSqlPhotos::~CSqlPhotos()
-{
-}
-
 bool CSqlPhotos::InsertPhoto(const wxString& filepath, const int64_t& idFolder)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;

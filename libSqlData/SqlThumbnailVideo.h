@@ -13,7 +13,7 @@ namespace Regards
 		{
 		public:
 			CSqlThumbnailVideo();
-			~CSqlThumbnailVideo() override;
+			~CSqlThumbnailVideo() = default;
 			int GetNbThumbnail(const wxString& path);
 			wxString InsertThumbnail(int photoId, const wxString& path, const int& width, const int& height,
 			                     const int& numPicture, const int& rotation, const int& percent,

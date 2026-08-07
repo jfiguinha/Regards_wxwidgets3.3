@@ -15,11 +15,6 @@ CSqlCriteria::CSqlCriteria(CSqlLib* _sqlLibTransaction, const bool& useTransacti
 	this->m_useTransaction = useTransaction;
 }
 
-
-CSqlCriteria::~CSqlCriteria()
-{
-}
-
 wxString CSqlCriteria::GetCriteriaLibelle(const int& criteriaId)
 {
 	type = 2;

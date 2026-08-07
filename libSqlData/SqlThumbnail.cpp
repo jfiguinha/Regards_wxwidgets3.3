@@ -17,11 +17,6 @@ CSqlThumbnail::CSqlThumbnail()
 	type = 0;
 }
 
-
-CSqlThumbnail::~CSqlThumbnail()
-{
-}
-
 int CSqlThumbnail::GetThumbnailId(const wxString& path)
 {
 	type = 0;

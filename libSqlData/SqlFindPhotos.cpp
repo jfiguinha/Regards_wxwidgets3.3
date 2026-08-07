@@ -14,12 +14,6 @@ CSqlFindPhotos::CSqlFindPhotos()
 	typeResult = 0;
 }
 
-
-CSqlFindPhotos::~CSqlFindPhotos()
-{
-}
-
-
 bool CSqlFindPhotos::SearchPhotosByCriteriaFolder(PhotosVector* photosVector)
 {
 	typeResult = 2;

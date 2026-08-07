@@ -23,11 +23,6 @@ CSqlThumbnailVideo::CSqlThumbnailVideo()
 
 }
 
-
-CSqlThumbnailVideo::~CSqlThumbnailVideo()
-{
-}
-
 int CSqlThumbnailVideo::GetNbThumbnail(const wxString& path)
 {
 	type = 0;

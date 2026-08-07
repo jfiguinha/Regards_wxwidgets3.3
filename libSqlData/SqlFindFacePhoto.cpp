@@ -10,10 +10,6 @@ CSqlFindFacePhoto::CSqlFindFacePhoto()
 }
 
 
-CSqlFindFacePhoto::~CSqlFindFacePhoto()
-{
-}
-
 std::vector<int> CSqlFindFacePhoto::GetListFaceNum(const wxString& photopath)
 {
 	type = 0;

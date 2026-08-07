@@ -14,10 +14,6 @@ CSqlPhotoCategorieUsenet::CSqlPhotoCategorieUsenet()
 }
 
 
-CSqlPhotoCategorieUsenet::~CSqlPhotoCategorieUsenet()
-{
-}
-
 //--------------------------------------------------------
 //Chargement de toutes les données d'un album
 //--------------------------------------------------------

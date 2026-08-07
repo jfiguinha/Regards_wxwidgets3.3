@@ -11,7 +11,7 @@ namespace Regards
 		{
 		public:
 			CSqlLibExplorer(const bool& readOnly, const wxString& libelleNotGeo, const bool& m_loadInMemory);
-			~CSqlLibExplorer() override;
+			~CSqlLibExplorer() = default;
 
 			bool InitDatabase(const wxString& lpFilename) override;
 			bool CheckVersion(const wxString& lpFilename) override;

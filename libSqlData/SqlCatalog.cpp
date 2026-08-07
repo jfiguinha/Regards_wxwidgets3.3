@@ -10,12 +10,6 @@ CSqlCatalog::CSqlCatalog()
 	numCatalogId = -1;
 }
 
-
-CSqlCatalog::~CSqlCatalog()
-{
-}
-
-
 bool CSqlCatalog::InsertCatalog(const wxString& libelle)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;

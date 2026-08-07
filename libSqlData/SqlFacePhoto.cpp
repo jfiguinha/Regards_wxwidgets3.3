@@ -22,10 +22,6 @@ CSqlFacePhoto::CSqlFacePhoto()
 }
 
 
-CSqlFacePhoto::~CSqlFacePhoto()
-{
-}
-
 int CSqlFacePhoto::UpdateVideoFace(const int& numFace, const int& videoPosition)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;

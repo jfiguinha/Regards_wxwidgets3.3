@@ -9,11 +9,6 @@ CSqlFaceLabel::CSqlFaceLabel()
 {
 }
 
-
-CSqlFaceLabel::~CSqlFaceLabel()
-{
-}
-
 //--------------------------------------------------------
 //Chargement de toutes les données d'un album
 //--------------------------------------------------------

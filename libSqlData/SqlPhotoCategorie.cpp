@@ -10,11 +10,6 @@ CSqlPhotoCategorie::CSqlPhotoCategorie()
 {
 }
 
-
-CSqlPhotoCategorie::~CSqlPhotoCategorie()
-{
-}
-
 //--------------------------------------------------------
 //Chargement de toutes les données d'un album
 //--------------------------------------------------------

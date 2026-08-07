@@ -12,9 +12,6 @@ CSqlPhotosWithoutThumbnail::CSqlPhotosWithoutThumbnail()
 	photoList = nullptr;
 }
 
-CSqlPhotosWithoutThumbnail::~CSqlPhotosWithoutThumbnail()
-{
-}
 
 int CSqlPhotosWithoutThumbnail::GetPhotoElement()
 {

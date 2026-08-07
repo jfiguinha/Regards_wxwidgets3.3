@@ -20,7 +20,7 @@ namespace Regards
 		{
 		public:
 			CSqlFacePhoto();
-			~CSqlFacePhoto() override;
+			~CSqlFacePhoto() = default;
 			int InsertFaceTreatment(const wxString& path);
 			int InsertFace(const wxString& path, const wxString& gender, const wxString& age, const int& numberface, const int& width, const int& height,
 			               const double& pertinence, const uint8_t* zBlob, const int& nBlob);
