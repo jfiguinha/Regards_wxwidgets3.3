@@ -18,8 +18,8 @@ CThumbnailVertical::~CThumbnailVertical(void)
 
 void CThumbnailVertical::OnScrollBarH(wxCommandEvent& event)
 {
-	isScrollBarH = event.GetInt();
-	scrollBarHSize = event.GetExtraLong();
+	int isScrollBarH = event.GetInt();
+	long scrollBarHSize = event.GetExtraLong();
 	if (isScrollBarH)
 		themeThumbnail.themeIcone.SetHeight(themeIconeHeight);
 	else

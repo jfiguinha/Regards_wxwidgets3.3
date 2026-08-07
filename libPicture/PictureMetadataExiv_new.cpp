@@ -14,19 +14,19 @@ CPictureMetadataExiv::CPictureMetadataExiv(const wxString& filename)
 	//Copy des infos exifs
 	isExif = false;
 
-	//Read exif info from source file
-	try
+	static std::mutex exivMutex;
+
 	{
-		this->filename = filename;
-		exif = Exiv2::ImageFactory::open(CConvertUtility::ConvertToStdString(filename).c_str());
-		//assert(exif.get() != 0);
-		exif->readMetadata();
-		isExif = true;
-	}
-	catch (Exiv2::Error& e)
-	{
-		std::cout << "Caught Exiv2 exception '" << e << "'\n";
-		//return -1;
+		std::lock_guard<std::mutex> lock(exivMutex);
+
+		exif = Exiv2::ImageFactory::open(
+			CConvertUtility::ConvertToStdString(filename));
+
+		if (exif)
+			exif->readMetadata();
+
+		if (exif)
+			isExif = true;
 	}
 }
 
