@@ -15,7 +15,7 @@ CPictureMetadataExiv::CPictureMetadataExiv(const wxString& filename)
 	isExif = false;
 
 	static std::mutex exivMutex;
-
+	try
 	{
 		std::lock_guard<std::mutex> lock(exivMutex);
 
@@ -27,6 +27,10 @@ CPictureMetadataExiv::CPictureMetadataExiv(const wxString& filename)
 
 		if (exif)
 			isExif = true;
+	}
+	catch (std::exception e1)
+	{
+
 	}
 }
 

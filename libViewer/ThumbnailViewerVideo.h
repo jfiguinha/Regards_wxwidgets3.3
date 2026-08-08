@@ -23,6 +23,8 @@ namespace Regards::Viewer
 		}
 
 	private:
+
+		void OnScrollBarH(wxCommandEvent& event);
 		void OnPictureClick(const int& numPhotoId) override;
 		
 	};

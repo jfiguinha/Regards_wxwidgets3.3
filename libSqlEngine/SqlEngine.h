@@ -15,8 +15,8 @@ namespace Regards
 				wxString baseName;
 			};
 
-			CSqlEngine();
-			virtual ~CSqlEngine();
+			CSqlEngine() = delete;
+			virtual ~CSqlEngine() = default;
 
 			static CSqlLib* getInstance(const wxString& baseName);
 			static bool Initialize(const wxString& filename, const wxString& baseName, CSqlLib* sqlLib);

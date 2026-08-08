@@ -43,6 +43,7 @@ CThumbnailVideo::CThumbnailVideo(wxWindow* parent, const wxWindowID id, const CT
 }
 
 
+
 void CThumbnailVideo::UpdateThumbnailIcone(wxCommandEvent& event)
 {
 	//printf("CMainWindow::UpdateThumbnailIcone \n");
@@ -64,10 +65,6 @@ void CThumbnailVideo::UpdateThumbnailIcone(wxCommandEvent& event)
     
     needToRefresh = true;
 		
-}
-
-CThumbnailVideo::~CThumbnailVideo(void)
-{
 }
 
 bool CThumbnailVideo::ItemCompFonct(int videoPos, int y, CIcone * icone, CWindowMain* parent) /* Définit une fonction. */

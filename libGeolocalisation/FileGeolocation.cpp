@@ -323,7 +323,7 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 				{
 					wxString exifinfos = it->value;
 					std::vector<wxString> gpsInfos = CConvertUtility::split(exifinfos, ' ');
-					if (gpsInfos.size() == 3)
+					if (gpsInfos.size() >= 2)
 					{
 						wxString latitude = gpsInfos[0];
 						std::vector<wxString> gpsInfosLat = CConvertUtility::split(latitude, '°');

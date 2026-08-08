@@ -13,6 +13,20 @@ CThumbnailViewerVideo::CThumbnailViewerVideo(wxWindow* parent, wxWindowID id, co
 	moveOnPaint = false;
 }
 
+
+void CThumbnailViewerVideo::OnScrollBarH(wxCommandEvent& event)
+{
+	int isScrollBarH = event.GetInt();
+	long scrollBarHSize = event.GetExtraLong();
+	if (isScrollBarH)
+		themeThumbnail.themeIcone.SetHeight(themeIconeHeight);
+	else
+		themeThumbnail.themeIcone.SetHeight(themeIconeHeight + scrollBarHSize);
+
+	ResizeThumbnail();
+}
+
+
 void CThumbnailViewerVideo::OnPictureClick(const int& numPhotoId)
 {
 	auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));

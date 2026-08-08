@@ -8,16 +8,6 @@ using namespace Regards::Sqlite;
 // Initialisation du singleton à nullptr
 std::unordered_map<wxString, std::unique_ptr<CSqlLib>> CSqlEngine::_bases;
 
-CSqlEngine::CSqlEngine()
-{
-}
-
-
-CSqlEngine::~CSqlEngine()
-{
-}
-
-
 CSqlLib* CSqlEngine::getInstance(const wxString& baseName)
 {
 	auto it = _bases.find(baseName);
