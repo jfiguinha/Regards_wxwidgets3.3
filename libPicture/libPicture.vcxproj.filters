@@ -124,9 +124,6 @@
     <ClCompile Include="PictureMetadataExiv_new.cpp">
       <Filter>libexif</Filter>
     </ClCompile>
-    <ClCompile Include="PictureMetadataExiv.cpp">
-      <Filter>libexif</Filter>
-    </ClCompile>
     <ClCompile Include="avif.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -259,9 +256,6 @@
       <Filter>ThumbnailVideoGenerator</Filter>
     </ClInclude>
     <ClInclude Include="PictureMetadataExiv_new.h">
-      <Filter>libexif</Filter>
-    </ClInclude>
-    <ClInclude Include="PictureMetadataExiv.h">
       <Filter>libexif</Filter>
     </ClInclude>
     <ClInclude Include="PictureArray.h">

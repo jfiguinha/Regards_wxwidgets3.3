@@ -1668,9 +1668,8 @@ int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap,
     case AVIF:
     case HEIC:
     {
+        std::vector<uint8_t> buffer;
         wxLogNull logNo;
-        uint8_t*     data    = nullptr;
-        unsigned int size    = 0;
         bool         hasExif = false;
         cv::Mat      img     = bitmap->GetMatrix().getMat();
 
@@ -1685,17 +1684,14 @@ int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap,
             srcMeta.CopyMetadata(tmp);
 
             CMetadataExiv2 tmpMeta(tmp);
-            tmpMeta.GetMetadataBuffer(data, size);
-            if (size > 0)
+            buffer = tmpMeta.GetMetadataBuffer();
+            if (buffer.size() > 0)
             {
-                data = new uint8_t[size + 1];
-                tmpMeta.GetMetadataBuffer(data, size);
                 hasExif = true;
             }
         }
         CHeic::SavePicture(CConvertUtility::ConvertToStdString(fileName).c_str(),
-                           iFormat, img, data, size, quality, hasExif);
-        if (data) delete[] data;
+                           iFormat, img, buffer, quality, hasExif);
         break;
     }
     case JPEG:

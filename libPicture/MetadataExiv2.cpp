@@ -39,8 +39,6 @@ int CMetadataExiv2::GetOrientation()
 
 CMetadataExiv2::~CMetadataExiv2()
 {
-	if (buffer != nullptr)
-		delete[] buffer;
 
 	if (metaExiv != nullptr)
 		delete metaExiv;
@@ -53,23 +51,14 @@ bool CMetadataExiv2::HasExif()
 	return false;
 }
 
-void CMetadataExiv2::GetMetadataBuffer(uint8_t*& data, unsigned int& size)
+std::vector<uint8_t> CMetadataExiv2::GetMetadataBuffer()
 {
 	CLibPicture libPicture;
 	int type = libPicture.TestImageFormat(filename);
-	if (type == HEIC || type == AVIF)
-	{
-        if(size == 0)
-        {
-            size = bufferexifsize;
-        }
-        else if(size > 0)
-        {
-            memcpy(data, buffer, bufferexifsize);
-        }
-	}
-	else if (metaExiv != nullptr)
-		metaExiv->GetMetadataBuffer(data, size);
+	std::vector<uint8_t> buffer;
+	if (metaExiv != nullptr)
+		return metaExiv->GetMetadataBuffer();
+	return buffer;
 }
 
 bool CMetadataExiv2::CopyMetadata(const wxString& output)

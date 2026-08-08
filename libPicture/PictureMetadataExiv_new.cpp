@@ -200,86 +200,30 @@ bool CPictureMetadataExiv::HasExif()
 // ecrites a la passe 2, meme si le fichier change entre les deux appels),
 // le buffer lu par libexif est mis en cache dans "cachedMetadataBuffer"
 // des la premiere passe et reutilise par la seconde.
-void CPictureMetadataExiv::GetMetadataBuffer(uint8_t*& data, unsigned int& size)
+std::vector<uint8_t> CPictureMetadataExiv::GetMetadataBuffer()
 {
-	if (size == 0)
+	std::vector<uint8_t> buffer;
+
+	ExifData* d = exif_data_new_from_file(filename);
+	if (!d)
 	{
-		cachedMetadataBuffer.clear();
-
-		ExifData* d = exif_data_new_from_file(filename);
-		if (!d)
-		{
-			//fprintf(stderr, "Could not load data from '%s'!\n", filename);
-			size = 0;
-			return;
-		}
-
-		unsigned char* buf = nullptr;
-		unsigned int local = 0;
-		exif_data_save_data(d, &buf, &local);
-		exif_data_unref(d);
-
-		if (buf != nullptr && local > 0)
-		{
-			cachedMetadataBuffer.assign(buf, buf + local);
-		}
-
-		if (buf != nullptr)
-			free(buf);
-
-		size = static_cast<unsigned int>(cachedMetadataBuffer.size());
+		return buffer;
 	}
-	else
+
+	unsigned char* buf = nullptr;
+	unsigned int local = 0;
+	exif_data_save_data(d, &buf, &local);
+	exif_data_unref(d);
+
+	if (buf != nullptr && local > 0)
 	{
-		// Si la passe 1 n'a pas ete faite (ou a echoue), on relit le fichier
-		// directement ici en secours.
-		if (cachedMetadataBuffer.empty())
-		{
-			ExifData* d = exif_data_new_from_file(filename);
-			if (!d)
-			{
-				//fprintf(stderr, "Could not load data from '%s'!\n", filename);
-				size = 0;
-				return;
-			}
-
-			unsigned char* buf = nullptr;
-			unsigned int local = 0;
-			exif_data_save_data(d, &buf, &local);
-			exif_data_unref(d);
-
-			if (buf != nullptr && local > 0)
-			{
-				cachedMetadataBuffer.assign(buf, buf + local);
-			}
-
-			if (buf != nullptr)
-				free(buf);
-		}
-
-		// Garde-fou : ne jamais ecrire plus que ce que l'appelant a alloue.
-		unsigned int toCopy = static_cast<unsigned int>(cachedMetadataBuffer.size());
-		if (toCopy > size)
-		{
-			// Le buffer fourni par l'appelant est trop petit par rapport aux
-			// donnees actuelles : on signale la taille reellement necessaire
-			// et on n'ecrit rien pour eviter un debordement.
-			size = toCopy;
-			return;
-		}
-
-		if (toCopy > 0)
-		{
-			memcpy(data, cachedMetadataBuffer.data(), toCopy);
-		}
-
-		size = toCopy;
-
-		// Le cache n'est utile que pour relier les deux passes ; on le
-		// libere une fois la copie effectuee.
-		cachedMetadataBuffer.clear();
-		cachedMetadataBuffer.shrink_to_fit();
+		buffer.assign(buf, buf + local);
 	}
+
+	if (buf != nullptr)
+		free(buf);
+
+	return buffer;
 }
 
 bool CPictureMetadataExiv::CopyMetadata(const wxString& output)
@@ -449,144 +393,7 @@ wxString CPictureMetadataExiv::GetGpsfValue(const wxString& gpsValue)
 	return wxString::Format("%.8f", decimalDegrees);
 }
 
-void CPictureMetadataExiv::ReadVideo(bool& hasGps, bool& hasDataTime, wxString& dateTimeInfos, wxString& latitude,
-	wxString& longitude)
-{
-	hasGps = false;
-	hasDataTime = false;
 
-	if (!exif)
-		return;
-
-	try
-	{
-		Exiv2::XmpData& xmpData = exif->xmpData();
-
-		if (xmpData.empty())
-			return;
-
-		const bool isQuickTime = IsQuickTimeVideo(xmpData);
-
-		hasGps = ReadVideoGps(xmpData, latitude, longitude);
-		hasDataTime = ReadVideoDate(xmpData, isQuickTime, dateTimeInfos);
-	}
-	catch (const Exiv2::Error&)
-	{
-	}
-}
-
-bool CPictureMetadataExiv::ReadVideoDate(const Exiv2::XmpData& xmpData,
-	bool quickTime,
-	wxString& dateTime)
-{
-	for (const auto& md : xmpData)
-	{
-		string key = md.key();
-		if (key.find("TrackCreateDate") < 0)
-			continue;
-
-		wxString value = toString(md);
-
-		if (!quickTime)
-		{
-			dateTime = value;
-			return true;
-		}
-
-		int64_t seconds = atoll(value.c_str());
-
-		if (seconds <= 0)
-			return false;
-
-		dateTime = GetQuickTimeDate(seconds);
-		return !dateTime.empty();
-	}
-
-	return false;
-}
-
-bool CPictureMetadataExiv::ReadVideoGps(const Exiv2::XmpData& xmpData,
-	wxString& latitude,
-	wxString& longitude)
-{
-	latitude.clear();
-	longitude.clear();
-
-	for (const auto& md : xmpData)
-	{
-		if (md.key() != "Xmp.video.GPSCoordinates")
-			continue;
-
-		wxString gps = toString(md);
-
-		if (gps.empty())
-			return false;
-
-		// Recherche du début de la longitude (+ ou - après le premier caractère)
-		int pos = -1;
-		for (size_t i = 1; i < gps.length(); ++i)
-		{
-			if (gps[i] == '+' || gps[i] == '-')
-			{
-				pos = static_cast<int>(i);
-				break;
-			}
-		}
-
-		if (pos < 0)
-			return false;
-
-		latitude = gps.substr(0, pos);
-		longitude = gps.substr(pos);
-
-		// Suppression du '/' final éventuel
-		if (!longitude.empty() && longitude.Last() == '/')
-			longitude.RemoveLast();
-
-		return !latitude.empty() && !longitude.empty();
-	}
-
-	return false;
-}
-
-bool CPictureMetadataExiv::IsQuickTimeVideo(const Exiv2::XmpData& xmpData)
-{
-	static const wxString MimeKey = "Xmp.video.MimeType";
-
-	for (const auto& md : xmpData)
-	{
-		if (md.key() == MimeKey)
-			return toString(md) == "video/quicktime";
-	}
-
-	return false;
-}
-
-wxString CPictureMetadataExiv::GetQuickTimeDate(int64_t dateQuicktime)
-{
-	// Les dates QuickTime sont exprimees en secondes depuis le
-	// 1904-01-01 00:00:00 UTC. On les convertit en secondes depuis
-	// l'epoch Unix (1970-01-01), puis on formate en UTC.
-	static const time_t SecsUntil1970 = 2082844800;
-
-	time_t unixTime = static_cast<time_t>(dateQuicktime) - SecsUntil1970;
-	if (unixTime < 0)
-		return "";
-
-	struct tm utcTime {};
-#ifdef _WIN32
-	if (gmtime_s(&utcTime, &unixTime) != 0)
-		return "";
-#else
-	if (gmtime_r(&unixTime, &utcTime) == nullptr)
-		return "";
-#endif
-
-	char message[32];
-	strftime(message, sizeof(message), "%Y-%m-%dT%H:%M:%S", &utcTime);
-
-	return message;
-}
 
 Exiv2::ExifData* CPictureMetadataExiv::GetExifData()
 {

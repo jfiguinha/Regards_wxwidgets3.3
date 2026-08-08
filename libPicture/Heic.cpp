@@ -168,7 +168,7 @@ vector<cv::Mat> CHeic::GetAllPicture(const char* filename, int& delay)
 #define AVIF 35
 */
 
-void CHeic::SavePicture(const char* filenameOut, const int& format, cv::Mat& source, uint8_t*& data_exif, unsigned int& size,
+void CHeic::SavePicture(const char* filenameOut, const int& format, cv::Mat& source, std::vector<uint8_t> & exifBuffer,
 	const int& compression, const bool& hasExif)
 {
 	if (source.empty())
@@ -264,7 +264,7 @@ void CHeic::SavePicture(const char* filenameOut, const int& format, cv::Mat& sou
 	{
 		if (hasExif)
 		{
-			heif_context_add_exif_metadata(ctx, image_handle, data_exif, size);
+			heif_context_add_exif_metadata(ctx, image_handle, exifBuffer.data(), exifBuffer.size());
 		}
 		heif_image_handle_release(image_handle);
 	}

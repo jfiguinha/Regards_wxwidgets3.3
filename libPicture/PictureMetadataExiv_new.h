@@ -16,7 +16,7 @@ namespace Regards
 			CPictureMetadataExiv(const wxString& filename);
 			CPictureMetadataExiv(uint8_t* data, const long& size);
 			~CPictureMetadataExiv();
-			void GetMetadataBuffer(uint8_t*& data, unsigned int& size);
+			std::vector<uint8_t> GetMetadataBuffer();
 			wxString GetCreationDate();
 			bool HasExif();
 			bool HasThumbnail();
@@ -28,8 +28,7 @@ namespace Regards
 			void SetOrientation(const int& orientation);
 			void SetGpsInfos(const wxString& latitudeRef, const wxString& longitudeRef, const wxString& latitude,
 			                 const wxString& longitude);
-			void ReadVideo(bool& hasGps, bool& hasDataTime, wxString& dateTimeInfos, wxString& latitude,
-			               wxString& longitude);
+
 			void ReadPicture(bool& hasGps, bool& hasDataTime, wxString& dateTimeInfos, wxString& latitude,
 			                 wxString& longitude);
 
@@ -48,15 +47,6 @@ namespace Regards
 				const char* keyName,
 				wxString& value);
 
-			bool IsQuickTimeVideo(const Exiv2::XmpData& xmpData);
-			bool ReadVideoGps(const Exiv2::XmpData& xmpData,
-				wxString& latitude,
-				wxString& longitude);
-
-			bool ReadVideoDate(const Exiv2::XmpData& xmpData,
-				bool quickTime,
-				wxString& dateTime);
-
 			Exiv2::ExifData* GetExifData();
 			Exiv2::URationalValue::UniquePtr GetGpsRationalValue(const wxString& gpsValue);
 			wxString GetGpsfValue(const wxString& gpsValue);
@@ -70,7 +60,6 @@ namespace Regards
 			Exiv2::Image::UniquePtr exif;
 			bool isExif;
 			wxString filename;
-			std::vector<uint8_t> cachedMetadataBuffer;
 		};
 	}
 }

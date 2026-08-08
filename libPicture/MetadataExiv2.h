@@ -13,7 +13,7 @@ namespace Regards
 		public:
 			CMetadataExiv2(const wxString& filename);
 			~CMetadataExiv2();
-			void GetMetadataBuffer(uint8_t* & data, unsigned int& size);
+			std::vector<uint8_t> GetMetadataBuffer();
 			bool HasExif();
 			bool HasThumbnail();
 			int GetOrientation();
@@ -32,8 +32,7 @@ namespace Regards
 		private:
 			CPictureMetadataExiv* metaExiv;
 			wxString filename;
-			uint8_t* buffer = nullptr;
-            unsigned int bufferexifsize = 0;
+
 		};
 	}
 }
