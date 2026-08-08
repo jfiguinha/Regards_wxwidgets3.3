@@ -29,7 +29,7 @@ CImageLoadingFormat* CRaw::GetThumbnail(const wxString& fileName, const bool& th
 			picture->SetPicture(jpegImage);
 			picture->SetFilename(fileName);
 		}
-		else
+		else if(type == BITMAPOUTPUT)
 		{
 			cv::Mat rawData(1, memFile.size(), CV_8UC1, &memFile[0]);
             try
