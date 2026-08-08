@@ -21,14 +21,14 @@ CMetadataExiv2::CMetadataExiv2(const wxString& filename)
 
 wxString CMetadataExiv2::GetCreationDate()
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		return metaExiv->GetCreationDate();
 	return "";
 }
 
 int CMetadataExiv2::GetOrientation()
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		return metaExiv->GetOrientation();
 	return 0;
 }
@@ -36,7 +36,7 @@ int CMetadataExiv2::GetOrientation()
 
 bool CMetadataExiv2::HasExif()
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		return metaExiv->HasExif();
 	return false;
 }
@@ -45,49 +45,49 @@ std::vector<uint8_t> CMetadataExiv2::GetMetadataBuffer()
 {
 	CLibPicture libPicture;
 	int type = libPicture.TestImageFormat(filename);
-	std::vector<uint8_t> buffer;
-	if (metaExiv != nullptr)
+
+	if (metaExiv)
 		return metaExiv->GetMetadataBuffer();
-	return buffer;
+	return std::vector<uint8_t>();
 }
 
 bool CMetadataExiv2::CopyMetadata(const wxString& output)
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		return metaExiv->CopyMetadata(output);
 	return false;
 }
 
 bool CMetadataExiv2::HasThumbnail()
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		return metaExiv->HasThumbnail();
 	return false;
 }
 
 void CMetadataExiv2::SetDateTime(const wxString& dateTime)
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		metaExiv->SetDateTime(dateTime);
 }
 
 void CMetadataExiv2::SetOrientation(const int& orientation)
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		metaExiv->SetOrientation(orientation);
 }
 
 void CMetadataExiv2::SetGpsInfos(const wxString& latitudeRef, const wxString& longitudeRef, const wxString& latitude,
                                  const wxString& longitude)
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		metaExiv->SetGpsInfos(latitudeRef, longitudeRef, latitude, longitude);
 }
 
 void CMetadataExiv2::ReadPicture(bool& hasGps, bool& hasDataTime, wxString& dateTimeInfos, wxString& latitude,
                                  wxString& longitude)
 {
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		metaExiv->ReadPicture(hasGps, hasDataTime, dateTimeInfos, latitude, longitude);
 }
 
@@ -99,18 +99,16 @@ std::vector<CMetadata> CMetadataExiv2::GetMetadata()
 		return CMediaInfo::ReadMetadata(filename);
 	}
 
-	if (metaExiv != nullptr)
+	if (metaExiv)
 		return metaExiv->GetMetadata();
 
-	std::vector<CMetadata> meta;
-	return meta;
+	return std::vector<CMetadata>();
 }
 
 
 wxImage CMetadataExiv2::DecodeThumbnail(wxString& extension, int& orientation)
 {
-	wxImage image;
-	if (metaExiv != nullptr)
-		image = metaExiv->DecodeThumbnail(extension, orientation);
-	return image;
+	if (metaExiv)
+		return metaExiv->DecodeThumbnail(extension, orientation);
+	return wxImage();
 }

@@ -1251,9 +1251,9 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
         // ── JBIG ─────────────────────────────────────────────────────────────
         case JBIG:
         {
-            auto cx = std::make_unique<CxImage>(fileName.ToStdWstring(),
+            CxImage cx = CxImage(fileName.ToStdWstring(),
                                    CxImage::GetTypeIdFromName("jbg"));
-            bitmap->SetPicture(cx.get());
+            bitmap->SetPicture(cx);
            
             break;
         }
@@ -1271,17 +1271,17 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
         case GIF:
         {
             wxFileName fichier(fileName);
-            auto cx = std::make_unique<CxImage>();
-            cx->SetRetreiveAllFrames(true);
-            cx->Load(CConvertUtility::ConvertToStdString(fileName).c_str(),
-                     CxImage::GetTypeIdFromName(fichier.GetExt()));
-            if (cx->GetNumFrames() > 1)
+            CxImage cx = CxImage();
+            cx.SetRetreiveAllFrames(true);
+            cx.Load(CConvertUtility::ConvertToStdString(fileName).c_str(),
+                    CxImage::GetTypeIdFromName(fichier.GetExt()));
+            if (cx.GetNumFrames() > 1)
             {
-                CxImage* frame = cx->GetFrame(numPicture);
-                bitmap->SetPicture(frame);
+                CxImage* frame = cx.GetFrame(numPicture);
+                bitmap->SetPicture(*frame);
             }
             else
-                bitmap->SetPicture(cx.get());
+                bitmap->SetPicture(cx);
            
             break;
         }
@@ -2142,7 +2142,7 @@ CImageLoadingFormat* VideoThumbnailService::LoadVideoFrame(
                     auto e = std::make_unique<CImageVideoThumbnail>();
                     CxImage*            frame = cx->GetFrame(i);
                     CImageLoadingFormat img;
-                    img.SetPicture(frame);
+                    img.SetPicture(*frame);
 
                     e->filename     = fileName;
                     e->image        = img.GetMatrix().getMat();

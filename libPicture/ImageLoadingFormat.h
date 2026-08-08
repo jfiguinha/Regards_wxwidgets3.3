@@ -30,7 +30,7 @@ public:
 	int GetResolution();
 	void SetOrientation(const int& orientation);
 	void SetFilename(const wxString& filename);
-	void SetPicture(CxImage* image);
+	void SetPicture(CxImage& image);
 	void SetPicture(wxImage& image);
 	void SetPicture(cv::Mat& image);
 	void SetPicture(cv::Mat& image, const int& orientation, const wxString& filename,

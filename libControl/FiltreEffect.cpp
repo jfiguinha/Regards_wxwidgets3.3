@@ -14,6 +14,9 @@
 #include <TreeElementListBox.h>
 #include <PositionElement.h>
 #include <TreeElementControlInterface.h>
+#include <ImageLoadingFormat.h>
+#include <appcontext.h>
+extern AppContext application_context;
 #define TAILLEMAX 1024
 using namespace Regards::Control;
 using namespace Regards::Window;
@@ -117,7 +120,16 @@ void CFiltreEffect::UpdateMousePosition()
 	if (bitmapViewer != nullptr)
 	{
 		CImageLoadingFormat* imageLoad = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
-		UpdateBitmapToViewer(imageLoad);
+		if(imageLoad != nullptr)
+			UpdateBitmapToViewer(imageLoad);
+		else
+		{
+			//Default picture if no effect is applied
+			CImageLoadingFormat* imageLoad = new CImageLoadingFormat();
+			cv::Mat mat = application_context.GetDefaultPictureThumbnail();
+			imageLoad->SetPicture(mat);
+			UpdateBitmapToViewer(imageLoad);
+		}
 	}
 }
 
