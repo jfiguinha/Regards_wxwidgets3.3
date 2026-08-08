@@ -1,10 +1,6 @@
 #include "header.h"
 #include "MetadataExiv2.h"
-#ifdef __NEW_EXIV2__
-#include "PictureMetadataExiv_new.h"
-#else
-#include "PictureMetadataExiv.h"
-#endif
+
 #include <libPicture.h>
 #include <MediaInfo.h>
 #include <picture_id.h>
@@ -19,7 +15,7 @@ CMetadataExiv2::CMetadataExiv2(const wxString& filename)
 	CLibPicture libPicture;
 	this->filename = filename;
 	int type = libPicture.TestImageFormat(filename);
-	metaExiv = new CPictureMetadataExiv(filename);
+	metaExiv = std::unique_ptr<CPictureMetadataExiv>(new CPictureMetadataExiv(filename));
 }
 
 
@@ -37,12 +33,6 @@ int CMetadataExiv2::GetOrientation()
 	return 0;
 }
 
-CMetadataExiv2::~CMetadataExiv2()
-{
-
-	if (metaExiv != nullptr)
-		delete metaExiv;
-}
 
 bool CMetadataExiv2::HasExif()
 {

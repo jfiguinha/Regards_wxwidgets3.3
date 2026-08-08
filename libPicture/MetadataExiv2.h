@@ -1,18 +1,16 @@
 #pragma once
-;
+#include <PictureMetadataExiv_new.h>
 class CMetadata;
 
 namespace Regards
 {
 	namespace exiv2
 	{
-		class CPictureMetadataExiv;
-
 		class CMetadataExiv2
 		{
 		public:
 			CMetadataExiv2(const wxString& filename);
-			~CMetadataExiv2();
+			~CMetadataExiv2() = default;
 			std::vector<uint8_t> GetMetadataBuffer();
 			bool HasExif();
 			bool HasThumbnail();
@@ -30,7 +28,7 @@ namespace Regards
 			                 wxString& longitude);
 
 		private:
-			CPictureMetadataExiv* metaExiv;
+			std::unique_ptr<CPictureMetadataExiv> metaExiv;
 			wxString filename;
 
 		};

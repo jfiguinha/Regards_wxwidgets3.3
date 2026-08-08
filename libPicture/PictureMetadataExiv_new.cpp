@@ -1,5 +1,4 @@
 #include "header.h"
-#ifdef __NEW_EXIV2__
 #include <ConvertUtility.h>
 #include <exiv2/image.hpp>
 #include <exiv2/error.hpp>
@@ -538,6 +537,30 @@ void CPictureMetadataExiv::ReadXmp(Exiv2::XmpData& xmpData, std::vector<CMetadat
 	}
 }
 
+
+wxString CPictureMetadataExiv::GetQuickTimeDate(int64_t dateQuicktime)
+{
+	char message[1024];
+	//long timeFrom1970 = dateQuicktime - 2082844800;
+	static const unsigned long SecsUntil1970 = 2082844800;
+
+	struct tm MacTime = { 0 };
+	unsigned long MacTimestamp;
+
+	MacTimestamp = 3458306455; /* get timestamp: secs since 00:00 1904-01-01 GMT */
+
+	/* Create unnormalized struct tm representing Macintosh timestamp */
+	MacTime.tm_sec = static_cast<int>(MacTimestamp - SecsUntil1970);
+	MacTime.tm_hour = 0; /* adjust this for your timezone */
+	MacTime.tm_year = 70;
+
+	/* Convert to time_t */
+	mktime(&MacTime);
+	strftime(message, 20, "%Y-%m-%dT%H:%M:%S", &MacTime);
+
+	return message;
+}
+
 void CPictureMetadataExiv::ReadIpct(Exiv2::IptcData& ipctData, std::vector<CMetadata>& metadataList)
 {
 	
@@ -655,4 +678,3 @@ wxImage CPictureMetadataExiv::DecodeThumbnail(wxString& extension, int& orientat
 	}
 	return bitmap;
 }
-#endif
