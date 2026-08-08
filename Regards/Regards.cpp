@@ -27,7 +27,7 @@
 #include <fontconfig/fontconfig.h>
 #endif
 #include <ncnn/gpu.h>
-
+#include <exiv2/image.hpp>
 AppContext application_context;
 ncnn::VulkanDevice* vkdev = nullptr;
 
@@ -419,7 +419,8 @@ bool MyApp::InitializeResources()
 	wxString documentPath = CFileUtility::GetDocumentFolderPath();
 	//task_scheduler_init init;
 	//int n = tbb::task_scheduler_init::default_num_threads();
-
+	Exiv2::XmpParser::initialize();
+	std::atexit(Exiv2::XmpParser::terminate);
 
 	wxInitAllImageHandlers();
 
