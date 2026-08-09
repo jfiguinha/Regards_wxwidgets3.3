@@ -381,3 +381,5 @@ libVideoEffect/libVideoEffect.txt
 /libSqlData/new
 /libSqlData/old
 /libWindow/new
+/UpgradeLog.htm
+/include/window_id.h

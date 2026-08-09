@@ -15,10 +15,11 @@ namespace Regards::Viewer
     class CBitmapReturn
     {
     public:
-        CBitmapReturn() : bitmap(nullptr), isThumbnail(false), myThread(nullptr) {}
+        CBitmapReturn() : bitmap(nullptr), isThumbnail(false) {}
+        ~CBitmapReturn() = default;
+
         CImageLoadingFormat* bitmap;
         bool   isThumbnail;
-        std::thread* myThread;
     };
 
     class CViewerController

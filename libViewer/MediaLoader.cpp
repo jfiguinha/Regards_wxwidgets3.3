@@ -67,23 +67,38 @@ int CMediaLoader::GetPhotoId(const wxString& filename) const
 
 void CMediaLoader::StartLoadingPicture()
 {
-    wxWindow* bitmapWindow = parent->FindWindowById(THUMBNAILVIEWERPICTURE);
-    if (bitmapWindow != nullptr)
-    {
-        wxCommandEvent evt(wxEVENT_ONSTARTLOADINGPICTURE);
-        evt.SetExtraLong(GetPhotoId(filename));
-        bitmapWindow->GetEventHandler()->AddPendingEvent(evt);
-    }
+	int listWindows[] = { THUMBNAILVIEWERPICTURE, THUMBNAILFOLDER };
+	for (int id : listWindows)
+	{
+		wxWindow* bitmapWindow = parent->FindWindowById(id);
+		if (bitmapWindow != nullptr)
+		{
+			if (bitmapWindow->IsShown())
+			{
+				wxCommandEvent evt(wxEVENT_ONSTARTLOADINGPICTURE);
+				evt.SetExtraLong(GetPhotoId(filename));
+				bitmapWindow->GetEventHandler()->AddPendingEvent(evt);
+			}
+		}
+	}
 }
 
 void CMediaLoader::StopLoadingPicture()
 {
-    wxWindow* bitmapWindow = parent->FindWindowById(THUMBNAILVIEWERPICTURE);
-    if (bitmapWindow != nullptr)
+    int listWindows[] = { THUMBNAILVIEWERPICTURE, THUMBNAILFOLDER };
+    for (int id : listWindows)
     {
-        wxCommandEvent evt(wxEVENT_ONSTOPLOADINGPICTURE);
-        bitmapWindow->GetEventHandler()->AddPendingEvent(evt);
+        wxWindow* bitmapWindow = parent->FindWindowById(id);
+        if (bitmapWindow != nullptr)
+        {
+            if (bitmapWindow->IsShown())
+            {
+				wxCommandEvent evt(wxEVENT_ONSTOPLOADINGPICTURE);
+				bitmapWindow->GetEventHandler()->AddPendingEvent(evt);
+            }
+        }
     }
+
 }
 
 void CMediaLoader::SetPanelInfos(const bool& isThumbnail)
@@ -190,7 +205,6 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
             }
             else
             {
-                StartLoadingPicture();
                 needToLoadPicture = true;
             }
         }
@@ -203,7 +217,6 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
         {
             pictureToLoad     = CLibResource::GetPhotoCancel();
             needToLoadPicture = true;
-            StartLoadingPicture();
         }
 
         if (needToLoadPicture)
@@ -219,11 +232,11 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
                 {
                     _loadingPicture->SetFilename(pictureToLoad);
                     auto* bitmapReturn       = new CBitmapReturn();
-                    bitmapReturn->myThread   = nullptr;
                     bitmapReturn->isThumbnail = true;
                     bitmapReturn->bitmap     = _loadingPicture;
                     auto* event              = new wxCommandEvent(EVENT_SHOWPICTURE);
                     event->SetClientData(bitmapReturn);
+                    event->SetExtraLong(1);
                     event->SetInt(processLoadPicture ? 1 : 0);
                     wxQueueEvent(parent, event);
 
@@ -244,6 +257,7 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
                 auto* threadLoad        = new std::thread(LoadingNewPicture, pictureData);
                 pictureData->myThread   = threadLoad;
                 processLoadPicture      = true;
+                StartLoadingPicture();
             }
         }
     }
@@ -539,12 +553,12 @@ void CMediaLoader::LoadingNewPicture(CThreadPictureData* pictureData)
     bitmap->SetFilename(pictureData->picture);
 
     auto* bitmapReturn       = new CBitmapReturn();
-    bitmapReturn->myThread   = nullptr;
     bitmapReturn->isThumbnail = false;
     bitmapReturn->bitmap     = bitmap;
 
     auto* event = new wxCommandEvent(EVENT_SHOWPICTURE);
     event->SetClientData(bitmapReturn);
     event->SetInt(0);
+    event->SetExtraLong(0);
     wxQueueEvent(pictureData->mainWindow, event);
 }

@@ -353,19 +353,27 @@ void CIcone::RenderPictureBitmap(wxDC* memDC, wxImage& bitmapScale, const int& t
 
 	if (showLoading && pictureLoading.IsOk())
 	{
-		if (!transparent.IsOk() || (transparent.GetWidth() != bitmapScale.GetWidth() || transparent.GetHeight() !=
-			bitmapScale.GetHeight()))
+		if (!transparent.IsOk() ||
+			transparent.GetWidth() != bitmapScale.GetWidth() ||
+			transparent.GetHeight() != bitmapScale.GetHeight())
 		{
-			transparent = wxImage(bitmapScale.GetWidth(), bitmapScale.GetHeight());
+			const int width = bitmapScale.GetWidth();
+			const int height = bitmapScale.GetHeight();
+
+			transparent = wxImage(width, height);
 			transparent.InitAlpha();
-			for (int y = 0; y < bitmapScale.GetHeight(); y++)
-			{
-				for (int x = 0; x < bitmapScale.GetWidth(); x++)
-				{
-					transparent.SetRGB(x, y, 255, 255, 255);
-					transparent.SetAlpha(x, y, 128);
-				}
-			}
+
+			unsigned char* rgb = transparent.GetData();
+			unsigned char* alpha = transparent.GetAlpha();
+
+			const size_t pixelCount =
+				static_cast<size_t>(width) * static_cast<size_t>(height);
+
+			// Blanc
+			std::memset(rgb, 255, pixelCount * 3);
+
+			// Alpha 50 %
+			std::memset(alpha, 128, pixelCount);
 		}
 
 		if (transparent.IsOk())

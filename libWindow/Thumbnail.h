@@ -247,17 +247,18 @@ namespace Regards::Window
 		bool stopToGetNbElement = false;
 		std::vector<wxString> listIconeToGenerate;
 		wxWindowID localid;
-        
-        //std::unordered_map<int, CIcone*> iconByPhotoId;
+
         
 		std::unique_ptr<CIconeList> iconeList = nullptr;
-		std::unique_ptr<wxAnimation> m_animation;
+		static std::unique_ptr<wxAnimation> m_animation;
 		std::unique_ptr<wxTimer> timerAnimation;
         
 		std::unique_ptr<wxTimer> refreshMouseMove;
 		std::unique_ptr<wxTimer> refreshActifTimer;
+		std::unique_ptr<wxTimer> refreshLoadingTimer;
 		std::unique_ptr<wxTimer> refreshSelectTimer;
 		std::unique_ptr<wxTimer> timeClick;
         std::unique_ptr<wxActivityIndicator> m_waitingAnimation;
+		int pictureAnimationPos = 0;
 	};
 }

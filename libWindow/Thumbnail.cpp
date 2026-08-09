@@ -14,6 +14,7 @@
 using namespace Regards::Picture;
 using namespace Regards::Window;
 
+std::unique_ptr<wxAnimation> CThumbnail::m_animation;
 
 class CImageLoadingFormat;
 
@@ -363,7 +364,7 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	allThreadEnd = true;
 	showLoadingBitmap = false;
 	stepLoading = 0;
-	m_animation = nullptr;
+
 	render = false;
 	check = false;
 	threadDataProcess = true;
@@ -406,6 +407,8 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	refreshActifTimer = std::make_unique<wxTimer>(this, TIMER_REFRESH_ACTIF);
 	Connect(TIMER_REFRESH_ACTIF, wxEVT_TIMER, wxTimerEventHandler(CThumbnail::OnRefreshIconeActif), nullptr, this);
 
+	refreshLoadingTimer = std::make_unique<wxTimer>(this, TIMER_REFRESH_ACTIF);
+
 	refreshSelectTimer = std::make_unique<wxTimer>(this,TIMER_REFRESH_SELECT);
 	Connect(TIMER_REFRESH_SELECT, wxEVT_TIMER, wxTimerEventHandler(CThumbnail::OnRefreshIconeSelect), nullptr, this);
 
@@ -415,12 +418,8 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	refreshMouseMove = std::make_unique<wxTimer>(this, TIMER_MOVE);
 	Connect(TIMER_MOVE, wxEVT_TIMER, wxTimerEventHandler(CThumbnail::OnTimerMove), nullptr, this);
 
-	const wxString resourcePath = CFileUtility::GetResourcesFolderPath();
-#ifdef WIN32
-    m_animation = std::make_unique<wxAnimation>(resourcePath + "\\loading.gif");
-#else
-	m_animation = std::make_unique<wxAnimation>(resourcePath + "/loading.gif");
-#endif
+	if(!m_animation)
+		m_animation = std::make_unique<wxAnimation>(CFileUtility::GetResourcesFolderPathWithExt("loading.gif"));
 
 	Connect(wxEVENT_ONSTARTLOADINGPICTURE, wxCommandEventHandler(CThumbnail::StartLoadingPicture));
 	Connect(wxEVENT_ONSTOPLOADINGPICTURE, wxCommandEventHandler(CThumbnail::StopLoadingPicture));
@@ -600,8 +599,18 @@ void CThumbnail::RefreshAnimatedIcon(int photoId)
 			CThumbnailData* data = icone->GetPtData();
 
 			if (libPicture.TestIsVideo(data->GetFilename()) || libPicture.TestIsPDF(data->GetFilename()) ||
-				libPicture.TestIsAnimation(data->GetFilename()))
+				libPicture.TestIsAnimation(data->GetFilename()) || showLoadingBitmap)
 			{
+
+				if (showLoadingBitmap)
+				{
+					pictureAnimationPos++;
+					if (pictureAnimationPos >= m_animation->GetFrameCount())
+						pictureAnimationPos = 0;
+					icone->SetPictureLoading(m_animation->GetFrame(pictureAnimationPos));
+				}
+					
+
 				if (IsVisible(icone))
 					icone->RenderIcone(&dc, -posLargeur, -posHauteur, flipHorizontal, flipVertical, true);
 			}
@@ -611,7 +620,10 @@ void CThumbnail::RefreshAnimatedIcon(int photoId)
 
 void CThumbnail::OnRefreshIconeActif(wxTimerEvent& event)
 {
-    RefreshAnimatedIcon(numActifPhotoId);
+	if (showLoadingBitmap)
+		RefreshAnimatedIcon(numloadingIconePhotoId);
+	else
+		RefreshAnimatedIcon(numActifPhotoId);
 }
 
 void CThumbnail::OnRefreshIconeSelect(wxTimerEvent& event)
@@ -716,11 +728,15 @@ void CThumbnail::ExecuteTimer(const int& numId, std::unique_ptr<wxTimer> & refre
 		CThumbnailData* data = icone->GetPtData();
 
 		if (libPicture.TestIsVideo(data->GetFilename()) || libPicture.TestIsPDF(data->GetFilename()) ||
-			libPicture.TestIsAnimation(data->GetFilename()))
+			libPicture.TestIsAnimation(data->GetFilename()) || showLoadingBitmap)
 		{
 			actifActif = true;
 		}
-		if (libPicture.TestIsVideo(data->GetFilename()))
+		if (showLoadingBitmap)
+		{
+			timeActif = 100;
+		}
+		else if (libPicture.TestIsVideo(data->GetFilename()))
 		{
 			timeActif = 1000 / 25;
 		}
@@ -736,7 +752,7 @@ void CThumbnail::ExecuteTimer(const int& numId, std::unique_ptr<wxTimer> & refre
 
 	if (actifActif)
 		if (!refresh->IsRunning())
-			refresh->Start(timeActif, TRUE);
+			refresh->Start(timeActif, showLoadingBitmap ? FALSE : TRUE);
 }
 
 void CThumbnail::IdleFunction()
@@ -1067,14 +1083,13 @@ void CThumbnail::StartLoadingPicture(wxCommandEvent& event)
 			loadingIcone->StopLoadingPicture();
 	}
 
-	if (numItem >= nbElementInIconeList)
-		return;
-
-
-	numloadingIconePhotoId = iconeList->GetPhotoId(numItem);
-
-	stepLoading = 0;
+	numloadingIconePhotoId = numItem;
 	showLoadingBitmap = true;
+
+	if (refreshLoadingTimer->IsRunning())
+		refreshLoadingTimer->Stop();
+
+	ExecuteTimer(numItem, refreshLoadingTimer);
 
 	if (numloadingIconePhotoId != -1)
 	{
@@ -1094,6 +1109,9 @@ void CThumbnail::StopLoadingPicture(wxCommandEvent& event)
 			loadingIcone->StopLoadingPicture();
 		}
 	}
+
+	if (refreshLoadingTimer->IsRunning())
+		refreshLoadingTimer->Stop();
 
 	showLoadingBitmap = false;
 	needToRefresh = true;

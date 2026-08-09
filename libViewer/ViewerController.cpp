@@ -191,16 +191,10 @@ void CViewerController::ShowPicture(CBitmapReturn* pictureData, const int& redra
                 delete pictureData->bitmap;
                 pictureData->bitmap = nullptr;
             }
-        }
-
-        if (!pictureData->isThumbnail)
-            mediaLoader->StopLoadingPicture();
+        }        
     }
     else
     {
-        if (!pictureData->isThumbnail)
-            mediaLoader->StopLoadingPicture();
-
         if (pictureData->bitmap != nullptr)
             delete pictureData->bitmap;
     }
@@ -217,6 +211,8 @@ void CViewerController::OnShowPicture(wxCommandEvent& event)
         if (isPicture)
         {
             ShowPicture(pictureData, event.GetInt());
+            if(event.GetExtraLong() == 0)
+                mediaLoader->StopLoadingPicture();
         }
         else
         {
@@ -224,11 +220,6 @@ void CViewerController::OnShowPicture(wxCommandEvent& event)
             pictureData->bitmap = nullptr;
         }
 
-        if (pictureData->myThread != nullptr)
-        {
-            delete pictureData->myThread;
-            pictureData->myThread = nullptr;
-        }
         delete pictureData;
     }
 }

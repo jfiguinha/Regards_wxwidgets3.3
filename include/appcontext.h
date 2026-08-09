@@ -21,6 +21,7 @@ public:
 			value[i] = static_cast<float>(i);
 
 
+		//Loading animation 
 
 	}
 

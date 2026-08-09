@@ -13,13 +13,6 @@ using namespace std;
 using namespace Regards::Picture;
 
 
-CHeic::CHeic()
-{}
-
-
-CHeic::~CHeic()
-{}
-
 static const char kMetadataTypeExif[] = "Exif";
 
 namespace

@@ -11,8 +11,6 @@ namespace Regards
 		class CHeic
 		{
 		public:
-			CHeic();
-			~CHeic();
 
 			static int GetNbFrame(const char* filename);
 			static uint32_t GetDelay(const char* filename);
