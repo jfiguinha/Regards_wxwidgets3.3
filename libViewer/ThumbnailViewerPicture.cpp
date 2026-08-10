@@ -110,37 +110,7 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
 			{
 				CIconeList* newIconeList = new CIconeList();
 
-				wxProgressDialog dlg
-				(
-					"Process in progress",
-					"Please wait, starting...",
-					size,
-					nullptr,
-					wxPD_ELAPSED_TIME |
-					wxPD_ESTIMATED_TIME |
-					wxPD_REMAINING_TIME |
-					wxPD_AUTO_HIDE |
-					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
-				);
-
-				for (int i = 0; i < size; i++)
-				{
-					CIcone* ico = iconeList->GetElement(i);
-					if (ico != nullptr)
-					{
-						bool find = CThumbnailBuffer::FindValidFile(ico->GetFilename());
-						if (!find)
-							iconeList->RemoveElement(i);
-						else
-							newIconeList->AddElement(ico);
-					}
-
-					wxString message = "In progress : " + to_string(i) + "/" + to_string(size);
-					dlg.Update(i, message);
-				}
-
-				dlg.Close();
-
+				GenerateList(newIconeList);
 
 				if (newIconeList->GetNbElement() > 0)
 				{

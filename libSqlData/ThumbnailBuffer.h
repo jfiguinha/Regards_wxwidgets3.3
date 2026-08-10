@@ -1,6 +1,7 @@
 #pragma once
 #include "Photos.h"
 #include <shared_mutex>
+#include <unordered_set>
 
 class CThumbnailBuffer
 {
@@ -44,6 +45,7 @@ private:
         std::unique_ptr<PhotosVector> data;
         mutable std::shared_mutex     mutex;
         std::atomic<int>              size{ 0 };
+        std::unordered_set<wxString> pathIndex; // nouveau : lookup O(1)
     };
 
     static LruCache    s_cache;

@@ -129,8 +129,15 @@ void CThumbnailBuffer::InitVectorList(PhotosVector* newVector)
     std::unique_ptr<PhotosVector> incoming(newVector);
     std::unique_lock write(s_store.mutex);
 
+    // Construction de l'index HORS lock, pour minimiser la section critique
+    std::unordered_set<wxString> newIndex;
+    newIndex.reserve(incoming->size());
+    for (CPhotos& photo : *incoming)
+        newIndex.insert(photo.GetPath());
+
     s_store.data = std::move(incoming); // l'ancien est détruit automatiquement
     s_store.size = static_cast<int>(s_store.data->size());
+    s_store.pathIndex = std::move(newIndex);
 }
 
 // ── Accesseurs VectorStore ───────────────────────────────────────────────────
@@ -168,14 +175,15 @@ wxString CThumbnailBuffer::FindPhotoByPath(const wxString& path)
 {
     std::shared_lock read(s_store.mutex);
     if (!s_store.data) return {};
-    return findByPath_impl(*s_store.data, path);
+    return s_store.pathIndex.find(path) != s_store.pathIndex.end() ? path : wxString{};
+    //return findByPath_impl(*s_store.data, path);
 }
 
 bool CThumbnailBuffer::FindValidFile(const wxString& localFilename)
 {
     std::shared_lock read(s_store.mutex);
     if (!s_store.data) return false;
-    return !findByPath_impl(*s_store.data, localFilename).empty();
+    return s_store.pathIndex.find(localFilename) != s_store.pathIndex.end() ? true : false;
 }
 
 wxString CThumbnailBuffer::FindPhotoById(int id)
