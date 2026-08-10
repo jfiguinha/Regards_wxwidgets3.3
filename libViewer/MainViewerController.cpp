@@ -295,7 +295,11 @@ void CMainViewerController::UpdateStatusBarText(const wxString& text, int positi
 void CMainViewerController::UpdateProgressRange(int range)
 {
     if (progressBar)
-        progressBar->SetRange(range);
+    {
+        if(progressBar->GetRange() != range)
+            progressBar->SetRange(range);
+    }
+        
 }
 
 void CMainViewerController::UpdateProgressValue(int position)
@@ -306,6 +310,9 @@ void CMainViewerController::UpdateProgressValue(int position)
     const int clamped = (position >= progressBar->GetRange())
                         ? progressBar->GetRange() - 1
                         : position;
-    progressBar->SetValue(clamped);
-    progressBar->Refresh();
+    if (progressBar->GetValue() != clamped)
+    {
+        progressBar->SetValue(clamped);
+        progressBar->Refresh();
+    }
 }

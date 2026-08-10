@@ -35,7 +35,8 @@ void CThumbnailVertical::GenerateList(CIconeList* & newIconeList)
 		wxPD_AUTO_HIDE |
 		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 	);
-	const int updateInterval = std::max(1, size / 100); // ~100 mises à jour max
+	const int updateInterval = std::max(1, size / 200); // ~100 mises à jour max
+
 	for (int i = 0; i < size; i++)
 	{
 		CIcone* ico = iconeList->GetElement(i);

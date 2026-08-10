@@ -153,6 +153,7 @@ namespace Regards::Viewer
         wxString    tempVideoFile;
         wxString    tempAudioVideoFile;
         wxRect      posWindow;
+        std::chrono::steady_clock::time_point  lastClickTime[6];
     };
 
 } // namespace Regards::Viewer

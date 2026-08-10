@@ -61,6 +61,12 @@ CMainWindow::CMainWindow(wxWindow* parent,
     BindEvents();
     InitConfig(fileToOpen);
     InitBackgroundTasks();
+
+
+    if (!fileToOpen.empty())
+        Connect(TIMER_LOADPICTURESTART, wxEVT_TIMER,
+                wxTimerEventHandler(CMainWindow::OnOpenFile),
+                nullptr, this);
 }
 
 CMainWindow::~CMainWindow()
@@ -194,9 +200,11 @@ void CMainWindow::BindEvents()
     Connect(wxEVENT_UPDATECHECKINSTATUS, wxCommandEventHandler(CMainWindow::OnCheckInUpdateStatus));
     Connect(wxEVENT_UPDATECHECKINFOLDER, wxCommandEventHandler(CMainWindow::OnRemoveFileFromCheckIn));
 
-    Connect(TIMER_LOADPICTURESTART, wxEVT_TIMER,
-            wxTimerEventHandler(CMainWindow::OnOpenFile),
-            nullptr, this);
+
+
+    auto start_time = std::chrono::steady_clock::now();
+    for (int i = 0; i < 6; i++)
+        lastClickTime[i] = start_time;
 }
 
 void CMainWindow::InitConfig(const wxString& fileToOpen)
@@ -241,9 +249,11 @@ void CMainWindow::InitBackgroundTasks()
         this
     );
     isCheckNewVersion = true;
-    refreshFolder = true;
+    refreshFolder = false;
     processIdle   = true;
     processEnd    = false;
+
+
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -603,6 +613,10 @@ void CMainWindow::OnUpdateFolder(wxCommandEvent& event)
     const int typeId = event.GetInt();
     auto* newPath = static_cast<wxString*>(event.GetClientData());
     bool isDelete = false;
+    auto start_time = std::chrono::steady_clock::now();
+    for (int i = 0; i < 6; i++)
+        lastClickTime[i] = start_time;
+
 
     if (newPath != nullptr)
     {
@@ -831,12 +845,27 @@ void CMainWindow::SetDataToStatusBar(void* thumbMessage, const wxString& picture
     auto* msg = static_cast<CThumbnailMessage*>(thumbMessage);
     if (msg == nullptr) return;
 
-    const wxString text = picture + to_string(msg->nbPhoto);
+    //Add missing time :
+
+
+    auto elapsed_time = std::chrono::steady_clock::now() - lastClickTime[msg->typeMessage];
+
+    lastClickTime[msg->typeMessage] = std::chrono::steady_clock::now();
+
+    int nbPhoto = msg->nbElement - msg->nbPhoto;
+
+    auto remaining_time = elapsed_time* nbPhoto;
+
+    auto remaining_sec = std::chrono::duration_cast<std::chrono::seconds>(remaining_time).count();
+
+    const wxString text = picture + to_string(msg->nbPhoto) + " Remaining Time : " + to_string(remaining_sec) + " s";
     if (statusBarViewer)
     {
         statusBarViewer->SetRangeProgressBar(msg->nbElement);
         statusBarViewer->SetText(2, text);
-        statusBarViewer->SetPosProgressBar(msg->thumbnailPos + 1);
+        statusBarViewer->SetPosProgressBar(nbPhoto);
+
+
     }
     delete msg;
 }
