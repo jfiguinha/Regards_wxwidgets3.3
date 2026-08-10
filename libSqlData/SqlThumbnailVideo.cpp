@@ -147,8 +147,6 @@ bool CSqlThumbnailVideo::DeleteThumbnail(const int& numPhoto)
 			wxRemoveFile(thumbnail);
 	}
 
-	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
 	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE NumPhoto = ?", parameter);
 }
 
