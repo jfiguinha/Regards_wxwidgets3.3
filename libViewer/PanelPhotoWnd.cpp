@@ -255,28 +255,42 @@ wxString CPanelPhotoWnd::AddFolder(const wxString& folder, wxString* file, const
 	wxString localFilename = "";
 	wxString msg = "In progress ...";
 
+
+
 	wxArrayString files;
 	wxDir::GetAllFiles(folder, &files, wxEmptyString, wxDIR_FILES);
 	if (files.size() > 0)
 		sort(files.begin(), files.end());
 
+	wxProgressDialog dlg
+	(
+		"Progress in progress",
+		"Please wait, starting...",
+		files.size(),
+		nullptr,
+		wxPD_ELAPSED_TIME |
+		wxPD_ESTIMATED_TIME |
+		wxPD_REMAINING_TIME |
+		wxPD_AUTO_HIDE |
+		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+	);
 
-		//Indication d'imporation des critères 
-		CSqlFolderCatalog sqlFolderCatalog;
-		int64_t idFolder = sqlFolderCatalog.GetFolderCatalogId(NUMCATALOGID, folder);
+	//Indication d'imporation des critères 
+	CSqlFolderCatalog sqlFolderCatalog;
+	int64_t idFolder = sqlFolderCatalog.GetFolderCatalogId(NUMCATALOGID, folder);
 
-		//printf("AddFolder : %s \n", CConvertUtility::ConvertToStdString(folder));
+	//printf("AddFolder : %s \n", CConvertUtility::ConvertToStdString(folder));
 
-		if (idFolder == -1)
-		{
-			idFolder = sqlFolderCatalog.GetOrInsertFolderCatalog(NUMCATALOGID, folder);
-			//Insert la liste des photos dans la base de données.
-			CSqlInsertFile sqlInsertFile;
-			sqlInsertFile.AddFileFromFolder(this, nullptr, files, folder, idFolder, localFilename);
-			//printf("CMainWindow::AddFolder : %s \n", CConvertUtility::ConvertToStdString(localFilename));
-		}
+	if (idFolder == -1)
+	{
+		idFolder = sqlFolderCatalog.GetOrInsertFolderCatalog(NUMCATALOGID, folder);
+		//Insert la liste des photos dans la base de données.
+		CSqlInsertFile sqlInsertFile;
+		sqlInsertFile.AddFileFromFolder(this, &dlg, files, folder, idFolder, localFilename);
+		//printf("CMainWindow::AddFolder : %s \n", CConvertUtility::ConvertToStdString(localFilename));
+	}
 	
-
+	dlg.Close();
 
 	wxWindow* window = this->FindWindowById(CRITERIAFOLDERWINDOWID);
 	if (window)

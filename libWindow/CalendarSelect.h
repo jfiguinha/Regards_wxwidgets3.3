@@ -22,6 +22,8 @@ namespace Regards::Window
 		wxString GetSelectStringDate();
 
 	private:
+
+		void SetSelectDate(const wxDateTime& dateSelect);
 		wxDateTime dt;
 		wxString updateDate;
 	};

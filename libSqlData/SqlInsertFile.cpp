@@ -169,6 +169,10 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 {
 	if (files.size() > 0)
 	{
+
+
+
+
 		CSqlTransaction sqlTransaction;
 		int i = 0;
 		for(wxString file : files)

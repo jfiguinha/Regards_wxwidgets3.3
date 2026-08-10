@@ -30,6 +30,7 @@ namespace Regards
 			int TraitementResult(CSqlResult* sqlResult) override;
 			CImageVideoThumbnail* videoThumbnail = nullptr;
 			vector<int> listPhoto;
+			vector<pair<int, int>> listVideo;
 			int type;
 			int nbElement;
 		};

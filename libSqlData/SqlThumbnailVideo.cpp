@@ -134,19 +134,22 @@ cv::Mat CSqlThumbnailVideo::GetThumbnail(int photoId, const wxString& path, cons
 
 bool CSqlThumbnailVideo::DeleteThumbnail(const int& numPhoto)
 {
-	for (int i = 0; i < 20; i++)
+	type = 3;
+	listVideo.clear();
+	std::vector<std::unique_ptr<CSqlParameter>> parameter;
+	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
+	ExecuteSqlWithStatement("SELECT NumPhoto, NumVideo FROM VIDEOTHUMBNAIL WHERE NumPhoto = ?", parameter);
+
+	for (auto& video : listVideo)
 	{
-		wxString thumbnail = CFileUtility::GetVideoThumbnailPath(to_string(numPhoto), i);
+		wxString thumbnail = CFileUtility::GetVideoThumbnailPath(to_string(video.first), video.second);
 		if (wxFileExists(thumbnail))
-		{
-			CThumbnailBuffer::RemovePicture(thumbnail);
 			wxRemoveFile(thumbnail);
-		}
 	}
 
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numPhoto));
-	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumPhoto = ?)", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE NumPhoto = ?", parameter);
 }
 
 bool CSqlThumbnailVideo::EraseThumbnail()
@@ -167,22 +170,19 @@ bool CSqlThumbnailVideo::EraseThumbnail()
 
 bool CSqlThumbnailVideo::EraseFolderThumbnail(const int& numFolder)
 {
-	type = 2;
-	listPhoto.clear();
+	type = 3;
+	listVideo.clear();
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
 	parameter.push_back(std::make_unique<CSqlInt>(numFolder));
-	ExecuteSqlWithStatement("SELECT NumPhoto FROM PHOTOS WHERE NumFolderCatalog = ?", parameter);
-	for (int idPhoto : listPhoto)
+	ExecuteSqlWithStatement("SELECT NumPhoto, NumVideo FROM VIDEOTHUMBNAIL WHERE NumPhoto in (SELECT NumPhoto FROM PHOTOS WHERE NumFolderCatalog = ?)", parameter);
+	for (auto& video : listVideo)
 	{
-		for (int i = 0; i < 20; i++)
-		{
-			wxString thumbnail = CFileUtility::GetVideoThumbnailPath(to_string(idPhoto), i);
-			if (wxFileExists(thumbnail))
-				wxRemoveFile(thumbnail);
-		}
+		wxString thumbnail = CFileUtility::GetVideoThumbnailPath(to_string(video.first), video.second);
+		if (wxFileExists(thumbnail))
+			wxRemoveFile(thumbnail);
 	}
 
-	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE FullPath in (SELECT FullPath FROM PHOTOS WHERE NumFolderCatalog = ?)", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM VIDEOTHUMBNAIL WHERE NumPhoto in (SELECT NumPhoto FROM PHOTOS WHERE NumFolderCatalog = ?)", parameter);
 }
 
 int CSqlThumbnailVideo::TraitementResult(CSqlResult* sqlResult)
@@ -206,6 +206,10 @@ int CSqlThumbnailVideo::TraitementResult(CSqlResult* sqlResult)
 
 		case 2:
 			listPhoto.push_back(sqlResult->ColumnDataInt(0));
+			break;
+
+		case 3:
+			listVideo.push_back(std::make_pair(sqlResult->ColumnDataInt(0), sqlResult->ColumnDataInt(1)));
 			break;
 
 		default: ;

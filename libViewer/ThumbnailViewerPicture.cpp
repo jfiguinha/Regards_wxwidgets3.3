@@ -5,6 +5,7 @@
 #include <ScrollbarWnd.h>
 #include "ThumbnailBuffer.h"
 #include <SqlFindPhotos.h>
+#include <wx/progdlg.h>
 using namespace Regards::Viewer;
 using namespace Regards::Sqlite;
 
@@ -109,18 +110,37 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
 			{
 				CIconeList* newIconeList = new CIconeList();
 
-				tbb::parallel_for(0, size, 1, [=](int i)
+				wxProgressDialog dlg
+				(
+					"Process in progress",
+					"Please wait, starting...",
+					size,
+					nullptr,
+					wxPD_ELAPSED_TIME |
+					wxPD_ESTIMATED_TIME |
+					wxPD_REMAINING_TIME |
+					wxPD_AUTO_HIDE |
+					wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
+				);
+
+				for (int i = 0; i < size; i++)
+				{
+					CIcone* ico = iconeList->GetElement(i);
+					if (ico != nullptr)
 					{
-						CIcone* ico = iconeList->GetElement(i);
-						if (ico != nullptr)
-						{
-							bool find = CThumbnailBuffer::FindValidFile(ico->GetFilename());
-							if (!find)
-								iconeList->RemoveElement(i);
-							else
-								newIconeList->AddElement(ico);
-						}
-					});
+						bool find = CThumbnailBuffer::FindValidFile(ico->GetFilename());
+						if (!find)
+							iconeList->RemoveElement(i);
+						else
+							newIconeList->AddElement(ico);
+					}
+
+					wxString message = "In progress : " + to_string(i) + "/" + to_string(size);
+					dlg.Update(i, message);
+				}
+
+				dlg.Close();
+
 
 				if (newIconeList->GetNbElement() > 0)
 				{
