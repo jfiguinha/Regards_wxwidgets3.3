@@ -18,13 +18,13 @@ namespace Regards::Window
 	class CIcone
 	{
 	public:
-		CIcone(CThumbnailData * data);
+		CIcone(CThumbnailData* data);
 		~CIcone(void) = default;
 		void StartLoadingPicture();
 		void StopLoadingPicture();
 		void SetPictureLoading(const wxImage& imageLoading);
 		void SetBackgroundColor(const wxColour& backgroundColor);
-		void SetNumFrame(const int& numFrame);
+		void SetNumFrame(int numFrame);
 		void ShowSelectButton(const bool& show)
 		{
 			showSelected = show;
@@ -35,7 +35,7 @@ namespace Regards::Window
 		void RefreshIcone();
 		void ReinitPos();
 		void InitPos();
-		void SetPos(const int& x, const int& y);
+		void SetPos(int x, int y);
 
 		CThumbnailData* GetPtData();
 
@@ -52,11 +52,11 @@ namespace Regards::Window
 		void SetNumElement(const int& numElement) { this->numElement = numElement; };
 		int GetNumElement() { return numElement; };
 
-		void SetWindowPos(const int& x, const int& y);
-		int OnClick(const int& x, const int& y, const int& posLargeur, const int& posHauteur);
+		void SetWindowPos(int x, int y);
+		int OnClick(int x, int y, int posLargeur, int posHauteur);
 
-		int GetXPos();
-		int GetYPos();
+		int GetXPos() const;
+		int GetYPos() const;
 		int GetWidth();
 		int GetHeight();
 		wxRect GetPos();
@@ -68,13 +68,13 @@ namespace Regards::Window
 			this->filename = filename;
 		};
 
-		void SetActive(const bool& value);
-		void SetSelected(const bool& value);
-		void SetChecked(const bool& value);
+		void SetActive(bool value);
+		void SetSelected(bool value);
+		void SetChecked(bool value);
 
-		void SetShowDelete(const bool& value);
+		void SetShowDelete(bool value);
 
-		bool GetSelected();
+		bool GetSelected() const;
 
 		int GetState()
 		{
@@ -89,16 +89,19 @@ namespace Regards::Window
 		int RenderIcone(wxDC* dc, const int& posLargeur, const int& posHauteur, const bool& flipHorizontal,
 			const bool& flipVertical, const bool& forceRedraw = false);
 
-		bool IsChecked();
+		bool IsChecked() const;
 
 		bool IsPictureLoad()
 		{
 			return pictureLoad;
 		}
 
-		wxBitmap GetCopyIcone(); 
+		wxBitmap GetCopyIcone() const;
 
 	private:
+
+		void Invalidate() noexcept;
+
 		void RenderPictureBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
 		void RenderVideoBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
 		void RenderBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
@@ -163,8 +166,8 @@ namespace Regards::Window
 		bool visible = true;
 	};
 
-	using IconeVector = tbb::concurrent_vector<CIcone *>;
-	using pItemCompFonct = bool(*)(int, int, CIcone *, CWindowMain*);
+	using IconeVector = tbb::concurrent_vector<CIcone*>;
+	using pItemCompFonct = bool(*)(int, int, CIcone*, CWindowMain*);
 	using pItemCompFonctFace = bool(*)(wxString, int, CIcone*);
-	using pItemStringCompFonct = bool(*)(wxString,CIcone *);
+	using pItemStringCompFonct = bool(*)(wxString, CIcone*);
 }
