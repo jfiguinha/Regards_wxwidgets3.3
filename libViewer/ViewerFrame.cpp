@@ -125,10 +125,10 @@ CViewerFrame::~CViewerFrame()
     if (exitTimer && exitTimer->IsRunning())
         exitTimer->Stop();
 
-    viewerParam_->SaveFile();
+   viewerParam_->SaveFile();
     
-	if (!onExit)
-		Exit();
+	//if (!onExit)
+	//	Exit();
 }
 
 // ---------------------------------------------------------------------------

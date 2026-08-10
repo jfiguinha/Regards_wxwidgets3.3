@@ -399,7 +399,7 @@ void CWindowModeController::UpdateThumbnailIconeSize(wxCommandEvent& /*event*/)
 // Persistence
 // ─────────────────────────────────────────────────────────────────────────────
 
-void CWindowModeController::SaveParameter()
+void CWindowModeController::SaveParameter(const wxString &lastFile)
 {
     CMainParam* config = CMainParamInit::getInstance();
     if (config == nullptr)
@@ -417,6 +417,7 @@ void CWindowModeController::SaveParameter()
     if (showFolder)         config->SetPositionLeftPanel(left);
     if (showInfos)          config->SetPositionRightPanel(right);
 
+    config->SetLastShowPicture(lastFile);
     config->SetShowInfos(showInfos);
     config->SetShowThumbnail(showThumbnail);
     config->SetShowVideoThumbnail(showVideoThumbnail);

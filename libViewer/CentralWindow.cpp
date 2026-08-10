@@ -204,9 +204,7 @@ CCentralWindow::~CCentralWindow()
 {
     cout << "End Program" << endl;
 
-    CMainParam* config = CMainParamInit::getInstance();
-    if (config != nullptr)
-        config->SetLastShowPicture(viewerController->GetFilename());
+
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -273,7 +271,11 @@ bool     CCentralWindow::IsCompatibleFullscreen()          { return windowModeCo
 void     CCentralWindow::HideToolbar()                     { windowModeController->HideToolbar(); }
 void     CCentralWindow::ShowToolbar()                     { windowModeController->ShowToolbar(); }
 void     CCentralWindow::UpdateScreenRatio()               { windowModeController->UpdateScreenRatio(); }
-void     CCentralWindow::SaveParameter()                   { windowModeController->SaveParameter(); }
+void     CCentralWindow::SaveParameter()                   { 
+
+
+    windowModeController->SaveParameter(viewerController->GetFilename());
+}
 void     CCentralWindow::Resize()                          { windowModeController->Resize(); }
 
 void CCentralWindow::SetListeFile(const wxString& filename, const bool& isDeleteFolder,

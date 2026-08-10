@@ -50,7 +50,7 @@ namespace Regards::Viewer
         void Resize();
 
         // Save / restore pane states
-        void SaveParameter();
+        void SaveParameter(const wxString &lastFile);
 
         int  GetWindowMode()    const { return windowMode; }
         bool GetIsFullscreen()  const { return isFullscreen; }
