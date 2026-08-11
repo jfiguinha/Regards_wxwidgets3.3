@@ -41,7 +41,7 @@ namespace Regards
 			int TraitementResultPhoto(CSqlResult* sqlResult);
 			int TraitementResultNumPhoto(CSqlResult* sqlResult);
 			int TraitementResultFilename(CSqlResult* sqlResult);
-
+			int GetDayOfWeek(int year, int month, int day);
 			wxString GetSearchSQL(vector<int> list);
 			int TraitementResult(CSqlResult* sqlResult) override;
 

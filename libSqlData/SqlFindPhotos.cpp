@@ -22,7 +22,7 @@ bool CSqlFindPhotos::SearchPhotosByCriteriaFolder(PhotosVector* photosVector)
 		return false;
 
 	m_photosVector->clear();
-	wxString sqlRequest = "SELECT * FROM SEARCH_VIEW";//  Order By Year, Month asc, Day asc, DayOfWeek asc, FullPath";
+	wxString sqlRequest = "SELECT * FROM SEARCH_VIEW  Order By CreateDate";//  Order By Year, Month asc, Day asc, DayOfWeek asc, FullPath";
 	return (ExecuteRequest(sqlRequest) != -1) ? true : false;
 }
 
@@ -368,6 +368,7 @@ int CSqlFindPhotos::TraitementResultFilename(CSqlResult* sqlResult)
 	return nbResult;
 }
 
+
 int CSqlFindPhotos::TraitementResultPhotoDataCriteria(CSqlResult* sqlResult)
 {
 	CSqlResource sqlResource;
@@ -384,15 +385,11 @@ int CSqlFindPhotos::TraitementResultPhotoDataCriteria(CSqlResult* sqlResult)
 		_cPhoto.SetPath(sqlResult->ColumnDataText(1));
 		_cPhoto.SetCreateDate(sqlResult->ColumnDataText(2));
 		_cPhoto.SetGpsInfos(sqlResult->ColumnDataText(3));
-		_cPhoto.year = sqlResult->ColumnDataInt(4);
-		_cPhoto.month = sqlResult->ColumnDataInt(5);
 		if (_cPhoto.month > 0)
 			_cPhoto.monthName = MonthName[_cPhoto.month - 1];
 		else
 			_cPhoto.monthName = "";
-		_cPhoto.day = sqlResult->ColumnDataInt(6);
-		_cPhoto.dayofweek = sqlResult->ColumnDataInt(7);
-		_cPhoto.dayName = DayName[_cPhoto.dayofweek];
+		_cPhoto.dayName = DayName[_cPhoto.GetDayOfWeek()];
 		m_photosVector->push_back(_cPhoto);
 		nbResult++;
 	}

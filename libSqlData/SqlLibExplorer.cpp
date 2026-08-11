@@ -96,9 +96,7 @@ using namespace Regards::Sqlite;
 #define SQL_CREATE_OPENCLKERNEL_TABLE "CREATE TABLE OPENCLKERNEL (numProgram NVARCHAR(255), platformName NVARCHAR(255), numDevice INT, typeData INT, openCLKernel BLOB)"
 #define SQL_DROP_OPENCLKERNEL_TABLE "DROP TABLE OPENCLKERNEL"
 
-#define  SQL_CREATE_SEARCH_VIEW_VIEW "CREATE VIEW SEARCH_VIEW AS SELECT NumPhoto, FullPath, CreateDate, GeoGPS, \
-substr(CreateDate, 0, 5) as Year, substr(CreateDate, 6, 2) as Month, substr(CreateDate, 9, 2) as Day, \
-strftime('%w', REPLACE(CreateDate, '.', '-')) as DayOfWeek FROM PHOTOSSEARCHCRITERIA Order By Year, Month, Day"
+#define  SQL_CREATE_SEARCH_VIEW_VIEW "CREATE VIEW SEARCH_VIEW AS SELECT NumPhoto, FullPath, CreateDate, GeoGPS FROM PHOTOSSEARCHCRITERIA"
 
 
 
