@@ -37,19 +37,6 @@ namespace Regards
 
 		private:
 
-			wxString GenerateSqlRequest_chatgpt(
-				const int& numCatalog,
-				vector<int>& listFolder,
-				vector<int>& listCriteriaNotIn,
-				vector<int>& listFaceNotIn,
-				vector<int>& listFaceSelected,
-				vector<int>& listStarSelected,
-				vector<int>& listStarNotSelected,
-				vector<int>& listKeywordSelected,
-				vector<int>& listKeywordNotSelected,
-				const wxString& libelleNotGeo,
-				const double& pertinence);
-
 			bool FindIfViewExist();
 			int TraitementResultPhotoDataCriteria(CSqlResult* sqlResult);
 			int TraitementResultPhoto(CSqlResult* sqlResult);
