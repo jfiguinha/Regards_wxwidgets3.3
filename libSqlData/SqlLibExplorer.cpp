@@ -91,14 +91,22 @@ using namespace Regards::Sqlite;
 #define SQL_DROP_PHOTO_CATEGORIE_USENET_PROCESSING_NAME "DROP TABLE PHOTOCATEGORIE_PROCESSING"
 
 #define SQL_CREATE_PHOTO_GPS_TABLE "CREATE TABLE PHOTOSGPS (NumPhoto INT, FullPath NVARCHAR(255), NumFolderId INT)"
-#define SQL_DROP_PHOTO_GP_TABLE "DROP TABLE PHOTOSGPS"
+//#define SQL_DROP_PHOTO_GP_TABLE "DROP TABLE PHOTOSGPS"
 
 #define SQL_CREATE_OPENCLKERNEL_TABLE "CREATE TABLE OPENCLKERNEL (numProgram NVARCHAR(255), platformName NVARCHAR(255), numDevice INT, typeData INT, openCLKernel BLOB)"
 #define SQL_DROP_OPENCLKERNEL_TABLE "DROP TABLE OPENCLKERNEL"
 
-#define  SQL_CREATE_SEARCH_VIEW_VIEW "CREATE VIEW SEARCH_VIEW AS SELECT NumPhoto, FullPath, CreateDate, GeoGPS FROM PHOTOSSEARCHCRITERIA"
+#define SQL_CREATE_SEARCH_VIEW_VIEW "CREATE VIEW SEARCH_VIEW AS SELECT NumPhoto, FullPath, CreateDate, GeoGPS FROM PHOTOSSEARCHCRITERIA"
 
+#define SQL_DROP_VIEW_SEARCH_VIEW "DROP VIEW SEARCH_VIEW"
 
+#define SQL_CREATE_INDEX_CRITERIA_FOLDER "CREATE INDEX IF NOT EXISTS IDX_PHOTOS_CRITERIA_FOLDER ON PHOTOS(CriteriaInsert, NumFolderCatalog)"
+
+#define SQL_CREATE_INDEX_PHOTO_CRITERIA "CREATE INDEX IF NOT EXISTS IDX_PHOTOSCRITERIA_PHOTO_CRITERIA ON PHOTOSCRITERIA(NumPhoto, NumCriteria)"
+
+#define SQL_CREATE_INDEX_PHOTO_FOLDER "CREATE INDEX IF NOT EXISTS IDX_PHOTOS_FOLDER_PHOTO ON PHOTOS(NumFolderCatalog, NumPhoto)"
+
+#define SQL_CREATE_INDEX_FOLDER_CATALOG	"CREATE INDEX IF NOT EXISTS IDX_FOLDERCATALOG_CATALOG_FOLDER ON FOLDERCATALOG(NumCatalog, NumFolderCatalog)"
 
 CSqlLibExplorer::CSqlLibExplorer(const bool& readOnly, const wxString& libelleNotGeo, const bool& m_loadInMemory)
 	: CSqlLib()
@@ -454,7 +462,11 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.73.0.0");
-			hr = ExecuteSQLWithNoResult(SQL_DROP_PHOTOGPS);
+			hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_CRITERIA_FOLDER);
+			hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_PHOTO_CRITERIA);
+			hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_PHOTO_FOLDER);
+			hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_FOLDER_CATALOG);
+			hr = ExecuteSQLWithNoResult(SQL_DROP_VIEW_SEARCH_VIEW);
 		}
 	}
 	return hr;
@@ -1392,16 +1404,21 @@ bool CSqlLibExplorer::CreateDatabase(const wxString& databasePath, const bool& m
 		goto Exit;
 	}
 
+	hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTO_GPS_TABLE);
+
 	hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTO_EXIF);
 	hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTOFOLDER);
 	//hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTOSSEARCH);
 	hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTOSTHUMBNAIL);
 	hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTOGPS);
 
-	hr = ExecuteSQLWithNoResult(SQL_CREATE_SEARCH_VIEW_VIEW);
-    
+   
     hr = ExecuteSQLWithNoResult(SQL_CREATE_VIEW_PHOTOSWITHOUTTHUMBNAIL);
 
+	hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_CRITERIA_FOLDER);
+	hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_PHOTO_CRITERIA);
+	hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_PHOTO_FOLDER);
+	hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_FOLDER_CATALOG);
 Exit:
 
 	sqlTransaction.commit();

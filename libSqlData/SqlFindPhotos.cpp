@@ -22,7 +22,7 @@ bool CSqlFindPhotos::SearchPhotosByCriteriaFolder(PhotosVector* photosVector)
 		return false;
 
 	m_photosVector->clear();
-	wxString sqlRequest = "SELECT * FROM SEARCH_VIEW  Order By CreateDate";//  Order By Year, Month asc, Day asc, DayOfWeek asc, FullPath";
+	wxString sqlRequest = "SELECT * FROM PHOTOSSEARCHCRITERIA  Order By CreateDate";//  Order By Year, Month asc, Day asc, DayOfWeek asc, FullPath";
 	return (ExecuteRequest(sqlRequest) != -1) ? true : false;
 }
 
@@ -181,6 +181,473 @@ bool CSqlFindPhotos::FindIfViewExist()
 	return (table_name != "") ? true : false;
 }
 
+
+wxString CSqlFindPhotos::GenerateSqlRequest_chatgpt(
+	const int& numCatalog,
+	vector<int>& listFolder,
+	vector<int>& listCriteriaNotIn,
+	vector<int>& listFaceNotIn,
+	vector<int>& listFaceSelected,
+	vector<int>& listStarSelected,
+	vector<int>& listStarNotSelected,
+	vector<int>& listKeywordSelected,
+	vector<int>& listKeywordNotSelected,
+	const wxString& libelleNotGeo,
+	const double& pertinence)
+{
+	// Pas de dossier => pas de recherche
+	if (listFolder.empty())
+		return "";
+
+	// Date courante au format YYYY.MM.DD
+	const wxDateTime now = wxDateTime::Now();
+
+	const wxString createDate = wxString::Format(
+		"%04d.%02d.%02d",
+		now.GetYear(),
+		static_cast<int>(now.GetMonth()) + 1,
+		now.GetDay());
+
+	wxString reqSQIn;
+
+	// =====================================================================
+	// CREATE VIEW
+	// =====================================================================
+
+	reqSQIn =
+		"CREATE VIEW PHOTOSSEARCHCRITERIA "
+		"(NumPhoto, NumFolder, FullPath, CreateDate, GeoGps) AS ";
+
+	reqSQIn += "SELECT * FROM (";
+
+	// =====================================================================
+	// PHOTOS avec CriteriaInsert = 0
+	// =====================================================================
+
+	reqSQIn +=
+		"SELECT "
+		"NumPhoto, "
+		"NumFolderCatalog, "
+		"FullPath, "
+		"'" + createDate + "' AS CreateDate, "
+		"'" + libelleNotGeo + "' AS GeoGps "
+		"FROM PHOTOS "
+		"WHERE CriteriaInsert = 0 "
+		"AND NumFolderCatalog IN (";
+
+	reqSQIn += GetSearchSQL(listFolder);
+	reqSQIn += ")";
+
+	// =====================================================================
+	// UNION
+	// =====================================================================
+
+	reqSQIn += " UNION ";
+
+	// =====================================================================
+	// PHOTOS avec critères
+	//
+	// CreateDate = catégorie 3
+	// GeoGps     = catégorie 1
+	//
+	// On récupère ces deux valeurs pendant le GROUP BY au lieu d'effectuer
+	// deux sous-requêtes corrélées pour chaque photo.
+	// =====================================================================
+
+	reqSQIn +=
+		"SELECT "
+		"PH.NumPhoto, "
+		"PH.NumFolderCatalog, "
+		"PH.FullPath, "
+		"MAX(CASE "
+		"WHEN CR.NumCategorie = 3 THEN CR.Libelle "
+		"END) AS CreateDate, "
+		"MAX(CASE "
+		"WHEN CR.NumCategorie = 1 THEN CR.Libelle "
+		"END) AS GeoGps "
+		"FROM PHOTOS AS PH "
+		"INNER JOIN FOLDERCATALOG AS FC "
+		"ON PH.NumFolderCatalog = FC.NumFolderCatalog "
+		"INNER JOIN PHOTOSCRITERIA AS PHCR "
+		"ON PH.NumPhoto = PHCR.NumPhoto "
+		"INNER JOIN CRITERIA AS CR "
+		"ON CR.NumCriteria = PHCR.NumCriteria "
+		"WHERE FC.NumCatalog = ";
+
+	reqSQIn += to_string(numCatalog);
+
+	reqSQIn += " AND PH.NumFolderCatalog IN (";
+	reqSQIn += GetSearchSQL(listFolder);
+	reqSQIn += ")";
+
+	// =====================================================================
+	// Criteria NOT IN
+	// =====================================================================
+
+	if (!listCriteriaNotIn.empty())
+	{
+		reqSQIn +=
+			" AND PH.NumPhoto NOT IN ("
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN FOLDERCATALOG AS FC "
+			"ON PH.NumFolderCatalog = FC.NumFolderCatalog "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE FC.NumCatalog = ";
+
+		reqSQIn += to_string(numCatalog);
+
+		reqSQIn += " AND PH.NumFolderCatalog IN (";
+		reqSQIn += GetSearchSQL(listFolder);
+
+		reqSQIn += " AND CR.NumCriteria IN (";
+		reqSQIn += GetSearchSQL(listCriteriaNotIn);
+		reqSQIn += ")";
+	}
+
+	// =====================================================================
+	// Face recognition
+	//
+	// Je conserve volontairement listFaceSelected comme dans ton code
+	// original.
+	// =====================================================================
+
+	if (!listFaceNotIn.empty())
+	{
+		const wxString value =
+			wxString::Format("%.6f", pertinence / 100.0);
+
+		reqSQIn +=
+			" AND PH.NumPhoto IN ("
+			"SELECT NumPhoto "
+			"FROM PHOTOS "
+			"WHERE FullPath IN ("
+			"SELECT DISTINCT FullPath "
+			"FROM FACE_RECOGNITION "
+			"INNER JOIN FACEPHOTO "
+			"ON FACEPHOTO.NumFace = FACE_RECOGNITION.NumFace "
+			"WHERE FACEPHOTO.Pertinence > ";
+
+		reqSQIn += value;
+
+		reqSQIn += " AND NumFaceCompatible IN (";
+		reqSQIn += GetSearchSQL(listFaceSelected);
+		reqSQIn += "))";
+	}
+
+	// =====================================================================
+	// Etoiles + mots-clés
+	// =====================================================================
+
+	if (!listStarSelected.empty() &&
+		!listKeywordSelected.empty())
+	{
+		reqSQIn +=
+			" AND PH.NumPhoto IN ("
+
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE CR.NumCriteria IN (";
+
+		reqSQIn += GetSearchSQL(listStarSelected);
+
+		reqSQIn += ") "
+
+			"INTERSECT "
+
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE CR.NumCriteria IN (";
+
+		reqSQIn += GetSearchSQL(listKeywordSelected);
+		reqSQIn += "))";
+	}
+	else if (!listStarSelected.empty() ||
+		!listKeywordSelected.empty())
+	{
+		reqSQIn +=
+			" AND PH.NumPhoto IN ("
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE CR.NumCriteria IN (";
+
+		if (!listStarSelected.empty())
+			reqSQIn += GetSearchSQL(listStarSelected);
+		else
+			reqSQIn += GetSearchSQL(listKeywordSelected);
+
+		reqSQIn += "))";
+	}
+
+	// =====================================================================
+	// Une ligne par photo dans la deuxième branche
+	// =====================================================================
+
+	reqSQIn +=
+		" GROUP BY "
+		"PH.NumPhoto, "
+		"PH.NumFolderCatalog, "
+		"PH.FullPath";
+
+	// =====================================================================
+	// Fin du SELECT global
+	//
+	// On conserve le GROUP BY NumPhoto de ta requête originale afin de
+	// préserver le comportement actuel du UNION.
+	// =====================================================================
+
+	reqSQIn += ") GROUP BY NumPhoto";
+
+	return reqSQIn;
+}
+
+
+wxString CSqlFindPhotos::GenerateSqlRequest(
+	const int& numCatalog,
+	vector<int>& listFolder,
+	vector<int>& listCriteriaNotIn,
+	vector<int>& listFaceNotIn,
+	vector<int>& listFaceSelected,
+	vector<int>& listStarSelected,
+	vector<int>& listStarNotSelected,
+	vector<int>& listKeywordSelected,
+	vector<int>& listKeywordNotSelected,
+	const wxString& libelleNotGeo,
+	const double& pertinence)
+{
+	if (listFolder.empty())
+		return "";
+
+	// ---------------------------------------------------------------------
+	// Date courante au format YYYY.MM.DD
+	// ---------------------------------------------------------------------
+	const wxDateTime now = wxDateTime::Now();
+
+	const wxString createDate = wxString::Format(
+		"%04d.%02d.%02d",
+		now.GetYear(),
+		static_cast<int>(now.GetMonth()) + 1,
+		now.GetDay());
+
+	wxString reqSQIn;
+
+	// ---------------------------------------------------------------------
+	// Création de la vue
+	// ---------------------------------------------------------------------
+	reqSQIn =
+		"CREATE VIEW PHOTOSSEARCHCRITERIA "
+		"(NumPhoto, NumFolder, FullPath, CreateDate, GeoGps) AS ";
+
+	reqSQIn += "SELECT * FROM (";
+
+	// =====================================================================
+	// 1. Photos sans critères
+	// =====================================================================
+
+	reqSQIn +=
+		"SELECT "
+		"NumPhoto, "
+		"NumFolderCatalog, "
+		"FullPath, "
+		"'" + createDate + "' AS CreateDate, "
+		"'" + libelleNotGeo + "' AS GeoGps "
+		"FROM PHOTOS "
+		"WHERE CriteriaInsert = 0 "
+		"AND NumFolderCatalog IN (";
+
+	// GetSearchSQL() ferme déjà la parenthèse
+	reqSQIn += GetSearchSQL(listFolder);
+
+	// =====================================================================
+	// 2. Photos avec critères
+	// =====================================================================
+
+	reqSQIn +=
+		" UNION "
+		"SELECT "
+		"PH.NumPhoto, "
+		"PH.NumFolderCatalog, "
+		"PH.FullPath, "
+		"MAX(CASE "
+		"WHEN CR.NumCategorie = 3 THEN CR.Libelle "
+		"END) AS CreateDate, "
+		"MAX(CASE "
+		"WHEN CR.NumCategorie = 1 THEN CR.Libelle "
+		"END) AS GeoGps "
+		"FROM PHOTOS AS PH "
+		"INNER JOIN FOLDERCATALOG AS FC "
+		"ON PH.NumFolderCatalog = FC.NumFolderCatalog "
+		"INNER JOIN PHOTOSCRITERIA AS PHCR "
+		"ON PH.NumPhoto = PHCR.NumPhoto "
+		"INNER JOIN CRITERIA AS CR "
+		"ON CR.NumCriteria = PHCR.NumCriteria "
+		"WHERE FC.NumCatalog = ";
+
+	reqSQIn += to_string(numCatalog);
+
+	reqSQIn +=
+		" AND PH.NumFolderCatalog IN (";
+
+	// GetSearchSQL() ferme déjà la parenthèse
+	reqSQIn += GetSearchSQL(listFolder);
+
+	// =====================================================================
+	// 3. Critères exclus
+	// =====================================================================
+
+	if (!listCriteriaNotIn.empty())
+	{
+		reqSQIn +=
+			" AND PH.NumPhoto NOT IN ("
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN FOLDERCATALOG AS FC "
+			"ON PH.NumFolderCatalog = FC.NumFolderCatalog "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE FC.NumCatalog = ";
+
+		reqSQIn += to_string(numCatalog);
+
+		reqSQIn +=
+			" AND PH.NumFolderCatalog IN (";
+
+		reqSQIn += GetSearchSQL(listFolder);
+
+		reqSQIn +=
+			" AND CR.NumCriteria IN (";
+
+		reqSQIn += GetSearchSQL(listCriteriaNotIn);
+
+		reqSQIn += ")";
+	}
+
+	// =====================================================================
+	// 4. Reconnaissance faciale
+	//
+	// On conserve exactement la logique originale :
+	// test sur listFaceNotIn mais utilisation de listFaceSelected.
+	// =====================================================================
+
+	if (!listFaceNotIn.empty())
+	{
+		const wxString value =
+			wxString::Format("%.6f", pertinence / 100.0);
+
+		reqSQIn +=
+			" AND PH.NumPhoto IN ("
+			"SELECT NumPhoto "
+			"FROM PHOTOS "
+			"WHERE FullPath IN ("
+			"SELECT DISTINCT FullPath "
+			"FROM FACE_RECOGNITION "
+			"INNER JOIN FACEPHOTO "
+			"ON FACEPHOTO.NumFace = FACE_RECOGNITION.NumFace "
+			"WHERE FACEPHOTO.Pertinence > ";
+
+		reqSQIn += value;
+
+		reqSQIn +=
+			" AND NumFaceCompatible IN (";
+
+		reqSQIn += GetSearchSQL(listFaceSelected);
+
+		reqSQIn += "))";
+	}
+
+	// =====================================================================
+	// 5. Etoiles + mots-clés
+	// =====================================================================
+
+	if (!listStarSelected.empty() &&
+		!listKeywordSelected.empty())
+	{
+		reqSQIn +=
+			" AND PH.NumPhoto IN ("
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE CR.NumCriteria IN (";
+
+		reqSQIn += GetSearchSQL(listStarSelected);
+
+		reqSQIn +=
+			" INTERSECT "
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE CR.NumCriteria IN (";
+
+		reqSQIn += GetSearchSQL(listKeywordSelected);
+
+		reqSQIn += ")";
+	}
+	else if (!listStarSelected.empty() ||
+		!listKeywordSelected.empty())
+	{
+		reqSQIn +=
+			" AND PH.NumPhoto IN ("
+			"SELECT DISTINCT PH.NumPhoto "
+			"FROM PHOTOS AS PH "
+			"INNER JOIN PHOTOSCRITERIA AS PHCR "
+			"ON PH.NumPhoto = PHCR.NumPhoto "
+			"INNER JOIN CRITERIA AS CR "
+			"ON CR.NumCriteria = PHCR.NumCriteria "
+			"WHERE CR.NumCriteria IN (";
+
+		if (!listStarSelected.empty())
+			reqSQIn += GetSearchSQL(listStarSelected);
+		else
+			reqSQIn += GetSearchSQL(listKeywordSelected);
+
+		reqSQIn += ")";
+	}
+
+	// =====================================================================
+	// Une ligne par photo dans la deuxième branche
+	// =====================================================================
+
+	reqSQIn +=
+		" GROUP BY "
+		"PH.NumPhoto, "
+		"PH.NumFolderCatalog, "
+		"PH.FullPath";
+
+	// =====================================================================
+	// Fermeture du SELECT *
+	// =====================================================================
+
+	reqSQIn += ") GROUP BY NumPhoto";
+
+	return reqSQIn;
+}
+
+/*
+
+
 wxString CSqlFindPhotos::GenerateSqlRequest(const int& numCatalog, vector<int>& listFolder,
                                             vector<int>& listCriteriaNotIn, vector<int>& listFaceNotIn,
                                             vector<int>& listFaceSelected, vector<int>& listStarSelected,
@@ -278,12 +745,17 @@ wxString CSqlFindPhotos::GenerateSqlRequest(const int& numCatalog, vector<int>& 
 		}
 
 		reqSQIn += ") Group By NumPhoto";
+
+		wxString request = GenerateSqlRequest_chatgpt(numCatalog, listFolder, listCriteriaNotIn, listFaceNotIn, listFaceSelected, listStarSelected,
+			listStarNotSelected, listKeywordSelected, listKeywordNotSelected, libelleNotGeo, pertinence);
+
 		return reqSQIn;
 	}
 
 
 	return "";
 }
+*/
 
 bool CSqlFindPhotos::SearchPhotos(const wxString& sqlRequest)
 {
