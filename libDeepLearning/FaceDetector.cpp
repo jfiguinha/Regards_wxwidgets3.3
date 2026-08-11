@@ -1215,15 +1215,8 @@ int CFaceDetector::FaceRecognition(const int& numFace)
 			findFaceCompatible = true;
 		}
 
-		if (!findFaceCompatible)
-		{
-			CSqlFaceLabel sqlfaceLabel;
-			wxString label = "Face number " + to_string(numFace);
-			sqlfaceRecognition.InsertFaceRecognition(numFace, numFace);
-			sqlfaceLabel.InsertFaceLabel(numFace, label, true);
-		}
 	}
-	else
+	if (faceRecognitonVec.size() == 0 || !findFaceCompatible)
 	{
 		CSqlFaceLabel sqlfaceLabel;
 		wxString label = "Face number " + to_string(numFace);
