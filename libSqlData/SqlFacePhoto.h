@@ -12,8 +12,21 @@ namespace Regards
 		class CFaceRecognitionData
 		{
 		public:
-			int numFace;
-			int numFaceCompatible;
+			CFaceRecognitionData() = default;
+
+			CFaceRecognitionData(
+				int numFace,
+				int numFaceCompatible,
+				const cv::Mat& feature)
+				: numFace(numFace),
+				numFaceCompatible(numFaceCompatible),
+				feature(feature.clone())
+			{}
+
+			int numFace = 0;
+			int numFaceCompatible = 0;
+
+			cv::Mat feature;
 		};
 
 		class CSqlFacePhoto : public CSqlExecuteRequest

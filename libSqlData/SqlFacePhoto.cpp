@@ -389,10 +389,12 @@ int CSqlFacePhoto::TraitementResult(CSqlResult* sqlResult)
 			filename = sqlResult->ColumnDataText(0);
 			break;
 		case 5:
+		{
 			CFaceRecognitionData data;
 			data.numFace = sqlResult->GetInt(0);
 			data.numFaceCompatible = sqlResult->GetInt(1);
 			listFaceRecognition.push_back(data);
+		}
 			break;
 		case 7:
 			listFace.push_back(sqlResult->ColumnDataInt(0));

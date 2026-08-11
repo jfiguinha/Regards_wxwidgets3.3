@@ -33,6 +33,11 @@ namespace Regards
 			static cv::Mat SuperResolution(const cv::Mat& Face);
 			static cv::Mat Colorisation(const cv::Mat& Face);
 		private:
+
+
+			cv::Mat AlignFace(
+				cv::Mat& face,
+				std::vector<cv::Point2f> & landmarks);
 			void RemoveRedEye(const cv::Mat& image, const cv::Rect& rSelectionBox, const cv::Rect& radius);
 			void ImageToJpegBuffer(const cv::Mat& image, std::vector<uchar>& buff);
 			cv::Mat RotateAndExtractFace(const double& angle, const cv::Rect& faceLocation, const cv::Mat& image);

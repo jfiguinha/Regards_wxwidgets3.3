@@ -406,6 +406,118 @@ float CalculPictureRatio(const int& pictureWidth, const int& pictureHeight, cons
 	return new_ratio;
 }
 
+cv::Mat CFaceDetector::AlignFace(
+	cv::Mat& face,
+	std::vector<cv::Point2f>& landmarks)
+{
+	if (face.empty() || landmarks.size() < 68)
+		return {};
+
+	// Centre de l'œil gauche : points 36 à 41
+	cv::Point2f leftEye(0.0f, 0.0f);
+
+	for (int i = 36; i <= 41; ++i)
+		leftEye += landmarks[i];
+
+	leftEye *= (1.0f / 6.0f);
+
+	// Centre de l'œil droit : points 42 à 47
+	cv::Point2f rightEye(0.0f, 0.0f);
+
+	for (int i = 42; i <= 47; ++i)
+		rightEye += landmarks[i];
+
+	rightEye *= (1.0f / 6.0f);
+
+	// Points cibles dans l'image alignée
+	constexpr float outputWidth = 224.0f;
+	constexpr float outputHeight = 224.0f;
+
+	const cv::Point2f targetLeftEye(75.0f, 90.0f);
+	const cv::Point2f targetRightEye(149.0f, 90.0f);
+
+	// Calcul de l'angle entre les deux yeux
+	const double dx = rightEye.x - leftEye.x;
+	const double dy = rightEye.y - leftEye.y;
+
+	const double angle =
+		std::atan2(dy, dx) * 180.0 / CV_PI;
+
+	// Distance entre les yeux
+	const double eyeDistance =
+		std::sqrt(dx * dx + dy * dy);
+
+	if (eyeDistance < 1.0)
+		return {};
+
+	// Distance cible entre les yeux
+	const double targetEyeDistance =
+		cv::norm(targetRightEye - targetLeftEye);
+
+	const double scale =
+		targetEyeDistance / eyeDistance;
+
+	// Centre entre les deux yeux
+	const cv::Point2f eyesCenter =
+		(leftEye + rightEye) * 0.5f;
+
+	// Matrice de rotation/échelle
+	cv::Mat transform =
+		cv::getRotationMatrix2D(
+			eyesCenter,
+			angle,
+			scale);
+
+	// Ajustement de la translation pour placer
+	// le centre des yeux au bon endroit.
+	transform.at<double>(0, 2) +=
+		(outputWidth * 0.5) - eyesCenter.x;
+
+	transform.at<double>(1, 2) +=
+		targetLeftEye.y - eyesCenter.y;
+
+	cv::Mat alignedFace;
+
+	cv::warpAffine(
+		face,
+		alignedFace,
+		transform,
+		cv::Size(
+			static_cast<int>(outputWidth),
+			static_cast<int>(outputHeight)),
+		cv::INTER_LINEAR,
+		cv::BORDER_REPLICATE);
+
+	return alignedFace;
+}
+
+static std::vector<cv::Point2f> GetSFaceLandmarks(
+	const std::vector<cv::Point2f>& landmarks)
+{
+	if (landmarks.size() < 68)
+		return {};
+
+	cv::Point2f leftEye(0.0f, 0.0f);
+	cv::Point2f rightEye(0.0f, 0.0f);
+
+	for (int i = 36; i <= 41; ++i)
+		leftEye += landmarks[i];
+
+	for (int i = 42; i <= 47; ++i)
+		rightEye += landmarks[i];
+
+	leftEye *= 1.0f / 6.0f;
+	rightEye *= 1.0f / 6.0f;
+
+	return
+	{
+		leftEye,
+		rightEye,
+		landmarks[30], // nez
+		landmarks[48], // bouche gauche
+		landmarks[54]  // bouche droite
+	};
+}
 
 std::vector<int> CFaceDetector::FindFace(const Mat& pBitmap, const wxString& filename)
 {
@@ -459,8 +571,90 @@ std::vector<int> CFaceDetector::FindFace(const Mat& pBitmap, const wxString& fil
 
 					try
 					{
+						resizedImage = RotateAndExtractFace(
+							face.angle,
+							face.myROI,
+							source);
+
+						if (resizedImage.empty())
+							continue;
+
+						std::vector<cv::Rect> faces;
+						faces.emplace_back(
+							0,
+							0,
+							resizedImage.cols,
+							resizedImage.rows);
+
+						std::vector<std::vector<cv::Point2f>> landmarkList;
+
+						{
+							std::lock_guard<std::mutex> lock(muFaceMark);
+
+							if (!facemark->fit(
+								resizedImage,
+								faces,
+								landmarkList))
+							{
+								continue;
+							}
+						}
+
+						if (landmarkList.empty() ||
+							landmarkList[0].size() != 68)
+						{
+							continue;
+						}
+
+						const auto sfaceLandmarks =
+							GetSFaceLandmarks(landmarkList[0]);
+
+						if (sfaceLandmarks.size() != 5)
+							continue;
+
+						cv::Mat alignedFace;
+
+						faceRecognizer->alignCrop(
+							resizedImage,
+							sfaceLandmarks,
+							alignedFace);
+
+						if (alignedFace.empty())
+							continue;
+
+						resizedImage = alignedFace;
+
+#ifdef TOTO
 						resizedImage = RotateAndExtractFace(face.angle, face.myROI, source);
-						
+						if (!resizedImage.empty())
+						{
+							std::vector<cv::Rect> faces;
+							faces.emplace_back(
+								0,
+								0,
+								resizedImage.cols,
+								resizedImage.rows);
+
+							std::vector<std::vector<cv::Point2f>> landmarkList;
+
+							if (!facemark->fit(
+								resizedImage,
+								faces,
+								landmarkList))
+							{
+								continue;
+							}
+
+							if (landmarkList.empty() ||
+								landmarkList[0].size() != 68)
+							{
+								continue;
+							}
+
+							resizedImage = AlignFace(resizedImage, landmarkList[0]);
+						}
+#endif
+					
 					}
 					catch (Exception& e)
 					{
@@ -690,7 +884,7 @@ void CFaceDetector::ImageToJpegBuffer(const Mat& image, std::vector<uchar>& buff
 	//std::vector<uchar> buff;//buffer for coding
 	std::vector<int> param(2);
 	param[0] = IMWRITE_JPEG_QUALITY;
-	param[1] = 80; //default(95) 0-100
+	param[1] = 100;
 	imencode(".jpg", image, buff, param);
 }
 
@@ -741,7 +935,7 @@ void CFaceDetector::RemoveRedEye(const Mat& image, const Rect& rSelectionBox, co
 	img_gray.copyTo(eyeMat(rc));
 }
 
-
+/*
 double GetNumFaceCompatibleScore(const int& numFace, vector<CFaceRecognitionData>& faceRecognitonVec, Mat& feature1)
 {
 	double score = 0.0;
@@ -774,6 +968,68 @@ double GetNumFaceCompatibleScore(const int& numFace, vector<CFaceRecognitionData
 	if(nbElement > 0)
 		return score / nbElement;
 	return 0;
+}
+*/
+
+double GetNumFaceCompatibleScore(
+	int numFace,
+	const std::vector<CFaceRecognitionData>& faceRecognitionVec,
+	const cv::Mat& feature1)
+{
+	std::vector<double> scores;
+
+	for (auto& picture : faceRecognitionVec)
+	{
+		if (picture.numFaceCompatible != numFace)
+			continue;
+
+		if (picture.feature.empty())
+		{
+			const wxString fileSource =
+				CFileUtility::GetFaceThumbnailPath(picture.numFace);
+
+			if (!wxFileExists(fileSource))
+				continue;
+
+			cv::Mat alignedFace2 =
+				cv::imread(CConvertUtility::ConvertToStdString(fileSource));
+
+			if (alignedFace2.empty())
+				continue;
+
+			faceRecognizer->feature(alignedFace2, picture.feature);
+		}
+
+		if (picture.feature.empty())
+			continue;
+
+		const double localScore =
+			faceRecognizer->match(
+				feature1,
+				picture.feature,
+				cv::FaceRecognizerSF::DisType::FR_COSINE);
+
+		scores.push_back(localScore);
+	}
+
+	if (scores.empty())
+		return 0.0;
+
+	constexpr size_t BEST_COUNT = 3;
+	const size_t count = std::min(BEST_COUNT, scores.size());
+
+	std::partial_sort(
+		scores.begin(),
+		scores.begin() + count,
+		scores.end(),
+		std::greater<double>());
+
+	double score = 0.0;
+
+	for (size_t i = 0; i < count; ++i)
+		score += scores[i];
+
+	return score / static_cast<double>(count);
 }
 
 int CFaceDetector::FaceRecognition(const int& numFace)

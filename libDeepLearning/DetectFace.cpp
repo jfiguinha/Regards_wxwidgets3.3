@@ -196,8 +196,7 @@ void CDetectFace::LoadModel(const bool& openCLCompatible, const bool& cudaCompat
 {
     wxString documentPath = CFileUtility::GetDocumentFolderPath();
     
-#ifdef __APPLE__
-#else
+#ifndef __APPLE__
 
 	try
 	{
