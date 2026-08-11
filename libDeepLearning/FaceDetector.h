@@ -25,7 +25,7 @@ namespace Regards
 			static void CleanBase();
 			static void LoadModel(const bool& openCLCompatible, const bool& cudaCompatible);
 			std::vector<int> FindFace(const cv::Mat& pBitmap, const wxString& filename);
-			void DetectEyes(const cv::Mat& pBitmap);
+			void RemoveRedEyes(cv::Mat& pBitmap);
 			std::vector<cv::Rect> GetRectFace(const cv::Mat& picture);
 			int DectectOrientationByFaceDetector(const cv::Mat& pBitmap);
 			int FaceRecognition(const int& numFace);

@@ -42,13 +42,13 @@ void CDeepLearning::LoadRessource(const bool& openCLCompatible, const bool& cuda
 }
 
 
-void CDeepLearning::DetectEyes(const cv::Mat& pBitmap, const bool& fastDetection)
+void CDeepLearning::RemoveRedEyes(cv::Mat& pBitmap, const bool& fastDetection)
 {
 	std::vector<wxRect> listEye;
 	if (IsResourceReady())
 	{
 		CFaceDetector faceDetector(fastDetection);
-		faceDetector.DetectEyes(pBitmap);
+		faceDetector.RemoveRedEyes(pBitmap);
 	}
 }
 

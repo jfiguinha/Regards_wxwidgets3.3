@@ -788,7 +788,7 @@ int CFiltreEffetCPU::RedEye()
 			if (param != nullptr)
 				fastDetection = param->GetFastDetectionFace();
 
-			CDeepLearning::DetectEyes(image, fastDetection);
+			CDeepLearning::RemoveRedEyes(image, fastDetection);
 		});
 
 	return 0;
