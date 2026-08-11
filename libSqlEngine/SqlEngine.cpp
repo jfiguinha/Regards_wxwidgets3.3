@@ -25,7 +25,6 @@ bool CSqlEngine::Initialize(const wxString& filename, const wxString& baseName, 
 
 	if (lib->InitDatabase(filename))
 	{
-		lib->CheckVersion(filename);
 		_bases.emplace(baseName, std::move(lib));
 		return true;
 	}
@@ -37,7 +36,6 @@ bool CSqlEngine::Initialize(const wxString& filename, const wxString& baseName, 
 	if (!lib->OpenConnection(filename, false, false))
 		return false;
 
-	lib->CheckVersion(filename);
 	_bases.emplace(baseName, std::move(lib));
 	return true;
 }

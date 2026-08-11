@@ -10,6 +10,7 @@
 #include <RegardsConfigParam.h>
 #include <ParamInit.h>
 #include "SqlTransaction.h"
+#include <wx/filename.h>
 using namespace cv;
 using namespace Regards::Picture;
 using namespace Regards::Sqlite;
@@ -199,32 +200,36 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 		hr = ExecuteSQLWithNoResult("PRAGMA auto_vacuum = FULL");
 
 		CSqlVersion sqlVersion;
-		if (sqlVersion.GetVersion() == "2.0.0.2")
+		wxString version = sqlVersion.GetVersion();
+		if (version == "2.0.0.2")
 		{
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOGPS_TABLE);
 			//hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOSSEARCH_TABLE);
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOSWIHOUTTHUMBNAIL_TABLE);
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.2.0.0");
+			version = "2.2.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.2.0.0")
+		if (version == "2.2.0.0")
 		{
 			hr = ExecuteSQLWithNoResult(SQL_DROP_PHOTOSSEARCH);
 			//hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOSSEARCH_TABLE);
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOSWIHOUTTHUMBNAIL_TABLE);
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.4.0.0");
+			version = "2.4.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.4.0.0")
+		if (version == "2.4.0.0")
 		{
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTOSWIHOUTTHUMBNAIL_TABLE);
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.5.0.0");
+			version = "2.5.0.0";	
 		}
 
-		if (sqlVersion.GetVersion() == "2.5.0.0")
+		if (version == "2.5.0.0")
 		{
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_FACE_PHOTO_TABLE);
 			//hr = ExecuteSQLWithNoResult(SQL_CREATE_FACE_DESCRIPTOR_TABLE);
@@ -239,33 +244,36 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 				"INSERT INTO CATEGORIE (NumCategorie, NumLangue, Libelle) VALUES (4,3,'Gente');");
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.11.0.0");
-			//sqlVersion.UpdateVersion("2.5.0.0", "2.11.0.0");
+			version = "2.11.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.11.0.0")
+		if (version == "2.11.0.0")
 		{
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTO_GPS_TABLE);
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.13.0.0");
+			version = "2.13.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.13.0.0")
+		if (version == "2.13.0.0")
 		{
 			hr = ExecuteSQLWithNoResult("ALTER TABLE PHOTOS ADD COLUMN Process INT;");
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.14.0.0");
+			version = "2.14.0.0";
 			hr = ExecuteSQLWithNoResult("UPDATE PHOTOS SET Process = 0");
 			hr = ExecuteSQLWithNoResult("UPDATE PHOTOS SET Process = 1 where CriteriaInsert = 1");
 		}
 
-		if (sqlVersion.GetVersion() == "2.14.0.0")
+		if (version == "2.14.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.15.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_VIDEOTHUMBNAIL_TABLE);
+			version = "2.15.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.15.0.0")
+		if (version == "2.15.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.15.1.0");
@@ -284,31 +292,35 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 					TestIsAnimation(photo.GetPath()))
 					sqlThumbnail.DeleteThumbnail(photo.GetId());
 			}
+			version = "2.15.1.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.15.1.0")
+		if (version == "2.15.1.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.16.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_OPENCLKERNEL_TABLE);
+			version = "2.16.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.16.0.0")
+		if (version == "2.16.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.17.0.0");
 			hr = ExecuteSQLWithNoResult("DROP TABLE OPENCLKERNEL");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_OPENCLKERNEL_TABLE);
+			version = "2.17.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.17.0.0")
+		if (version == "2.17.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.18.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTO_CATEGORIE_USENET_PROCESSING_TABLE);
+			version = "2.18.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.18.0.0")
+		if (version == "2.18.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.33.0.0");
@@ -318,16 +330,18 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 				"INSERT INTO CATEGORIE (NumCategorie, NumLangue, Libelle) VALUES (5,1,'Category');");
 			hr = ExecuteSQLWithNoResult(
 				"INSERT INTO CATEGORIE (NumCategorie, NumLangue, Libelle) VALUES (5,3,'Categoria');");
+			version = "2.33.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.33.0.0")
+		if (version == "2.33.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.60.0.0");
 			hr = ExecuteSQLWithNoResult("UPDATE FACEPHOTO SET Pertinence = 0.7");
+			version = "2.60.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.60.0.0")
+		if (version == "2.60.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.62.0.0");
@@ -353,16 +367,18 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 				"INSERT INTO CRITERIA (NumCatalog,NumCategorie,Libelle) VALUES (1,6,'4 Star');");
 			hr = ExecuteSQLWithNoResult(
 				"INSERT INTO CRITERIA (NumCatalog,NumCategorie,Libelle) VALUES (1,6,'5 Star');");
+			version = "2.62.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.62.0.0")
+		if (version == "2.62.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.64.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_FACE_VIDEO_TABLE);
+			version = "2.64.0.0";
 		}
 
-		if (sqlVersion.GetVersion() == "2.64.0.0")
+		if (version == "2.64.0.0")
 		{
 			hr = ExecuteSQLWithNoResult("ALTER TABLE PHOTOS ADD COLUMN Multifiles INT;");
 
@@ -399,20 +415,19 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 			//hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTOSSEARCH);
 			hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTOSTHUMBNAIL);
 			hr = ExecuteSQLWithNoResult(SQL_INDEX_PHOTOGPS);
+
+			version = "2.65.0.0";
 		}
-		if (sqlVersion.GetVersion() == "2.65.0.0")
+		if (version == "2.65.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.66.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTO_EXIF_TABLE);
-			wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-			documentPath.append("\\Face");
-#else
-			documentPath.append("/Face");
-#endif
+			wxFileName documentPath(CFileUtility::GetDocumentFolderPath());
+			documentPath.AppendDir("Face");
+
 			wxArrayString files;
-			wxDir::GetAllFiles(documentPath, &files, wxEmptyString, wxDIR_FILES);
+			wxDir::GetAllFiles(documentPath.GetFullPath(), &files, wxEmptyString, wxDIR_FILES);
 			CLibPicture libPicture;
 
 			for (wxString file : files)
@@ -422,40 +437,46 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 					LoadAndRotate(file, 180);
 				}
 			}
+			version = "2.66.0.0";
 		}
-		if (sqlVersion.GetVersion() == "2.66.0.0")
+		if (version == "2.66.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.67.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_SEARCH_VIEW_VIEW);
+			version = "2.67.0.0";
 		}
-		if (sqlVersion.GetVersion() == "2.67.0.0")
+		if (version == "2.67.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.68.0.0");
 			hr = ExecuteSQLWithNoResult("DROP TABLE PHOTOSSEARCHCRITERIA");
+			version = "2.68.0.0";
 		}
-		if (sqlVersion.GetVersion() == "2.68.0.0")
+		if (version == "2.68.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.69.0.0");
 			hr = ExecuteSQLWithNoResult("DROP TABLE FACEDESCRIPTOR");
+			version = "2.69.0.0";
 		}
-        if (sqlVersion.GetVersion() == "2.69.0.0")
+        if (version == "2.69.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.70.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_DROP_PHOTOSWIHOUTTHUMBNAIL);
             hr = ExecuteSQLWithNoResult(SQL_CREATE_VIEW_PHOTOSWITHOUTTHUMBNAIL);
+			version = "2.70.0.0";
 		}
-		if (sqlVersion.GetVersion() == "2.70.0.0")
+		if (version == "2.70.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.71.0.0");
 			hr = ExecuteSQLWithNoResult("ALTER TABLE FACEPHOTO ADD COLUMN Gender NVARCHAR(255);");
 			hr = ExecuteSQLWithNoResult("ALTER TABLE FACEPHOTO ADD COLUMN Age NVARCHAR(255);");
+			version = "2.71.0.0";
 		}
-		if (sqlVersion.GetVersion() == "2.71.0.0")
+		if (version == "2.71.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.72.0.0");
@@ -464,8 +485,9 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 			{
 				param->SetThumbnailOpenCV(0);
 			}
+			version = "2.72.0.0";
 		}
-		if (sqlVersion.GetVersion() == "2.72.0.0")
+		if (version == "2.72.0.0")
 		{
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.73.0.0");
@@ -479,6 +501,7 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_INDEX_PHOTOSCRITERIA_NumCriteria);
 			hr = ExecuteSQLWithNoResult(SQL_DROP_VIEW_SEARCH_VIEW);
 			hr = ExecuteSQLWithNoResult(SQL_DROP_OPENCLKERNEL_TABLE);
+			version = "2.73.0.0";
 		}
 	}
 	return hr;
