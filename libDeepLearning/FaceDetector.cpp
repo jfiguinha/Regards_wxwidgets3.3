@@ -1128,7 +1128,7 @@ double GetNumFaceCompatibleScore(
 	const std::vector<CFaceRecognitionData>& faceRecognitionVec,
 	const cv::Mat& feature1)
 {
-	double bestScore = 0.0;
+	std::vector<double> scores;
 
 	for (const auto& picture : faceRecognitionVec)
 	{
@@ -1155,17 +1155,34 @@ double GetNumFaceCompatibleScore(
 		if (picture.feature.empty())
 			continue;
 
-		const double score =
+		const double localScore =
 			faceRecognizer->match(
 				feature1,
 				picture.feature,
 				cv::FaceRecognizerSF::DisType::FR_COSINE);
 
-		if (score > bestScore)
-			bestScore = score;
+		scores.push_back(localScore);
 	}
 
-	return bestScore;
+	if (scores.empty())
+		return 0.0;
+
+	constexpr size_t MAX_SCORES = 5;
+
+	const size_t count = std::min(scores.size(), MAX_SCORES);
+
+	std::partial_sort(
+		scores.begin(),
+		scores.begin() + count,
+		scores.end(),
+		std::greater<double>());
+
+	double score = 0.0;
+
+	for (size_t i = 0; i < count; ++i)
+		score += scores[i];
+
+	return score / static_cast<double>(count);
 }
 
 int CFaceDetector::FaceRecognition(const int& numFace)
