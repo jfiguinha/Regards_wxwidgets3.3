@@ -2,408 +2,880 @@
 #include "LensFlare.h"
 
 #include "Color.h"
-#include <math.h>
-#include <cstdlib>
 #include "circle.h"
 #include "Line.h"
-#define CONVRADIAN 0.0174532925
-//const double pi = 3.14159265358979323846264338327950288419716939937510;
+
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <random>
+
 using namespace Regards::FiltreEffet;
 
-CLensFlare::CLensFlare(void)
+namespace
 {
-	iColorIntensity = 100;
+    constexpr float DegToRad = 0.017453292519943295f;
+    constexpr int HueMax = 360;
+
+    int NormalizeHue(int hue)
+    {
+        hue %= HueMax;
+
+        if (hue < 0)
+            hue += HueMax;
+
+        return hue;
+    }
+
+    int FloatToInt(float value)
+    {
+        return static_cast<int>(std::lround(value));
+    }
+
+    struct FlareAxis
+    {
+        float x;
+        float y;
+
+        int X(float distance) const
+        {
+            return FloatToInt(x * distance);
+        }
+
+        int Y(float distance) const
+        {
+            return FloatToInt(y * distance);
+        }
+    };
 }
 
 
-CLensFlare::~CLensFlare(void)
-{
-}
+CLensFlare::CLensFlare()
+    : iColorIntensity(100)
+{}
+
+CLensFlare::~CLensFlare()
+{}
+
 
 int CLensFlare::InsertwxImage(const wxImage& bitmap, int xPos, int yPos)
 {
-	if (!pBitmap->empty() && bitmap.IsOk())
-	{
-		int withwxImage = bitmap.GetWidth();
-		int yEnd = yPos + bitmap.GetHeight();
-		int xEnd = xPos + bitmap.GetWidth();
+    if (pBitmap == nullptr || pBitmap->empty() || !bitmap.IsOk())
+        return 0;
 
-		if (yEnd > pBitmap->rows)
-			yEnd = pBitmap->rows;
+    const int imageWidth = bitmap.GetWidth();
+    const int imageHeight = bitmap.GetHeight();
 
-		if (xEnd > pBitmap->cols)
-			xEnd = pBitmap->cols;
+    if (imageWidth <= 0 || imageHeight <= 0)
+        return 0;
 
-		uint8_t* data = bitmap.GetData();
-		uint8_t* alpha = bitmap.GetAlpha();
+    /*
+     * Clip la zone source/destination.
+     *
+     * Le code original ne gérait que le débordement à droite
+     * et en bas. Un lens flare peut cependant être partiellement
+     * situé à gauche ou au-dessus de l'image.
+     */
+    const int startX = std::max(0, xPos);
+    const int startY = std::max(0, yPos);
 
+    const int endX = std::min(pBitmap->cols, xPos + imageWidth);
+    const int endY = std::min(pBitmap->rows, yPos + imageHeight);
 
-		tbb::parallel_for(yPos, yEnd, 1, [=](int y)
-		                  //for (auto y = yPos; y < yEnd; y++)
-		                  {
-			                  for (auto x = xPos; x < xEnd; x++)
-			                  {
-				                  int i = (y - yPos) * withwxImage + (x - xPos);
-				                  CRgbaquad* colorSrc = CRgbaquad::GetPtColorValue(pBitmap, x, y);
-				                  if (colorSrc != nullptr)
-				                  {
-					                  auto color = CRgbaquad(data[i * 3], data[i * 3 + 1], data[i * 3 + 2], alpha[i]);
-					                  float value = color.GetFAlpha() / 255.0f;
-					                  float alphaDiff = 1.0f - value;
-					                  if (alphaDiff < 1.0f)
-					                  {
-						                  colorSrc->Mul(alphaDiff);
-						                  color.Mul(value);
-						                  colorSrc->Add(color);
-					                  }
-				                  }
-			                  }
-		                  });
-	}
+    if (startX >= endX || startY >= endY)
+        return 0;
 
-	return 0;
-}
+    const unsigned char* data = bitmap.GetData();
 
-///////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////
-void CLensFlare::Halo(const int& x, const int& y, const int& iColor, const int& iTaille, const int& iWidth,
-                      const float& fAlpha2, const int& iCentre)
-{
-	int rayon = iTaille;
+    if (data == nullptr)
+        return 0;
 
+    const unsigned char* alpha =
+        bitmap.HasAlpha() ? bitmap.GetAlpha() : nullptr;
 
-	if (iTaille > 0)
-		InsertwxImage(CCircle::Halo(iColor, iColorIntensity, iTaille * 2, iWidth, fAlpha2, iCentre), x - rayon,
-		              y - rayon);
-}
+    /*
+     * Chaque pixel destination est écrit une seule fois.
+     * Le parallel_for reste donc possible.
+     */
+    tbb::parallel_for(
+        startY,
+        endY,
+        1,
+        [this, &bitmap, data, alpha, xPos, yPos, imageWidth, startX, endX](int y)
+        {
+            for (int x = startX; x < endX; ++x)
+            {
+                const int srcX = x - xPos;
+                const int srcY = y - yPos;
 
-///////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////
-void CLensFlare::HaloGradient(const int& x, const int& y, const int& iTaille, const int& iWidth, const float& fAlpha2)
-{
-	int rayon = iTaille;
-	if (iTaille > 0)
-		InsertwxImage(CCircle::HaloGradient(iTaille * 2, iWidth, fAlpha2), x - rayon, y - rayon);
-}
+                const int index =
+                    srcY * imageWidth + srcX;
 
-///////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////
-void CLensFlare::Circle(const int& x, const int& y, const CRgbaquad& m_color, const int& iTaille, const float& fAlpha)
-{
-	int rayon = iTaille / 2;
-	if (rayon > 0)
-		InsertwxImage(CCircle::GenerateCircle(m_color, iTaille, fAlpha), x - rayon, y - rayon);
-}
+                CRgbaquad* colorDst =
+                    CRgbaquad::GetPtColorValue(pBitmap, x, y);
 
-///////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////
-void CLensFlare::CircleGradient(const int& x, const int& y, const CRgbaquad& m_color, const int& iTaille,
-                                const float& fAlpha)
-{
-	int rayon = iTaille;
-	if (rayon > 0)
-		InsertwxImage(CCircle::GradientTransparent(m_color, iTaille * 2, fAlpha), x - rayon, y - rayon);
+                if (colorDst == nullptr)
+                    continue;
+
+                const unsigned char pixelAlpha =
+                    alpha != nullptr ? alpha[index] : 255;
+
+                if (pixelAlpha == 0)
+                    continue;
+
+                CRgbaquad color(
+                    data[index * 3],
+                    data[index * 3 + 1],
+                    data[index * 3 + 2],
+                    pixelAlpha);
+
+                const float sourceAlpha =
+                    static_cast<float>(pixelAlpha) / 255.0f;
+
+                const float destinationAlpha =
+                    1.0f - sourceAlpha;
+
+                colorDst->Mul(destinationAlpha);
+                color.Mul(sourceAlpha);
+                colorDst->Add(color);
+            }
+        });
+
+    return 0;
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////
-void CLensFlare::Burst(const int& x, const int& y, const int& iTaille, const int& iColor, const int& iIntensity,
-                       const int& iColorIntensity)
+void CLensFlare::Halo(
+    const int& x, const int& y, const int& iColor, const int& iTaille, const int& iWidth,
+    const float& fAlpha2, const int& iCentre)
 {
-	int rayon = iTaille;
-	if (rayon > 0)
-		InsertwxImage(CCircle::Burst(iTaille * 2, iColor, iIntensity, iColorIntensity), x - rayon, y - rayon);
+    if (iTaille <= 0)
+        return;
+
+    InsertwxImage(
+        CCircle::Halo(
+            iColor,
+            iColorIntensity,
+            iTaille * 2,
+            iWidth,
+            fAlpha2,
+            iCentre),
+        x - iTaille,
+        y - iTaille);
 }
 
 
-//-------------------------------------------------------------------------------------------------
-//-------------------------------------------------------------------------------------------------
-void CLensFlare::LensFlare(cv::Mat* pBitmap, const int& iPosX, const int& iPosY, const int& iPuissance,
-                           const int& iType, const int& iIntensity, const int& iColor, const int& iColorIntensity)
+void CLensFlare::HaloGradient(
+    const int& x, const int& y, const int& iTaille, const int& iWidth,
+    const float& fAlpha2)
 {
-	this->pBitmap = pBitmap;
-
-	int iWidth = pBitmap->size().width;
-	int iHeight = pBitmap->size().height;
-
-
-	//Chargement du lensflare 1
-	if (!pBitmap->empty())
-	{
-		int i = 0;
-
-		int x = iPosX;
-		int y = iPosY;
-
-		int iRayon = iPuissance;
-
-		int iMaxX = iWidth >> 1;
-		int iMaxY = iHeight >> 1;
-
-
-		this->iColorIntensity = iColorIntensity;
-
-		int iLargeur = (x - (iMaxX)) << 1;
-
-		iLargeur = -iLargeur;
-
-		int iHauteur = (y - (iMaxY)) << 1;
-
-		iHauteur = -iHauteur;
-
-		int x2 = iLargeur + x;
-		int y2 = iHauteur + y;
-
-		float a = (static_cast<float>(y2 - y) / static_cast<float>(x2 - x));
-
-		float b = y - (a * x);
-
-		int iTaille = iRayon;
-
-		int iCouleur1 = iColor + 50; //(iColor + 50) % 360;
-		if (iCouleur1 > 360)
-			iCouleur1 -= 360;
-
-		int iCouleur2 = iColor + 100; //(iColor + 100) % 360;
-		if (iCouleur2 > 360)
-			iCouleur2 -= 360;
-
-		int iCouleur3 = iColor + 200; //(iColor + 200) % 360;
-		if (iCouleur3 > 360)
-			iCouleur3 -= 360;
-
-
-		HSB m_value2 = {iCouleur3, 100, 100};
-		CRgbaquad m_rgbValue3;
-		CColor::HSBToRGB(m_value2, m_rgbValue3);
-
-		HSB m_value = {iCouleur1, 100, 100};
-		CRgbaquad m_rgbValue1;
-		CColor::HSBToRGB(m_value, m_rgbValue1);
-
-		HSB m_value3 = {iCouleur2, 100, 100};
-		CRgbaquad m_rgbValue2;
-		CColor::HSBToRGB(m_value3, m_rgbValue2);
-
-		HSB m_value4 = {iColor, iColorIntensity, 100};
-		CRgbaquad m_rgbValue4;
-		CColor::HSBToRGB(m_value4, m_rgbValue4);
-
-		float fRayon = iRayon * (iIntensity / 10.0f);
-
-
-		iRayon = iRayon * 0.75f;
-
-		//return;
-
-		////////////////////////////////////////////////////////////////
-
-
-		//////////////////////////////////////////////////////////////////
-		//1er Halo
-		//////////////////////////////////////////////////////////////////
-
-		x = iPosX + (iLargeur * 0.875f);
-		y = iPosY + (iHauteur * 0.875f);
-
-		iTaille = iRayon;
-
-		//y = a * x + b;
-
-		Halo(x, y, iCouleur1, iTaille, 8, 0.7f);
-
-		//////////////////////////////////////////////////////////////////
-		//1er Halo
-		//////////////////////////////////////////////////////////////////
-
-		x = iPosX - (iLargeur * 0.125f);
-		y = iPosY - (iHauteur * 0.125f);
-
-		iTaille = iRayon >> 1;
-
-		//y = a * x + b;
-
-		Halo(x, y, iCouleur2, iTaille, 5, 0.7f);
-
-
-		////////////////////////////////////////////////////////////////
-		//Small Burst
-		////////////////////////////////////////////////////////////////
-
-		x = iPosX + (iLargeur >> 1);
-		y = iPosY + (iHauteur >> 1);
-
-		iTaille = iRayon >> 3;
-
-		Burst(x, y, iTaille, iColor, 25, 100);
-
-
-		////////////////////////////////////////////////////////////////
-		//Deuxieme Burst
-		////////////////////////////////////////////////////////////////
-
-
-		x = iPosX + (iLargeur * 0.625f);
-		y = iPosY + (iHauteur * 0.625f);
-
-		iTaille = iRayon / 10;
-
-		Burst(x, y, iTaille, iCouleur2);
-
-		x = (iPosX + (iLargeur * 0.75f));
-		y = (iPosY + (iHauteur * 0.75f));
-
-		iTaille = iRayon >> 3;
-
-		Burst(x, y, iTaille, iCouleur3, 25, 100);
-
-
-		////////////////////////////////////////////////////////////////
-
-		//x = (iPosX + (iLargeur * 1.125f));
-		//y = (iPosY + (iHauteur * 1.125f));
-
-		iTaille = iRayon << 2;
-
-		HaloGradient(x2, y2, iTaille, iWidth / 20, 0.7f);
-
-		////////////////////////////////////////////////////////////////
-
-
-		x = (iPosX + (iLargeur * 0.625f));
-		//y = (iPosY + (iHauteur * 0.625f));
-
-		if (iLargeur > 0)
-			x += iRayon >> 1;
-		else
-			x -= iRayon >> 1;
-
-		y = a * x + b;
-
-		Circle(x, y, m_rgbValue1, iRayon * 0.75, 0.8f);
-
-		x = (iPosX + (iLargeur * 0.625f));
-		//y = (iPosY + (iHauteur * 6 / 8));
-
-		if (iLargeur > 0)
-			x += iRayon >> 1;
-		else
-			x -= iRayon >> 1;
-
-		y = a * x + b;
-
-		Circle(x, y, m_rgbValue1, iRayon / 2, 0.8f);
-
-		x = (iPosX + (iLargeur * 0.625f));
-		//y = (iPosY + (iHauteur * 6 / 8));
-
-		if (iLargeur > 0)
-			x += iRayon * 0.6f;
-		else
-			x -= iRayon * 0.6f;
-
-		y = a * x + b;
-
-		Circle(x, y, m_rgbValue1, iRayon / 4, 0.8f);
-
-
-		x = (iPosX + (iLargeur * 0.4f));
-		//y = (iPosY + (iHauteur * 0.4f));
-
-		if (iLargeur > 0)
-			x -= (iRayon >> 3);
-		else
-			x += (iRayon >> 3);
-
-		y = a * x + b;
-
-		Circle(x, y, m_rgbValue1, iRayon / 4, 0.8f);
-
-
-		x = (iPosX + (iLargeur / 5));
-		y = (iPosY + (iHauteur / 5));
-
-		Circle(x, y, m_rgbValue3, iRayon * 0.75, 0.8f);
-
-		if (iLargeur > 0)
-			x += iRayon * 0.2f;
-		else
-			x -= iRayon * 0.2f;
-
-		y = a * x + b;
-
-		Circle(x, y, m_rgbValue3, iRayon * 0.4, 0.8f);
-
-		x = (iPosX + (iLargeur / 5));
-		//y = (iPosY + (iHauteur / 5));
-
-		if (iLargeur > 0)
-			x -= iRayon * 0.2f;
-		else
-			x += iRayon * 0.2f;
-
-		y = a * x + b;
-
-		Circle(x, y, m_rgbValue3, iRayon * 0.2, 0.8f);
-
-		x = (iPosX + (iLargeur * 0.75f));
-		y = (iPosY + (iHauteur * 0.75f));
-
-		Circle(x, y, m_rgbValue2, iRayon * 0.2, 0.8f);
-
-		x = iPosX;
-		y = iPosY;
-
-		iTaille = fRayon * 0.5f;
-
-
-		CircleGradient(x, y, m_rgbValue4, fRayon);
-
-		//x = iPosX;
-		//y = iPosY;
-
-		Halo(x, y, iColor, iTaille, 8, 0.8f, 0);
-
-
-		Burst(x, y, iTaille * 0.9f, iColor, iIntensity, iColorIntensity);
-
-		//Trait lumineux
-
-		int iIntRayon = static_cast<int>(fRayon) / 2;
-		if (iIntRayon == 0)
-			iIntRayon = 1;
-
-		CLine line(iHeight, iWidth);
-
-		for (i = 0; i <= 360; i++)
-		{
-			float fxValue = cos(i * CONVRADIAN) * rand();
-			float fyValue = sin(i * CONVRADIAN) * rand();
-
-			fxValue = static_cast<int>(fxValue) % (iIntRayon);
-			fyValue = static_cast<int>(fyValue) % (iIntRayon);
-
-			line.MidpointLine(pBitmap, x, y, x + fxValue, y + fyValue, CRgbaquad(255, 255, 255), 0.9f, true);
-			line.MidpointLine(pBitmap, x - fxValue, y - fyValue, x, y, CRgbaquad(255, 255, 255), 0.9f, true);
-		}
-
-
-		if (iLargeur > 0)
-			x = iPosX - iRayon;
-		else
-			x = iPosX + iRayon;
-
-		y = a * x + b;
-
-
-		Circle(x, y, m_rgbValue1, iRayon * 4, 0.95f);
-
-		//pBitmap->ReCreateHBitmap(false);
-	}
+    if (iTaille <= 0)
+        return;
+
+    InsertwxImage(
+        CCircle::HaloGradient(
+            iTaille * 2,
+            iWidth,
+            fAlpha2),
+        x - iTaille,
+        y - iTaille);
+}
+
+
+void CLensFlare::Circle(const int& x, const int& y, const CRgbaquad& color, const int& iTaille, const float& fAlpha)
+{
+    if (iTaille <= 0)
+        return;
+
+    const int rayon = iTaille / 2;
+
+    if (rayon <= 0)
+        return;
+
+    InsertwxImage(
+        CCircle::GenerateCircle(
+            color,
+            iTaille,
+            fAlpha),
+        x - rayon,
+        y - rayon);
+}
+
+
+void CLensFlare::CircleGradient(
+    const int& x, const int& y, const CRgbaquad& color, const int& iTaille,
+    const float& fAlpha)
+{
+    if (iTaille <= 0)
+        return;
+
+    InsertwxImage(
+        CCircle::GradientTransparent(
+            color,
+            iTaille * 2,
+            fAlpha),
+        x - iTaille,
+        y - iTaille);
+}
+
+
+void CLensFlare::Burst(
+    const int& x, const int& y, const int& iTaille, const int& iColor, const int& iIntensity,
+    const int& iColorIntensity)
+{
+    if (iTaille <= 0)
+        return;
+
+    InsertwxImage(
+        CCircle::Burst(
+            iTaille * 2,
+            iColor,
+            iIntensity,
+            iColorIntensity),
+        x - iTaille,
+        y - iTaille);
+}
+
+
+void CLensFlare::LensFlare(
+    cv::Mat* pBitmap,
+    const int& iPosX,
+    const int& iPosY,
+    const int& iPuissance,
+    const int& iType,
+    const int& iIntensity,
+    const int& iColor,
+    const int& iColorIntensity)
+{
+    /*
+     * iType est conservé pour préserver l'API actuelle.
+     * Il n'était pas utilisé dans l'implémentation originale.
+     */
+    (void)iType;
+
+    if (pBitmap == nullptr || pBitmap->empty())
+        return;
+
+    this->pBitmap = pBitmap;
+    this->iColorIntensity = iColorIntensity;
+
+    const int iWidth = pBitmap->cols;
+    const int iHeight = pBitmap->rows;
+
+    if (iWidth <= 0 || iHeight <= 0)
+        return;
+
+    if (iPuissance <= 0)
+        return;
+
+    /*
+     * Centre de l'image.
+     */
+    const float centerX = iWidth * 0.5f;
+    const float centerY = iHeight * 0.5f;
+
+    /*
+     * Axe du lens flare.
+     *
+     * Le code original calculait :
+     *
+     *     a = dy / dx
+     *     b = y - a*x
+     *
+     * ce qui provoquait une division par zéro lorsque dx == 0.
+     *
+     * Ici on travaille directement avec le vecteur directeur.
+     */
+    float axisX =
+        centerX - static_cast<float>(iPosX);
+
+    float axisY =
+        centerY - static_cast<float>(iPosY);
+
+    const float axisLength =
+        std::sqrt(axisX * axisX + axisY * axisY);
+
+    FlareAxis axis{};
+
+    if (axisLength > 0.0001f)
+    {
+        axis.x = axisX / axisLength;
+        axis.y = axisY / axisLength;
+    }
+    else
+    {
+        /*
+         * Source exactement au centre.
+         *
+         * L'ancien code devenait indéfini dans cette situation.
+         * On choisit un axe horizontal stable.
+         */
+        axis.x = 1.0f;
+        axis.y = 0.0f;
+    }
+
+    /*
+     * Vecteur opposé.
+     */
+    const FlareAxis oppositeAxis{
+        -axis.x,
+        -axis.y
+    };
+
+    /*
+     * Rayon principal.
+     */
+    const float flareRadius =
+        static_cast<float>(iPuissance) *
+        (static_cast<float>(iIntensity) / 10.0f);
+
+    if (flareRadius <= 0.0f)
+        return;
+
+    const int ray =
+        std::max(
+            1,
+            FloatToInt(
+                static_cast<float>(iPuissance) * 0.75f));
+
+    /*
+     * Couleurs.
+     */
+    const int color1 = NormalizeHue(iColor + 50);
+    const int color2 = NormalizeHue(iColor + 100);
+    const int color3 = NormalizeHue(iColor + 200);
+
+    CRgbaquad rgbValue1;
+    CRgbaquad rgbValue2;
+    CRgbaquad rgbValue3;
+    CRgbaquad rgbValue4;
+
+    HSB value1{
+        color1,
+        100,
+        100
+    };
+
+    HSB value2{
+        color2,
+        100,
+        100
+    };
+
+    HSB value3{
+        color3,
+        100,
+        100
+    };
+
+    HSB value4{
+        NormalizeHue(iColor),
+        iColorIntensity,
+        100
+    };
+
+    CColor::HSBToRGB(value1, rgbValue1);
+    CColor::HSBToRGB(value2, rgbValue2);
+    CColor::HSBToRGB(value3, rgbValue3);
+    CColor::HSBToRGB(value4, rgbValue4);
+
+
+    /*
+     * ------------------------------------------------------------
+     * HALO 1
+     * ------------------------------------------------------------
+     */
+
+    {
+        const int x =
+            iPosX +
+            axis.X(axisLength * 0.875f);
+
+        const int y =
+            iPosY +
+            axis.Y(axisLength * 0.875f);
+
+        Halo(
+            x,
+            y,
+            color1,
+            ray,
+            8,
+            0.7f);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * HALO 2
+     * ------------------------------------------------------------
+     */
+
+    {
+        const int x =
+            iPosX -
+            axis.X(axisLength * 0.125f);
+
+        const int y =
+            iPosY -
+            axis.Y(axisLength * 0.125f);
+
+        Halo(
+            x,
+            y,
+            color2,
+            ray / 2,
+            5,
+            0.7f);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * SMALL BURST
+     * ------------------------------------------------------------
+     */
+
+    {
+        const int x =
+            iPosX +
+            axis.X(axisLength * 0.5f);
+
+        const int y =
+            iPosY +
+            axis.Y(axisLength * 0.5f);
+
+        Burst(
+            x,
+            y,
+            ray / 8,
+            iColor,
+            25,
+            100);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * BURSTS
+     * ------------------------------------------------------------
+     */
+
+    {
+        const int x =
+            iPosX +
+            axis.X(axisLength * 0.625f);
+
+        const int y =
+            iPosY +
+            axis.Y(axisLength * 0.625f);
+
+        Burst(
+            x,
+            y,
+            ray / 10,
+            color2);
+    }
+
+    {
+        const int x =
+            iPosX +
+            axis.X(axisLength * 0.75f);
+
+        const int y =
+            iPosY +
+            axis.Y(axisLength * 0.75f);
+
+        Burst(
+            x,
+            y,
+            ray / 8,
+            color3,
+            25,
+            100);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * GRAND HALO
+     * ------------------------------------------------------------
+     */
+
+    {
+        const int x =
+            iPosX +
+            axis.X(axisLength);
+
+        const int y =
+            iPosY +
+            axis.Y(axisLength);
+
+        HaloGradient(
+            x,
+            y,
+            ray * 4,
+            std::max(1, iWidth / 20),
+            0.7f);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * CERCLES SUR L'AXE
+     * ------------------------------------------------------------
+     */
+
+    {
+        const float distance =
+            axisLength * 0.625f;
+
+        const float offset =
+            ray * 0.5f;
+
+        const int x =
+            iPosX +
+            axis.X(distance) +
+            FloatToInt(axis.x * offset);
+
+        const int y =
+            iPosY +
+            axis.Y(distance) +
+            FloatToInt(axis.y * offset);
+
+        Circle(
+            x,
+            y,
+            rgbValue1,
+            FloatToInt(ray * 0.75f),
+            0.8f);
+    }
+
+
+    {
+        const float distance =
+            axisLength * 0.625f;
+
+        const float offset =
+            ray * 0.5f;
+
+        const int x =
+            iPosX +
+            axis.X(distance) +
+            FloatToInt(axis.x * offset);
+
+        const int y =
+            iPosY +
+            axis.Y(distance) +
+            FloatToInt(axis.y * offset);
+
+        Circle(
+            x,
+            y,
+            rgbValue1,
+            ray / 2,
+            0.8f);
+    }
+
+
+    {
+        const float distance =
+            axisLength * 0.625f;
+
+        const float offset =
+            ray * 0.6f;
+
+        const int x =
+            iPosX +
+            axis.X(distance) +
+            FloatToInt(axis.x * offset);
+
+        const int y =
+            iPosY +
+            axis.Y(distance) +
+            FloatToInt(axis.y * offset);
+
+        Circle(
+            x,
+            y,
+            rgbValue1,
+            ray / 4,
+            0.8f);
+    }
+
+
+    {
+        const float distance =
+            axisLength * 0.4f;
+
+        const float offset =
+            -ray / 8.0f;
+
+        const int x =
+            iPosX +
+            axis.X(distance) +
+            FloatToInt(axis.x * offset);
+
+        const int y =
+            iPosY +
+            axis.Y(distance) +
+            FloatToInt(axis.y * offset);
+
+        Circle(
+            x,
+            y,
+            rgbValue1,
+            ray / 4,
+            0.8f);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * GROUPES DE CERCLES COLORÉS
+     * ------------------------------------------------------------
+     */
+
+    {
+        const float distance =
+            axisLength * 0.2f;
+
+        int x =
+            iPosX +
+            axis.X(distance);
+
+        int y =
+            iPosY +
+            axis.Y(distance);
+
+        Circle(
+            x,
+            y,
+            rgbValue3,
+            FloatToInt(ray * 0.75f),
+            0.8f);
+
+        /*
+         * Petit cercle vers l'extérieur.
+         */
+        {
+            const float offset =
+                ray * 0.2f;
+
+            x =
+                iPosX +
+                axis.X(distance) +
+                FloatToInt(axis.x * offset);
+
+            y =
+                iPosY +
+                axis.Y(distance) +
+                FloatToInt(axis.y * offset);
+
+            Circle(
+                x,
+                y,
+                rgbValue3,
+                FloatToInt(ray * 0.4f),
+                0.8f);
+        }
+
+        /*
+         * Petit cercle vers l'intérieur.
+         */
+        {
+            const float offset =
+                -ray * 0.2f;
+
+            x =
+                iPosX +
+                axis.X(distance) +
+                FloatToInt(axis.x * offset);
+
+            y =
+                iPosY +
+                axis.Y(distance) +
+                FloatToInt(axis.y * offset);
+
+            Circle(
+                x,
+                y,
+                rgbValue3,
+                FloatToInt(ray * 0.2f),
+                0.8f);
+        }
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * DERNIER CERCLE
+     * ------------------------------------------------------------
+     */
+
+    {
+        const float distance =
+            axisLength * 0.75f;
+
+        const int x =
+            iPosX +
+            axis.X(distance);
+
+        const int y =
+            iPosY +
+            axis.Y(distance);
+
+        Circle(
+            x,
+            y,
+            rgbValue2,
+            FloatToInt(ray * 0.2f),
+            0.8f);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * SOURCE DU FLARE
+     * ------------------------------------------------------------
+     */
+
+    {
+        const int x = iPosX;
+        const int y = iPosY;
+
+        const int flareSize =
+            std::max(
+                1,
+                FloatToInt(flareRadius * 0.5f));
+
+        CircleGradient(
+            x,
+            y,
+            rgbValue4,
+            std::max(1, FloatToInt(flareRadius)),
+            0.8f);
+
+        Halo(
+            x,
+            y,
+            iColor,
+            flareSize,
+            8,
+            0.8f,
+            0);
+
+        Burst(
+            x,
+            y,
+            std::max(1, FloatToInt(flareSize * 0.9f)),
+            iColor,
+            iIntensity,
+            iColorIntensity);
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * RAYONS LUMINEUX
+     * ------------------------------------------------------------
+     */
+
+    {
+        const int rayLength =
+            std::max(
+                1,
+                FloatToInt(flareRadius * 0.5f));
+
+        CLine line(iHeight, iWidth);
+
+        /*
+         * Générateur local :
+         * - pas de rand() global
+         * - séquence indépendante
+         * - résultats contrôlables
+         */
+        std::mt19937 rng(
+            std::random_device{}());
+
+        std::uniform_real_distribution<float> distribution(
+            -static_cast<float>(rayLength),
+            static_cast<float>(rayLength));
+
+        const CRgbaquad white(
+            255,
+            255,
+            255);
+
+        for (int angle = 0; angle <= 360; ++angle)
+        {
+            const float radians =
+                static_cast<float>(angle) * DegToRad;
+
+            const float randomLength =
+                distribution(rng);
+
+            const float fxValue =
+                std::cos(radians) * randomLength;
+
+            const float fyValue =
+                std::sin(radians) * randomLength;
+
+            const int dx =
+                FloatToInt(fxValue);
+
+            const int dy =
+                FloatToInt(fyValue);
+
+            line.MidpointLine(
+                pBitmap,
+                iPosX,
+                iPosY,
+                iPosX + dx,
+                iPosY + dy,
+                white,
+                0.9f,
+                true);
+
+            line.MidpointLine(
+                pBitmap,
+                iPosX - dx,
+                iPosY - dy,
+                iPosX,
+                iPosY,
+                white,
+                0.9f,
+                true);
+        }
+    }
+
+
+    /*
+     * ------------------------------------------------------------
+     * GRAND CERCLE FINAL
+     * ------------------------------------------------------------
+     *
+     * L'ancien code utilisait le signe de iLargeur pour choisir
+     * le côté opposé. On utilise maintenant directement l'axe.
+     */
+
+    {
+        const float distance =
+            axisLength + static_cast<float>(ray);
+
+        const int x =
+            iPosX -
+            axis.X(distance);
+
+        const int y =
+            iPosY -
+            axis.Y(distance);
+
+        Circle(
+            x,
+            y,
+            rgbValue1,
+            ray * 4,
+            0.95f);
+    }
 }

@@ -47,6 +47,7 @@ namespace Regards
 			int TraitementResult(CSqlResult* sqlResult) override;
 
 			PhotosVector* m_photosVector;
+			vector<int> m_idlistPhotoToDelete;
 			vector<wxString> * fileList;
 			vector<int>* m_listPhoto;
 			int typeResult;

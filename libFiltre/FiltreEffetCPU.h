@@ -92,7 +92,10 @@ public:
 	int Colorization() override;
     int Inpaint(const cv::Mat &mask, int algorithm) override;
 private:
-	void RotateMatrix(const int& angle, cv::Mat& src);
+	template<typename T, typename... Args>
+	void MakeAndCompute(cv::Mat& image, Args&&... args);
+	void ApplyKernel3x3(cv::Mat& image, const cv::Mat& kernel);
+	void FusionInternal(cv::Mat& image, const cv::Mat& bitmapSecond, float pourcentage);
 	void ChangeFacialSkinColor(cv::Mat smallImgBGR, cv::Mat bigEdges);
 	void RemovePepperNoise(cv::Mat& mask);
 	template<typename F> void ExecuteSafe(F&& func);

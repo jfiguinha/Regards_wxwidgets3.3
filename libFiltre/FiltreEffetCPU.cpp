@@ -1,4 +1,9 @@
 #include <header.h>
+#include <algorithm>
+#include <cmath>
+#include <cstdlib>
+#include <cstring>
+#include <utility>
 #include "FiltreEffetCPU.h"
 #include "PerlinNoise.h"
 #include "LensFlare.h"
@@ -41,13 +46,11 @@ void CFiltreEffetCPU::ExecuteSafe(F&& func)
 {
 	try
 	{
-		Mat src;
-		if (preview)
-			src = paramOutput;
-		else
-			src = input;
+		Mat& image = preview ? paramOutput : input;
+		if (image.empty())
+			return;
 
-		func(src);
+		func(image);
 	}
 	catch (const cv::Exception& e)
 	{
@@ -70,7 +73,38 @@ public:
 	static cv::Mat BuildContrastLUT(double alpha, double beta);
 };
 
+template<typename T, typename... Args>
+void CFiltreEffetCPU::MakeAndCompute(cv::Mat& image, Args&&... args)
+{
+	auto filtre = std::make_unique<T>(std::forward<Args>(args)...);
+	filtre->SetParameter(image, backColor);
+	filtre->Compute();
+}
 
+void CFiltreEffetCPU::ApplyKernel3x3(cv::Mat& image, const cv::Mat& kernel)
+{
+	filter2D(image, image, image.depth(), kernel);
+}
+
+void CFiltreEffetCPU::FusionInternal(cv::Mat& image, const cv::Mat& bitmapSecond, float pourcentage)
+{
+	if (bitmapSecond.empty())
+		return;
+
+	Mat dst;
+	if (bitmapSecond.channels() == 4)
+		cvtColor(bitmapSecond, dst, COLOR_BGRA2BGR);
+	else if (bitmapSecond.channels() == 3)
+		dst = bitmapSecond;
+	else
+		return;
+
+	if (dst.size() != image.size())
+		resize(dst, dst, image.size(), 0, 0, INTER_LINEAR);
+
+	const float beta = 1.0f - pourcentage;
+	addWeighted(image, pourcentage, dst, beta, 0.0, image);
+}
 
 Rect CFiltreEffetCPUImpl::CalculRect(int widthIn, int heightIn, int widthOut, int heightOut, int flipH, int flipV,
                                      int angle, float ratioX, float ratioY, int x, int y, float left, float top)
@@ -259,9 +293,6 @@ static const cv::Mat K = (cv::Mat_<float>(3, 3) << a, b, a, b, 0.0f, b, a, b, a)
 
 int CFiltreEffetCPU::Inpaint(const cv::Mat &mask, int algorithm)
 {
-    cv::Mat kernel = K;
-    int maxNumOfIter = 100;
-	
 	ExecuteSafe([&](cv::Mat& image)
 		{
 
@@ -435,7 +466,9 @@ void CFiltreEffetCPU::BrightnessAndContrastAuto(Mat& image, float clipHistPercen
 
 
 	// current range
-	float inputRange = maxGray - minGray;
+	float inputRange = static_cast<float>(maxGray - minGray);
+	if (inputRange <= 0.0f)
+		return;
 
 	alpha = (histSize - 1) / inputRange; // alpha expands current range to histsize range
 	beta = -minGray * alpha; // beta shifts current range so that minGray will go to 0
@@ -874,120 +907,61 @@ void CFiltreEffetCPU::RemovePepperNoise(Mat& mask)
 
 int CFiltreEffetCPU::CartoonifyImage(const int& mode)
 {
-	bool sketchMode = false;
-	bool alienMode = false;
-	bool evilMode = false;
-
-	switch (mode)
+	ExecuteSafe([&](cv::Mat& image)
 	{
-	case 1:
-		sketchMode = true;
-		break;
-	case 2:
-		alienMode = true;
-		break;
-	case 3:
-		evilMode = true;
-		break;
-	default:
-		break;
-	}
+		const bool sketchMode = mode == 1;
+		const bool alienMode = mode == 2;
+		const bool evilMode = mode == 3;
 
-	Mat image;
-	if (preview)
-		image = paramOutput;
-	else
-		image = input;
+		Mat srcGray;
+		cvtColor(image, srcGray, COLOR_BGR2GRAY);
+		medianBlur(srcGray, srcGray, 7);
 
-	Mat dst;
+		const Size size = srcGray.size();
+		Mat mask(size, CV_8U);
+		Mat edges(size, CV_8U);
 
-	// Convert from BGR color to Grayscale
-	Mat srcGray;
-	cvtColor(image, srcGray, COLOR_BGRA2GRAY);
+		if (!evilMode)
+		{
+			Laplacian(srcGray, edges, CV_8U, 5);
+			threshold(edges, mask, 80, 255, THRESH_BINARY_INV);
+			RemovePepperNoise(mask);
+		}
+		else
+		{
+			Mat edges2;
+			Scharr(srcGray, edges, CV_8U, 1, 0);
+			Scharr(srcGray, edges2, CV_8U, 1, 0, -1);
+			edges += edges2;
+			threshold(edges, mask, 12, 255, THRESH_BINARY_INV);
+			medianBlur(mask, mask, 3);
+		}
 
-	// Remove the pixel noise with a good Median filter, before we start detecting edges.
-	medianBlur(srcGray, srcGray, 7);
+		if (sketchMode)
+		{
+			cvtColor(mask, image, COLOR_GRAY2BGR);
+			return;
+		}
 
-	Size size = srcGray.size();
-	auto mask = Mat(size, CV_8U);
-	auto edges = Mat(size, CV_8U);
-	if (!evilMode)
-	{
-		// Generate a nice edge mask, similar to a pencil line drawing.
-		Laplacian(srcGray, edges, CV_8U, 5);
-		threshold(edges, mask, 80, 255, THRESH_BINARY_INV);
-		// Mobile cameras usually have lots of noise, so remove small
-		// dots of black noise from the black & white edge mask.
-		RemovePepperNoise(mask);
-	}
-	else
-	{
-		// Evil mode, making everything look like a scary bad guy.
-		// (Where "srcGray" is the original grayscale image plus a medianBlur of size 7x7).
-		Mat edges2;
-		Scharr(srcGray, edges, CV_8U, 1, 0);
-		Scharr(srcGray, edges2, CV_8U, 1, 0, -1);
-		edges += edges2;
-		threshold(edges, mask, 12, 255, THRESH_BINARY_INV);
-		medianBlur(mask, mask, 3);
-		edges2.release();
-	}
-	//imshow("edges", edges);
-	//imshow("mask", mask);
+		const Size smallSize(std::max(1, size.width / 2), std::max(1, size.height / 2));
+		Mat smallImg(smallSize, CV_8UC3);
+		resize(image, smallImg, smallSize, 0, 0, INTER_LINEAR);
 
-	// For sketch mode, we just need the mask!
-	if (sketchMode)
-	{
-		// The output image has 3 channels, not a single channel.
-		cvtColor(mask, image, COLOR_GRAY2BGR);
-		dst.release();
-		mask.release();
-		edges.release();
-		return -1;
-	}
+		Mat tmp(smallSize, CV_8UC3);
+		for (int i = 0; i < 7; ++i)
+		{
+			bilateralFilter(smallImg, tmp, 9, 9, 7);
+			bilateralFilter(tmp, smallImg, 9, 9, 7);
+		}
 
-	// Do the bilateral filtering at a shrunken scale, since it
-	// runs so slowly but doesn't need full resolution for a good effect.
-	Size smallSize;
-	smallSize.width = size.width / 2;
-	smallSize.height = size.height / 2;
+		if (alienMode)
+			ChangeFacialSkinColor(smallImg, edges);
 
-	auto smallImg = Mat(smallSize, CV_8UC3);
-	resize(image, smallImg, smallSize, 0, 0, INTER_LINEAR);
+		Mat dst;
+		resize(smallImg, dst, size, 0, 0, INTER_LINEAR);
+		dst.copyTo(image, mask);
+	});
 
-	// Perform many iterations of weak bilateral filtering, to enhance the edges
-	// while blurring the flat regions, like a cartoon.
-	auto tmp = Mat(smallSize, CV_8UC3);
-	int repetitions = 7; // Repetitions for strong cartoon effect.
-	for (int i = 0; i < repetitions; i++)
-	{
-		int d = 9; // Filter size. Has a large effect on speed.
-		double sigmaColor = 9; // Filter color strength.
-		double sigmaSpace = 7; // Positional strength. Effects speed.
-		bilateralFilter(smallImg, tmp, d, sigmaColor, sigmaSpace);
-		bilateralFilter(tmp, smallImg, d, sigmaColor, sigmaSpace);
-	}
-
-	if (alienMode)
-	{
-		// Apply an "alien" filter, when given a shrunken image and the full-res edge mask.
-		// Detects the color of the pixels in the middle of the image, then changes the color of that region to green.
-		ChangeFacialSkinColor(smallImg, edges);
-	}
-
-	// Go back to the original scale.
-	//cvtColor(smallImg, srcBgr, COLOR_BGR2BGRA);
-	resize(smallImg, dst, size, 0, 0, INTER_LINEAR);
-
-	// Use the blurry cartoon image, except for the strong edges that we will leave black.
-	dst.copyTo(image, mask);
-
-	dst.release();
-	mask.release();
-	tmp.release();
-	//srcBgr.release();
-	smallImg.release();
-	edges.release();
 	return 0;
 }
 
@@ -1075,7 +1049,7 @@ int CFiltreEffetCPU::MeanShift(const float& fSpatialRadius, const float& fColorR
 			//MSProc(fSpatialRadius, fColorRadius);
 			// Filtering Process
 			msProcess.MSFiltering(dst);
-			cvtColor(dst, image, COLOR_Lab2RGB);
+			cvtColor(dst, image, COLOR_Lab2BGR);
 		});
 	return 0;
 }
@@ -1169,14 +1143,27 @@ wxImage CFiltreEffetCPU::GetwxImage()
 	wxImage wx;
 
 	ExecuteSafe([&](cv::Mat& image)
-		{
+	{
+		if (image.empty())
+			return;
 
-			long imsize = image.rows * image.cols * image.channels();
-			wx = wxImage(image.cols, image.rows, static_cast<unsigned char*>(malloc(imsize)), false);
-			unsigned char* s = image.data;
-			unsigned char* d = wx.GetData();
-			memcpy(d, s, imsize);
-		});
+		Mat rgb;
+		if (image.channels() == 3)
+			cvtColor(image, rgb, COLOR_BGR2RGB);
+		else if (image.channels() == 4)
+			cvtColor(image, rgb, COLOR_BGRA2RGB);
+		else
+			return;
+
+		const size_t size = rgb.total() * rgb.elemSize();
+		auto* data = static_cast<unsigned char*>(std::malloc(size));
+		if (data == nullptr)
+			return;
+
+		std::memcpy(data, rgb.data, size);
+		wx = wxImage(rgb.cols, rgb.rows, data, false);
+	});
+
 	return wx;
 }
 
@@ -1185,6 +1172,9 @@ Mat CFiltreEffetCPU::Interpolation(const Mat& inputData, const int& widthOut, co
 	const int& method, int flipH, int flipV, int angle, int ratio)
 {
 	Mat cvImage;
+	if (inputData.empty() || widthOut <= 0 || heightOut <= 0 || rc.width <= 0 || rc.height <= 0)
+		return cvImage;
+
 	//cv::Mat cvImage;
 	//inputData.copyTo(cvImage);
 	try
@@ -1239,7 +1229,10 @@ Mat CFiltreEffetCPU::Interpolation(const Mat& inputData, const int& widthOut, co
 			rectGlobal.width = inputData.cols - rectGlobal.x;
 		}
 
-		//cv::Mat crop;
+		rectGlobal &= Rect(0, 0, inputData.cols, inputData.rows);
+		if (rectGlobal.width <= 0 || rectGlobal.height <= 0)
+			return cvImage;
+
 		inputData(rectGlobal).copyTo(cvImage);
 		//crop.copyTo(cvImage);
 
@@ -1441,9 +1434,7 @@ int CFiltreEffetCPU::Solarize(const long& threshold)
 {
 	ExecuteSafe([&](cv::Mat& image)
 	{
-		auto filtre = std::make_unique<CSolarize>(static_cast<int>(threshold));
-		filtre->SetParameter(image, backColor);
-		filtre->Compute();
+		MakeAndCompute<CSolarize>(image, static_cast<int>(threshold));
 	});
 
 	return 0;
@@ -1453,9 +1444,7 @@ int CFiltreEffetCPU::Posterize(const float& level, const float& gamma)
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
-			auto filtre = std::make_unique<CPosterize>(level);
-			filtre->SetParameter(image, backColor);
-			filtre->Compute();
+			MakeAndCompute<CPosterize>(image, level);
 		});
 
 	return 0;
@@ -1470,12 +1459,11 @@ int CFiltreEffetCPU::CloudsFilter(const CRgbaquad& color1, const CRgbaquad& colo
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
-			auto m_perlinNoise = new CPerlinNoise();
+			auto m_perlinNoise = std::make_unique<CPerlinNoise>();
 			auto localBitmap = Mat(250, 250, CV_8UC4);
 			m_perlinNoise->Clouds(localBitmap, color1, color2, amplitude / 100.0f, frequence / 100.0f, octave);
-			delete m_perlinNoise;
 			resize(localBitmap, localBitmap, Size(image.size().width, image.size().height), INTER_CUBIC);
-			Fusion(localBitmap, intensity / 100.0f);
+			FusionInternal(image, localBitmap, intensity / 100.0f);
 		});
 	return 0;
 }
@@ -1487,9 +1475,7 @@ int CFiltreEffetCPU::Swirl(const float& radius, const float& angle)
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
-			auto filtre = std::make_unique<CSwirl>(angle, radius);
-			filtre->SetParameter(image, backColor);
-			filtre->Compute();
+			MakeAndCompute<CSwirl>(image, angle, radius);
 
 		});
 
@@ -1565,10 +1551,8 @@ int CFiltreEffetCPU::Soften()
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
-			short kernel[] = { 1, 1, 1, 1, 8, 1, 1, 1, 1 };
-			auto filtre = new CMatrixConvolution(kernel, 3, 16, 0);
-			filtre->SetParameter(image, backColor);
-			filtre->Compute();
+			static short kernel[] = { 1, 1, 1, 1, 8, 1, 1, 1, 1 };
+			MakeAndCompute<CMatrixConvolution>(image, kernel, 3, 16, 0);
 		});
 
 	return 0;
@@ -1605,67 +1589,33 @@ int CFiltreEffetCPU::GaussianBlur(const int& radius, const int& boxSize)
 int CFiltreEffetCPU::Emboss()
 {
 	ExecuteSafe([&](cv::Mat& image)
-		{
-			Mat kernel(3, 3, CV_32F, Scalar(0));
-			kernel.at<float>(0, 0) = -1.0;
-			kernel.at<float>(2, 2) = 1.0;
-
-			filter2D(image, image, image.depth(), kernel);
-		});
-
+	{
+		static const cv::Mat kernel = (cv::Mat_<float>(3, 3) << -1, 0, 0, 0, 0, 0, 0, 0, 1);
+		ApplyKernel3x3(image, kernel);
+	});
 
 	return 0;
 }
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
 int CFiltreEffetCPU::SharpenStrong()
 {
 	ExecuteSafe([&](cv::Mat& image)
-		{
-			Mat kernel(3, 3, CV_32F, Scalar(0));
-			kernel.at<float>(0, 0) = -1.0;
-			kernel.at<float>(0, 1) = -1.0;
-			kernel.at<float>(0, 2) = -1.0;
-			kernel.at<float>(1, 0) = -1.0;
-			kernel.at<float>(1, 1) = 9.0;
-			kernel.at<float>(1, 2) = -1.0;
-			kernel.at<float>(2, 0) = -1.0;
-			kernel.at<float>(2, 1) = -1.0;
-			kernel.at<float>(2, 2) = -1.0;
-
-			filter2D(image, image, image.depth(), kernel);
-			
-		});
-
+	{
+		static const cv::Mat kernel = (cv::Mat_<float>(3, 3) << -1, -1, -1, -1, 9, -1, -1, -1, -1);
+		ApplyKernel3x3(image, kernel);
+	});
 
 	return 0;
 }
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
 int CFiltreEffetCPU::Sharpen()
 {
 	ExecuteSafe([&](cv::Mat& image)
-		{
-	Mat kernel(3, 3, CV_32F, Scalar(0));
-	kernel.at<float>(1, 1) = 5.0;
-	kernel.at<float>(0, 1) = -1.0;
-	kernel.at<float>(2, 1) = -1.0;
-	kernel.at<float>(1, 0) = -1.0;
-	kernel.at<float>(1, 2) = -1.0;
-
-	filter2D(image, image, image.depth(), kernel);
-		});
+	{
+		static const cv::Mat kernel = (cv::Mat_<float>(3, 3) << 0, -1, 0, -1, 5, -1, 0, -1, 0);
+		ApplyKernel3x3(image, kernel);
+	});
 
 	return 0;
 }
-
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
 int CFiltreEffetCPU::Erode()
 {
 	ExecuteSafe([&](cv::Mat& image)
@@ -1695,9 +1645,7 @@ int CFiltreEffetCPU::Noise()
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
-			auto filtre = std::make_unique<CNoise>();
-			filtre->SetParameter(image, backColor);
-			filtre->Compute();
+			MakeAndCompute<CNoise>(image);
 
 			});
 
@@ -1730,47 +1678,37 @@ int CFiltreEffetCPU::Negatif()
 
 int CFiltreEffetCPU::LensDistortionFilter(const int& size)
 {
+	if (size <= 0)
+		return 0;
+
 	ExecuteSafe([&](cv::Mat& image)
+	{
+		if (image.empty() || image.channels() != 3)
+			return;
+
+		const Mat source = image.clone();
+		const int centerX = source.cols / 2;
+		const int centerY = source.rows / 2;
+		const double strength = static_cast<double>(size) / 100.0;
+		const double correctionRadius = std::hypot(static_cast<double>(source.rows), static_cast<double>(source.cols)) / strength;
+
+		for (int y = 0; y < image.rows; ++y)
 		{
-			Mat eiffel;
-			image.copyTo(eiffel);
-
-			int halfWidth = eiffel.rows / 2;
-			int halfHeight = eiffel.cols / 2;
-			double strength = static_cast<double>(size) / 100;
-			double correctionRadius = sqrt(pow(eiffel.rows, 2) + pow(eiffel.cols, 2)) / strength;
-
-			int newX, newY;
-			double distance;
-			double theta;
-			int sourceX;
-			int sourceY;
-			double r;
-			for (int i = 0; i < image.rows; ++i)
+			for (int x = 0; x < image.cols; ++x)
 			{
-				for (int j = 0; j < image.cols; j++)
-				{
-					newX = i - halfWidth;
-					newY = j - halfHeight;
-					distance = sqrt(pow(newX, 2) + pow(newY, 2));
-					r = distance / correctionRadius;
-					if (r == 0.0)
-						theta = 1;
-					else
-						theta = atan(r) / r;
-
-					sourceX = round(halfWidth + theta * newX);
-					sourceY = round(halfHeight + theta * newY);
-
-
-					image.at<Vec3b>(i, j)[0] = eiffel.at<Vec3b>(sourceX, sourceY)[0];
-					image.at<Vec3b>(i, j)[1] = eiffel.at<Vec3b>(sourceX, sourceY)[1];
-					image.at<Vec3b>(i, j)[2] = eiffel.at<Vec3b>(sourceX, sourceY)[2];
-				}
+				const double dx = static_cast<double>(x - centerX);
+				const double dy = static_cast<double>(y - centerY);
+				const double distance = std::hypot(dx, dy);
+				const double r = distance / correctionRadius;
+				const double theta = r == 0.0 ? 1.0 : std::atan(r) / r;
+				const int sourceX = std::clamp(static_cast<int>(std::lround(centerX + theta * dx)), 0, source.cols - 1);
+				const int sourceY = std::clamp(static_cast<int>(std::lround(centerY + theta * dy)), 0, source.rows - 1);
+				image.at<Vec3b>(y, x) = source.at<Vec3b>(sourceY, sourceX);
 			}
-		});
-	return 0;
+		}
+	});
 
+	return 0;
 }
 
 //----------------------------------------------------------------------------
@@ -1800,9 +1738,7 @@ int CFiltreEffetCPU::FiltreMosaic(const int& size)
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
-			auto filtre = std::make_unique<CMosaic>(size);
-			filtre->SetParameter(image, backColor);
-			filtre->Compute();
+			MakeAndCompute<CMosaic>(image, size);
 		});
 
 	return 0;
@@ -1866,7 +1802,7 @@ int CFiltreEffetCPU::MotionBlur(const double& radius, const double& sigma, const
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
-			auto filtre = new CMotionBlur();
+			auto filtre = std::make_unique<CMotionBlur>();
 			filtre->MotionBlur(image, radius, sigma, angle);
 		});
 
@@ -1875,25 +1811,35 @@ int CFiltreEffetCPU::MotionBlur(const double& radius, const double& sigma, const
 
 int CFiltreEffetCPU::GroundGlassEffect(const double& radius)
 {
+	if (radius <= 0.0)
+		return 0;
+
 	ExecuteSafe([&](cv::Mat& image)
+	{
+		const int number = static_cast<int>(radius);
+		if (number <= 0 || image.empty() || image.channels() != 3)
+			return;
+
+		Mat imageResult = image.clone();
+		RNG rng;
+
+		for (int y = 0; y < image.rows; ++y)
 		{
+			for (int x = 0; x < image.cols; ++x)
+			{
+				const int maxOffsetY = std::min(number - 1, image.rows - 1 - y);
+				const int maxOffsetX = std::min(number - 1, image.cols - 1 - x);
+				const int maxOffset = std::min(maxOffsetX, maxOffsetY);
+				if (maxOffset <= 0)
+					continue;
 
-			Mat imageResult = image.clone();
-			RNG rng;
-			int randomNum;
-			int Number = radius;
+				const int randomNum = rng.uniform(0, maxOffset + 1);
+				imageResult.at<Vec3b>(y, x) = image.at<Vec3b>(y + randomNum, x + randomNum);
+			}
+		}
 
-			for (int i = 0; i < image.rows - Number; i++)
-				for (int j = 0; j < image.cols - Number; j++)
-				{
-					randomNum = rng.uniform(0, Number);
-					imageResult.at<Vec3b>(i, j)[0] = image.at<Vec3b>(i + randomNum, j + randomNum)[0];
-					imageResult.at<Vec3b>(i, j)[1] = image.at<Vec3b>(i + randomNum, j + randomNum)[1];
-					imageResult.at<Vec3b>(i, j)[2] = image.at<Vec3b>(i + randomNum, j + randomNum)[2];
-				}
-
-			imageResult.copyTo(image);
-		});
+		imageResult.copyTo(image);
+	});
 
 	return 0;
 }
@@ -1947,29 +1893,6 @@ int CFiltreEffetCPU::PhotoFiltre(const CRgbaquad& clValue, const int& intensity)
 	return 0;
 }
 
-void CFiltreEffetCPU::RotateMatrix(const int& angle, Mat& src)
-{
-	Mat dst;
-	if (angle == 90)
-	{
-		// Rotate clockwise 270 degrees
-		transpose(src, dst);
-		flip(dst, src, 0);
-	}
-	else if (angle == 180)
-	{
-		// Rotate clockwise 180 degrees
-		flip(src, src, -1);
-	}
-	else if (angle == 270)
-	{
-		// Rotate clockwise 90 degrees
-		transpose(src, dst);
-		flip(dst, src, 1);
-	}
-}
-
-
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
@@ -2011,48 +1934,44 @@ int CFiltreEffetCPU::Rotate270()
 //----------------------------------------------------------------------------
 int CFiltreEffetCPU::Resize(const int& imageWidth, const int& imageHeight, const int& interpolation)
 {
-	resize(input, paramOutput, Size(imageHeight, imageWidth), 0, 0, INTER_CUBIC);
+	if (imageWidth <= 0 || imageHeight <= 0)
+		return 0;
+
+	try
+	{
+		if (input.empty())
+			return 0;
+
+		resize(input, paramOutput, Size(imageWidth, imageHeight), 0, 0, interpolation);
+		preview = true;
+	}
+	catch (const cv::Exception& e)
+	{
+		LogError(e.what());
+	}
+
 	return 0;
 }
 
-//----------------------------------------------------------------------------
-//
-//----------------------------------------------------------------------------
 int CFiltreEffetCPU::Fusion(Mat& bitmapSecond, const float& pourcentage)
 {
 	ExecuteSafe([&](cv::Mat& image)
-		{
-
-			Mat dst;
-			cvtColor(bitmapSecond, dst, COLOR_BGRA2BGR);
-			float beta = (1.0 - pourcentage);
-			addWeighted(image, pourcentage, dst, beta, 0.0, dst);
-			dst.copyTo(image);
-		});
+	{
+		FusionInternal(image, bitmapSecond, pourcentage);
+	});
 	return 0;
 }
 
 Mat CFiltreEffetCPU::GetBitmap(const bool& source)
 {
 	Mat output;
+	const Mat* selected = source ? &input : ((preview && !paramOutput.empty()) ? &paramOutput : &input);
+	if (selected->empty())
+		return output;
 
-	if (source)
-	{
-		input.copyTo(output);
+	selected->copyTo(output);
+	if (output.channels() == 3)
 		cvtColor(output, output, COLOR_BGR2BGRA);
-		//cv::insertChannel(alphaChannel, output, 3);
-	}
-	else if (preview && !paramOutput.empty())
-	{
-		paramOutput.copyTo(output);
-		cvtColor(output, output, COLOR_BGR2BGRA);
-	}
-	else
-	{
-		input.copyTo(output);
-		cvtColor(output, output, COLOR_BGR2BGRA);
-		//cv::insertChannel(alphaChannel, output, 3);
-	}
 
 	return output;
 }

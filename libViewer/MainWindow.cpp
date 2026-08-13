@@ -234,15 +234,16 @@ void CMainWindow::InitBackgroundTasks()
 {
     CThumbnailBuffer::GetVectorSize(); // pré-chauffe le buffer
 
+    /*
     auto* checkFile = new CThreadCheckFile();
     checkFile->mainWindow = this;
     checkFile->checkFile = std::make_unique<std::thread>(
         CThreadCheckFile::CheckFile, checkFile);
     isCheckingFile = true;
 
-    std::this_thread::sleep_for(100ms);
+    std::this_thread::sleep_for(100ms);*/
 
-    scheduler->ReloadFromDatabase();
+    //scheduler->ReloadFromDatabase();
 
     versionUpdate = std::jthread(
         NewVersionAvailable,

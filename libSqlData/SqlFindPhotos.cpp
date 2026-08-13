@@ -4,6 +4,7 @@
 #include <libPicture.h>
 #include <SqlResource.h>
 #include <ConvertUtility.h>
+#include <SQLRemoveData.h>
 #include <SqlParameter.h>
 using namespace Regards::Picture;
 using namespace Regards::Sqlite;
@@ -23,7 +24,17 @@ bool CSqlFindPhotos::SearchPhotosByCriteriaFolder(PhotosVector* photosVector)
 
 	m_photosVector->clear();
 	wxString sqlRequest = "SELECT NumPhoto, FullPath, CreateDate, GeoGps FROM PHOTOSSEARCHCRITERIA  Order By CreateDate";//  Order By Year, Month asc, Day asc, DayOfWeek asc, FullPath";
-	return (ExecuteRequest(sqlRequest) != -1) ? true : false;
+	bool result = (ExecuteRequest(sqlRequest) != -1) ? 1 : 0;
+
+	if (result)
+	{
+		if (m_idlistPhotoToDelete.size() > 0)
+		{
+			CSQLRemoveData::DeleteListPhoto(m_idlistPhotoToDelete, nullptr);
+		}
+	}
+
+	return result;
 }
 
 
@@ -612,9 +623,19 @@ int CSqlFindPhotos::TraitementResultPhotoDataCriteria(CSqlResult* sqlResult)
 	wxString listDay = sqlResource.GetLibelle(L"LBLDAYNAME", 1);
 	vector<wxString> DayName = CConvertUtility::split(listDay, ',');
 
+	m_idlistPhotoToDelete.clear();
+
 	int nbResult = 0;
 	while (sqlResult->Next())
 	{
+		wxString filePath = sqlResult->ColumnDataText(1);
+		if (!wxFileExists(filePath))
+		{
+			m_idlistPhotoToDelete.push_back(sqlResult->ColumnDataInt(0));
+			continue;
+		}
+			
+
 		CPhotos _cPhoto;
 		_cPhoto.SetId(sqlResult->ColumnDataInt(0));
 		_cPhoto.SetPath(sqlResult->ColumnDataText(1));
