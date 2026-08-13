@@ -232,6 +232,8 @@ void CShowPreview::OnUpdatePicture(wxCommandEvent& event)
 
 
 	sliderVideo->Stop();
+
+	StopThread();
 }
 
 void CShowPreview::SlidePosChange(const int& position, const wxString& key)
@@ -293,15 +295,10 @@ void CShowPreview::ThreadLoading(void* data)
 		}
 		else
 			showPreview->compressIsOK = false;
-
-		wxCommandEvent evt(wxEVENT_UPDATEPICTURE);
-		showPreview->GetEventHandler()->AddPendingEvent(evt);
 	}
 	else
 	{
 		showPreview->decodeFrameOriginal = showPreview->transcodeFFmpeg->GetFrameOutputWithOutEffect();
-		wxCommandEvent evt(wxEVENT_UPDATEPICTURE);
-		showPreview->GetEventHandler()->AddPendingEvent(evt);
 	}
 
 	if (!showPreview->compressIsOK)
@@ -310,6 +307,12 @@ void CShowPreview::ThreadLoading(void* data)
 		evt.SetInt(ret);
 		showPreview->GetParent()->GetParent()->GetEventHandler()->AddPendingEvent(evt);
 	}
+	else
+	{
+		wxCommandEvent evt(wxEVENT_UPDATEPICTURE);
+		showPreview->GetEventHandler()->AddPendingEvent(evt);
+	}
+
 }
 
 void CShowPreview::UpdateBitmap(const wxString& extension,
@@ -320,8 +323,9 @@ void CShowPreview::UpdateBitmap(const wxString& extension,
 
 	sliderVideo->Start();
 
-	thread * newThread = new thread(ThreadLoading, this);
-	threadStart.reset(newThread);
+	StopThread();
+
+	threadStart = new thread(ThreadLoading, this);
 }
 
 void CShowPreview::OnControlSize(wxCommandEvent& event)
@@ -384,12 +388,20 @@ void CShowPreview::OnMoveBottom(wxCommandEvent& event)
 	}
 }
 
-CShowPreview::~CShowPreview()
+void CShowPreview::StopThread()
 {
 	if (threadStart != nullptr)
 	{
 		threadStart->join();
+		delete threadStart;
+		threadStart = nullptr;
 	}
+
+}
+
+CShowPreview::~CShowPreview()
+{
+	StopThread();
 }
 
 void CShowPreview::Resize()

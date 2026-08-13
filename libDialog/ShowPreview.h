@@ -57,6 +57,7 @@ namespace Regards
 		private:
 			void ShowOriginal();
 			void ShowNew();
+			void StopThread();
 			void SetBitmapToViewer(CImageLoadingFormat* bitmap, bool isUpdate);
 
 			void OnViewerZoomIn(wxCommandEvent& event);
@@ -99,7 +100,7 @@ namespace Regards
 			int position = 0;
 			bool showOriginal = false;
 			bool isFirstPicture = true;
-			std::unique_ptr<std::thread> threadStart = nullptr;
+			std::thread * threadStart = nullptr;
 			bool moveSlider = false;
 			bool oldShowOriginal = false;
 			bool firstTime = true;
