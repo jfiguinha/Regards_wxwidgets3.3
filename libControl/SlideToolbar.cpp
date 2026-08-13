@@ -19,16 +19,16 @@ CSlideToolbar::CSlideToolbar(wxWindow* parent, wxWindowID id, const CThemeToolba
 	themeToolbar = theme;
 	slide = nullptr;
 
-	speaker = CreateButton("IDB_VOLUME_UP_VIDEO", "LBLSPEAKER", IDM_NONE);
-	zoom = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", IDM_NONE);
-	shrink = CreateButton("IDB_SHRINK", "LBLSHRINK", IDM_SETSHRINK);
-	moins = CreateButton("IDB_MINUS", "LBLZOOMOFF", WM_ZOOMOUT);
+	speaker = CreateButton("IDB_VOLUME_UP_VIDEO", "LBLSPEAKER", IDM_NONE, false);
+	zoom = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", IDM_NONE, false);
+	shrink = CreateButton("IDB_SHRINK", "LBLSHRINK", IDM_SETSHRINK, false);
+	moins = CreateButton("IDB_MINUS", "LBLZOOMOFF", WM_ZOOMOUT, false);
 	
 	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
 	navElement.push_back(slide.get());
 
-	plus = CreateButton("IDB_PLUS", "LBLZOOMON", WM_ZOOMON);
-	cross = CreateButton("IDB_CANCEL", "LBLClose", WM_CLOSE);
+	plus = CreateButton("IDB_PLUS", "LBLZOOMON", WM_ZOOMON, false);
+	cross = CreateButton("IDB_CANCEL", "LBLClose", WM_CLOSE, false);
 }
 
 void CSlideToolbar::SetSpeakerMode()

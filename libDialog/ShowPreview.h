@@ -100,7 +100,7 @@ namespace Regards
 			int position = 0;
 			bool showOriginal = false;
 			bool isFirstPicture = true;
-			std::thread * threadStart = nullptr;
+			std::unique_ptr<std::thread> threadStart = nullptr;
 			bool moveSlider = false;
 			bool oldShowOriginal = false;
 			bool firstTime = true;

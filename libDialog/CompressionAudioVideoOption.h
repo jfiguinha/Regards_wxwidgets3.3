@@ -40,6 +40,7 @@ public:
 	wxButton* btnPreview;
 	//wxPanel * panel;
 	bool IsOk();
+	bool IsCancel();
 
 	wxCheckBox* ckAudioBitRate;
 	wxComboBox* cbAudioBitRate;
@@ -140,7 +141,7 @@ private:
 	//int ret = 0;
 	wxImage scale;
 	wxString extension;
-
+	bool isCancel = false;
 
 	std::unique_ptr<Regards::Video::CVideoThumb>  ffmpegTranscoding = nullptr;
 	std::unique_ptr<CSliderVideoSelection> sliderVideoPosition = nullptr;

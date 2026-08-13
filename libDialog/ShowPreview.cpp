@@ -289,9 +289,6 @@ void CShowPreview::ThreadLoading(void* data)
 			if (showPreview->decodeFrame.empty())
 				showPreview->decodeFrame = application_context.GetDefaultPicture();
 
-#ifndef WIN32_MFT
-			//cv::flip(showPreview->decodeFrame, showPreview->decodeFrame, 0);
-#endif
 		}
 		else
 			showPreview->compressIsOK = false;
@@ -325,7 +322,7 @@ void CShowPreview::UpdateBitmap(const wxString& extension,
 
 	StopThread();
 
-	threadStart = new thread(ThreadLoading, this);
+	threadStart = std::make_unique<std::thread>(ThreadLoading, this);
 }
 
 void CShowPreview::OnControlSize(wxCommandEvent& event)
@@ -393,7 +390,7 @@ void CShowPreview::StopThread()
 	if (threadStart != nullptr)
 	{
 		threadStart->join();
-		delete threadStart;
+		threadStart.reset();
 		threadStart = nullptr;
 	}
 

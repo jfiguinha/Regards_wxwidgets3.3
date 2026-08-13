@@ -310,10 +310,6 @@ CFFmpegTranscodingPimpl::~CFFmpegTranscodingPimpl()
 {
 	EndTreatment();
 
-
-	if (openCVStabilization != nullptr)
-		delete openCVStabilization;
-
 	if (dst_hardware != nullptr)
 	{
 		av_frame_free(&dst_hardware);
@@ -337,10 +333,6 @@ CFFmpegTranscodingPimpl::~CFFmpegTranscodingPimpl()
 	if (convertContext != nullptr)
 		sws_freeContext(convertContext);
 
-
-
-	if (capture != nullptr)
-		delete capture;
 }
 
 void CFFmpegTranscodingPimpl::DisplayPreview(
@@ -2006,12 +1998,12 @@ void CFFmpegTranscodingPimpl::VideoTreatment(AVFrame*& tmp_frame, StreamContext*
 			bool correctedContrast = videoCompressOption->videoEffectParameter.autoConstrast;
 
 			if (stabilizeFrame && openCVStabilization == nullptr)
-				openCVStabilization = new Regards::OpenCV::COpenCVStabilization(
+				openCVStabilization = std::make_unique<Regards::OpenCV::COpenCVStabilization>(
 					videoCompressOption->videoEffectParameter.stabilizeImageBuffere, TYPE_OPENCL);
 
 			if (stabilizeFrame)
 			{
-				openclEffectVideo.ApplyStabilization(&videoCompressOption->videoEffectParameter, openCVStabilization);
+				openclEffectVideo.ApplyStabilization(&videoCompressOption->videoEffectParameter, openCVStabilization.get());
 			}
 
 			if (correctedContrast || videoCompressOption->videoEffectParameter.filmcolorisation || videoCompressOption->videoEffectParameter.filmEnhance)
@@ -2111,11 +2103,11 @@ cv::Mat CFFmpegTranscodingPimpl::ApplyProcess(cv::Mat& src)
 	{
 		if (IsSupportOpenCL())
 		{
-			openCVStabilization = new Regards::OpenCV::COpenCVStabilization(videoCompressOption->videoEffectParameter.stabilizeImageBuffere, TYPE_OPENCL);
+			openCVStabilization = std::make_unique<Regards::OpenCV::COpenCVStabilization>(videoCompressOption->videoEffectParameter.stabilizeImageBuffere, TYPE_OPENCL);
 		}
 		else
 		{
-			openCVStabilization = new Regards::OpenCV::COpenCVStabilization(videoCompressOption->videoEffectParameter.stabilizeImageBuffere, TYPE_CPU);
+			openCVStabilization = std::make_unique<Regards::OpenCV::COpenCVStabilization>(videoCompressOption->videoEffectParameter.stabilizeImageBuffere, TYPE_CPU);
 		}
 	}
 
@@ -2127,7 +2119,7 @@ cv::Mat CFFmpegTranscodingPimpl::ApplyProcess(cv::Mat& src)
 
 		if (stabilizeFrame)
 		{
-			openclEffectVideo.ApplyStabilization(&videoCompressOption->videoEffectParameter, openCVStabilization);
+			openclEffectVideo.ApplyStabilization(&videoCompressOption->videoEffectParameter, openCVStabilization.get());
 		}
 
 		if (correctedContrast || videoCompressOption->videoEffectParameter.filmcolorisation || videoCompressOption->videoEffectParameter.filmEnhance)
@@ -2500,9 +2492,9 @@ int CFFmpegTranscodingPimpl::EncodeOneFrame(CompressVideo* m_dlgProgress, const 
 	input_file = input;
 
 	if (capture != nullptr)
-		delete capture;
+		capture.reset();
 
-	capture = new CFFmpegVideoThumb(input_file);
+	capture = std::make_unique<CFFmpegVideoThumb>(input_file);
 	if (!capture->isOpened())
 		throw "Error when reading steam_avi";
 
@@ -2543,9 +2535,9 @@ int CFFmpegTranscodingPimpl::EncodeFile(const wxString& input, const wxString& o
 	this->videoCompressOption = videoCompressOption;
 
 	if (capture != nullptr)
-		delete capture;
-	
-	capture = new CFFmpegVideoThumb(input);
+		capture.reset();
+
+	capture = std::make_unique<CFFmpegVideoThumb>(input);
 	if (!capture->isOpened())
 		throw "Error when reading steam_avi";
 

@@ -174,7 +174,7 @@ private:
 	wxString outputFile;
 	std::map<int, int> streamCorrespondant;
 	uint8_t* frame_buffer_nv12 = nullptr;
-	COpenCVStabilization* openCVStabilization = nullptr;
+	std::unique_ptr<COpenCVStabilization> openCVStabilization = nullptr;
 	int nbFrame = 0;
 	wxString colorRange = "";
 	wxString colorSpace = "";
@@ -184,7 +184,7 @@ private:
 
 	cv::Mat frameOutput;
 	cv::Mat frameOutputWithoutEffect;
-	Regards::Video::CFFmpegVideoThumb * capture = nullptr;
+	std::unique_ptr<Regards::Video::CFFmpegVideoThumb> capture = nullptr;
 	std::map<int, int> streamInNumberInOut;
     AVPixelFormat outputFormat = AV_PIX_FMT_YUV420P;
 };

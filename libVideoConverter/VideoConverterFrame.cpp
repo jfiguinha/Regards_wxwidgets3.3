@@ -190,7 +190,7 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 		return;
 	}
 
-	auto compressAudioVideoOption = new CompressionAudioVideoOption(this);
+	std::unique_ptr<CompressionAudioVideoOption> compressAudioVideoOption = std::make_unique<CompressionAudioVideoOption>(this);
 	compressAudioVideoOption->SetFile(filename, fileOutputPath);
 	compressAudioVideoOption->ShowModal();
 	if (compressAudioVideoOption->IsOk())
@@ -275,7 +275,7 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 	}
 
 
-	if (!result)
+	if (!result && !compressAudioVideoOption->IsCancel())
 	{
 		wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
 		char message[255];

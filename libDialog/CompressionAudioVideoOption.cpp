@@ -763,6 +763,11 @@ void CompressionAudioVideoOption::GetCompressionOption(CVideoOptionCompress* vid
 	}
 }
 
+bool CompressionAudioVideoOption::IsCancel()
+{
+	return isCancel;
+}
+
 void CompressionAudioVideoOption::OnbtnOkClick(wxCommandEvent& event)
 {
 	if (ckVideoBitRate->IsChecked() && txtBitRate->GetValue() == "")
@@ -781,5 +786,6 @@ void CompressionAudioVideoOption::OnbtnOkClick(wxCommandEvent& event)
 void CompressionAudioVideoOption::OnbtnCancelClick(wxCommandEvent& event)
 {
 	isOk = false;
+	isCancel = true;
 	this->Close();
 }
