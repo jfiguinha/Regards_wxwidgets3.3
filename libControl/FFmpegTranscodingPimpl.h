@@ -79,7 +79,7 @@ private:
 
 		int totalFrame = 0;
 		int encodedFrame = 0;
-
+		std::atomic<bool> * isend;
 		double duration = 0.0;
 
 		std::chrono::steady_clock::time_point begin;
@@ -88,7 +88,7 @@ private:
 
 	static void DisplayPreview(
 		CompressVideo* dlgProgress,
-		std::shared_ptr<PreviewData> data);
+		const std::shared_ptr<PreviewData>& data);
 
 	double get_rotation(AVStream* st);
 
@@ -137,12 +137,11 @@ private:
 	AVPacket packet;
 	bool cleanPacket = false;
 	int rotation = 0;
-	std::thread* bitmapShow = nullptr;
+
 	CompressVideo* m_dlgProgress;
 	mutex muEnding;
-	mutex muFrame;
-	mutex muWriteData;
-	bool isend = true;
+
+	std::atomic<bool> isend = true;
 	wxString input_file = "";
 	int orientation = 0;
 	CVideoOptionCompress* videoCompressOption;

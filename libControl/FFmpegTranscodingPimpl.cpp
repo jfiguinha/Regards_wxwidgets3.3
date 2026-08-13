@@ -286,11 +286,7 @@ void CFFmpegTranscodingPimpl::EndTreatment()
 		if (packet.data != nullptr)
 			av_packet_unref(&packet);
 		Release();
-		if (bitmapShow != nullptr)
-		{
-			bitmapShow->join();
-			delete bitmapShow;
-		}
+
 		cleanPacket = false;
 	}
 }
@@ -408,6 +404,8 @@ void CFFmpegTranscodingPimpl::DisplayPreview(
 		ConvertSecondToTime(
 			static_cast<int>(elapsed)),
 		1);
+
+	data->isend->store(true);
 }
 
 int CFFmpegTranscodingPimpl::hw_decoder_init(AVCodecContext* ctx, const enum AVHWDeviceType type)
@@ -1799,35 +1797,9 @@ int CFFmpegTranscodingPimpl::filter_encode_write_frame(AVFrame* frame, unsigned 
 
 void CFFmpegTranscodingPimpl::SetFrameData(AVFrame* src_frame, CompressVideo* m_dlgProgress)
 {
-	bool createFrame = true;
-
-	if (bitmapShow == nullptr)
+	if (isend)
 	{
-		createFrame = true;
-		isend = false;
-	}
-	else
-	{
-		bool threadEnd = false;
-		muEnding.lock();
-		threadEnd = isend;
-		muEnding.unlock();
-		if (threadEnd)
-		{
-			bitmapShow->join();
-			delete bitmapShow;
-			bitmapShow = nullptr;
-			createFrame = true;
-			isend = false;
-		}
-	}
-
-	if (createFrame)
-	{
-		muFrame.lock();
 		bmp = GetBitmapRGBA(src_frame);
-		//bmp->VertFlipBuf();
-		muFrame.unlock();
 
 		if (bmp.empty())
 			return;
@@ -1839,6 +1811,7 @@ void CFFmpegTranscodingPimpl::SetFrameData(AVFrame* src_frame, CompressVideo* m_
 		previewData->encodedFrame = nbFrameEncoded;
 		previewData->duration = duration;
 		previewData->begin = begin;
+		previewData->isend = &isend;
 
 		m_dlgProgress->CallAfter(
 			[m_dlgProgress, previewData]()
@@ -1847,6 +1820,8 @@ void CFFmpegTranscodingPimpl::SetFrameData(AVFrame* src_frame, CompressVideo* m_
 					m_dlgProgress,
 					previewData);
 			});
+
+		isend.store(false);
 	}
 }
 
