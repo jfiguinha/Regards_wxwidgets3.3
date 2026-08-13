@@ -804,11 +804,7 @@ void CVideoControlSoft::SetVideoPreviewEffect(CEffectParameter* effectParameter)
 
 CEffectParameter* CVideoControlSoft::GetParameter()
 {
-	auto videoParameter = new CVideoEffectParameter();
-	
-	*videoParameter = videoEffectParameter;
-	
-	return videoParameter;
+	return new CVideoEffectParameter(videoEffectParameter);
 }
 
 

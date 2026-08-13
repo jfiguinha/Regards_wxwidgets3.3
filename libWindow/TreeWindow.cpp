@@ -409,6 +409,11 @@ void CTreeWindow::UpdateScreenRatio()
 	needToRefresh = true;
 }
 
+void CTreeWindow::ClearTreeControl()
+{
+	treeControl = nullptr;
+}
+
 
 void CTreeWindow::SetTreeControl(CTreeControl* treeControl)
 {

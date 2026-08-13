@@ -26,6 +26,8 @@ namespace Regards::Window
 
 		void UpdateScreenRatio() override;
 
+		void ClearTreeControl();
+
 		void SetTreeControl(CTreeControl* treeControl);
 
 		void SlidePosChange(CTreeElement* treeElement, const int& position, CTreeElementValue* value,

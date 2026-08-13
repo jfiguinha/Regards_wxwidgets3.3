@@ -23,8 +23,8 @@ CInfosFileWnd::CInfosFileWnd(wxWindow* parent, wxWindowID id, const CThemeScroll
 
 void CInfosFileWnd::UpdateTreeInfosEvent(wxCommandEvent& event)
 {
-	auto threadInfos = static_cast<CThreadLoadInfos*>(event.GetClientData());
-	// if(threadInfos->filename == filename)
+	std::unique_ptr<CThreadLoadInfos> threadInfos(static_cast<CThreadLoadInfos*>(event.GetClientData()));
+	if(threadInfos->filename == filename)
 	{
 		threadInfos->infosFileWnd->CreateElement();
 		//StopLoadingPicture(InfosFileScroll);
@@ -32,14 +32,12 @@ void CInfosFileWnd::UpdateTreeInfosEvent(wxCommandEvent& event)
 		wx_command_event->SetClientData(this);
 		wxQueueEvent(this->GetParent(), wx_command_event);
 
-		treeWindow->SetTreeControl(threadInfos->infosFileWnd);
+		treeWindow->SetTreeControl(threadInfos->infosFileWnd.get());
 
-		infosFile.reset(threadInfos->infosFileWnd);
+		infosFile = std::move(threadInfos->infosFileWnd);
 	}
 
-	threadInfos->threadLoadInfos->join();
-	delete threadInfos->threadLoadInfos;
-	delete threadInfos;
+	threadInfos->threadLoadInfos.join();
 }
 
 void CInfosFileWnd::InfosUpdate(const wxString& filename)
@@ -47,19 +45,17 @@ void CInfosFileWnd::InfosUpdate(const wxString& filename)
 	if (filename != this->filename)
 	{
 		this->filename = filename;
-		auto infosFileWnd = new CInfosFile(treeWindow->GetTheme(), treeWindow);
 		auto threadInfos = new CThreadLoadInfos();
-		threadInfos->infosFileWnd = infosFileWnd;
 		threadInfos->panelInfos = this;
 		threadInfos->filename = filename;
-		threadInfos->threadLoadInfos = new thread(GenerateTreeInfos, threadInfos);
+		threadInfos->threadLoadInfos = std::thread(GenerateTreeInfos, threadInfos);
 	}
 }
 
 void CInfosFileWnd::GenerateTreeInfos(CThreadLoadInfos* threadInfos)
 {
-	CInfosFile* infosFileWnd = threadInfos->infosFileWnd;
-	infosFileWnd->SetFile(threadInfos->filename);
+	threadInfos->infosFileWnd = std::make_unique<CInfosFile>(threadInfos->panelInfos->treeWindow->GetTheme(), threadInfos->panelInfos->treeWindow);
+	threadInfos->infosFileWnd->SetFile(threadInfos->filename);
 
 	auto event = new wxCommandEvent(EVENT_UPDATEINFOSTHREAD);
 	event->SetClientData(threadInfos);
