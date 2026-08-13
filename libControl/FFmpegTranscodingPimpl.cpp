@@ -345,63 +345,69 @@ CFFmpegTranscodingPimpl::~CFFmpegTranscodingPimpl()
 
 	if (capture != nullptr)
 		delete capture;
-};
+}
 
-void CFFmpegTranscodingPimpl::DisplayPreview(void* data)
+void CFFmpegTranscodingPimpl::DisplayPreview(
+	CompressVideo* dlgProgress,
+	const std::shared_ptr<PreviewData>& data)
 {
-	CFFmpegTranscodingPimpl* ffmpeg_trans = static_cast<CFFmpegTranscodingPimpl*>(data);
-	if (ffmpeg_trans != nullptr)
-	{
-		char duration[255];
-		//auto imageLoadingFormat = new CImageLoadingFormat(false);
-		ffmpeg_trans->muFrame.lock();
-		ffmpeg_trans->m_dlgProgress->SetBitmap(ffmpeg_trans->bmp);
-		ffmpeg_trans->muFrame.unlock();
-		ffmpeg_trans->muWriteData.lock();
+	if (!dlgProgress || !data)
+		return;
 
-		double percent = ((double)ffmpeg_trans->nbFrameEncoded / (double)ffmpeg_trans->totalFrame);
-		double pos = percent * ffmpeg_trans->duration;
+	if (!data->bitmap.empty())
+		dlgProgress->SetBitmap(data->bitmap);
 
-		sprintf(duration, "Progress : %d percent - Total Second : %d / %d", static_cast<int>(percent * 100),
-		        static_cast<int>(pos), static_cast<int>(ffmpeg_trans->duration));
+	const int total = data->totalFrame;
+	const int encoded = data->encodedFrame;
 
-		ffmpeg_trans->m_dlgProgress->SetPos(static_cast<int>(ffmpeg_trans->duration), static_cast<int>(pos));
-		ffmpeg_trans->m_dlgProgress->SetTextProgression(duration);
+	if (total <= 0)
+		return;
 
+	const double percent =
+		static_cast<double>(encoded) /
+		static_cast<double>(total);
 
-		double dif = std::chrono::duration_cast<std::chrono::seconds>(
-			std::chrono::steady_clock::now() - ffmpeg_trans->begin).count();
+	const int position =
+		static_cast<int>(percent * data->duration);
 
-		try
-		{
-			// dif = dif / 100.0;
-			int nbFpsPerSecond = 1;
-			if (dif > 0)
-				nbFpsPerSecond = static_cast<int>(ffmpeg_trans->nbFrameEncoded / dif);
-			int missingFrame = ffmpeg_trans->totalFrame - ffmpeg_trans->nbFrameEncoded;
+	dlgProgress->SetPos(
+		static_cast<int>(data->duration),
+		position);
 
-			double timeMissing = 1;
-			if (nbFpsPerSecond > 0)
-				timeMissing = missingFrame / nbFpsPerSecond;
+	const double elapsed =
+		std::chrono::duration_cast<
+		std::chrono::duration<double>>(
+			std::chrono::steady_clock::now() -
+			data->begin).count();
 
-			wxString frame = wxString::Format("%d fps", nbFpsPerSecond);
-			ffmpeg_trans->m_dlgProgress->SetTextProgression(frame, 2);
+	const int currentFps =
+		elapsed > 0.0
+		? std::max(
+			1,
+			static_cast<int>(
+				encoded / elapsed))
+		: 1;
 
-			frame = ConvertSecondToTime(timeMissing);
-			ffmpeg_trans->m_dlgProgress->SetTextProgression(frame, 3);
+	const int remainingFrames =
+		std::max(0, total - encoded);
 
-			frame = ConvertSecondToTime(static_cast<int>(dif));
-			ffmpeg_trans->m_dlgProgress->SetTextProgression(frame, 1);
-		}
-		catch (...)
-		{
-		}
-		ffmpeg_trans->muWriteData.unlock();
-	}
+	const int remainingSeconds =
+		remainingFrames / currentFps;
 
-	ffmpeg_trans->muEnding.lock();
-	ffmpeg_trans->isend = true;
-	ffmpeg_trans->muEnding.unlock();
+	dlgProgress->SetTextProgression(
+		wxString::Format(
+			"%d fps",
+			currentFps),
+		2);
+
+	dlgProgress->SetTextProgression(
+		ConvertSecondToTime(remainingSeconds),
+		3);
+
+	dlgProgress->SetTextProgression(
+		ConvertSecondToTime(
+			static_cast<int>(elapsed)),
+		1);
 }
 
 int CFFmpegTranscodingPimpl::hw_decoder_init(AVCodecContext* ctx, const enum AVHWDeviceType type)
@@ -1822,7 +1828,25 @@ void CFFmpegTranscodingPimpl::SetFrameData(AVFrame* src_frame, CompressVideo* m_
 		bmp = GetBitmapRGBA(src_frame);
 		//bmp->VertFlipBuf();
 		muFrame.unlock();
-		bitmapShow = new thread(DisplayPreview, this);
+
+		if (bmp.empty())
+			return;
+
+		auto previewData = std::make_shared<PreviewData>();
+
+		previewData->bitmap = bmp;
+		previewData->totalFrame = totalFrame;
+		previewData->encodedFrame = nbFrameEncoded;
+		previewData->duration = duration;
+		previewData->begin = begin;
+
+		m_dlgProgress->CallAfter(
+			[m_dlgProgress, previewData]()
+			{
+				DisplayPreview(
+					m_dlgProgress,
+					previewData);
+			});
 	}
 }
 
