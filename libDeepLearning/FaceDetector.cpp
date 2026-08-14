@@ -487,15 +487,18 @@ std::vector<int> CFaceDetector::FindFace(const Mat& pBitmap, const wxString& fil
 					face.myROI.width *= invertRatio;
 					face.myROI.height *= invertRatio;
 
+					resizedImage = RotateAndExtractFace(
+						face.angle,
+						face.myROI,
+						source);
+
+					if (resizedImage.empty())
+						continue;
+
+					/*
 					try
 					{
-						resizedImage = RotateAndExtractFace(
-							face.angle,
-							face.myROI,
-							source);
 
-						if (resizedImage.empty())
-							continue;
 
 						std::vector<cv::Rect> faces;
 						faces.emplace_back(
@@ -543,10 +546,12 @@ std::vector<int> CFaceDetector::FindFace(const Mat& pBitmap, const wxString& fil
 						resizedImage = alignedFace;
 
 					}
-					catch (Exception& e)
+					catch (cv::Exception& e)
 					{
+						printf("CFaceDetector::FindFace exception: %s\n", e.what());
 						source(face.myROI).copyTo(resizedImage);
 					}
+					*/
 
 					float bestConfidence = 0;
 					Mat resizedBgra;

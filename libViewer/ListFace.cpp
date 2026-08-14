@@ -245,16 +245,7 @@ void CListFace::OnResourceLoad(wxCommandEvent& event)
 	isLoadingResource = false;
 	resourceLoaded = true;
 
-	//Update Photo List
-	muListPhoto.lock();
-	CSqlFacePhoto facePhoto;
-	listPhoto = facePhoto.GetPhotoListTreatment();
-	muListPhoto.unlock();
-
-	muListFace.lock();
-	CSqlFindFacePhoto faceRecognition;
-	nbNbFace = faceRecognition.GetNbListFaceToRecognize();
-	muListFace.unlock();
+	IntializeListFace();
 }
 
 
@@ -662,9 +653,9 @@ void CListFace::ProcessIdle()
 	if(processPhoto && sendMessageStatus)
 	{
 		auto thumbnailMessage = new CThumbnailMessage();
-		thumbnailMessage->nbPhoto = listPhotoSize;
-		thumbnailMessage->thumbnailPos = nbProcessFacePhoto;
-		thumbnailMessage->nbElement = listPhotoSize;
+		thumbnailMessage->nbPhoto = nbTotalFace;
+		thumbnailMessage->thumbnailPos = nbTotalFace -listPhotoSize;
+		thumbnailMessage->nbElement = nbTotalFace;
 		thumbnailMessage->typeMessage = 4;
 		wxWindow* mainWnd = this->FindWindowById(MAINVIEWERWINDOWID);
 		wxCommandEvent eventChange(wxEVENT_UPDATESTATUSBARMESSAGE);
@@ -693,9 +684,9 @@ void CListFace::ProcessIdle()
 					CDeepLearning::CleanRecognition();
 				cleanDatabase = false;
 				auto thumbnailMessage = new CThumbnailMessage();
-				thumbnailMessage->nbPhoto = nbFaceLocal;
-				thumbnailMessage->thumbnailPos = nbProcessFaceRecognition;
-				thumbnailMessage->nbElement = nbFaceLocal;
+				thumbnailMessage->nbPhoto = nbTotalFaceToRecognize;
+				thumbnailMessage->thumbnailPos = nbTotalFaceToRecognize - nbFaceLocal;
+				thumbnailMessage->nbElement = nbTotalFaceToRecognize;
 				thumbnailMessage->typeMessage = 5;
 				wxWindow* mainWnd = this->FindWindowById(MAINVIEWERWINDOWID);
 				wxCommandEvent eventChange(wxEVENT_UPDATESTATUSBARMESSAGE);
@@ -767,19 +758,26 @@ void CListFace::SetActifItem(const int& numItem, const bool& move)
 		thumbnailFace->SetActifItem(numItem, move);
 }
 
-void CListFace::OnRefreshFolder(wxCommandEvent& event)
+void CListFace::IntializeListFace()
 {
 	//Update Photo List
 	muListPhoto.lock();
 	CSqlFacePhoto facePhoto;
 	listPhoto = facePhoto.GetPhotoListTreatment();
+	nbTotalFace = listPhoto.size();
 	muListPhoto.unlock();
 
 	muListFace.lock();
 	CSqlFindFacePhoto faceRecognition;
 	nbNbFace = faceRecognition.GetNbListFaceToRecognize();
+	nbTotalFaceToRecognize = nbNbFace;
 	muListFace.unlock();
+}
 
+void CListFace::OnRefreshFolder(wxCommandEvent& event)
+{
+
+	IntializeListFace();
 
 }
 
