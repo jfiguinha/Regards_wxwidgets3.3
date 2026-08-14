@@ -684,9 +684,9 @@ void CListFace::ProcessIdle()
 					CDeepLearning::CleanRecognition();
 				cleanDatabase = false;
 				auto thumbnailMessage = new CThumbnailMessage();
-				thumbnailMessage->nbPhoto = nbTotalFaceToRecognize;
-				thumbnailMessage->thumbnailPos = nbTotalFaceToRecognize - nbFaceLocal;
-				thumbnailMessage->nbElement = nbTotalFaceToRecognize;
+				thumbnailMessage->nbPhoto = nbFaceLocal;
+				thumbnailMessage->thumbnailPos = 0;
+				thumbnailMessage->nbElement = nbFaceLocal;
 				thumbnailMessage->typeMessage = 5;
 				wxWindow* mainWnd = this->FindWindowById(MAINVIEWERWINDOWID);
 				wxCommandEvent eventChange(wxEVENT_UPDATESTATUSBARMESSAGE);
