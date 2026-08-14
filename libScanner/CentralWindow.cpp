@@ -20,7 +20,7 @@ using namespace Regards::Picture;
 #define OPENFILE 0
 #define ADDFILE 1
 
-CCentralWindow::CCentralWindow(wxWindow* parent, wxWindowID id, CScannerFrame* frame)
+CCentralWindow::CCentralWindow(wxWindow* parent, const wxString& openfile, wxWindowID id, CScannerFrame* frame)
 	: CWindowMain("CentralWindow", parent, id)
 {
 	//CMainTheme * viewerTheme = new CMainTheme();
@@ -45,6 +45,11 @@ CCentralWindow::CCentralWindow(wxWindow* parent, wxWindowID id, CScannerFrame* f
 
 	previewWindow = new CViewerPDF(this, frame, PDFWINDOWID);
 	previewWindow->Show(true);
+
+	if (!openfile.empty())
+	{
+		LoadFile(openfile);
+	}
 
 	this->frame = frame;
 

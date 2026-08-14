@@ -419,8 +419,10 @@ void CMainParam::GetCriteriaParameter(xml_node<>* position_node)
 void CMainParam::GetPositionParameter(xml_node<>* position_node, wxRect& position)
 {
 	xml_node<>* child_node = position_node->first_node("window");
+	if (child_node == nullptr)
+		child_node = position_node->first_node("Window");
 	if (child_node != nullptr)
-		position = GetWindowPositionParameter(child_node);
+		positionRegardsViewer = GetWindowPositionParameter(child_node);
 }
 
 wxRect CMainParam::GetWindowPositionParameter(xml_node<>* position_node)

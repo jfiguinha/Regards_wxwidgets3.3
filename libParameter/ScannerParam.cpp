@@ -260,7 +260,7 @@ void CMainParam::SetWindowPositionParameter(xml_node<>* sectionWindowPosition, c
 //////////////////////////////////////////////////////////////////////////////////////////
 void CMainParam::SetPositionParameter(xml_node<>* sectionPosition)
 {
-	xml_node<>* sectionWindowPosition = node("Window");
+	xml_node<>* sectionWindowPosition = node("window");
 	SetWindowPositionParameter(sectionWindowPosition, positionRegardsViewer);
 	sectionPosition->append_node(sectionWindowPosition);
 }
@@ -305,8 +305,11 @@ void CMainParam::GetCriteriaParameter(xml_node<>* position_node)
 
 void CMainParam::GetPositionParameter(xml_node<>* position_node)
 {
-	xml_node<>* child_node = position_node->first_node("Window");
-	positionRegardsViewer = GetWindowPositionParameter(child_node);
+	xml_node<>* child_node = position_node->first_node("window");
+	if (child_node == nullptr)
+		child_node = position_node->first_node("Window");
+	if (child_node != nullptr)
+		positionRegardsViewer = GetWindowPositionParameter(child_node);
 }
 
 wxRect CMainParam::GetWindowPositionParameter(xml_node<>* position_node)

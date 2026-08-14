@@ -51,7 +51,7 @@ class CScannerFrame : public wxFrame
 {
 public:
 	// ctor(s)
-	CScannerFrame(const wxString &title, ISCannerInterface * mainInterface, const wxPoint &pos, const wxSize &size,
+	CScannerFrame(const wxString &title, const wxString& openfile, ISCannerInterface * mainInterface, const wxPoint &pos, const wxSize &size,
 		long style = wxDEFAULT_FRAME_STYLE);
 
     ~CScannerFrame() = default;

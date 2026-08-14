@@ -544,7 +544,7 @@ void MyApp::LaunchApplication()
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
 		//	CScannerFrame(const wxString &title, ISCannerInterface * mainInterface, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
-		framePDF = std::make_unique<CScannerFrame>("RegardsPDF", this, wxDefaultPosition, wxSize(screen.GetWidth(), screen.GetHeight()));
+		framePDF = std::make_unique<CScannerFrame>("RegardsPDF", fileToOpen, this, wxDefaultPosition, wxSize(screen.GetWidth(), screen.GetHeight()));
 		framePDF->Centre(wxBOTH);
 		framePDF->SetFocus();  // focus on my window
 		framePDF->Raise();  // bring window to front

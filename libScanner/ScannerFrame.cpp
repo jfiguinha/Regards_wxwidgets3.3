@@ -59,7 +59,7 @@ END_EVENT_TABLE()
 // ----------------------------------------------------------------------------
 
 // frame constructor
-CScannerFrame::CScannerFrame(const wxString& title, ISCannerInterface * mainInterface, const wxPoint& pos,
+CScannerFrame::CScannerFrame(const wxString& title, const wxString& openfile, ISCannerInterface * mainInterface, const wxPoint& pos,
                              const wxSize& size,
                              long style) :
 	wxFrame(nullptr, FRAMESCANNER_ID, title, pos, size, style)
@@ -105,7 +105,7 @@ CScannerFrame::CScannerFrame(const wxString& title, ISCannerInterface * mainInte
 	// create a status bar just for fun (by default with 1 pane only)
 	CreateStatusBar(1);
 
-	centralWindow = std::make_unique<CCentralWindow>(this, SCANNER_CENTRALVIEWERWINDOWID, this);
+	centralWindow = std::make_unique<CCentralWindow>(this, openfile, SCANNER_CENTRALVIEWERWINDOWID, this);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
 	sizer->Add(centralWindow.get(), 1, wxEXPAND);
 	SetSizer(sizer);

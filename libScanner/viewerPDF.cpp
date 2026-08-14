@@ -34,7 +34,7 @@ CViewerPDF::CViewerPDF(wxWindow* parent, CScannerFrame* frame, wxWindowID id)
 	this->frame = frame;
 	showBitmapWindow = nullptr;
 	isFullscreen = false;
-	filename = L"";
+	filename = "";
 	wxRect rect;
 	showToolbar = true;
 	checkValidity = false;
