@@ -845,8 +845,8 @@ void CFFmfcPimpl::video_refresh(void* opaque, double* remaining_time)
 							for (i = 0; i < sp->sub.num_rects; i++)
 							{
 								AVSubtitleRect* sub_rect = sp->sub.rects[i];
-								uint8_t* pixels;
-								int pitch, j;
+								//uint8_t* pixels;
+								//int pitch;// , j;
 
 								AVSubtitleRect* rect = sp->sub.rects[i];
 								cv::Mat* bitmap = new cv::Mat(rect->h, rect->w, CV_8UC4);
@@ -2070,7 +2070,7 @@ int CFFmfcPimpl::audio_thread(void* arg)
 	int last_serial = -1;
 	int reconfigure;
 	int got_frame = 0;
-	AVRational tb;
+	//AVRational tb;
 	int ret = 0;
 
 	if (!frame)
@@ -2299,9 +2299,9 @@ int CFFmfcPimpl::stream_component_open(VideoState* is, int stream_index)
 	const char* forced_codec_name = NULL;
 	AVDictionary* opts = NULL;
 	AVDictionaryEntry* t = NULL;
-	int sample_rate, nb_channels;
+	int sample_rate;// , nb_channels;
 	AVChannelLayout ch_layout;
-	AVChannelLayout* channel_layout;
+	//AVChannelLayout* channel_layout;
 	int ret = 0;
 	int stream_lowres = lowres;
 	enum AVHWDeviceType type;
