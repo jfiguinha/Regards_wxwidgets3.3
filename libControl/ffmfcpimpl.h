@@ -633,10 +633,20 @@ public:
 	void stream_change_stream(VideoState* is, int codec_type, int newIndex);
 
 	void step_to_next_frame(VideoState* is);
-
+	bool EnsureVideoConversionContext(const AVFrame* frame);
+	void ConvertSubtitleBitmap(const AVSubtitleRect* rect, cv::Mat& bitmap);
+	void PostSubtitleImage(const cv::Mat& bitmap);
+	void PostSubtitleText(const wxString& text, int endDisplayTime);
 
 	AVBufferRef* hw_device_ctx = nullptr;
 	static enum AVPixelFormat hw_pix_fmt;
+
+	static std::atomic_bool exit_video;
+	int localWidth = 0;
+	int localHeight = 0;
+
+	AVPixelFormat localFormat =
+		AV_PIX_FMT_NONE;
 
 	//SOUND Volume
 	int muted = 0;
