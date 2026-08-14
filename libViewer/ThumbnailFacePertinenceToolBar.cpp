@@ -28,13 +28,13 @@ CThumbnailFacePertinenceToolBar::CThumbnailFacePertinenceToolBar(wxWindow* paren
 	toolbarText->SetLibelleTooltip(pertinence);
 	navElement.push_back(toolbarText.get());
 
-	moins = CreateButton(L"IDB_MINUS", L"LBLZOOMOFF", WM_ZOOMOUT);
+	moins = CreateButton(L"IDB_MINUS", L"LBLZOOMOFF", WM_ZOOMOUT, false);
 
 	//themeToolbar.slider.colorBack.Set(51, 54, 62);
 	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
 	navElement.push_back(slide.get());
 
-	plus = CreateButton(L"IDB_PLUS", L"LBLZOOMON", WM_ZOOMON);
+	plus = CreateButton(L"IDB_PLUS", L"LBLZOOMON", WM_ZOOMON, false);
 }
 
 

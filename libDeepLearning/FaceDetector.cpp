@@ -226,9 +226,12 @@ void CFaceDetector::LoadModel(const bool& openCLCompatible, const bool& cudaComp
 		CDetectFacePCN detectFacePCN;
 		CDetectFace detectFace;
 
+		string model = CFileUtility::GetFullpathModel("face_landmark_model.dat");
 		facemark = createFacemarkKazemi();
-		facemark->loadModel(CFileUtility::GetFullpathModel("face_landmark_model.dat"));
-		faceRecognizer = FaceRecognizerSF::create(CFileUtility::GetFullpathModel("face_recognition_sface_2021dec.onnx"), "");
+		facemark->loadModel(model);
+
+		model = CFileUtility::GetFullpathModel("face_recognition_sface_2021dec.onnx");
+		faceRecognizer = FaceRecognizerSF::create(model, "");
 		eye_cascade.load(CFileUtility::GetFullpathModel("haarcascade_eye.xml"));
 
        // printf("CFaceDetector::LoadModel \n");

@@ -16,15 +16,15 @@ CThumbnailFaceToolBar::CThumbnailFaceToolBar(wxWindow* parent, wxWindowID id, co
 {
 	themeToolbar = theme;
 
-	add = CreateButton(L"IDB_PLUS", L"LBLFACEADD", WM_ADD);
-	copy = CreateButton(L"IDB_MULTIPLESELECT", L"LBLCOPY", WM_COPY);
-	moins = CreateButton(L"IDB_ZOOMMOINS", L"LBLZOOMOFF", WM_ZOOMOUT);
+	add = CreateButton(L"IDB_PLUS", L"LBLFACEADD", WM_ADD, false);
+	copy = CreateButton(L"IDB_MULTIPLESELECT", L"LBLCOPY", WM_COPY, false);
+	moins = CreateButton(L"IDB_ZOOMMOINS", L"LBLZOOMOFF", WM_ZOOMOUT, false);
 
 	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
 	navElement.push_back(slide.get());
 
-	plus = CreateButton(L"IDB_ZOOMPLUS", L"LBLZOOMON", WM_ZOOMON);
-	refreshButton = CreateButton(L"IDB_FOLDER_REFRESH", L"LBLREFRESHTHUMBNAIL", WM_REFRESH);
+	plus = CreateButton(L"IDB_ZOOMPLUS", L"LBLZOOMON", WM_ZOOMON, false);
+	refreshButton = CreateButton(L"IDB_FOLDER_REFRESH", L"LBLREFRESHTHUMBNAIL", WM_REFRESH, false);
 
 }
 

@@ -17,10 +17,10 @@ CFileUtility::~CFileUtility(void)
 
 std::string CFileUtility::GetFullpathModel(const wxString& filename)
 {
-	wxFileName esrgan_param = wxFileName(CFileUtility::GetDocumentFolderPath());
-	esrgan_param.AppendDir("model");
-	esrgan_param.SetFullName(filename);
-	return esrgan_param.GetFullPath().utf8_string();
+	wxFileName path(GetDocumentFolderPath(), "");
+	path.AppendDir("model");
+	path.SetFullName(filename);
+	return path.GetFullPath().utf8_string();
 }
 
 wxString CFileUtility::GetOrCreateSubFolder(const wxString& folderName)

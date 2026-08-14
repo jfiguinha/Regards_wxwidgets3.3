@@ -969,9 +969,62 @@ private:
     static int read_thread(void* arg);
     static int subtitle_thread(void* arg);
 
-private:
+public:
+    int volume = 100;
+    int64_t time_position = 0;
+
+
+#ifdef WIN32
+    wxString acceleratorHardware = "d3d11va";
+#elif defined(__APPLE__)
+    wxString acceleratorHardware = "videotoolbox";
+#else
+    wxString acceleratorHardware = "cuda";
+#endif
+
+    bool isOpenGLDecoding = false;
+    int percentVolume = 100;
+    static CVideoControlInterface* dlg;
+    wxWindow* parent = nullptr;
+
+    int exit_remark = 0;
+
+    VideoState* g_is = nullptr;
+
+    int autoexit = 0;
+    int display_disable = 0;
+    int video_disable = 0;
+
+    AVInputFormat* file_iformat = nullptr;
+    int seek_bar_pos = 0;
+
+    // -------------------------------------------------------------------------
+// Options
+// -------------------------------------------------------------------------
+
+    int screen_width = 0;
+    int screen_height = 0;
+    int videoOutputMode = 24;
+    int seek_by_bytes = 0;
 
     void step_to_next_frame(VideoState* is);
+
+    // -------------------------------------------------------------------------
+// Statistics
+// -------------------------------------------------------------------------
+
+    int vframe_index = 0;
+    int aframe_index = 0;
+    int packet_index = 0;
+
+    int video_angle = 0;
+
+    int video_flipV = 0;
+    int video_flipH = 0;
+
+
+private:
+
 
     // -------------------------------------------------------------------------
     // Global/thread state
@@ -979,17 +1032,15 @@ private:
 
     static std::atomic_bool exit_video;
 
-    static CVideoControlInterface* dlg;
+
 
     static enum AVPixelFormat hw_pix_fmt;
 
     AVBufferRef* hw_device_ctx = nullptr;
 
-    VideoState* g_is = nullptr;
 
-    AVInputFormat* file_iformat = nullptr;
 
-    wxWindow* parent = nullptr;
+
 
 
     // -------------------------------------------------------------------------
@@ -1010,29 +1061,24 @@ private:
     // -------------------------------------------------------------------------
 
     int muted = 0;
-    int percentVolume = 100;
-    int volume = 100;
+
+
 
     SDL_AudioDeviceID audio_dev = 0;
 
 
-    // -------------------------------------------------------------------------
-    // Options
-    // -------------------------------------------------------------------------
 
-    int screen_width = 0;
-    int screen_height = 0;
 
     int audio_disable = 0;
     int disable_framedelay = 0;
-    int video_disable = 0;
+
 
     int wanted_stream[AVMEDIA_TYPE_NB] =
     { -1, -1, 0, -1, 0 };
 
-    int seek_by_bytes = 0;
 
-    int display_disable = 0;
+
+
     int show_status = 0;
 
     int av_sync_type =
@@ -1066,7 +1112,6 @@ private:
 
     int decoder_reorder_pts = -1;
 
-    int autoexit = 0;
     int exit_on_keydown = 0;
     int exit_on_mousedown = 0;
 
@@ -1094,26 +1139,14 @@ private:
 
     int64_t audio_callback_time = 0;
 
-    int seek_bar_pos = 0;
-    int64_t time_position = 0;
-
-    int video_angle = 0;
-
-    int video_flipV = 0;
-    int video_flipH = 0;
-
-    int exit_remark = 0;
 
 
-    // -------------------------------------------------------------------------
-    // Statistics
-    // -------------------------------------------------------------------------
 
-    int vframe_index = 0;
-    int aframe_index = 0;
-    int packet_index = 0;
 
-    int videoOutputMode = 24;
+
+
+
+
 
     bool first = true;
 
@@ -1122,19 +1155,11 @@ private:
     // Hardware configuration
     // -------------------------------------------------------------------------
 
-#ifdef WIN32
-    wxString acceleratorHardware = "d3d11va";
-#elif defined(__APPLE__)
-    wxString acceleratorHardware = "videotoolbox";
-#else
-    wxString acceleratorHardware = "cuda";
-#endif
-
     wxString colorRange;
     wxString colorSpace;
 
     bool isHardwareDecoding = false;
-    bool isOpenGLDecoding = false;
+
 
     int find_stream_info = 1;
 

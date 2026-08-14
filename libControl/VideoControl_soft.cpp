@@ -1173,11 +1173,15 @@ bool CVideoControlSoft::IsAvailable()
 
 bool CVideoControlSoft::ApplyVideoEffect()
 {
-	if(videoEffectParameter.interpolationQuality > 0)
+	if (videoEffectParameter.interpolationQuality > 0)
 		return true;
-	return (videoEffectParameter.autoConstrast || videoEffectParameter.stabilizeVideo || videoEffectParameter.filmEnhance || videoEffectParameter.filmcolorisation || videoEffectParameter.stabilizeVideo || videoEffectParameter.autoConstrast || videoEffectParameter.filmEnhance || videoEffectParameter.filmcolorisation) && videoEffectParameter.effectEnable;
-}
 
+	return videoEffectParameter.effectEnable &&
+		(videoEffectParameter.autoConstrast ||
+			videoEffectParameter.stabilizeVideo ||
+			videoEffectParameter.filmEnhance ||
+			videoEffectParameter.filmcolorisation);
+}
 void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
 {
 	isAvailable = false;
@@ -1679,35 +1683,29 @@ int CVideoControlSoft::GetBitmapHeight()
 
 int CVideoControlSoft::GetSrcBitmapWidth()
 {
-	int localAngle = angle;
-	float ratioSelect = GetMovieRatio();
-	float _widthVideo = widthVideo;
-	float _heightVideo = heightVideo;
-	if (ratioSelect != 1.0f)
-	{
-		_widthVideo = _heightVideo * ratioSelect;
-	}
+	const float ratio = GetMovieRatio();
 
-	if (localAngle == 90 || localAngle == 270)
-		return _heightVideo;
-	return _widthVideo;
-	return 0;
+	const float width =
+		ratio != 1.0f
+		? static_cast<float>(heightVideo) * ratio
+		: static_cast<float>(widthVideo);
+
+	return (angle == 90 || angle == 270)
+		? static_cast<int>(heightVideo)
+		: static_cast<int>(width);
 }
 
 int CVideoControlSoft::GetSrcBitmapHeight()
 {
-	float ratioSelect = GetMovieRatio();
-	float _widthVideo = widthVideo;
-	float _heightVideo = heightVideo;
-	if (ratioSelect != 1.0f)
-	{
-		_widthVideo = _heightVideo * ratioSelect;
-	}
-	int localAngle = angle;
-	if (localAngle == 90 || localAngle == 270)
-		return _widthVideo;
-	return _heightVideo;
-	return 0;
+	const float ratio = GetMovieRatio();
+
+	const float width = (ratio != 1.0f)
+		? static_cast<float>(heightVideo) * ratio
+		: static_cast<float>(widthVideo);
+
+	return (angle == 90 || angle == 270)
+		? static_cast<int>(width)
+		: static_cast<int>(heightVideo);
 }
 
 

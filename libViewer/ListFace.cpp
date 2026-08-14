@@ -244,6 +244,17 @@ void CListFace::OnResourceLoad(wxCommandEvent& event)
 	processIdle = true;
 	isLoadingResource = false;
 	resourceLoaded = true;
+
+	//Update Photo List
+	muListPhoto.lock();
+	CSqlFacePhoto facePhoto;
+	listPhoto = facePhoto.GetPhotoListTreatment();
+	muListPhoto.unlock();
+
+	muListFace.lock();
+	CSqlFindFacePhoto faceRecognition;
+	nbNbFace = faceRecognition.GetNbListFaceToRecognize();
+	muListFace.unlock();
 }
 
 
