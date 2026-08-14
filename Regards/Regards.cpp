@@ -549,7 +549,8 @@ void MyApp::LaunchApplication()
 		framePDF->SetFocus();  // focus on my window
 		framePDF->Raise();  // bring window to front
 		framePDF->Show(true);
-		framePDF->OnOpen();
+		if(fileToOpen.empty())
+			framePDF->OnOpen();
 	}
 	else
 	{
