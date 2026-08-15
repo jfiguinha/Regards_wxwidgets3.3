@@ -178,9 +178,17 @@ protected:
 	int GetSrcBitmapWidth();
 	int GetSrcBitmapHeight();
 	float GetMovieRatio();
+
+#ifdef _DEBUG
+
+	void DebugRenderTime(
+		const std::chrono::high_resolution_clock::time_point& start,
+		const char* name);
+#endif
 	
 
     int Play(const wxString& movie);
+	wxFloatRect floatRect;
 
 
 	CPictureArray pictureArray;

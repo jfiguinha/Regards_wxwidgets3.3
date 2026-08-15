@@ -273,6 +273,11 @@ void CMainParam::LoadParameter()
 	xml_node<>* root_node;
 	//long nodeSize = 0;
 	root_node = doc.first_node("Parameter");
+	if (root_node == nullptr)
+	{
+		wxMessageBox("Invalid configuration file : missing Parameter node");
+		return;
+	}
 
 	xml_node<>* child_node = root_node->first_node("Diaporama");
 	if (child_node != nullptr)

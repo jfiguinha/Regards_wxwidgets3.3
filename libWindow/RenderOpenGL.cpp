@@ -523,28 +523,42 @@ int CRenderOpenGL::GetHeight()
 	return height;
 }
 
-void CRenderOpenGL::CreateScreenRender(const int& width, const int& height, const CRgbaquad& color)
+void CRenderOpenGL::CreateScreenRender(
+	const int& width, const int& height, const CRgbaquad& color)
 {
-	if (this->width != width || this->height != height)
+	const bool sizeChanged =
+		this->width != width ||
+		this->height != height;
+
+	if (sizeChanged)
 	{
 		this->width = width;
 		this->height = height;
-		ReSizeGLScene(width, height);
-        
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glEnable(GL_TEXTURE_2D);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluOrtho2D(0, width, 0, height);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
+		ReSizeGLScene(width, height);
+
+		glEnable(GL_TEXTURE_2D);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+
+		gluOrtho2D(
+			0,
+			width,
+			0,
+			height);
+
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 	}
 
-    glClearColor(color.GetFRed() / 255.0f, color.GetFGreen() / 255.0f, color.GetFBlue() / 255.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-    glClearColor(color.GetFRed() / 255.0f, color.GetFGreen() / 255.0f, color.GetFBlue() / 255.0f, 1.0f);
+	glClearColor(
+		color.GetFRed() / 255.0f,
+		color.GetFGreen() / 255.0f,
+		color.GetFBlue() / 255.0f,
+		color.GetFAlpha() / 255.0f);
 
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void CRenderOpenGL::RenderQuad(GLTexture* texture, int left, int top, bool inverted)

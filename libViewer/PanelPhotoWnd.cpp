@@ -262,6 +262,7 @@ wxString CPanelPhotoWnd::AddFolder(const wxString& folder, wxString* file, const
 	if (files.size() > 0)
 		sort(files.begin(), files.end());
 
+	/*
 	wxProgressDialog dlg
 	(
 		"Progress in progress",
@@ -274,7 +275,7 @@ wxString CPanelPhotoWnd::AddFolder(const wxString& folder, wxString* file, const
 		wxPD_AUTO_HIDE |
 		wxPD_SMOOTH // - makes indeterminate mode bar on WinXP very small
 	);
-
+	*/
 	//Indication d'imporation des critères 
 	CSqlFolderCatalog sqlFolderCatalog;
 	int64_t idFolder = sqlFolderCatalog.GetFolderCatalogId(NUMCATALOGID, folder);
@@ -290,7 +291,7 @@ wxString CPanelPhotoWnd::AddFolder(const wxString& folder, wxString* file, const
 		//printf("CMainWindow::AddFolder : %s \n", CConvertUtility::ConvertToStdString(localFilename));
 	}
 	
-	dlg.Close();
+	//dlg.Close();
 
 	wxWindow* window = this->FindWindowById(CRITERIAFOLDERWINDOWID);
 	if (window)

@@ -16,11 +16,11 @@ using namespace Regards::Picture;
 
 CThumbnailMultiPage::CThumbnailMultiPage(wxWindow* parent, wxWindowID id, const CThemeThumbnail& themeThumbnail,
                                          const bool& testValidity)
-	: CThumbnailHorizontal(parent, id, themeThumbnail, testValidity)
+	: CThumbnailHorizontal(parent, id, themeThumbnail, testValidity),
+	parent(parent),
+	numItemSelected(-1),
+	process_end(true)
 {
-	this->parent = parent;
-	numItemSelected = -1;
-	process_end = true;
 	moveOnPaint = false;
 	threadDataProcess = true;
 }
