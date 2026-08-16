@@ -37,6 +37,8 @@
 #include <SetMetadataGps.h>
 #include <SetMetadataDate.h>
 #endif
+
+#include <PhotoCriteriaUtility.h>
 using namespace Regards::exiv2;
 using namespace Regards::Picture;
 using namespace Regards::Sqlite;
@@ -247,6 +249,7 @@ void CListPicture::GenerateIndexFile(wxCommandEvent& event)
 						pBitmapIcone->SetSizeIcone(width, height);
 						pBitmapIcone->SetWindowPos(x, y);
 						pBitmapIcone->RenderIcone(&memdc, 0, 0, false, false);
+						delete pBitmapIcone;
 					}
 				}
 			}
@@ -259,6 +262,7 @@ void CListPicture::GenerateIndexFile(wxCommandEvent& event)
 			auto imageLoad = new CImageLoadingFormat();
 			imageLoad->SetPicture(picture);
 			CSavePicture::SavePicture(nullptr, imageLoad, "photoindex.png");
+			delete imageLoad;
 		}
 	}
 	else
@@ -270,77 +274,13 @@ void CListPicture::GenerateIndexFile(wxCommandEvent& event)
 }
 
 
-void CListPicture::GeolocalizeFile(const wxString& filename, const float& latitude, const float& longitude,
-                                   const wxString& lat, const wxString& lng, const wxString& geoInfos)
+void CListPicture::GeolocalizeFile(const wxString& filename, const wxString& lat, const wxString& lng, const wxString& geoInfos)
 {
-	CLibPicture libPicture;
-	if (libPicture.TestIsExifCompatible(filename))
+	if(CPhotoCriteriaUtility::GeolocalizeFile(filename, lat, lng, geoInfos))
 	{
-#if defined(EXIV2)
-		wxString wlatitudeRef = "";
-		wxString wlongitudeRef = "";
-		wxString wlongitude = to_string(abs(longitude));
-		wxString wlatitude = to_string(abs(latitude));
-
-		if (latitude < 0)
-			wlatitudeRef = "S";
-		else
-			wlatitudeRef = "N";
-
-		if (longitude < 0)
-			wlongitudeRef = "W";
-		else
-			wlongitudeRef = "E";
-
-		CMetadataExiv2 metadataExiv2(filename);
-		metadataExiv2.SetGpsInfos(wlatitudeRef, wlongitudeRef, wlatitude, wlongitude);
-
-#elif defined(__APPLE__)
-		CAppleReadExif appleReadExif;
-		appleReadExif.WriteGps(filename, latitude, longitude);
-#elif defined(WIN32)
-
-		wxString wlatitudeRef = "";
-		wxString wlongitudeRef = "";
-		wxString wlongitude = to_string(abs(longitude));
-		wxString wlatitude = to_string(abs(latitude));
-
-		if (latitude < 0)
-			wlatitudeRef = "S";
-		else
-			wlatitudeRef = "N";
-
-		if (longitude < 0)
-			wlongitudeRef = "W";
-		else
-			wlongitudeRef = "E";
-
-		CSetMetadataGps metadata(wlatitudeRef, wlongitudeRef, wlatitude, wlongitude);
-		metadata.SetMetadata(filename);
-
-#endif
+		CListOfWindow* fileGeolocalisation = CGpsEngine::getInstance();
+		fileGeolocalisation->SendMessageToWindow(filename, 1);
 	}
-
-	CSqlPhotos sqlPhotos;
-	int numPhotoId = sqlPhotos.GetPhotoId(filename);
-
-	bool isNew = false;
-	CSqlCriteria sqlCriteria;
-	CSqlGps sqlGps;
-	CSqlPhotoCriteria sqlPhotoCriteria;
-
-	int oldCriteriaId = sqlCriteria.GetCriteriaIdByCategorie(numPhotoId, 1);
-
-	int numCriteriaId = sqlCriteria.GetOrInsertCriteriaId(1, 1, geoInfos, isNew);
-	sqlPhotoCriteria.InsertPhotoCriteria(numPhotoId, numCriteriaId);
-	if (oldCriteriaId != -1 && numCriteriaId != oldCriteriaId)
-		sqlPhotoCriteria.DeletePhotoCriteria(numPhotoId, oldCriteriaId);
-
-	sqlGps.DeleteGps(filename);
-	sqlGps.InsertGps(filename, lat, lng);
-
-	CListOfWindow* fileGeolocalisation = CGpsEngine::getInstance();
-	fileGeolocalisation->SendMessageToWindow(filename, 1);
 }
 
 
@@ -368,8 +308,7 @@ void CListPicture::GeolocalizeFileCmd(wxCommandEvent& event)
 				int j = i + 1;
 				wxString filename = listItem.at(i);
 				wxString message = text + to_string(j) + "/" + to_string(listItem.size());
-				GeolocalizeFile(filename, mapSelect.GetLatitudeNumber(), mapSelect.GetLongitudeNumber(),
-				                mapSelect.GetLatitude(), mapSelect.GetLongitude(), infoGpsLocalisation);
+				GeolocalizeFile(filename, mapSelect.GetLatitude(), mapSelect.GetLongitude(), infoGpsLocalisation);
 				if (false == dialog.Update(i, message))
 					break;
 			}
@@ -386,31 +325,7 @@ void CListPicture::GeolocalizeFileCmd(wxCommandEvent& event)
 
 void CListPicture::ChangeDateFile(const wxString& filename, const wxDateTime& newDate, const wxString& selectDate)
 {
-	CLibPicture libPicture;
-	if (libPicture.TestIsExifCompatible(filename))
-	{
-#if defined(EXIV2)
-		CMetadataExiv2 metadataExiv2(filename);
-		metadataExiv2.SetDateTime(selectDate);
-#elif defined(__APPLE__)
-		appleReadExif.WriteDateTime(filename, newDate);
-#elif defined(WIN32)
-		CSetMetadataDate metadata(newDate.FormatDate());
-		metadata.SetMetadata(filename);
-#endif
-	}
-	bool isNew = false;
-	CSqlCriteria sqlCriteria;
-	CSqlPhotoCriteria sqlPhotoCriteria;
-	CSqlPhotos sqlPhotos;
-
-	int numPhotoId = sqlPhotos.GetPhotoId(filename);
-	int oldCriteriaId = sqlCriteria.GetCriteriaIdByCategorie(numPhotoId, 3);
-
-	int numCriteriaId = sqlCriteria.GetOrInsertCriteriaId(1, 3, selectDate, isNew);
-	sqlPhotoCriteria.InsertPhotoCriteria(numPhotoId, numCriteriaId);
-	if (oldCriteriaId != -1 && numCriteriaId != oldCriteriaId)
-		sqlPhotoCriteria.DeletePhotoCriteria(numPhotoId, oldCriteriaId);
+	CPhotoCriteriaUtility::ChangeDateFile(filename, newDate, selectDate);
 }
 
 
@@ -564,15 +479,9 @@ void CListPicture::CreateFolder(const wxString& newFolder)
 wxString CListPicture::CreateExportFolder(const InfoExportFile& infoFile, const wxString& folderDestination,
                                           const wxString& dateFile, const wxString& gpsFile)
 {
-	wxString separator_folder;
+	wxString separator_folder = wxFileName::GetPathSeparator();
 	wxString libelle = CLibResource::LoadStringFromResource("LBLNOTGEO", 1);
 	wxString folderComplete = folderDestination;
-
-#if __APPLE__
-	separator_folder = "/";
-#else
-	separator_folder = "\\";
-#endif
 
 	if (infoFile.priority == 0)
 	{

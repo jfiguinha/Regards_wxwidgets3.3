@@ -57,7 +57,7 @@ namespace Regards
 
 
 
-			void GeolocalizeFile(const wxString& filename, const float& latitude, const float& longitude,
+			void GeolocalizeFile(const wxString& filename,
 			                     const wxString& lat, const wxString& lng, const wxString& geoInfos);
 			void ChangeDateFile(const wxString& filename, const wxDateTime& newDate, const wxString& selectDate);
 			void ExportFile(const wxString& filename, const int& numPhotoId, InfoExportFile infoFile,

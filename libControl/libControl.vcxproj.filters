@@ -115,6 +115,9 @@
     <ClCompile Include="AfterEffect.cpp">
       <Filter>Bitmap\PostEffect</Filter>
     </ClCompile>
+    <ClCompile Include="PhotoCriteriaUtility.cpp">
+      <Filter>ExifModification</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CriteriaTree.h">
@@ -252,6 +255,9 @@
     <ClInclude Include="InfosSeparationBarFace.h">
       <Filter>SeparatorBar</Filter>
     </ClInclude>
+    <ClInclude Include="PhotoCriteriaUtility.h">
+      <Filter>ExifModification</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -301,6 +307,9 @@
     </Filter>
     <Filter Include="SeparatorBar">
       <UniqueIdentifier>{060f7c46-b343-4e33-b03f-a3c9884340ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ExifModification">
+      <UniqueIdentifier>{6e174e20-187b-4e78-aa59-f0ab1e1a69d0}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

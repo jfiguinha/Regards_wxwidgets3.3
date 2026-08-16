@@ -889,6 +889,7 @@
     <ClInclude Include="MoveEffectTexture.h" />
     <ClInclude Include="NoneEffectTextureEffect.h" />
     <ClInclude Include="PageCurlFilter.h" />
+    <ClInclude Include="PhotoCriteriaUtility.h" />
     <ClInclude Include="PrintEngine.h" />
     <ClInclude Include="ShowElement.h" />
     <ClInclude Include="SliderVideo.h" />
@@ -942,6 +943,7 @@
     <ClCompile Include="MFTEncoding.cpp" />
     <ClCompile Include="MoveEffectTexture.cpp" />
     <ClCompile Include="PageCurlFilter.cpp" />
+    <ClCompile Include="PhotoCriteriaUtility.cpp" />
     <ClCompile Include="PrintEngine.cpp" />
     <ClCompile Include="ShowElement.cpp" />
     <ClCompile Include="SliderVideo.cpp" />
