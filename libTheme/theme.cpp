@@ -154,7 +154,7 @@ void CThemeBitmapWindow::SaveXML(xml_document<>& doc, xml_node<>* sectionPositio
 	section->append_node(node(doc, "colorScreen",
 	                          CConvertUtility::ConvertToStdString(colorScreen.GetAsString(wxC2S_CSS_SYNTAX))));
 	section->append_node(node(doc, "colorArrow",
-		CConvertUtility::ConvertToStdString(colorScreen.GetAsString(wxC2S_CSS_SYNTAX))));
+		CConvertUtility::ConvertToStdString(colorArrow.GetAsString(wxC2S_CSS_SYNTAX))));
 	sectionPosition->append_node(section);
 }
 
