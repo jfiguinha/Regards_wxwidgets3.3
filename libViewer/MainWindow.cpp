@@ -813,6 +813,8 @@ void CMainWindow::OnVersionUpdate(wxCommandEvent& event)
 
     if (event.GetInt() && toolbarViewerMode)
         toolbarViewerMode->SetUpdateVisible(true);
+    else
+        toolbarViewerMode->SetUpdateVisible(false);
 
     isCheckNewVersion = false;
 }
