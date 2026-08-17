@@ -523,7 +523,7 @@ int CRenderOpenGL::GetHeight()
 	return height;
 }
 
-void CRenderOpenGL::CreateScreenRender(
+bool CRenderOpenGL::CreateScreenRender(
 	const int& width, const int& height, const CRgbaquad& color)
 {
 	const bool sizeChanged =
@@ -559,6 +559,8 @@ void CRenderOpenGL::CreateScreenRender(
 		color.GetFAlpha() / 255.0f);
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	return sizeChanged;
 }
 
 void CRenderOpenGL::RenderQuad(GLTexture* texture, int left, int top, bool inverted)

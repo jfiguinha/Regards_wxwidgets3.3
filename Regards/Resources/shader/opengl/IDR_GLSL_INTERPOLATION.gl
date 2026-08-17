@@ -1,987 +1,364 @@
-// ============================================================================
-// Optimized OpenGL interpolation shader
-//
-// Texture format:
-//     RGBA
-//
-// interpolation:
-//     0  = Nearest
-//     1  = Bilinear
-//     2  = Bicubic / Catmull-Rom
-//     3  = Bicubic / Catmull-Rom
-//     4  = Bicubic / Catmull-Rom
-//     5  = Bicubic / Catmull-Rom
-//     6  = Bicubic / Catmull-Rom
-//     7  = Bicubic / Catmull-Rom
-//
-//     interpolation >= 8:
-//         type = interpolation - 7
-//
-//         1  = BBox
-//         2  = Hermite
-//         3  = Hanning
-//         4  = Catmull-Rom
-//         5  = Mitchell
-//         6  = Triangle
-//         7  = Quadratic
-//         8  = Blackman
-//         9  = Hamming
-//         10 = Gaussian
-//         11 = Bilinear
-//
-// ============================================================================
-
 uniform sampler2D ImageTexture;
-
 uniform float widthTex;
 uniform float heightTex;
-
 uniform int widthIn;
 uniform int heightIn;
 uniform int widthOut;
 uniform int heightOut;
-
 uniform int flipH;
 uniform int flipV;
-
 uniform int angle;
-
 uniform int left;
 uniform int top;
-
 uniform int interpolation;
 
+#define FILTER_PI 3.1415926535
+#define FILTER_2PI 2.0f * 3.1415926535
+#define FILTER_4PI 4.0f * 3.1415926535
 
-// ============================================================================
-// Constants
-// ============================================================================
-
-const float FILTER_PI  = 3.14159265358979323846;
-const float FILTER_2PI = 6.28318530717958647692;
-const float FILTER_4PI = 12.56637061435917295384;
-
-const float FILTER_EPSILON = 0.000001;
-
-
-// ============================================================================
-// Texture coordinates
-//
-// The shader assumes GL_NEAREST for ImageTexture.
-//
-// Coordinates are clamped manually so interpolation never produces a black
-// border when a 4x4 kernel reaches the image boundary.
-// ============================================================================
-
-vec2 ClampTexelCoordinate(
-    vec2 texelCoord)
+// Pre-computed filter functions inline - avoid function call overhead
+float KernelFilter_selection(float x, int type)
 {
-    float maxX = widthTex  - 1.0;
-    float maxY = heightTex - 1.0;
-
-    texelCoord.x = clamp(texelCoord.x, 0.0, maxX);
-    texelCoord.y = clamp(texelCoord.y, 0.0, maxY);
-
-    return texelCoord;
-}
-
-
-// ============================================================================
-// Read one texel using integer pixel coordinates
-// ============================================================================
-
-vec4 TexturePixel(
-    float x,
-    float y)
-{
-    vec2 pixel = ClampTexelCoordinate(vec2(x, y));
-
-    // Pixel center.
-    vec2 uv =
-        (pixel + vec2(0.5, 0.5)) /
-        vec2(widthTex, heightTex);
-
-    return texture2D(ImageTexture, uv);
-}
-
-
-// ============================================================================
-// Read relative to the current interpolation position
-//
-// posX / posY are normalized texture coordinates.
-//
-// xDiff / yDiff are pixel offsets.
-// ============================================================================
-
-vec4 TextureValue(
-    float posX,
-    float posY,
-    int xDiff,
-    int yDiff)
-{
-    float pixelX =
-        floor(posX * widthTex) +
-        float(xDiff);
-
-    float pixelY =
-        floor(posY * heightTex) +
-        float(yDiff);
-
-    return TexturePixel(pixelX, pixelY);
-}
-
-
-// ============================================================================
-// BBox filter
-// ============================================================================
-
-float BBoxFilter(
-    float x)
-{
-    return abs(x) <= 0.5
-        ? 1.0
-        : 0.0;
-}
-
-
-// ============================================================================
-// Hermite filter
-// ============================================================================
-
-float HermiteFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.0)
-        return 0.0;
-
-    return
-        (2.0 * ax - 3.0) * ax * ax + 1.0;
-}
-
-
-// ============================================================================
-// Hanning filter
-// ============================================================================
-
-float HanningFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.0)
-        return 0.0;
-
-    return
-        0.54 +
-        0.46 * cos(FILTER_PI * x);
-}
-
-
-// ============================================================================
-// Catmull-Rom
-//
-// Standard Catmull-Rom cubic spline.
-//
-// Support:
-//     [-2, 2]
-// ============================================================================
-
-float CatmullRomFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 2.0)
-        return 0.0;
-
-    if (ax < 1.0)
+    switch(type)
     {
-        return
-            1.5 * ax * ax * ax
-          - 2.5 * ax * ax
-          + 1.0;
-    }
-
-    return
-        -0.5 * ax * ax * ax
-        + 2.5 * ax * ax
-        - 4.0 * ax
-        + 2.0;
-}
-
-
-// ============================================================================
-// Mitchell-Netravali
-//
-// B = 1/3
-// C = 1/3
-// ============================================================================
-
-float MitchellFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 2.0)
-        return 0.0;
-
-    const float B = 0.3333333333333333;
-    const float C = 0.3333333333333333;
-
-    if (ax < 1.0)
-    {
-        return
-            (
-                (12.0 - 9.0 * B - 6.0 * C) * ax * ax * ax
-              + (-18.0 + 12.0 * B + 6.0 * C) * ax * ax
-              + (6.0 - 2.0 * B)
-            ) / 6.0;
-    }
-
-    return
-        (
-            (-B - 6.0 * C) * ax * ax * ax
-          + (6.0 * B + 30.0 * C) * ax * ax
-          + (-12.0 * B - 48.0 * C) * ax
-          + (8.0 * B + 24.0 * C)
-        ) / 6.0;
-}
-
-
-// ============================================================================
-// Triangle
-// ============================================================================
-
-float TriangleFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.0)
-        return 0.0;
-
-    return 1.0 - ax;
-}
-
-
-// ============================================================================
-// Quadratic
-// ============================================================================
-
-float QuadraticFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.5)
-        return 0.0;
-
-    if (ax < 0.5)
-        return 0.75 - ax * ax;
-
-    float t = 1.5 - ax;
-
-    return 0.5 * t * t;
-}
-
-
-// ============================================================================
-// Blackman
-// ============================================================================
-
-float BlackmanFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.0)
-        return 0.0;
-
-    return
-        0.42
-      + 0.5 * cos(FILTER_2PI * x / 2.0)
-      + 0.08 * cos(FILTER_4PI * x / 2.0);
-}
-
-
-// ============================================================================
-// Hamming + sinc
-// ============================================================================
-
-float HammingFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.0)
-        return 0.0;
-
-    float window =
-        0.54 +
-        0.46 * cos(FILTER_2PI * x);
-
-    float sinc;
-
-    if (ax < FILTER_EPSILON)
-    {
-        sinc = 1.0;
-    }
-    else
-    {
-        float px = FILTER_PI * x;
-
-        sinc = sin(px) / px;
-    }
-
-    return window * sinc;
-}
-
-
-// ============================================================================
-// Gaussian
-// ============================================================================
-
-float GaussianFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.25)
-        return 0.0;
-
-    return
-        exp(-0.5 * x * x)
-        * 0.3989422804014327;
-}
-
-
-// ============================================================================
-// Bilinear
-// ============================================================================
-
-float BilinearFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 1.0)
-        return 0.0;
-
-    return 1.0 - ax;
-}
-
-
-// ============================================================================
-// Cubic
-//
-// Classic cubic B-spline.
-// ============================================================================
-
-float CubicFilter(
-    float x)
-{
-    float ax = abs(x);
-
-    if (ax >= 2.0)
-        return 0.0;
-
-    if (ax < 1.0)
-    {
-        return
-            (
-                4.0
-              - 6.0 * ax * ax
-              + 3.0 * ax * ax * ax
-            ) / 6.0;
-    }
-
-    float t = 2.0 - ax;
-
-    return
-        t * t * t / 6.0;
-}
-
-
-// ============================================================================
-// Filter selection
-// ============================================================================
-
-float KernelFilterSelection(
-    float x,
-    int type)
-{
-    switch (type)
-    {
-        case 1:
-            return BBoxFilter(x);
-
-        case 2:
-            return HermiteFilter(x);
-
-        case 3:
-            return HanningFilter(x);
-
-        case 4:
-            return CatmullRomFilter(x);
-
-        case 5:
-            return MitchellFilter(x);
-
-        case 6:
-            return TriangleFilter(x);
-
-        case 7:
-            return QuadraticFilter(x);
-
-        case 8:
-            return BlackmanFilter(x);
-
-        case 9:
-            return HammingFilter(x);
-
-        case 10:
-            return GaussianFilter(x);
-
-        case 11:
-            return BilinearFilter(x);
-
-        default:
-            return CubicFilter(x);
+        case 1: // BboxFilter
+            return (x <= 0.5 ? 1.0 : 0.0);
+            
+        case 2: // HermiteFilter
+            if (x > 1.5) return 0.0;
+            if (x < -1.0) return 0.0;
+            if (x < 0.0) return (2.0*(-x)-3.0)*(-x)*(-x)+1.0;
+            if (x < 1.0) return (2.0*x-3.0)*x*x+1.0;
+            return 0.0;
+            
+        case 3: // HanningFilter
+            if (x > 1.0) return 0.0;
+            return 0.54 + 0.46*cos(FILTER_PI*x);
+            
+        case 4: // CatromFilter
+            if (x > 2.0) return 0.0;
+            if (x < -2.0) return 0.0;
+            if (x < -1.0) return 0.5*(4.0+x*(8.0+x*(5.0+x)));
+            if (x < 0.0) return 0.5*(2.0+x*x*(-5.0-3.0*x));
+            if (x < 1.0) return 0.5*(2.0+x*x*(-5.0+3.0*x));
+            if (x < 2.0) return 0.5*(4.0+x*(-8.0+x*(5.0-x)));
+            return 0.0;
+            
+        case 5: // MitchellFilter
+            if (x > 2.0) return 0.0;
+            #define B   (1.0/3.0)
+            #define C   (1.0/3.0)
+            #define P0  ((  6.0- 2.0*B       )/6.0)
+            #define P2  ((-18.0+12.0*B+ 6.0*C)/6.0)
+            #define P3  (( 12.0- 9.0*B- 6.0*C)/6.0)
+            #define Q0  ((       8.0*B+24.0*C)/6.0)
+            #define Q1  ((     -12.0*B-48.0*C)/6.0)
+            #define Q2  ((       6.0*B+30.0*C)/6.0)
+            #define Q3  ((     - 1.0*B- 6.0*C)/6.0)
+            if (x < -2.0) return 0.0;
+            if (x < -1.0) return Q0-x*(Q1-x*(Q2-x*Q3));
+            if (x < 0.0) return P0+x*x*(P2-x*P3);
+            if (x < 1.0) return P0+x*x*(P2+x*P3);
+            if (x < 2.0) return Q0+x*(Q1+x*(Q2+x*Q3));
+            return 0.0;
+            
+        case 6: // TriangleFilter
+            if (x > 1.0) return 0.0;
+            if (x < -1.0) return 0.0;
+            if (x < 0.0) return 1.0+x;
+            return 1.0-x;
+            
+        case 7: // QuadraticFilter
+            if (x > 1.5) return 0.0;
+            if (x < -1.5) return 0.0;
+            if (x < -0.5) return 0.5*(x+1.5)*(x+1.5);
+            if (x < 0.5) return 0.75-x*x;
+            return 0.5*(x-1.5)*(x-1.5);
+            
+        case 8: // BlackmanFilter
+            if (x > 1.0) return 0.0;
+            float dN = 3.0;
+            return 0.42 + 0.5 * cos(FILTER_2PI * x / ( dN - 1.0 )) + 0.08 * cos (FILTER_4PI * x / ( dN - 1.0 ));
+            
+        case 9: // HammingFilter
+            if (x > 1.0) return 0.0;
+            float dWindow = 0.54 + 0.46 * cos(FILTER_2PI * x);
+            float dSinc = (int(x) == 0) ? 1.0 : sin(FILTER_PI * x) / (FILTER_PI * x);
+            return dWindow * dSinc;
+            
+        case 10: // GaussianFilter
+            if (abs(x) > 1.25) return 0.0;
+            return exp(-x * x / 2.0) / sqrt (FILTER_2PI);
+            
+        case 11: // BilinearFilter
+            return (x < 1.0 ? 1.0 - x : 0.0);
+            
+        default: // CubicFilter
+            if (x > 2.0) return 0.0;
+            if (x < -2.0) return 0.0;
+            if (x < -1.0) return (2.0+x)*(2.0+x)*(2.0+x)/6.0;
+            if (x < 0.0) return (4.0+x*x*(-6.0-3.0*x))/6.0;
+            if (x < 1.0) return (4.0+x*x*(-6.0+3.0*x))/6.0;
+            if (x < 2.0) return (2.0-x)*(2.0-x)*(2.0-x)/6.0;
+            return 0.0;
     }
 }
 
-
-// ============================================================================
-// Calculate normalized filter weights
-//
-// Four samples are always generated. This is necessary for the cubic filters.
-// ============================================================================
-
-vec4 ComputeWeights4(
-    float fraction,
-    int type)
+//------------------------------------------------------------
+//TextureValue													   
+//------------------------------------------------------------
+vec4 TextureValue(float posX, float posY, int xDiff, int yDiff)
 {
-    vec4 weights;
+	float texelSizeX = 1.0 / widthTex; //size of one texel 
+	float texelSizeY = 1.0 / heightTex; //size of one texel 
+	
+	float pixelX = posX * widthTex + float(xDiff);
+	float pixelY = posY * heightTex + float(yDiff);
+	
+	if(pixelX >= 0.0 && pixelX < widthTex && pixelY >= 0.0 && pixelY < heightTex)
+	{
+		vec2 resolution = vec2(texelSizeX, texelSizeY); 
+		return texture2D(ImageTexture, vec2(posX,posY) + resolution * vec2(xDiff, yDiff));
+	}
+	/*
+	else if(interpolation > 2)
+		return vec4(1.0,0.0,0.0,0.0);
+	else if(interpolation == 2)
+		return vec4(0.0,1.0,0.0,0.0);
+	else if(interpolation == 1)
+		return vec4(0.0,0.0,1.0,0.0);
+	*/
+	return vec4(0.0,0.0,0.0,0.0);
+}
 
-    weights.x =
-        KernelFilterSelection(
-            -1.0 - fraction,
-            type);
+//***********************************************************************************************************
+//Two Pass Filter
+//***********************************************************************************************************
+// Helper: Horizontal pass - interpolate across 3 pixels in X direction
+vec4 FilterHorizontal(float x, float y, int diff, int type)
+{
+	float pixelX = x * widthTex;
+	
+	int valueA =  int(pixelX);
+	float realA = pixelX - float(valueA);
 
-    weights.y =
-        KernelFilterSelection(
-            -fraction,
-            type);
+	float fx1 = KernelFilter_selection(-1.0 - realA, type);
+	float fx2 = KernelFilter_selection(-realA, type);
+	float fx3 = KernelFilter_selection(1.0 - realA, type);
 
-    weights.z =
-        KernelFilterSelection(
-            1.0 - fraction,
-            type);
+	float fxSum = fx1 + fx2 + fx3;
+	float fxInv = 1.0 / fxSum;
 
-    weights.w =
-        KernelFilterSelection(
-            2.0 - fraction,
-            type);
+	vec4 left = TextureValue(x, y,  -1, 0) * (fx1 * fxInv);
+	vec4 center = TextureValue(x, y, 0, 0) * (fx2 * fxInv);
+	vec4 right = TextureValue(x, y, 1, 0) * (fx3 * fxInv);
 
-    float sum =
-        weights.x +
-        weights.y +
-        weights.z +
-        weights.w;
+	return left + center + right;
+}
 
-    if (abs(sum) > FILTER_EPSILON)
-    {
-        weights /= sum;
-    }
-    else
-    {
-        weights =
-            vec4(0.0, 1.0, 0.0, 0.0);
-    }
+// Helper: Vertical pass - interpolate across 3 pixels in Y direction using mix
+vec4 FilterVertical(vec4 row1, vec4 row2, vec4 row3, float y, int type)
+{
+	float pixelY = y * heightTex;
 
-    return weights;
+	int valueB = (int)pixelY;
+	float realB = pixelY - float(valueB);
+
+	float fy1 = KernelFilter_selection(-(-1.0 - realB), type);
+	float fy2 = KernelFilter_selection(realB, type);
+	float fy3 = KernelFilter_selection(-(1.0 - realB), type);
+
+	float fySum = fy1 + fy2 + fy3;
+	float fyInv = 1.0 / fySum;
+
+	float wny1 = fy1 * fyInv;
+	float wny2 = fy2 * fyInv;
+	float wny3 = fy3 * fyInv;
+
+	return mix(mix(row1, row2, wny2), row3, wny3);
+}
+
+// Two-pass separable filter interpolation
+vec4 KernelExecution(float x, float y, int type)
+{
+	// Pass 1: Horizontal filtering on 3 rows
+	vec4 row1 = FilterHorizontal(x, y, -1, type);
+	vec4 row2 = FilterHorizontal(x, y, 0, type);
+	vec4 row3 = FilterHorizontal(x, y, 1, type);
+
+	// Pass 2: Vertical filtering using mix
+	return FilterVertical(row1, row2, row3, y, type);
 }
 
 
-// ============================================================================
-// Optimized horizontal interpolation
-// ============================================================================
-
-vec4 FilterHorizontal(
-    float posX,
-    float posY,
-    int type,
-    vec4 weights)
-{
-    float pixelX =
-        floor(posX * widthTex);
-
-    float pixelY =
-        floor(posY * heightTex);
-
-    vec4 p0 =
-        TexturePixel(
-            pixelX - 1.0,
-            pixelY);
-
-    vec4 p1 =
-        TexturePixel(
-            pixelX,
-            pixelY);
-
-    vec4 p2 =
-        TexturePixel(
-            pixelX + 1.0,
-            pixelY);
-
-    vec4 p3 =
-        TexturePixel(
-            pixelX + 2.0,
-            pixelY);
-
-    return
-        p0 * weights.x +
-        p1 * weights.y +
-        p2 * weights.z +
-        p3 * weights.w;
+// from http://www.java-gaming.org/index.php?topic=35123.0
+vec4 cubic(float v){
+    vec4 n = vec4(1.0, 2.0, 3.0, 4.0) - v;
+    vec4 s = n * n * n;
+    float x = s.x;
+    float y = s.y - 4.0 * s.x;
+    float z = s.z - 4.0 * s.y + 6.0 * s.x;
+    float w = 6.0 - x - y - z;
+    return vec4(x, y, z, w) * (1.0/6.0);
 }
 
 
-// ============================================================================
-// Main 4x4 separable interpolation
-// ============================================================================
 
-vec4 KernelExecution(
-    float posX,
-    float posY,
-    int type)
+vec4 textureBicubic(vec2 texCoord_i){
+  
+    vec2 fxy = fract(texCoord_i);
+    vec4 xcubic = vec4(0.0);
+	vec4 ycubic = vec4(0.0);
+
+	xcubic = cubic(fxy.x);
+	ycubic = cubic(fxy.y);
+  
+    vec4 s = vec4(xcubic.xz + xcubic.yw, ycubic.xz + ycubic.yw);
+
+	// Take nearest two data in current row.
+    vec4 sample0 = TextureValue(texCoord_i.x, texCoord_i.y, 0, 0);
+    vec4 sample1 = TextureValue(texCoord_i.x, texCoord_i.y, 1, 0);
+
+	// Take nearest two data in bottom row.
+    vec4 sample2 = TextureValue(texCoord_i.x, texCoord_i.y, 0, 1);
+    vec4 sample3 = TextureValue(texCoord_i.x, texCoord_i.y, 1, 1);
+
+    float sx = s.x / (s.x + s.y);
+    float sy = s.z / (s.z + s.w);
+
+    return mix(
+       mix(sample3, sample2, sx), mix(sample1, sample0, sx)
+    , sy);
+}
+
+// Function to get a texel data from a texture with GL_NEAREST property.
+// Bi-Linear interpolation is implemented in this function with the 
+// help of nearest four data.
+vec4 tex2DBiLinear(vec2 texCoord_i )
 {
-    float pixelX =
-        posX * widthTex;
+	// Take nearest two data in current row.
+    vec4 p0q0 = TextureValue(texCoord_i.x, texCoord_i.y, 0, 0);
+    vec4 p1q0 = TextureValue(texCoord_i.x, texCoord_i.y, 1, 0);
 
-    float pixelY =
-        posY * heightTex;
+	// Take nearest two data in bottom row.
+    vec4 p0q1 = TextureValue(texCoord_i.x, texCoord_i.y, 0, 1);
+    vec4 p1q1 = TextureValue(texCoord_i.x, texCoord_i.y, 1, 1);
 
-    float baseX =
-        floor(pixelX);
+    float a = fract( texCoord_i.x * widthTex ); // Get Interpolation factor for X direction.
+											 // Fraction near to valid data.
 
-    float baseY =
-        floor(pixelY);
+	// Interpolation in X direction.
+    vec4 pInterp_q0 = mix( p0q0, p1q0, a ); // Interpolates top row in X direction.
+    vec4 pInterp_q1 = mix( p0q1, p1q1, a ); // Interpolates bottom row in X direction.
 
-    float fractionX =
-        pixelX - baseX;
-
-    float fractionY =
-        pixelY - baseY;
-
-    vec4 weightsX =
-        ComputeWeights4(
-            fractionX,
-            type);
-
-    vec4 weightsY =
-        ComputeWeights4(
-            fractionY,
-            type);
-
-    // ------------------------------------------------------------------------
-    // Four horizontal passes
-    // ------------------------------------------------------------------------
-
-    float py0 =
-        (baseY - 1.0) / heightTex;
-
-    float py1 =
-        baseY / heightTex;
-
-    float py2 =
-        (baseY + 1.0) / heightTex;
-
-    float py3 =
-        (baseY + 2.0) / heightTex;
-
-    vec4 row0 =
-        FilterHorizontal(
-            posX,
-            py0,
-            type,
-            weightsX);
-
-    vec4 row1 =
-        FilterHorizontal(
-            posX,
-            py1,
-            type,
-            weightsX);
-
-    vec4 row2 =
-        FilterHorizontal(
-            posX,
-            py2,
-            type,
-            weightsX);
-
-    vec4 row3 =
-        FilterHorizontal(
-            posX,
-            py3,
-            type,
-            weightsX);
-
-    // ------------------------------------------------------------------------
-    // Vertical pass
-    // ------------------------------------------------------------------------
-
-    return
-        row0 * weightsY.x +
-        row1 * weightsY.y +
-        row2 * weightsY.z +
-        row3 * weightsY.w;
+    float b = fract( texCoord_i.y * heightTex ); // Get Interpolation factor for Y direction.
+    return mix( pInterp_q0, pInterp_q1, b ); // Interpolate in Y direction.
 }
 
 
-// ============================================================================
-// Bilinear interpolation
-//
-// Uses four explicit nearest texels.
-// ============================================================================
 
-vec4 BilinearInterpolation(
-    vec2 texCoord)
-{
-    float pixelX =
-        texCoord.x * widthTex;
-
-    float pixelY =
-        texCoord.y * heightTex;
-
-    float baseX =
-        floor(pixelX);
-
-    float baseY =
-        floor(pixelY);
-
-    float fx =
-        pixelX - baseX;
-
-    float fy =
-        pixelY - baseY;
-
-    vec4 p00 =
-        TexturePixel(
-            baseX,
-            baseY);
-
-    vec4 p10 =
-        TexturePixel(
-            baseX + 1.0,
-            baseY);
-
-    vec4 p01 =
-        TexturePixel(
-            baseX,
-            baseY + 1.0);
-
-    vec4 p11 =
-        TexturePixel(
-            baseX + 1.0,
-            baseY + 1.0);
-
-    vec4 row0 =
-        mix(p00, p10, fx);
-
-    vec4 row1 =
-        mix(p01, p11, fx);
-
-    return mix(row0, row1, fy);
-}
-
-
-// ============================================================================
-// Nearest
-// ============================================================================
-
-vec4 NearestInterpolation(
-    vec2 texCoord)
-{
-    float pixelX =
-        floor(texCoord.x * widthTex);
-
-    float pixelY =
-        floor(texCoord.y * heightTex);
-
-    return TexturePixel(
-        pixelX,
-        pixelY);
-}
-
-
-// ============================================================================
-// Calculate source position
-//
-// posX / posY are in output pixel coordinates.
-//
-// The transformation follows the same axis convention as the OpenCL version.
-// ============================================================================
-
-vec2 CalculateSourcePosition(
-    float posX,
-    float posY,
-    float outputWidth,
-    float outputHeight)
-{
-    float sourceX = posX;
-    float sourceY = posY;
-
-    // ------------------------------------------------------------------------
-    // Rotation
-    // ------------------------------------------------------------------------
-
-    if (angle == 90)
-    {
-        float tmp = sourceX;
-
-        sourceX =
-            sourceY;
-
-        sourceY =
-            outputHeight - tmp - 1.0;
-    }
-    else if (angle == 180)
-    {
-        sourceX =
-            outputWidth - sourceX - 1.0;
-
-        sourceY =
-            outputHeight - sourceY - 1.0;
-    }
-    else if (angle == 270)
-    {
-        float tmp = sourceX;
-
-        sourceX =
-            outputWidth - sourceY - 1.0;
-
-        sourceY =
-            tmp;
-    }
-
-    // ------------------------------------------------------------------------
-    // Flip
-    // ------------------------------------------------------------------------
-
-    if (angle == 90 || angle == 270)
-    {
-        if (flipV == 1)
-        {
-            sourceX =
-                outputHeight - sourceX - 1.0;
-        }
-
-        if (flipH == 1)
-        {
-            sourceY =
-                outputWidth - sourceY - 1.0;
-        }
-    }
-    else
-    {
-        if (flipH == 1)
-        {
-            sourceX =
-                outputWidth - sourceX - 1.0;
-        }
-
-        if (flipV == 1)
-        {
-            sourceY =
-                outputHeight - sourceY - 1.0;
-        }
-    }
-
-    return vec2(sourceX, sourceY);
-}
-
-
-// ============================================================================
-// Main
-// ============================================================================
-
+// Shader for creating GL_LINEAR interpolation in shader.
 void main()
 {
-    // ------------------------------------------------------------------------
-    // Output texture coordinate
-    // ------------------------------------------------------------------------
+	vec2 texCoord_i = gl_TexCoord[0].st;
+	float x = texCoord_i.x;
+	float y = texCoord_i.y;
+	float left_local = float((widthIn - widthOut) / 2);
+	float top_local = float((heightIn - heightOut) / 2);
+	float xPixel = texCoord_i.x * float(widthIn);
+	float yPixel = texCoord_i.y * float(heightIn);
 
-    vec2 texCoord =
-        gl_TexCoord[0].st;
-
-    // ------------------------------------------------------------------------
-    // Dimensions
-    //
-    // widthOut / heightOut describe the actual displayed output.
-    // ------------------------------------------------------------------------
-
-    float fWidthOut =
-        float(widthOut);
-
-    float fHeightOut =
-        float(heightOut);
-
-    // ------------------------------------------------------------------------
-    // Input pixel coordinates corresponding to the current fragment.
-    // ------------------------------------------------------------------------
-
-    float xPixel =
-        texCoord.x * float(widthIn);
-
-    float yPixel =
-        texCoord.y * float(heightIn);
-
-    // ------------------------------------------------------------------------
-    // Crop / zone calculation
-    // ------------------------------------------------------------------------
-
-    float leftLocal =
-        0.5 * float(widthIn - widthOut);
-
-    float topLocal =
-        0.5 * float(heightIn - heightOut);
-
-    leftLocal =
-        max(leftLocal, 0.0);
-
-    topLocal =
-        max(topLocal, 0.0);
-
-    // ------------------------------------------------------------------------
-    // Outside of active zone
-    // ------------------------------------------------------------------------
-
-    if (xPixel < leftLocal ||
-        yPixel < topLocal ||
-        xPixel >= float(widthIn) - leftLocal ||
-        yPixel >= float(heightIn) - topLocal)
+    float fwidthOut = float(widthOut);
+    float fheightOut = float(heightOut);
+	
+	if(left_local < 0.0)
+		left_local = 0.0;
+	if(top_local < 0.0)
+		top_local = 0.0;
+	
+	if(xPixel >= left_local && yPixel >= top_local && xPixel < (float(widthIn) - left_local) && yPixel < (float(heightIn) - top_local))
     {
-        gl_FragColor =
-            vec4(0.0);
+		float posX = (xPixel - left_local) + float(left);
+		float posY = (yPixel - top_local) + float(top);
+		
+		if (angle == 270)
+		{
+			float srcx = posY;
+			float srcy = posX;
 
-        return;
-    }
+			posX = srcx;
+			posY = srcy;
+			
+			posY = fwidthOut - posY - 1.0;
 
-    // ------------------------------------------------------------------------
-    // Position in the output image
-    // ------------------------------------------------------------------------
+			//posX = fwidthOut - posX - 1.0;
+		}
+		else if (angle == 180)
+		{
+			posX = fwidthOut - posX - 1.0;
+			posY = fheightOut - posY - 1.0;
+		}
+		else if (angle == 90)
+		{
+			float srcx = posY;
+			float srcy = posX;
 
-    float posX =
-        (xPixel - leftLocal)
-        + float(left);
+			posX = srcx;
+			posY = srcy;
 
-    float posY =
-        (yPixel - topLocal)
-        + float(top);
+			//posY = fwidthOut - posY - 1.0;
+			posX = fheightOut - posX - 1.0;
+		}
+		
+		if(angle == 90 || angle == 270)
+		{
+			if (flipV == 1)
+			{
+				posX = fheightOut - posX - 1.0;
+			}
 
-    // ------------------------------------------------------------------------
-    // Rotation / flipping
-    // ------------------------------------------------------------------------
+			if (flipH == 1)
+			{
+				posY = fwidthOut - posY - 1.0;
+			}
+		
+		}
+		else
+		{
+			if (flipH == 1)
+			{
+				posX = fwidthOut - posX - 1.0;
+			}
 
-    vec2 transformed =
-        CalculateSourcePosition(
-            posX,
-            posY,
-            fWidthOut,
-            fHeightOut);
-
-    posX =
-        transformed.x;
-
-    posY =
-        transformed.y;
-
-    // ------------------------------------------------------------------------
-    // Convert to normalized texture coordinates.
-    //
-    // For 90 / 270 the output axes are exchanged.
-    // ------------------------------------------------------------------------
-
-    float localX;
-    float localY;
-
-    if (angle == 90 ||
-        angle == 270)
-    {
-        localX =
-            posX / fHeightOut;
-
-        localY =
-            posY / fWidthOut;
-    }
-    else
-    {
-        localX =
-            posX / fWidthOut;
-
-        localY =
-            posY / fHeightOut;
-    }
-
-    vec2 localTexCoord =
-        vec2(localX, localY);
-
-    // ------------------------------------------------------------------------
-    // Interpolation selection
-    // ------------------------------------------------------------------------
-
-    vec4 data;
-
-    if (interpolation == 0)
-    {
-        // ------------------------------------------------------------
-        // Nearest
-        // ------------------------------------------------------------
-
-        data =
-            NearestInterpolation(
-                localTexCoord);
-    }
-    else if (interpolation == 1)
-    {
-        // ------------------------------------------------------------
-        // Bilinear
-        // ------------------------------------------------------------
-
-        data =
-            BilinearInterpolation(
-                localTexCoord);
-    }
-    else
-    {
-        // ------------------------------------------------------------
-        // Cubic / custom filters
-        // ------------------------------------------------------------
-
-        int filterType;
-
-        if (interpolation >= 8)
-        {
-            filterType =
-                interpolation - 7;
-        }
-        else
-        {
-            // interpolation 2..7
-            // Use Catmull-Rom for the bicubic path.
-            filterType = 4;
-        }
-
-        data =
-            KernelExecution(
-                localTexCoord.x,
-                localTexCoord.y,
-                filterType);
-    }
-
-    gl_FragColor =
-        clamp(data, 0.0, 1.0);
+			if (flipV == 1)
+			{
+				posY = fheightOut - posY - 1.0;
+			}
+		}
+			
+		
+		float x_local = (posX)/fwidthOut;
+		float y_local = (posY)/fheightOut;
+		if(angle == 90 || angle == 270)
+		{
+			x_local = (posX)/fheightOut;
+			y_local = (posY)/fwidthOut;
+		}
+		
+		vec4 data = vec4(0.0,0.0,0.0,0.0);
+		if(interpolation == 1)
+			data = tex2DBiLinear(vec2(x_local, y_local));
+		else if(interpolation >= 8)
+			data = KernelExecution(x_local, y_local, interpolation - 7);
+		else if(interpolation >= 2)
+			data = textureBicubic(vec2(x_local, y_local));
+		else
+			data = TextureValue(x_local, y_local, 0, 0);
+		gl_FragColor = data;
+	}
+	else
+	{
+		gl_FragColor = vec4(0.0,0.0,0.0,0.0);
+	}
 }
+

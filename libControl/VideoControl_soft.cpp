@@ -1373,10 +1373,16 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 	// Préparation du framebuffer
 	// ---------------------------------------------------------------------
 
-	renderOpenGL->CreateScreenRender(
+	bool hasChanged = renderOpenGL->CreateScreenRender(
 		width,
 		height,
 		CRgbaquad(0, 0, 0, 0));
+
+	if (hasChanged && !reinititTexture)
+	{
+		reinititTexture = true;
+		renderBitmapOpenGL->Cleanup();
+	}
 
 	// ---------------------------------------------------------------------
 	// Rendu de la vidéo
@@ -1493,6 +1499,10 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 			else
 				RenderFFmpegToTexture();
 
+
+			if (reinititTexture && !deleteTexture)
+				deleteTexture = true;
+
 			renderBitmapOpenGL->SetVideoTexture(
 				pictureArray,
 				deleteTexture);
@@ -1502,7 +1512,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 			pictureArray.SetArray(pictureFrame->matFrame);
 
 			renderBitmapOpenGL->SetVideoTexture(
-				pictureArray);
+				pictureArray, reinititTexture);
 		}
 
 #ifdef _DEBUG
@@ -1526,7 +1536,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 			if (render.empty() ||
 				render.rows != renderHeight ||
 				render.cols != renderWidth ||
-				render.type() != CV_8UC4)
+				render.type() != CV_8UC4 || reinititTexture)
 			{
 				render.create(
 					renderHeight,
@@ -1534,12 +1544,12 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 					CV_8UC4);
 
 				render.setTo(cv::Scalar::all(0));
+				pictureArray.SetArray(render);
+				renderOpenGL->SetData(pictureArray);
 			}
 
 			
-			pictureArray.SetArray(render);
 
-			renderOpenGL->SetData(pictureArray);
 
 			// ---------------------------------------------------------
 			// Rendu de la texture vidéo
@@ -1572,6 +1582,8 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 					CConvertUtility::ConvertToStdString(
 						msgFrame).c_str());
 			}
+
+			reinititTexture = false;
 		}
 
 #ifdef _DEBUG

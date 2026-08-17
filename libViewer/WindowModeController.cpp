@@ -299,33 +299,22 @@ void CWindowModeController::HideToolbar()
 
 void CWindowModeController::HideTopWindow()
 {
-    if (showToolbar)
+    const int showVideoThumbnail = windowManager->GetWindowIsShow(Pos::wxTOP);
+    if (showVideoThumbnail)
     {
-        if (windowMode == WINDOW_VIEWER)
-        {
-            const int showVideoThumbnail = windowManager->GetWindowIsShow(Pos::wxTOP);
-            if (showVideoThumbnail)
-            {
-                windowManager->HideWindow(Pos::wxTOP);
-                windowManager->Resize();
-            }
-        }
+        windowManager->HideWindow(Pos::wxTOP);
+        windowManager->Resize();
     }
 }
 
 void CWindowModeController::ShowTopWindow()
 {
-    if (showToolbar)
+
+    const int showVideoThumbnail = windowManager->GetWindowIsShow(Pos::wxTOP);
+    if (!showVideoThumbnail)
     {
-        if (windowMode == WINDOW_VIEWER)
-        {
-            const int showVideoThumbnail = windowManager->GetWindowIsShow(Pos::wxTOP);
-            if (!showVideoThumbnail)
-            {
-                windowManager->ShowWindow(Pos::wxTOP);
-                windowManager->Resize();
-            }
-        }
+        windowManager->ShowWindow(Pos::wxTOP);
+        windowManager->Resize();
     }
 }
 

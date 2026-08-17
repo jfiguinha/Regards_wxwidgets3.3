@@ -202,7 +202,7 @@ protected:
 	int old_height;
 	bool pause;
 	wxString filename;
-
+	bool reinititTexture = false;
 	bool newVideo;
 	bool videoEnd;
 	bool stopVideo;

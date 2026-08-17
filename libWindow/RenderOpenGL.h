@@ -39,7 +39,7 @@ namespace Regards::OpenGL
 		wxGLContext* GetGLContext();
 		bool GetOpenGLInterop();
 		bool SetData(Regards::Picture::CPictureArray& bitmap);
-		void CreateScreenRender(const int& width, const int& height, const CRgbaquad& color);
+		bool CreateScreenRender(const int& width, const int& height, const CRgbaquad& color);
 		GLTexture* GetDisplayTexture(const int& width, const int& height);
 		void RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* effectParameter, const int& left,
 		                    const int& top, const bool& inverted = false);
