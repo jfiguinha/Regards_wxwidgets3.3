@@ -1545,7 +1545,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 
 				render.setTo(cv::Scalar::all(0));
 				pictureArray.SetArray(render);
-				renderOpenGL->SetData(pictureArray);
+				renderOpenGL->SetData(pictureArray, true);
 			}
 
 			

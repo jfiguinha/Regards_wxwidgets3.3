@@ -38,7 +38,7 @@ namespace Regards::OpenGL
 		GLTexture* GetGLTexture();
 		wxGLContext* GetGLContext();
 		bool GetOpenGLInterop();
-		bool SetData(Regards::Picture::CPictureArray& bitmap);
+		bool SetData(Regards::Picture::CPictureArray& bitmap, const bool& deleteOldData = false);
 		bool CreateScreenRender(const int& width, const int& height, const CRgbaquad& color);
 		GLTexture* GetDisplayTexture(const int& width, const int& height);
 		void RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* effectParameter, const int& left,

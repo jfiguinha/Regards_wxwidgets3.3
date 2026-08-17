@@ -234,7 +234,7 @@ void GLTexture::DeleteInteropTexture()
 	}
 }
 
-bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap)
+bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap, const bool &deleteOldData)
 {   
    
     //openclOpenGLInterop = 0;
@@ -242,6 +242,12 @@ bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap)
 	int kind = bitmap.Kind();
 
 	bool isOk = false;
+
+	if (deleteOldData)
+	{
+		Delete();
+		m_nTextureID = -1;
+	}
 
 	if(kind == cv::_InputArray::KindFlag::UMAT && application_context.openclOpenGLInterop)
 	{

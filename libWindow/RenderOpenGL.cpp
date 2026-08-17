@@ -502,9 +502,9 @@ GLvoid CRenderOpenGL::ReSizeGLScene(GLsizei width, GLsizei height) // Resize And
 }
 
 
-bool CRenderOpenGL::SetData(Regards::Picture::CPictureArray& bitmap)
+bool CRenderOpenGL::SetData(Regards::Picture::CPictureArray& bitmap, const bool& deleteOldData)
 {
-	return textureDisplay->SetData(bitmap);
+	return textureDisplay->SetData(bitmap, deleteOldData);
 }
 
 

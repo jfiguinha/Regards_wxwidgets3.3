@@ -35,7 +35,7 @@ namespace Regards
 			void Delete();
 			void DeleteInteropTexture();
 			void Enable();
-			bool SetData(Regards::Picture::CPictureArray& bitmap);
+			bool SetData(Regards::Picture::CPictureArray& bitmap, const bool& deleteOldData = false);
 
 			void Disable()
 			{
