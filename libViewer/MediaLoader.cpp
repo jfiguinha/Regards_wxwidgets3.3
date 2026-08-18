@@ -364,7 +364,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
     oldAnimationPosition = numFrame;
 
     bool isSetImage = false;
-    std::unique_ptr<CImageLoadingFormat> image = nullptr;
+    CImageLoadingFormat * image = nullptr;
 
     if (numFrame >= 0 && numFrame < nbThumbnail)
     {
@@ -377,7 +377,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
                 CImageVideoThumbnail* thumbnail = videoThumbnail.at(numFrame).get();
                 if (thumbnail != nullptr)
                 {
-                    image = std::make_unique<CImageLoadingFormat>();
+                    image = new CImageLoadingFormat();
                     image->SetPicture(thumbnail->image);
                     image->SetFilename(thumbnail->filename);
                 }
@@ -385,7 +385,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
         }
         else
         {
-            image.reset(libPicture.LoadPicture(filename, false, numFrame));
+            image = libPicture.LoadPicture(filename, false, numFrame);
         }
     }
 
@@ -398,7 +398,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
         if (isDiaporama)
         {
             if (previewWindow != nullptr)
-                if (previewWindow->SetBitmap(image.get(), false, true))
+                if (previewWindow->SetBitmap(image, false, true))
                     isSetImage = true;
         }
         else
@@ -406,7 +406,7 @@ void CMediaLoader::LoadAnimationBitmap(const wxString& filename, const int& numF
             if (previewWindow != nullptr)
             {
                 previewWindow->HideValidationToolbar();
-                if (previewWindow->SetBitmap(image.get(), false, true))
+                if (previewWindow->SetBitmap(image, false, true))
                 {
                     isSetImage = true;
                     SetPanelInfos(false);

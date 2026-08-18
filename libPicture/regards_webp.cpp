@@ -41,7 +41,7 @@ vector<cv::Mat> CRegardsWebp::GetAllPicture(const wxString& filename, int& delay
 {
 	vector<cv::Mat> pictureList;
 	int prev_frame_timestamp = 0;
-	WebPAnimDecoder* dec;
+	WebPAnimDecoder* dec	= nullptr;
 	WebPAnimInfo anim_info;
 	WebPData webp_data;
 	WebPDataInit(&webp_data);
@@ -91,7 +91,8 @@ vector<cv::Mat> CRegardsWebp::GetAllPicture(const wxString& filename, int& delay
 	}
 
 End:
-	WebPAnimDecoderDelete(dec);
+	if (dec)
+		WebPAnimDecoderDelete(dec);
 
 	/*
 	for (int i = 0; i < nbFrame; i++)
@@ -105,7 +106,7 @@ End:
 
 int CRegardsWebp::GetNbFrame(const wxString& filename)
 {
-	WebPAnimDecoder* dec;
+	WebPAnimDecoder* dec = nullptr;
 	WebPAnimInfo anim_info;
 	WebPData webp_data;
 	WebPDataInit(&webp_data);
@@ -132,7 +133,8 @@ int CRegardsWebp::GetNbFrame(const wxString& filename)
 	}
 
 End:
-	WebPAnimDecoderDelete(dec);
+	if(dec)
+		WebPAnimDecoderDelete(dec);
 	return nbFrame;
 }
 
