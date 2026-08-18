@@ -83,6 +83,8 @@ namespace Regards::Window
 		int controlHeight;
 		int controlWidth;
 
+
+
 		int defaultPageSize;
 		int defaultLineSize;
 

@@ -455,10 +455,10 @@ void CTreeWindow::GenerateScreenBuffer()
 	}
 
 	//printf("CTreeWindow::OnPaint bufferUpdate \n");
+	if (backgroundBitmap.GetWidth() != width || backgroundBitmap.GetHeight() != height)
+		backgroundBitmap.Create(width, height);
 
-	auto background = wxBitmap(width, height);
-
-	wxMemoryDC memDC(background);
+	wxMemoryDC memDC(backgroundBitmap);
 
 	GenerateBackgroundBitmap(&memDC, posLargeur, posHauteur);
 	if (treeControl != nullptr)
@@ -469,15 +469,13 @@ void CTreeWindow::GenerateScreenBuffer()
 
 	memDC.SelectObject(wxNullBitmap);
 
-	backgroundBuffer = background;
-
 	oldPosLargeur = posLargeur;
 	oldPosHauteur = posHauteur;
 
 
 	wxWindow* parent = this->GetParent();
 
-	if (parent != nullptr)
+	if (parent != nullptr && (oldcontrolWidth != controlWidth || oldcontrolHeight != controlHeight))
 	{
 		auto controlSize = new CControlSize();
 		wxCommandEvent evt(wxEVENT_SETCONTROLSIZE);
@@ -485,9 +483,12 @@ void CTreeWindow::GenerateScreenBuffer()
 		controlSize->controlHeight = controlHeight;
 		evt.SetClientData(controlSize);
 		parent->GetEventHandler()->AddPendingEvent(evt);
+
+		oldcontrolWidth = controlWidth;
+		oldcontrolHeight = controlHeight;
 	}
 
-	if (parent != nullptr)
+	if (parent != nullptr && (oldPosLargeur != posLargeur || oldPosHauteur != posHauteur))
 	{
 		auto size = new wxSize();
 		wxCommandEvent evt(wxEVENT_SETPOSITION);
@@ -495,15 +496,18 @@ void CTreeWindow::GenerateScreenBuffer()
 		size->y = posHauteur;
 		evt.SetClientData(size);
 		parent->GetEventHandler()->AddPendingEvent(evt);
+
+		oldPosLargeur = posLargeur;
+		oldPosHauteur = posHauteur;
 	}
 }
 
 void CTreeWindow::on_paint(wxPaintEvent& event)
 {
 	wxBufferedPaintDC dc(this);
-	if (backgroundBuffer.IsOk())
+	if (backgroundBitmap.IsOk())
 	{
 		//printf("CTreeWindow::OnPaint not bufferUpdate \n");
-		dc.DrawBitmap(backgroundBuffer, 0, 0);
+		dc.DrawBitmap(backgroundBitmap, 0, 0);
 	}
 }

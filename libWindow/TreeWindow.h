@@ -88,13 +88,13 @@ namespace Regards::Window
 
 		int controlWidth;
 		int controlHeight;
+		int oldcontrolWidth = 0;
+		int oldcontrolHeight = 0;
 
 		CThemeTree themeTree;
 		CTreeControl* treeControl;
+		wxBitmap backgroundBitmap;
 
-		//Buffer
-		wxBitmap backgroundBuffer;
-		// bool bufferUpdate;
 		int posHauteur;
 		int posLargeur;
 

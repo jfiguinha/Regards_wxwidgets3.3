@@ -25,12 +25,17 @@ MyFrameIntro::MyFrameIntro(const wxString& title, const wxString& appTitle, cons
 	auto introTheme = new CIntroTheme();
 
 
+
+
 	titleIntro = nullptr;
 
 	if (introTheme != nullptr)
 	{
 		introTheme->GetScrollTheme(&themeScroll);
 		introTheme->GetTreeTheme(&theme);
+
+		barWidth = 15;
+		barHeight = 40;
 
 		myCentralWindow = new CMyCentralWindowIntro(this, wxID_ANY, themeScroll, theme);
 		introTheme->GetAboutTexteTheme(&themeIntro);
@@ -56,7 +61,7 @@ void MyFrameIntro::on_size(wxSizeEvent& event)
 {
 	wxSize size = event.GetSize();
 	titleIntro->SetSize(0, 0, size.GetWidth(), titleIntro->GetHeight());
-	myCentralWindow->SetSize(0, titleIntro->GetHeight(), size.GetWidth(), size.GetHeight() - titleIntro->GetHeight());
+	myCentralWindow->SetSize(0, titleIntro->GetHeight(), size.GetWidth() - barWidth, (size.GetHeight() - titleIntro->GetHeight()) - barHeight	);
 }
 
 
