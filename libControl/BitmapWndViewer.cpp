@@ -84,13 +84,8 @@ void CBitmapWndViewer::SendEmail()
 	wxString subject = CLibResource::LoadStringFromResource(L"LBLEMAILSUBJECT", 1);
 	wxString body = CLibResource::LoadStringFromResource(L"lblemailbody", 1);
 
-#ifdef __APPLE__
+#ifdef WIN32
     
-    CSendEmail sendEmail;
-    sendEmail.SendEmail("", subject, CConvertUtility::ConvertToStdString(fileName).c_str());
-    
-#elif defined(WIN32)
-
 	CMapi m_cMapi;
 	vector<string> attachment;
 
@@ -100,7 +95,10 @@ void CBitmapWndViewer::SendEmail()
 		m_cMapi.SendEmail("", attachment);
 
 #else
-    wxExecute("thunderbird -remote \"xfeDoCommand(composeMessage,subject='" + subject + "',body='" + body + "',attachment='" + filename + "')\"");    
+
+	CSendEmail sendEmail;
+	sendEmail.SendEmail("", subject, CConvertUtility::ConvertToStdString(fileName).c_str());
+
 #endif
 }
 
