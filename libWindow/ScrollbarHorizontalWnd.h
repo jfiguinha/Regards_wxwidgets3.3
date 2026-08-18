@@ -80,6 +80,10 @@ namespace Regards::Window
 		bool TestMaxX();
 		bool TestMinX();
 
+		double dragStartMouseX = 0.0;
+		int dragStartScrollX = 0;
+		int lastSentScrollX = -1;
+
 		int xPositionStartMove;
 
 		wxRect rcPosTriangleLeft;

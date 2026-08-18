@@ -329,12 +329,20 @@ void CScrollbarVerticalWnd::SetIsMoving()
 	if (stopMoving->IsRunning())
 		stopMoving->Stop();
 
-	scrollMoving = true;
-	stopMoving->Start(1000);
+	if (!scrollMoving)
+	{
+		scrollMoving = true;
 
-	wxCommandEvent evt(wxEVENT_SCROLLMOVE);
-	evt.SetInt(1);
-	GetParent()->GetEventHandler()->AddPendingEvent(evt);
+		wxCommandEvent evt(wxEVENT_SCROLLMOVE);
+		evt.SetInt(1);
+
+		if (wxWindow* parent = GetParent())
+		{
+			parent->GetEventHandler()->AddPendingEvent(evt);
+		}
+	}
+
+	stopMoving->Start(1000);
 }
 
 bool CScrollbarVerticalWnd::IsMoving()
@@ -453,21 +461,33 @@ bool CScrollbarVerticalWnd::FindRectangleBar(const int& yPosition, const int& xP
 	}
 	return false;
 }
-
-void CScrollbarVerticalWnd::MoveBar(const int& currentPos, wxColour color)
+void CScrollbarVerticalWnd::MoveBar(const int currentPos, wxColour color)
 {
-	int diff = pictureHeight - screenHeight;
-	float currentPosPourcentage = (static_cast<float>(currentPos) / static_cast<float>(diff));
-	float sizeFree = (barEndY - barStartY) - barSize;
-	int posY = sizeFree * currentPosPourcentage;
+	const int diff = pictureHeight - screenHeight;
+
+	if (diff <= 0)
+		return;
+
+	const int freeSpace = (barEndY - barStartY) - barSize;
+
+	if (freeSpace <= 0)
+		return;
+
+	const double percentage =
+		static_cast<double>(currentPos) /
+		static_cast<double>(diff);
+
+	const int posY =
+		static_cast<int>(std::lround(
+			static_cast<double>(freeSpace) * percentage));
 
 	rcPosBar.y = barStartY + posY;
-	rcPosBar.height = barStartY + posY + barSize;
+	rcPosBar.height = rcPosBar.y + barSize;
 
 	if (rcPosBar.height > barEndY)
 	{
-		rcPosBar.y = barEndY - barSize;
 		rcPosBar.height = barEndY;
+		rcPosBar.y = barEndY - barSize;
 	}
 
 	if (rcPosBar.y < barStartY)
@@ -475,26 +495,54 @@ void CScrollbarVerticalWnd::MoveBar(const int& currentPos, wxColour color)
 		rcPosBar.y = barStartY;
 		rcPosBar.height = barStartY + barSize;
 	}
-	PaintNow();
+
+	Refresh(false);
 }
 
 void CScrollbarVerticalWnd::OnMouseMove(wxMouseEvent& event)
 {
-	int yPos = event.GetY();
+	if (!captureBar)
+		return;
 
-	if (captureBar)
+	const int mouseY = event.GetY();
+
+	const int scrollRange = pictureHeight - screenHeight;
+	const int barRange = (barEndY - barStartY) - barSize;
+
+	if (scrollRange <= 0 || barRange <= 0)
+		return;
+
+	const double mouseDelta =
+		static_cast<double>(mouseY) - dragStartMouseY;
+
+	const double scrollDelta =
+		mouseDelta *
+		static_cast<double>(scrollRange) /
+		static_cast<double>(barRange);
+
+	const int newPosition =
+		dragStartScrollY + static_cast<int>(std::lround(scrollDelta));
+
+	if (newPosition == currentYPos)
+		return;
+
+	currentYPos = newPosition;
+
+	TestMinY();
+	TestMaxY();
+
+	MoveBar(currentYPos, themeScroll.colorBarActif);
+
+	// Un seul événement uniquement lorsque la position a réellement changé.
+	if (currentYPos != lastSentScrollY)
 	{
-		scrollMoving = true;
-		int diffY = yPos - yPositionStart;
-		yPositionStartMove = yPositionStart = yPos;
-		currentYPos += diffY * lineSize;
-		TestMinY();
-		TestMaxY();
-		MoveBar(currentYPos, themeScroll.colorBarActif);
+		lastSentScrollY = currentYPos;
 		SendTopPosition(currentYPos);
-		PaintNow();
-		SetIsMoving();
 	}
+
+	SetIsMoving();
+
+	event.Skip(false);
 }
 
 void CScrollbarVerticalWnd::SetShowWindow(const bool& showValue)
@@ -570,11 +618,10 @@ void CScrollbarVerticalWnd::ClickBottomPage()
 	SendTopPosition(currentYPos);
 }
 
-
 void CScrollbarVerticalWnd::OnLButtonDown(wxMouseEvent& event)
 {
-	int xPos = event.GetX();
-	int yPos = event.GetY();
+	const int xPos = event.GetX();
+	const int yPos = event.GetY();
 
 	if (showTriangle && FindTopTriangle(yPos, xPos))
 	{
@@ -584,14 +631,20 @@ void CScrollbarVerticalWnd::OnLButtonDown(wxMouseEvent& event)
 	}
 	else if (showTriangle && FindBottomTriangle(yPos, xPos))
 	{
+		scrollMoving = true;
 		ClickBottomTriangle();
 		triangleBottom->Start(100);
 	}
 	else if (FindRectangleBar(yPos, xPos))
 	{
-		yPositionStartMove = yPositionStart = yPos;
-		CaptureMouse();
 		captureBar = true;
+
+		dragStartMouseY = static_cast<double>(yPos);
+		dragStartScrollY = currentYPos;
+
+		CaptureMouse();
+
+		SetIsMoving();
 	}
 	else if (yPos > rcPosBar.height)
 	{
@@ -625,37 +678,51 @@ void CScrollbarVerticalWnd::OnTimerPageBottom(wxTimerEvent& event)
 	ClickBottomPage();
 }
 
-
 void CScrollbarVerticalWnd::OnTimerStopMoving(wxTimerEvent& event)
 {
-	scrollMoving = false;
 	if (stopMoving->IsRunning())
 		stopMoving->Stop();
+
+	if (!scrollMoving)
+		return;
+
+	scrollMoving = false;
+
+	wxCommandEvent evt(wxEVENT_SCROLLMOVE);
+	evt.SetInt(0);
+
+	if (wxWindow* parent = GetParent())
+	{
+		parent->GetEventHandler()->AddPendingEvent(evt);
+	}
 }
 
 void CScrollbarVerticalWnd::OnLButtonUp(wxMouseEvent& event)
 {
-	int yPos = event.GetY();
-
 	if (captureBar)
 	{
 		if (HasCapture())
 			ReleaseMouse();
-		captureBar = false;
-		int diff = yPos - yPositionStartMove;
 
-		currentYPos += diff * lineSize;
-		TestMinY();
-		TestMaxY();
-		SendTopPosition(currentYPos);
+		captureBar = false;
+
+		// La position a déjà été mise à jour par OnMouseMove().
+		if (currentYPos != lastSentScrollY)
+		{
+			lastSentScrollY = currentYPos;
+			SendTopPosition(currentYPos);
+		}
 	}
 
 	if (triangleTop->IsRunning())
 		triangleTop->Stop();
+
 	if (triangleBottom->IsRunning())
 		triangleBottom->Stop();
+
 	if (pageTop->IsRunning())
 		pageTop->Stop();
+
 	if (pageBottom->IsRunning())
 		pageBottom->Stop();
 

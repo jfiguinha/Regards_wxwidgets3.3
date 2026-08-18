@@ -75,11 +75,15 @@ namespace Regards::Window
 		void DrawTopTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
 		void DrawBottomTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle);
 		void DrawRectangleElement(wxDC* dc, const wxColour& colorBar);
-		void MoveBar(const int& diffY, wxColour color);
+		void MoveBar(const int currentPos, wxColour color);
 		void SetIsMoving();
 		bool TestMaxY();
 		bool TestMinY();
 		void FillRect(wxDC* dc, const wxRect& rc, const wxColour& color);
+
+		double dragStartMouseY = 0.0;
+		int dragStartScrollY = 0;
+		int lastSentScrollY = -1;
 
 		int barSize;
 		int barPosY;
