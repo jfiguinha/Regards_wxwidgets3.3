@@ -905,7 +905,6 @@
     </ClCompile>
     <ClCompile Include="2PassScale.cpp" />
     <ClCompile Include="AudioVideoFilter.cpp" />
-    <ClCompile Include="avir_opencl.cpp" />
     <ClCompile Include="bilateralFilter.cpp" />
     <ClCompile Include="BlurFilter.cpp" />
     <ClCompile Include="BokehFilter.cpp" />

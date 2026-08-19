@@ -271,7 +271,7 @@ public:
 	bool firstElementToShow = true;
 	int numElementToLoad = 5;
 	string buildOption = "";//"-cl-mad-enable -cl-unsafe-math-optimizations";
-	cv::ocl::OpenCLExecutionContext clExecCtx;
+
 	std::map<wxString, cv::ocl::Program> openclBinaryMapping;
 	bool isGPsAvailable = false;
 	double value[256];

@@ -7,6 +7,7 @@
 #include "VideoStabilization.h"
 #include <FaceDetector.h>
 #include <appcontext.h>
+#include "OpenCLContext.h"
 extern AppContext application_context;
 
 using namespace Regards::OpenCL;
@@ -37,9 +38,10 @@ void COpenCLEffectVideo::ExecuteSafe(F&& func)
 
 
 
-COpenCLEffectVideo::COpenCLEffectVideo()
+COpenCLEffectVideo::COpenCLEffectVideo(COpenCLContext* openCLContext)
 {
-	openclFilter = std::make_unique<COpenCLFilter>();
+	this->openCLContext = openCLContext;
+	openclFilter = std::make_unique<COpenCLFilter>(openCLContext);
 	openclFilter->SetIsVideo(true);
 	bool useMemory = (cv::ocl::Device::getDefault().type() == CL_DEVICE_TYPE_GPU) ? false : true;
 	flag = useMemory ? CL_MEM_USE_HOST_PTR : CL_MEM_COPY_HOST_PTR;
@@ -189,7 +191,7 @@ void COpenCLEffectVideo::InterpolationZoomBicubic(const int& widthOutput, const 
 	const int& flipH, const int& flipV, const int& angle,
 	const int& bicubic, int ratio, bool bgraOutput)
 {
-	if (!application_context.clExecCtx.empty() && !paramSrc.empty())
+	if (!openCLContext->GetExecutionContext().empty() && !paramSrc.empty())
 	{
 
 		
@@ -276,8 +278,8 @@ void COpenCLEffectVideo::SetNV12(uint8_t* bufferY, int sizeY, uint8_t* bufferUV,
 	OpenCLKernelBuilder builder;
 
 	builder
-		.ByteArray("inputY", (cl_context)application_context.clExecCtx.getContext().ptr(), bufferY, sizeY, flag)
-		.ByteArray("inputUV", (cl_context)application_context.clExecCtx.getContext().ptr(), bufferUV, sizeUV, flag)
+		.ByteArray("inputY", (cl_context)openCLContext->GetExecutionContext().getContext().ptr(), bufferY, sizeY, flag)
+		.ByteArray("inputUV", (cl_context)openCLContext->GetExecutionContext().getContext().ptr(), bufferUV, sizeUV, flag)
 		.Int("widthIn", width)
 		.Int("heightIn", height)
 		.Int("widthOut", widthOut)
@@ -326,7 +328,7 @@ void COpenCLEffectVideo::SetNV12(cv::UMat y, uint8_t* bufferUV, int sizeUV, cons
 
 	builder
 		.Image("inputY", clBuffer)
-		.ByteArray("inputUV", (cl_context)application_context.clExecCtx.getContext().ptr(), bufferUV, sizeUV, flag)
+		.ByteArray("inputUV", (cl_context)openCLContext->GetExecutionContext().getContext().ptr(), bufferUV, sizeUV, flag)
 		.Int("widthIn", width)
 		.Int("heightIn", height)
 		.Int("widthOut", widthOut)
@@ -355,9 +357,9 @@ void COpenCLEffectVideo::SetYUV420P(uint8_t* bufferY, int sizeY, uint8_t* buffer
 	OpenCLKernelBuilder builder;
 
 	builder
-		.ByteArray("inputY", (cl_context)application_context.clExecCtx.getContext().ptr(), bufferY, sizeY, flag)
-		.ByteArray("inputU", (cl_context)application_context.clExecCtx.getContext().ptr(), bufferU, sizeU, flag)
-		.ByteArray("inputV", (cl_context)application_context.clExecCtx.getContext().ptr(), bufferV, sizeV, flag)
+		.ByteArray("inputY", (cl_context)openCLContext->GetExecutionContext().getContext().ptr(), bufferY, sizeY, flag)
+		.ByteArray("inputU", (cl_context)openCLContext->GetExecutionContext().getContext().ptr(), bufferU, sizeU, flag)
+		.ByteArray("inputV", (cl_context)openCLContext->GetExecutionContext().getContext().ptr(), bufferV, sizeV, flag)
 		.Int("widthIn", width)
 		.Int("heightIn", height)
 		.Int("widthOut", widthOut)

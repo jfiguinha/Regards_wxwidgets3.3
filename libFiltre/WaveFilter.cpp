@@ -119,7 +119,7 @@ void CWaveFilter::ApplyPreviewEffect(CEffectParameter* effectParameter, IBitmapD
 		cv::Mat matrixPreview = filtreEffet->GetBitmap(false);
 		CImageLoadingFormat image;
 		image.SetPicture(matrixPreview);
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 
 		wxRect rc;
 		wxPoint pt;
@@ -158,7 +158,7 @@ CImageLoadingFormat* CWaveFilter::ApplyEffect(CEffectParameter* effectParameter,
 
 		image.SetPicture(source);
 		image.RotateExif(orientation);
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 
 		wxPoint pt;
 		bitmapViewer->GetDessinPt()->GetPoint(pt);
@@ -219,7 +219,7 @@ void CWaveFilter::ApplyPreviewEffectSource(CEffectParameter* effectParameter, IB
 	{
 		CImageLoadingFormat image;
 		image.SetPicture(source);
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 
 		wxPoint pt;
 		bitmapViewer->GetDessinPt()->GetPoint(pt);

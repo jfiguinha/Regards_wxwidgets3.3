@@ -269,7 +269,8 @@ static wxString ConvertSecondToTime(int sec)
 	return wxString::Format("%02d:%02d:%02d\n", h, m, s);
 }
 
-CFFmpegTranscodingPimpl::CFFmpegTranscodingPimpl() : stream_ctx(nullptr),
+CFFmpegTranscodingPimpl::CFFmpegTranscodingPimpl(COpenCLContext* openCLContext) : openCLContext(openCLContext),
+                                                     stream_ctx(nullptr),
                                                      m_dlgProgress(nullptr),
                                                      videoCompressOption(nullptr), duration{}
 {
@@ -1941,56 +1942,8 @@ void CFFmpegTranscodingPimpl::VideoTreatment(AVFrame*& tmp_frame, StreamContext*
 			_colorSpace = 3;
 		}
 
-		COpenCLEffectVideo openclEffectVideo;
+		COpenCLEffectVideo openclEffectVideo(openCLContext);
 		openclEffectVideo.SetAVFrame(nullptr, tmp_frame, _colorSpace, isLimited);
-		/*
-		if (tmp_frame->format == AV_PIX_FMT_NV12)
-		{
-			try
-			{
-				int sizeData = (nHeight + nHeight / 2) * tmp_frame->linesize[0];
-				if (sizeData != sizesrc && src != nullptr)
-				{
-					delete[] src;
-					src = nullptr;
-				}
-
-				if (src == nullptr)
-				{
-					src = new uint8_t[sizeData];
-					sizesrc = sizeData;
-				}
-
-				int size = nHeight * tmp_frame->linesize[0];
-				memcpy(src, tmp_frame->data[0], size);
-				memcpy(src + size, tmp_frame->data[1], (tmp_frame->linesize[0] * (nHeight / 2)));
-				cv::Mat yuv = cv::Mat(nHeight + nHeight / 2, tmp_frame->linesize[0], CV_8UC1, src);
-				openclEffectVideo.SetNV12(yuv, tmp_frame->linesize[0], nWidth, nHeight);
-			}
-			catch (cv::Exception& e)
-			{
-				const char* err_msg = e.what();
-				std::cout << "exception caught: " << err_msg << std::endl;
-				std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
-			}
-		}
-		else if (tmp_frame->format == AV_PIX_FMT_YUV420P)
-		{
-			try
-			{
-				cv::Mat y = cv::Mat(cv::Size(tmp_frame->linesize[0], nHeight), CV_8UC1, tmp_frame->data[0]);
-				cv::Mat u = cv::Mat(cv::Size(tmp_frame->linesize[1], nHeight / 2), CV_8UC1, tmp_frame->data[1]);
-				cv::Mat v = cv::Mat(cv::Size(tmp_frame->linesize[2], nHeight / 2), CV_8UC1, tmp_frame->data[2]);
-				openclEffectVideo.SetYUV420P(y, u, v, tmp_frame->linesize[0], nWidth, nHeight);
-			}
-			catch (cv::Exception& e)
-			{
-				const char* err_msg = e.what();
-				std::cout << "exception caught: " << err_msg << std::endl;
-				std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
-			}
-		}
-		*/
 
 		if (videoCompressOption->videoEffectParameter.effectEnable)
 		{
@@ -2114,7 +2067,7 @@ cv::Mat CFFmpegTranscodingPimpl::ApplyProcess(cv::Mat& src)
 	if (IsSupportOpenCL())
 	{
 		Regards::Picture::CPictureArray inArray(mat);
-		COpenCLEffectVideo openclEffectVideo;
+		COpenCLEffectVideo openclEffectVideo(openCLContext);
 		openclEffectVideo.SetMatrix(inArray);
 
 		if (stabilizeFrame)

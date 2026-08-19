@@ -153,7 +153,7 @@ int CFiltreEffet::RenderEffectPreview(const int& numEffect, CEffectParameter* ef
 	return value;
 }
 
-CFiltreEffet::CFiltreEffet(const CRgbaquad& backColor, const bool& useOpenCL, const bool& useCuda, CImageLoadingFormat* bitmap)
+CFiltreEffet::CFiltreEffet(const CRgbaquad& backColor, COpenCLContext* openCLContext, CImageLoadingFormat* bitmap)
 {
 	filtreEffet = nullptr;
 	this->backColor = backColor;
@@ -170,11 +170,11 @@ CFiltreEffet::CFiltreEffet(const CRgbaquad& backColor, const bool& useOpenCL, co
 
 	local_useOpenCL = regardsParam->GetIsOpenCLSupport();	
 
-	if (local_useOpenCL && useOpenCL)
+	if (local_useOpenCL && openCLContext)
 	{
 		if (cv::ocl::haveOpenCL())
 		{
-			filtreEffet = std::make_unique<COpenCLEffect>(backColor, bitmap);
+			filtreEffet = std::make_unique<COpenCLEffect>(backColor, bitmap, openCLContext);
 			this->numLib = LIBOPENCL;
 		}
 	}

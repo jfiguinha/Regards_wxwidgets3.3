@@ -14,6 +14,7 @@
 #include <ParamInit.h>
 #include <RegardsConfigParam.h>
 #include <appcontext.h>
+#include <OpenCLContext.h>
 extern AppContext application_context;
 using namespace Regards::OpenGL;
 using namespace cv::ocl;
@@ -25,11 +26,10 @@ using namespace cv::ocl;
 class CTextureGLPriv
 {
 public:
-	CTextureGLPriv() = default;
+	CTextureGLPriv(Regards::OpenCL::COpenCLContext* openCLContext) :openCLContext(openCLContext)
+	{};
 	~CTextureGLPriv() { DeleteTextureInterop(); }
 
-	CTextureGLPriv(const CTextureGLPriv&) = delete;
-	CTextureGLPriv& operator=(const CTextureGLPriv&) = delete;
 
 	bool   convertToGLTexture2D(cv::UMat& u, GLTexture* glTexture);
 	cl_int CreateTextureInterop(GLTexture* glTexture);
@@ -38,6 +38,7 @@ public:
 	cl_mem clImage = nullptr;
 	bool   isOpenCLCompatible = true;
 	bool   isBGRATexture = false;
+	Regards::OpenCL::COpenCLContext* openCLContext = nullptr;
 };
 
 // ---------------------------------------------------------------------------
@@ -46,8 +47,8 @@ cl_int CTextureGLPriv::CreateTextureInterop(GLTexture* glTexture)
 	if (clImage != nullptr)
 		return CL_SUCCESS;
 
-	cl_context       context = static_cast<cl_context>(application_context.clExecCtx.getContext().ptr());
-	cl_command_queue q = static_cast<cl_command_queue>(application_context.clExecCtx.getQueue().ptr());
+	cl_context       context = static_cast<cl_context>(openCLContext->GetExecutionContext().getContext().ptr());
+	cl_command_queue q = static_cast<cl_command_queue>(openCLContext->GetExecutionContext().getQueue().ptr());
 
 	cl_int status = 0;
 	clImage = clCreateFromGLTexture(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D,
@@ -125,8 +126,8 @@ bool CTextureGLPriv::convertToGLTexture2D(cv::UMat& u, GLTexture* glTexture)
 			}
             
             
-            cl_context context = (cl_context)application_context.clExecCtx.getContext().ptr();
-            cl_command_queue q = (cl_command_queue)application_context.clExecCtx.getQueue().ptr();
+			cl_context       context = static_cast<cl_context>(openCLContext->GetExecutionContext().getContext().ptr());
+			cl_command_queue q = static_cast<cl_command_queue>(openCLContext->GetExecutionContext().getQueue().ptr());
             
 			cv::Size srcSize = u.size();
 			status = CreateTextureInterop(glTexture);
@@ -170,7 +171,7 @@ void CTextureGLPriv::DeleteTextureInterop()
 	if (clImage == nullptr)
 		return;
 
-	cl_command_queue q = static_cast<cl_command_queue>(application_context.clExecCtx.getQueue().ptr());
+	cl_command_queue q = static_cast<cl_command_queue>(openCLContext->GetExecutionContext().getQueue().ptr());
 
 	clFinish(q);
 
@@ -234,7 +235,7 @@ void GLTexture::DeleteInteropTexture()
 	}
 }
 
-bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap, const bool &deleteOldData)
+bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap, Regards::OpenCL::COpenCLContext* openCLContext, const bool &deleteOldData)
 {   
    
     //openclOpenGLInterop = 0;
@@ -249,10 +250,10 @@ bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap, const bool &del
 		m_nTextureID = -1;
 	}
 
-	if(kind == cv::_InputArray::KindFlag::UMAT && application_context.openclOpenGLInterop)
+	if(kind == cv::_InputArray::KindFlag::UMAT && application_context.openclOpenGLInterop && openCLContext != nullptr)
 	{
 		if (pimpl_ == nullptr && application_context.openclOpenGLInterop)
-			pimpl_ = std::make_unique<CTextureGLPriv>();
+			pimpl_ = std::make_unique<CTextureGLPriv>(openCLContext);
 
 		cv::UMat umatBitmap = bitmap.getUMat();
 

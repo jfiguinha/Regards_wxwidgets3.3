@@ -885,7 +885,6 @@
     <ClInclude Include="InfosSeparationBarEffect.h" />
     <ClInclude Include="InfosSeparationBarExplorer.h" />
     <ClInclude Include="InfosSeparationBarFace.h" />
-    <ClInclude Include="MFTEncoding.h" />
     <ClInclude Include="MoveEffectTexture.h" />
     <ClInclude Include="NoneEffectTextureEffect.h" />
     <ClInclude Include="PageCurlFilter.h" />
@@ -940,7 +939,6 @@
     <ClCompile Include="InfosSeparationBarEffect.cpp" />
     <ClCompile Include="InfosSeparationBarExplorer.cpp" />
     <ClCompile Include="InfosSeparationBarFace.cpp" />
-    <ClCompile Include="MFTEncoding.cpp" />
     <ClCompile Include="MoveEffectTexture.cpp" />
     <ClCompile Include="PageCurlFilter.cpp" />
     <ClCompile Include="PhotoCriteriaUtility.cpp" />

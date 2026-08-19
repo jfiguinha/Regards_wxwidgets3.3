@@ -35,13 +35,13 @@ void COpenCLEffect::ExecuteSafe(F&& func)
 }
 
 
-COpenCLEffect::COpenCLEffect(const CRgbaquad& backColor, CImageLoadingFormat* bitmap)
+COpenCLEffect::COpenCLEffect(const CRgbaquad& backColor, CImageLoadingFormat* bitmap, COpenCLContext* openCLContext)
 	: IFiltreEffet(backColor)
 {
 	this->backColor = backColor;
 	flag = CL_MEM_COPY_HOST_PTR;
 	SetBitmap(bitmap);
-	openclFilter = std::make_unique<COpenCLFilter>();
+	openclFilter = std::make_unique<COpenCLFilter>(openCLContext);
 }
 
 bool COpenCLEffect::StabilizeVideo(OpenCV::COpenCVStabilization* stabilization)

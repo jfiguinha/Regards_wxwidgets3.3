@@ -21,7 +21,7 @@ extern "C" {
 
 
 using namespace Regards::OpenCV;
-;
+using namespace Regards::OpenCL;
 class CompressVideo;
 class CFiltreEffet;
 class CffmpegToBitmap;
@@ -63,7 +63,7 @@ public:
 	cv::Mat GetFrameOutput();
 	cv::Mat GetFrameOutputWithOutEffect();
 
-	CFFmpegTranscodingPimpl();
+	CFFmpegTranscodingPimpl(COpenCLContext* openCLContext);
 	~CFFmpegTranscodingPimpl();
 
 	int EncodeOneFrame(CompressVideo* m_dlgProgress, const wxString& input, const wxString& output, const long& time,
@@ -140,7 +140,7 @@ private:
 
 	CompressVideo* m_dlgProgress;
 	mutex muEnding;
-
+	COpenCLContext* openCLContext = nullptr;
 	std::atomic<bool> isend = true;
 	wxString input_file = "";
 	int orientation = 0;

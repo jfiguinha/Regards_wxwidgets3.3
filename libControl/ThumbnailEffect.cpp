@@ -384,7 +384,7 @@ void CThumbnailEffect::LoadPicture(void* param)
 		                            threadLoadingBitmap->thumbnail->themeThumbnail.colorBack.Blue());
 
 
-		auto filtre = std::make_unique<CFiltreEffet>(color_quad, false, false, picture);
+		auto filtre = std::make_unique<CFiltreEffet>(color_quad, nullptr, picture);
 
 		switch (threadLoadingBitmap->photoId)
 		{

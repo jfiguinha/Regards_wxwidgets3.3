@@ -266,30 +266,9 @@ void MyApp::CheckOpenCLAvailability(bool configFileExist)
 			else
 			{
 				regardsParam->SetIsOpenCLSupport(true);
-				regardsParam->SetIsOpenCLOpenGLInteropSupport(true);
 			}
-		}
+		}}
 
-
-		if (regardsParam->GetIsOpenCLSupport() && !regardsParam->GetIsOpenCLOpenGLInteropSupport())
-		{
-			if (!ocl::haveOpenCL())
-			{
-				LogInfo("OpenCL is not available...");
-			}
-			else
-			{
-				COpenCLContext::CreateDefaultOpenCLContext();
-			}
-
-			if (!application_context.isOpenCLInitialized)
-			{
-				regardsParam->SetIsOpenCLSupport(false);
-				LogInfo("OpenCL is not Initialized...");
-			}
-		}
-	}
-	application_context.openclOpenGLInterop = regardsParam->GetIsOpenCLOpenGLInteropSupport();
 }
 
 

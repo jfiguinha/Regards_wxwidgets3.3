@@ -20,6 +20,11 @@ namespace cv
 
 namespace Regards
 {
+	namespace OpenCL
+	{
+		class COpenCLContext;
+	}
+
 	namespace OpenGL
 	{
 		// Handle texture related opertions in this class.
@@ -35,7 +40,7 @@ namespace Regards
 			void Delete();
 			void DeleteInteropTexture();
 			void Enable();
-			bool SetData(Regards::Picture::CPictureArray& bitmap, const bool& deleteOldData = false);
+			bool SetData(Regards::Picture::CPictureArray& bitmap, Regards::OpenCL::COpenCLContext* openCLContext, const bool& deleteOldData = false);
 
 			void Disable()
 			{

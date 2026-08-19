@@ -26,7 +26,7 @@ namespace Regards::FiltreEffet
 	class COpenCLEffect : public IFiltreEffet
 	{
 	public:
-		COpenCLEffect(const CRgbaquad& backColor, CImageLoadingFormat* bitmap);
+		COpenCLEffect(const CRgbaquad& backColor, CImageLoadingFormat* bitmap, COpenCLContext* openCLContext);
 
 		void SetFlag(const bool& useMemory)
 		{

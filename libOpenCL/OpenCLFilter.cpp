@@ -8,7 +8,7 @@
 #include <RegardsConfigParam.h>
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/dnn_superres.hpp>
-#include <avir.h>
+
 #include <wx/filename.h>
 #include "OpenCLKernelBuilder.h"
 #include <appcontext.h>
@@ -255,7 +255,8 @@ UMat CSuperSampling::upscaleImage(UMat img, int method, int scale)
 }
 
 
-COpenCLFilter::COpenCLFilter()
+COpenCLFilter::COpenCLFilter(COpenCLContext* openCLContext)
+	: openCLContext(openCLContext)
 {
 	bool useMemory = (ocl::Device::getDefault().type() == CL_DEVICE_TYPE_GPU) ? false : true;
 	flag = useMemory ? CL_MEM_USE_HOST_PTR : CL_MEM_COPY_HOST_PTR;
@@ -1202,8 +1203,8 @@ void COpenCLFilter::ExecuteOpenCLCode(const wxString& programName, const wxStrin
 
 	ExecuteSafe([&]
 		{
-			ocl::Context context = application_context.clExecCtx.getContext();
-			ocl::Program program = COpenCLContext::GetProgram(programName);
+			ocl::Context context = openCLContext->GetExecutionContext().getContext();
+			ocl::Program program = openCLContext->GetProgram(programName);
 
 			ocl::Kernel kernel(functionName, program);
 
@@ -1403,86 +1404,7 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 		}
 		else if (method == 7)
 		{
-			
-			try
-			{
-#if _DEBUG
-				clock_t start, end;
-				start = clock();
-#endif
-				cv::UMat src;
-				if(cvDestBgra.channels() == 3)
-					cvtColor(cvDestBgra, src, cv::COLOR_BGR2BGRA);
-				else if (cvDestBgra.channels() == 4)
-					src = cvDestBgra;
-				avir::CImageResizer ImageResizer(8);
-				avir::CImageResizerVars Vars;
-				Vars.UseSRGBGamma = true;
-				bool useParam = false;
-				if (param == nullptr)
-				{
-					param = std::make_unique<CAvirFilterParam>();
-					param->width = src.cols;
-					param->height = src.rows;
-					param->widthOut = widthOut;
-					param->heightOut = heightOut;
-				}
-				else
-				{
-					if (param->width != src.cols || param->height != src.rows || param->widthOut != widthOut  || param->heightOut != heightOut)
-					{
-						param.reset(new CAvirFilterParam());
-						param->width = src.cols;
-						param->height = src.rows;
-						param->widthOut = widthOut;
-						param->heightOut = heightOut;
-					}
-					else
-					{
-						useParam = true;
-					}
-				}
-
-				cv::UMat out;
-
-				
-				if(useParam)
-                {
-					out = ImageResizer.resizeImageOpenCLWithStep(src, param.get());
-                }
-				else
-                {
-					out = ImageResizer.resizeImageOpenCL(src, src.cols, src.rows, widthOut, heightOut, 4, 0, param.get(), &Vars);
-                }
-				
-				cvDestBgra = out;
-
-#ifdef _DEBUG
-				end = clock();
-
-				// Calculating total time taken by the program.
-				double time_taken = double(end - start) / double(CLOCKS_PER_SEC);
-
-
-#ifdef WIN32
-				OutputDebugString(L"Time taken by COpenCLFilter::Interpolation is : ");
-				OutputDebugString(to_wstring(time_taken).c_str());
-				OutputDebugString(L" sec \n");
-#else
-				cout << "Time taken by COpenCLFilter::Interpolation is : " << fixed << time_taken << setprecision(5);
-				cout << " sec " << endl;
-#endif
-#endif			
-				
-			}
-			catch (...)
-			{
-				if (cvDestBgra.cols != widthOut || cvDestBgra.rows != heightOut)
-				{
-					resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method);
-				}
-			}
-			
+			resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method);
 		}
 		else if (method > 7)
 		{

@@ -1,4 +1,5 @@
 #pragma once
+#include <OpenCLContext.h>
 class CompressVideo;
 class CVideoOptionCompress;
 
@@ -20,6 +21,7 @@ protected:
 	wxString input;
 	wxString output;
 	std::unique_ptr<std::thread> encode_thread;
+	std::unique_ptr<Regards::OpenCL::COpenCLContext> openCLContext = nullptr;
 	cv::Mat data;
 	cv::Mat data_withouteffect;
 	std::unique_ptr<CompressVideo> m_dlgProgress;

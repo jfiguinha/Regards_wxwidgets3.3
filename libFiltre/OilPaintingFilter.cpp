@@ -144,7 +144,7 @@ void COilPaintingFilter::ApplyPreviewEffectSource(CEffectParameter* effectParame
 		CImageLoadingFormat image;
 		image.SetPicture(source);
 
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 		filtre->OilPaintingEffect(oilPaintingParam->size, oilPaintingParam->dynRatio);
 		auto imageLoad = std::make_unique<CImageLoadingFormat>();
 		cv::Mat mat = filtre->GetBitmap(true);
@@ -171,7 +171,7 @@ CImageLoadingFormat* COilPaintingFilter::ApplyEffect(CEffectParameter* effectPar
 		CImageLoadingFormat image;
 		image.SetPicture(source);
 		image.RotateExif(orientation);
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 		filtre->OilPaintingEffect(oilPaintingParam->size, oilPaintingParam->dynRatio);
 		imageLoad = new CImageLoadingFormat();
 		cv::Mat mat = filtre->GetBitmap(true);

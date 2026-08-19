@@ -100,9 +100,6 @@
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
     </ClCompile>
-    <ClCompile Include="MFTEncoding.cpp">
-      <Filter>Video\Core\Encoding</Filter>
-    </ClCompile>
     <ClCompile Include="ThumbnailVerticalSeparator.cpp">
       <Filter>Thumbnail\source</Filter>
     </ClCompile>
@@ -241,9 +238,6 @@
       <Filter>Display</Filter>
     </ClInclude>
     <ClInclude Include="FFmpegTranscodingPimpl.h">
-      <Filter>Video\Core\Encoding</Filter>
-    </ClInclude>
-    <ClInclude Include="MFTEncoding.h">
       <Filter>Video\Core\Encoding</Filter>
     </ClInclude>
     <ClInclude Include="ThumbnailVerticalSeparator.h">

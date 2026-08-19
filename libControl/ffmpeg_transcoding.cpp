@@ -5,9 +5,6 @@
 #include "VideoCompressOption.h"
 #include <window_id.h>
 #include <LibResource.h>
-#ifdef WIN32_MFT
-#include "MFTEncoding.h"
-#endif
 
 
 CFFmpegTranscoding::CFFmpegTranscoding() :
@@ -17,6 +14,8 @@ CFFmpegTranscoding::CFFmpegTranscoding() :
 	videoCompressOption(nullptr)
 {
 	videoCompressOption = std::make_unique< CVideoOptionCompress>();
+	openCLContext = std::make_unique<Regards::OpenCL::COpenCLContext>();
+	openCLContext->CreateDefaultOpenCLContext();
 }
 
 CFFmpegTranscoding::~CFFmpegTranscoding()
@@ -35,46 +34,28 @@ wxString CFFmpegTranscoding::GetOutputFilename()
 
 int CFFmpegTranscoding::EncodeFrame(const wxString& input, const wxString& output, const int& position)
 {
-#ifdef WIN32_MFT
-	CMFTEncoding mftEncoding;
-	int ret = mftEncoding.EncodeOneFrame(nullptr, input, output, position, videoCompressOption);
-	if (!mftEncoding.GetFrameOutput().empty())
-	{
-		data = mftEncoding.GetFrameOutput();
-	}
-#else
-	CFFmpegTranscodingPimpl ffmpegtranscoding;
+	CFFmpegTranscodingPimpl ffmpegtranscoding(openCLContext.get());
 	int ret = ffmpegtranscoding.EncodeOneFrame(nullptr, input, output, position, videoCompressOption.get());
 	if (!ffmpegtranscoding.GetFrameOutput().empty())
 	{
 		data = ffmpegtranscoding.GetFrameOutput();
 		data_withouteffect = ffmpegtranscoding.GetFrameOutputWithOutEffect();
 	}
-#endif
+
 	return 0;
 }
 
 cv::Mat CFFmpegTranscoding::GetFrameOutput()
 {
 	cv::Mat bitmap;
-#ifdef WIN32_MFT
 	data.copyTo(bitmap);
-	//cv::flip(bitmap, bitmap, 0);
-#else
-	data.copyTo(bitmap);
-#endif
 	return bitmap;
 }
 
 cv::Mat CFFmpegTranscoding::GetFrameOutputWithOutEffect()
 {
 	cv::Mat bitmap;
-#ifdef WIN32_MFT
 	data_withouteffect.copyTo(bitmap);
-	//cv::flip(bitmap, bitmap, 0);
-#else
-	data_withouteffect.copyTo(bitmap);
-#endif
 	return bitmap;
 }
 
@@ -82,20 +63,10 @@ void CFFmpegTranscoding::EncodeFileThread(void* data)
 {
 	auto ffmpeg_encoding = static_cast<CFFmpegTranscoding*>(data);
 
-#ifdef WIN32_MFT
-	CMFTEncoding mftEncoding;
-	int ret = mftEncoding.EncodeFile(ffmpeg_encoding->input, ffmpeg_encoding->output,
-		ffmpeg_encoding->m_dlgProgress, ffmpeg_encoding->videoCompressOption);
-	if (ret < 0)
-	{
-		wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
-		char message[255];
-		av_make_error_string(message, AV_ERROR_MAX_STRING_SIZE, ret);
-		wxMessageBox(message, errorConversion, wxICON_ERROR);
-	}
-#else
+	std::unique_ptr<COpenCLContext> openCLContext = std::make_unique<COpenCLContext>();
+	openCLContext->CreateDefaultOpenCLContext();
 
-	CFFmpegTranscodingPimpl ffmpegtranscoding;
+	CFFmpegTranscodingPimpl ffmpegtranscoding(openCLContext.get());
 
 	int ret = ffmpegtranscoding.EncodeFile(ffmpeg_encoding->input, ffmpeg_encoding->output,
 	                                       ffmpeg_encoding->m_dlgProgress.get(), ffmpeg_encoding->videoCompressOption.get());
@@ -107,7 +78,7 @@ void CFFmpegTranscoding::EncodeFileThread(void* data)
 		av_make_error_string(message, AV_ERROR_MAX_STRING_SIZE, ret);
 		wxMessageBox(message, errorConversion, wxICON_ERROR);
 	}
-#endif
+
 	wxCommandEvent event(wxEVENT_ENDCOMPRESSION);
 	event.SetInt(ret);
 	wxPostEvent(ffmpeg_encoding->mainWindow, event);

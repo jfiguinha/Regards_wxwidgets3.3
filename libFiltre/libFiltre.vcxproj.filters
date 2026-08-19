@@ -506,9 +506,6 @@
     <ClCompile Include="InpaintFIlter.cpp">
       <Filter>window\Drawing</Filter>
     </ClCompile>
-    <ClCompile Include="avir_opencl.cpp">
-      <Filter>Filter\Interpolation</Filter>
-    </ClCompile>
     <ClCompile Include="2PassScale.cpp">
       <Filter>Filter\Interpolation</Filter>
     </ClCompile>

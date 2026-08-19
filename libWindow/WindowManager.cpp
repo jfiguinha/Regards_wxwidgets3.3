@@ -458,7 +458,7 @@ void CWindowManager::Init_bottom()
 			{
 				if (right->fixe)
 				{
-					x = right->size;
+					//x = right->size;
 					bottom_width -= right->size;
 				}
 				else

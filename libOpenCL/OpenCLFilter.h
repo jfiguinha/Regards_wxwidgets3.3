@@ -8,10 +8,9 @@
 #include <CL/cl.h>
 #endif
 #include <hqdn3d.h>
+#include "OpenCLContext.h"
 
 
-
-class CAvirFilterParam;
 class CSuperSampling;
 
 namespace Regards
@@ -30,7 +29,7 @@ namespace Regards
 		class COpenCLFilter
 		{
 		public:
-			COpenCLFilter();
+			COpenCLFilter(COpenCLContext* openCLContext);
 
 			virtual ~COpenCLFilter();
 
@@ -108,10 +107,11 @@ namespace Regards
 
 			cl_mem_flags flag;
 			std::unique_ptr<Chqdn3d> hq3d = nullptr;
+			COpenCLContext* openCLContext = nullptr;
 			double oldLevelDenoise = 0;
 			int oldwidthDenoise = 0;
 			int oldheightDenoise = 0;
-			std::unique_ptr<CAvirFilterParam> param = nullptr;
+
 			bool isVideo = false;
 			std::map<wxString,std::unique_ptr<OpenCLMemoryTemp>> openclMemTempMap;
 			std::unique_ptr<CSuperSampling> superSampling;

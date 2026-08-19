@@ -132,7 +132,7 @@ CImageLoadingFormat* CLensFlareFilter::ApplyEffect(CEffectParameter* effectParam
 		CImageLoadingFormat image;
 		image.SetPicture(source);
 		image.RotateExif(orientation);
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 
 		wxPoint pt;
 		bitmapViewer->GetDessinPt()->GetPoint(pt);
@@ -210,7 +210,7 @@ void CLensFlareFilter::ApplyPreviewEffectSource(CEffectParameter* effectParamete
 		CImageLoadingFormat image;
 		image.SetPicture(source);
 		double scaleFactor = bitmapViewer->GetDessinPt()->GetScaleFactor();
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 
 		filtre->LensFlare(pt.x / scaleFactor, pt.y / scaleFactor, puissance, 0, brightness, lensFlareParameter->color,
 		                  colorIntensity);
@@ -246,7 +246,7 @@ void CLensFlareFilter::ApplyPreviewEffect(CEffectParameter* effectParameter, IBi
 		cv::Mat matrixPreview = filtreEffet->GetBitmap(false);
 		CImageLoadingFormat image;
 		image.SetPicture(matrixPreview);
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 
 		wxRect rc;
 		wxPoint pt;

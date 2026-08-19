@@ -65,6 +65,7 @@ CRenderOpenGL::CRenderOpenGL(wxGLCanvas* canvas)
 {
 	width = 0;
 	height = 0;
+	openCLContext = std::make_unique<COpenCLContext>();
 }
 
 
@@ -99,7 +100,7 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 		CRegardsConfigParam* regardsParam = CParamInit::getInstance();
 		if (regardsParam != nullptr)
 		{
-			 COpenCLContext::AssociateToVulkan();
+			 openCLContext->AssociateToVulkan();
 			 if (regardsParam->GetIsOpenCLSupport())
 			{
                 
@@ -120,7 +121,7 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
                    //  printf("CRenderOpenGL::Init 2 \n");
 					try
 					{
-						COpenCLContext::initializeContextFromGL();
+						openCLContext->initializeContextFromGL();
 						application_context.isOpenCLInitialized = true;
 						application_context.openclOpenGLInterop = true;
 						//cv::ocl::Device(application_context.clExecCtx.getContext().device(0));
@@ -131,7 +132,7 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 						const char* err_msg = e.what();
 						std::cout << "exception caught: " << err_msg << std::endl;
 						std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
-						COpenCLContext::CreateDefaultOpenCLContext();
+						openCLContext->CreateDefaultOpenCLContext();
 					}
 
 				}
@@ -504,7 +505,7 @@ GLvoid CRenderOpenGL::ReSizeGLScene(GLsizei width, GLsizei height) // Resize And
 
 bool CRenderOpenGL::SetData(Regards::Picture::CPictureArray& bitmap, const bool& deleteOldData)
 {
-	return textureDisplay->SetData(bitmap, deleteOldData);
+	return textureDisplay->SetData(bitmap, openCLContext.get(), deleteOldData);
 }
 
 

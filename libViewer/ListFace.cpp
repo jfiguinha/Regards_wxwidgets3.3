@@ -364,10 +364,6 @@ void CListFace::LoadResource(void* param)
 
 void CListFace::FacialDetectionRecognition(void* param)
 {
-
-	if (!application_context.clExecCtx.empty())
-		application_context.clExecCtx.bind();
-
 	auto path = static_cast<CThreadFace*>(param);
 	wxString filename = path->filename;
 

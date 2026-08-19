@@ -19,11 +19,12 @@ namespace Regards
 		class COpenCLParameterByteArray;
 		class COpenCLParameterClMem;
 		class COpenCLFilter;
+		class COpenCLContext;
 
 		class COpenCLEffectVideo : public Regards::OpenCV::IEffectVideo
 		{
 		public:
-			COpenCLEffectVideo();
+			COpenCLEffectVideo(COpenCLContext * openCLContext);
 
 			virtual ~COpenCLEffectVideo() = default;
 
@@ -84,7 +85,7 @@ namespace Regards
 			cv::Mat convertSrc;
 			cv::UMat paramSrc;
 			cv::UMat paramOutput;
-
+			COpenCLContext* openCLContext = nullptr;
 			cl_mem_flags flag;
 			std::unique_ptr<Chqdn3d> hq3d = nullptr;
 			bool interpolatePicture = false;

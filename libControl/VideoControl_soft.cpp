@@ -1285,7 +1285,9 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 	// ---------------------------------------------------------------------
 
 	if (!this->renderOpenGL)
+	{
 		this->renderOpenGL = renderOpenGL;
+	}
 
 	if (!renderBitmapOpenGL)
 	{
@@ -1300,7 +1302,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 
 	if (useOpenCL && !openclEffectYUV)
 	{
-		openclEffectYUV = std::make_unique<COpenCLEffectVideo>();
+		openclEffectYUV = std::make_unique<COpenCLEffectVideo>(renderOpenGL->GetOpenCLContext());
 	}
 
 	// ---------------------------------------------------------------------

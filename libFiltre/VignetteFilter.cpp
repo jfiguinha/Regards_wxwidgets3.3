@@ -104,7 +104,7 @@ void CVignetteFilter::ApplyPreviewEffectSource(CEffectParameter* effectParameter
 	{
 		CImageLoadingFormat image;
 		image.SetPicture(source);
-		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+		auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 
 
 		auto vignetteEffectParameter = static_cast<CVignetteEffectParameter*>(effectParameter);

@@ -1596,7 +1596,7 @@ void CBitmapWndRender::OnPaint2D(wxWindow* gdi)
 
 		if (filtreEffet == nullptr)
 		{
-			filtreEffet = std::make_unique<CFiltreEffet>(color, useOpenCL, useCuda, source.get());
+			filtreEffet = std::make_unique<CFiltreEffet>(color, nullptr, source.get());
 		}
 		else
 			filtreEffet->SetBitmap(source.get());
@@ -1674,7 +1674,7 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
         if (loadBitmap)
         {
             if (filtreEffet == nullptr)
-                filtreEffet = std::make_unique<CFiltreEffet>(color, useOpenCL, useCuda, source.get());
+                filtreEffet = std::make_unique<CFiltreEffet>(color, renderOpenGL->GetOpenCLContext(), source.get());
             else
             {
                 filtreEffet->SetBitmap(source.get());
@@ -1708,7 +1708,7 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
                 glTexture = renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
 
                 Regards::Picture::CPictureArray mat = filtreEffet->GetMatrix();
-                glTexture->SetData(mat);
+                glTexture->SetData(mat, renderOpenGL->GetOpenCLContext());
             }
 
             updateFilter = false;

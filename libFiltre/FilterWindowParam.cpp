@@ -84,7 +84,7 @@ void CFilterWindowParam::ApplyPreviewEffect(CEffectParameter* effectParameter, I
 		{
 			CImageLoadingFormat image;
 			image.SetPicture(bitmap);
-			auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), false, false, &image);
+			auto filtre = std::make_unique<CFiltreEffet>(bitmapViewer->GetBackColor(), nullptr, &image);
 			filtre->RenderEffect(GetNameFilter(), effectParameter);
 			auto imageLoad = std::make_unique<CImageLoadingFormat>();
 			cv::Mat mat = filtre->GetBitmap(true);
@@ -230,7 +230,7 @@ CImageLoadingFormat* CFilterWindowParam::RenderEffect(CEffectParameter* effectPa
 		if (bitmap != nullptr)
 		{
 			bitmap->RotateExif(bitmapViewer->GetOrientation());
-			auto filtre_effet = new CFiltreEffet(bitmapViewer->GetBackColor(), false, false, bitmap);
+			auto filtre_effet = new CFiltreEffet(bitmapViewer->GetBackColor(), nullptr, bitmap);
 			filtre_effet->RenderEffect(numFiltre, effectParameter);
 			imageLoad = new CImageLoadingFormat();
 			cv::Mat mat = filtre_effet->GetBitmap(true);

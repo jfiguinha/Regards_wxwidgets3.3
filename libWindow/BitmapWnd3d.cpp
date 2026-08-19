@@ -62,6 +62,14 @@ void CBitmapWnd3D::UpdateRenderInterface(IBitmapRenderInterface* bitmapWndRender
 	this->bitmapWndRender = bitmapWndRender;
 }
 
+COpenCLContext* CBitmapWnd3D::GetOpenCLContext()
+{
+	if (renderOpenGL)
+		return renderOpenGL->GetOpenCLContext();
+	else
+		return nullptr;
+}
+
 bool CBitmapWnd3D::GetProcessEnd()
 {
 	return bitmapWndRender->GetProcessEnd();
@@ -172,8 +180,8 @@ void CBitmapWnd3D::OnPaint(wxPaintEvent& event)
 
 	}
 
-	if (!application_context.clExecCtx.empty())
-		application_context.clExecCtx.bind();
+	if (GetOpenCLContext() != nullptr)
+		GetOpenCLContext()->Bind();
 	renderOpenGL->SetCurrent(*this);
 
 	bitmapWndRender->OnPaint3D(this, renderOpenGL);

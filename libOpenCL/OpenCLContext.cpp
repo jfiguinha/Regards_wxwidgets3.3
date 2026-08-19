@@ -44,8 +44,11 @@ static const char* CL_GL_SHARING_EXT = "cl_khr_gl_sharing";
 
 using namespace Regards::OpenCL;
 
-
-cl_command_queue COpenCLContext::s_queue = nullptr;;
+void COpenCLContext::Bind()
+{
+	if (!clExecCtx.empty())
+		clExecCtx.bind();
+}
 
 void COpenCLContext::AssociateToVulkan()
 {
@@ -147,7 +150,7 @@ cv::ocl::Program COpenCLContext::GetProgram(const wxString& programName)
 
 	cv::ocl::ProgramSource programSource(kernelSource.c_str());
 
-    cv::ocl::Context context = application_context.clExecCtx.getContext();
+    cv::ocl::Context context = clExecCtx.getContext();
 
     cv::String errmsg;
 
@@ -426,14 +429,14 @@ void COpenCLContext::initializeContextFromGL()
 	cl_platform_id platform = platforms[found];
 	application_context.platformName = cv::ocl::PlatformInfo(&platform).name();
 
-	application_context.clExecCtx = cv::ocl::OpenCLExecutionContext::create(
+	clExecCtx = cv::ocl::OpenCLExecutionContext::create(
 		application_context.platformName, platform, context, device);
 
 	cv::ocl::Device(cv::ocl::Device::fromHandle(device));
     
 	clReleaseDevice(device);
 	clReleaseContext(context);
-	application_context.clExecCtx.bind();
+	clExecCtx.bind();
 
 #endif
 }
@@ -560,8 +563,8 @@ void COpenCLContext::CreateDefaultOpenCLContext()
 	if (application_context.isOpenCLInitialized)
 	{
 		//cv::ocl::Device(context.device(0));
-		application_context.clExecCtx = cv::ocl::OpenCLExecutionContext::getCurrent();
-		application_context.platformName = application_context.clExecCtx.getDevice().vendorName();
+		clExecCtx = cv::ocl::OpenCLExecutionContext::getCurrent();
+		application_context.platformName = clExecCtx.getDevice().vendorName();
 
 		CRegardsConfigParam* regardsParam = CParamInit::getInstance();
 		if(regardsParam != nullptr)
@@ -578,8 +581,8 @@ cl_command_queue COpenCLContext::CreateCommandQueue(cl_command_queue_properties 
     cl_int err = 0;
 
     s_queue = clCreateCommandQueue(
-            (cl_context)application_context.clExecCtx.getContext().ptr(),
-            (cl_device_id)application_context.clExecCtx.getDevice().ptr(),
+            (cl_context)clExecCtx.getContext().ptr(),
+            (cl_device_id)clExecCtx.getDevice().ptr(),
             props,
             &err);
 

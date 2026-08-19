@@ -11,8 +11,9 @@
 #include <MouseUpdate.h>
 #include <vec3.h>
 #include <unordered_map>
+#include <OpenCLContext.h>
 using namespace Regards::OpenGL;
-
+using namespace Regards::OpenCL;
 //#define RENDEROPENGL WM_USER+1
 
 ;
@@ -69,7 +70,7 @@ namespace Regards::OpenGL
 		                bool inverted = false);
 
 		GLTexture* GetTextureDisplay();
-        
+		COpenCLContext* GetOpenCLContext(){ return openCLContext.get(); };
        
 	protected:
         
@@ -93,6 +94,9 @@ namespace Regards::OpenGL
 		bool isInit = false;
 		IMouseUpdate* mouseUpdate;
 
+
+		//OpenCL interop
+		std::unique_ptr<COpenCLContext> openCLContext = nullptr;
 		int widthFont = 0;
 		int heightFont = 0;
         std::map<GLchar, Character> Characters;
