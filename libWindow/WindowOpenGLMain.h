@@ -49,7 +49,7 @@ namespace Regards::Window
 
 		virtual void OnSize(wxSizeEvent& event)
 		{
-			this->ProcessOnSizeEvent(event);
+			this->ProcessOnSizeEvent(this, event);
 			//this->Refresh();
 			//this->Update();
 		}

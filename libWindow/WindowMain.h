@@ -50,7 +50,7 @@ namespace Regards
 
 			virtual void OnSize(wxSizeEvent& event)
 			{
-				this->ProcessOnSizeEvent(event);
+				this->ProcessOnSizeEvent(this, event);
 				needToRefresh = true;
 			}
 

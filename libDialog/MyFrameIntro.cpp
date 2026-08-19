@@ -59,9 +59,13 @@ MyFrameIntro::MyFrameIntro(const wxString& title, const wxString& appTitle, cons
 
 void MyFrameIntro::on_size(wxSizeEvent& event)
 {
-	wxSize size = event.GetSize();
+
+	const wxSize size_window = this->GetSize();
+	const wxSize clientSize = this->GetClientSize();
+
+	wxSize size = clientSize;
 	titleIntro->SetSize(0, 0, size.GetWidth(), titleIntro->GetHeight());
-	myCentralWindow->SetSize(0, titleIntro->GetHeight(), size.GetWidth() - barWidth, (size.GetHeight() - titleIntro->GetHeight()) - barHeight	);
+	myCentralWindow->SetSize(0, titleIntro->GetHeight(), size.GetWidth(), size.GetHeight() - titleIntro->GetHeight());
 }
 
 

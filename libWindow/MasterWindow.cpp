@@ -44,10 +44,11 @@ void CMasterWindow::StopAllProcess(const wxString& title, const wxString& messag
 
 }
 
-void CMasterWindow::ProcessOnSizeEvent(wxSizeEvent& event)
+void CMasterWindow::ProcessOnSizeEvent(wxWindow* window, wxSizeEvent& event)
 {
-	int _width = event.GetSize().GetX();
-	int _height = event.GetSize().GetY();
+	const wxSize clientSize = window->GetClientSize();
+	int _width = clientSize.GetWidth();
+	int _height = clientSize.GetHeight();
 	if (_width <= 20 && _height <= 20)
 	{
 		//not corrected size

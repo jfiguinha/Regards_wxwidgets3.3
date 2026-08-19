@@ -52,7 +52,7 @@ namespace Regards::Window
 
 	protected:
 
-		virtual void ProcessOnSizeEvent(wxSizeEvent& event);
+		virtual void ProcessOnSizeEvent(wxWindow* window, wxSizeEvent& event);
 
 		virtual void ProcessIdle()
 		{
