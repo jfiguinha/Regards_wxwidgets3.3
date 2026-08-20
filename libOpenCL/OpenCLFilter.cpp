@@ -1420,6 +1420,11 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 				dstRGBA,
 				params);
 
+			if (!result)
+				resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method - 1);
+			else
+				dstRGBA.copyTo(cvDestBgra);
+
 		}
 		else if (method > 7)
 		{
