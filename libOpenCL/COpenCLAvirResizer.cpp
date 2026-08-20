@@ -1,5 +1,6 @@
+#include <header.h>
 #include "COpenCLAvirResizer.h"
-
+#include "OpenCLContext.h"
 #include <cmath>
 #include <cstdio>
 #include <fstream>
@@ -13,19 +14,15 @@ namespace
 	constexpr double AVIR_PId2 = AVIR_PI * 0.5;
 }
 
-COpenCLAvirResizer::COpenCLAvirResizer(cl_context context, cl_command_queue queue, cl_device_id device)
-	: m_context(context)
-	, m_queue(queue)
-	, m_device(device)
+COpenCLAvirResizer::COpenCLAvirResizer(COpenCLContext* openCLContext)
+	: openCLContext(openCLContext)
 {
+	m_program = openCLContext->GetProgram("IDR_OPENCL_AVIR");
 }
 
 COpenCLAvirResizer::~COpenCLAvirResizer()
 {
 	ReleaseKernels();
-
-	if (m_program)
-		clReleaseProgram(m_program);
 }
 
 void COpenCLAvirResizer::ReleaseKernels()
@@ -48,7 +45,7 @@ void COpenCLAvirResizer::ReleaseKernels()
 cl_kernel COpenCLAvirResizer::CreateKernel(const char* name)
 {
 	cl_int err = CL_SUCCESS;
-	cl_kernel k = clCreateKernel(m_program, name, &err);
+	cl_kernel k = clCreateKernel((cl_program)m_program.ptr(), name, &err);
 	if (err != CL_SUCCESS)
 	{
 		fprintf(stderr, "COpenCLAvirResizer: echec creation kernel '%s' (err=%d)\n", name, err);
@@ -63,28 +60,6 @@ bool COpenCLAvirResizer::Init(const char* clSourcePath)
 	if (!file)
 	{
 		fprintf(stderr, "COpenCLAvirResizer: impossible d'ouvrir '%s'\n", clSourcePath);
-		return false;
-	}
-
-	std::ostringstream ss;
-	ss << file.rdbuf();
-	const std::string src = ss.str();
-	const char* srcPtr = src.c_str();
-	size_t srcLen = src.size();
-
-	cl_int err = CL_SUCCESS;
-	m_program = clCreateProgramWithSource(m_context, 1, &srcPtr, &srcLen, &err);
-	if (err != CL_SUCCESS)
-		return false;
-
-	err = clBuildProgram(m_program, 1, &m_device, "-cl-fast-relaxed-math", nullptr, nullptr);
-	if (err != CL_SUCCESS)
-	{
-		size_t logSize = 0;
-		clGetProgramBuildInfo(m_program, m_device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &logSize);
-		std::vector<char> log(logSize + 1, 0);
-		clGetProgramBuildInfo(m_program, m_device, CL_PROGRAM_BUILD_LOG, logSize, log.data(), nullptr);
-		fprintf(stderr, "COpenCLAvirResizer: erreur de compilation :\n%s\n", log.data());
 		return false;
 	}
 
@@ -226,22 +201,442 @@ std::vector<float> COpenCLAvirResizer::BuildSharpenKernel(int klen) const
 	return out;
 }
 
-bool COpenCLAvirResizer::Resize(
-	const float* srcRGBA, int srcWidth, int srcHeight,
-	float* dstRGBA, int dstWidth, int dstHeight,
-	const SAvirResizeParams& params)
-{
-	if (!m_program || srcWidth <= 0 || srcHeight <= 0 || dstWidth <= 0 || dstHeight <= 0)
+bool COpenCLAvirResizer::Resize(const cv::UMat& src, cv::UMat& dest,
+	const SAvirResizeParams& params) {
+	std::vector<SResizeTap> tapsH;
+	std::vector<float> coefsH;
+	std::vector<SResizeTap> tapsV;
+	std::vector<float> coefsV;
+	cv::UMat dstFloat;
+
+	if (openCLContext == nullptr || src.empty() || dest.empty()) {
 		return false;
+	}
+
+	if (src.type() != CV_8UC4 || dest.type() != CV_8UC4) {
+		return false;
+	}
+
+	const int srcWidth = src.cols;
+	const int srcHeight = src.rows;
+	const int dstWidth = dest.cols;
+	const int dstHeight = dest.rows;
+
+	if (srcWidth <= 0 || srcHeight <= 0 || dstWidth <= 0 || dstHeight <= 0) {
+		return false;
+	}
+
+	if (m_program.empty()) return false;
+
+	cl_context context = openCLContext->GetContext();
+
+	cl_command_queue queue = openCLContext->GetCommandQueue();
+
+	if (context == nullptr || queue == nullptr) return false;
+
+	// ============================================================
+	// CV_8UC4 BGRA -> CV_32FC4 BGRA
+	// ============================================================
+
+	cv::UMat srcFloat;
+
+	src.convertTo(srcFloat, CV_32FC4, 1.0 / 255.0);
+
+	// ============================================================
+	// Les UMat doivent être synchronisés avec OpenCL.
+	// ============================================================
+
+	cl_mem bufSrc = static_cast<cl_mem>(srcFloat.handle(cv::ACCESS_READ));
+
+	if (bufSrc == nullptr) return false;
+
+	// ============================================================
+	// Taille des buffers intermédiaires
+	// ============================================================
+
+	const size_t srcCount =
+		static_cast<size_t>(srcWidth) * static_cast<size_t>(srcHeight);
+
+	const size_t midCount =
+		static_cast<size_t>(dstWidth) * static_cast<size_t>(srcHeight);
+
+	const size_t dstCount =
+		static_cast<size_t>(dstWidth) * static_cast<size_t>(dstHeight);
 
 	cl_int err = CL_SUCCESS;
 
-	const size_t srcCount = (size_t)srcWidth * srcHeight;
-	const size_t midCount = (size_t)dstWidth * srcHeight;   // apres la passe H
-	const size_t dstCount = (size_t)dstWidth * dstHeight;
+	// ============================================================
+	// Buffer intermédiaire H
+	// ============================================================
 
-	cl_mem bufSrc = clCreateBuffer(m_context, CL_MEM_READ_WRITE | CL_MEM_COPY_HOST_PTR,
-		srcCount * sizeof(cl_float4), (void*)srcRGBA, &err);
+	cl_mem bufMid = clCreateBuffer(context, CL_MEM_READ_WRITE,
+		midCount * sizeof(cl_float4), nullptr, &err);
+
+	if (err != CL_SUCCESS || bufMid == nullptr) return false;
+
+	// ============================================================
+	// Buffer résultat V
+	// ============================================================
+
+	cl_mem bufDst = clCreateBuffer(context, CL_MEM_READ_WRITE,
+		dstCount * sizeof(cl_float4), nullptr, &err);
+
+	if (err != CL_SUCCESS || bufDst == nullptr) {
+		clReleaseMemObject(bufMid);
+		return false;
+	}
+
+	// ============================================================
+	// Linearisation sRGB
+	// ============================================================
+
+	if (params.linearizeGamma) {
+		const int count = static_cast<int>(srcCount);
+
+		err = clSetKernelArg(m_kLinearize, 0, sizeof(cl_mem), &bufSrc);
+
+		if (err == CL_SUCCESS) {
+			err = clSetKernelArg(m_kLinearize, 1, sizeof(int), &count);
+		}
+
+		if (err != CL_SUCCESS) goto cleanup;
+
+		const size_t global = srcCount;
+
+		err = clEnqueueNDRangeKernel(queue, m_kLinearize, 1, nullptr, &global,
+			nullptr, 0, nullptr, nullptr);
+
+		if (err != CL_SUCCESS) goto cleanup;
+	}
+
+	// ============================================================
+	// Filtre horizontal
+	// ============================================================
+
+	BuildAxisFilters(srcWidth, dstWidth, params, tapsH, coefsH);
+
+	cl_mem bufTapsH =
+		clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+			tapsH.size() * sizeof(SResizeTap), tapsH.data(), &err);
+
+	if (err != CL_SUCCESS) goto cleanup;
+
+	cl_mem bufCoefsH =
+		clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+			coefsH.size() * sizeof(float), coefsH.data(), &err);
+
+	if (err != CL_SUCCESS) {
+		clReleaseMemObject(bufTapsH);
+		goto cleanup;
+	}
+
+	{
+		const int sw = srcWidth;
+		const int sh = srcHeight;
+		const int dw = dstWidth;
+
+		err = clSetKernelArg(m_kResizeH, 0, sizeof(cl_mem), &bufSrc);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeH, 1, sizeof(int), &sw);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeH, 2, sizeof(int), &sh);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeH, 3, sizeof(cl_mem), &bufMid);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeH, 4, sizeof(int), &dw);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeH, 5, sizeof(cl_mem), &bufTapsH);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeH, 6, sizeof(cl_mem), &bufCoefsH);
+
+		if (err == CL_SUCCESS) {
+			const size_t global[2] = { static_cast<size_t>(dstWidth),
+									  static_cast<size_t>(srcHeight) };
+
+			err = clEnqueueNDRangeKernel(queue, m_kResizeH, 2, nullptr, global,
+				nullptr, 0, nullptr, nullptr);
+		}
+	}
+
+	clReleaseMemObject(bufTapsH);
+	clReleaseMemObject(bufCoefsH);
+
+	if (err != CL_SUCCESS) goto cleanup;
+
+	// ============================================================
+	// Filtre vertical
+	// ============================================================
+
+	BuildAxisFilters(srcHeight, dstHeight, params, tapsV, coefsV);
+
+	cl_mem bufTapsV =
+		clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+			tapsV.size() * sizeof(SResizeTap), tapsV.data(), &err);
+
+	if (err != CL_SUCCESS) goto cleanup;
+
+	cl_mem bufCoefsV =
+		clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+			coefsV.size() * sizeof(float), coefsV.data(), &err);
+
+	if (err != CL_SUCCESS) {
+		clReleaseMemObject(bufTapsV);
+		goto cleanup;
+	}
+
+	{
+		const int mw = dstWidth;
+		const int mh = srcHeight;
+		const int dh = dstHeight;
+
+		err = clSetKernelArg(m_kResizeV, 0, sizeof(cl_mem), &bufMid);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeV, 1, sizeof(int), &mw);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeV, 2, sizeof(int), &mh);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeV, 3, sizeof(cl_mem), &bufDst);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeV, 4, sizeof(int), &dh);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeV, 5, sizeof(cl_mem), &bufTapsV);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kResizeV, 6, sizeof(cl_mem), &bufCoefsV);
+
+		if (err == CL_SUCCESS) {
+			const size_t global[2] = { static_cast<size_t>(dstWidth),
+									  static_cast<size_t>(dstHeight) };
+
+			err = clEnqueueNDRangeKernel(queue, m_kResizeV, 2, nullptr, global,
+				nullptr, 0, nullptr, nullptr);
+		}
+	}
+
+	clReleaseMemObject(bufTapsV);
+	clReleaseMemObject(bufCoefsV);
+
+	if (err != CL_SUCCESS) goto cleanup;
+
+	clReleaseMemObject(bufMid);
+	bufMid = nullptr;
+
+	// ============================================================
+	// Sharpen
+	// ============================================================
+
+	{
+		const bool enlarging = dstWidth > srcWidth || dstHeight > srcHeight;
+
+		if (params.sharpen && enlarging) {
+			const std::vector<float> sk = BuildSharpenKernel(5);
+
+			cl_mem bufKernel =
+				clCreateBuffer(context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
+					sk.size() * sizeof(float), (void*)sk.data(), &err);
+
+			if (err != CL_SUCCESS) goto cleanup;
+
+			cl_mem bufTmp =
+				clCreateBuffer(context, CL_MEM_READ_WRITE,
+					dstCount * sizeof(cl_float4), nullptr, &err);
+
+			if (err != CL_SUCCESS) {
+				clReleaseMemObject(bufKernel);
+				goto cleanup;
+			}
+
+			const int w = dstWidth;
+			const int h = dstHeight;
+			const int klen = static_cast<int>(sk.size());
+
+			const float amount = params.sharpenAmount;
+
+			const size_t global[2] = { static_cast<size_t>(w), static_cast<size_t>(h) };
+
+			// ------------------------------
+			// Horizontal
+			// ------------------------------
+
+			err = clSetKernelArg(m_kSharpenH, 0, sizeof(cl_mem), &bufDst);
+
+			if (err == CL_SUCCESS)
+				err = clSetKernelArg(m_kSharpenH, 1, sizeof(int), &w);
+
+			if (err == CL_SUCCESS)
+				err = clSetKernelArg(m_kSharpenH, 2, sizeof(int), &h);
+
+			if (err == CL_SUCCESS)
+				err = clSetKernelArg(m_kSharpenH, 3, sizeof(cl_mem), &bufTmp);
+
+			if (err == CL_SUCCESS)
+				err = clSetKernelArg(m_kSharpenH, 4, sizeof(cl_mem), &bufKernel);
+
+			if (err == CL_SUCCESS)
+				err = clSetKernelArg(m_kSharpenH, 5, sizeof(int), &klen);
+
+			if (err == CL_SUCCESS)
+				err = clSetKernelArg(m_kSharpenH, 6, sizeof(float), &amount);
+
+			if (err == CL_SUCCESS) {
+				err = clEnqueueNDRangeKernel(queue, m_kSharpenH, 2, nullptr, global,
+					nullptr, 0, nullptr, nullptr);
+			}
+
+			// ------------------------------
+			// Vertical
+			// ------------------------------
+
+			if (err == CL_SUCCESS) {
+				err = clSetKernelArg(m_kSharpenV, 0, sizeof(cl_mem), &bufTmp);
+
+				if (err == CL_SUCCESS)
+					err = clSetKernelArg(m_kSharpenV, 1, sizeof(int), &w);
+
+				if (err == CL_SUCCESS)
+					err = clSetKernelArg(m_kSharpenV, 2, sizeof(int), &h);
+
+				if (err == CL_SUCCESS)
+					err = clSetKernelArg(m_kSharpenV, 3, sizeof(cl_mem), &bufDst);
+
+				if (err == CL_SUCCESS)
+					err = clSetKernelArg(m_kSharpenV, 4, sizeof(cl_mem), &bufKernel);
+
+				if (err == CL_SUCCESS)
+					err = clSetKernelArg(m_kSharpenV, 5, sizeof(int), &klen);
+
+				if (err == CL_SUCCESS)
+					err = clSetKernelArg(m_kSharpenV, 6, sizeof(float), &amount);
+
+				if (err == CL_SUCCESS) {
+					err = clEnqueueNDRangeKernel(queue, m_kSharpenV, 2, nullptr, global,
+						nullptr, 0, nullptr, nullptr);
+				}
+			}
+
+			clReleaseMemObject(bufKernel);
+			clReleaseMemObject(bufTmp);
+
+			if (err != CL_SUCCESS) goto cleanup;
+		}
+	}
+
+	// ============================================================
+	// Delinearisation
+	// ============================================================
+
+	if (params.linearizeGamma) {
+		const int count = static_cast<int>(dstCount);
+
+		err = clSetKernelArg(m_kDelinearize, 0, sizeof(cl_mem), &bufDst);
+
+		if (err == CL_SUCCESS)
+			err = clSetKernelArg(m_kDelinearize, 1, sizeof(int), &count);
+
+		if (err != CL_SUCCESS) goto cleanup;
+
+		const size_t global = dstCount;
+
+		err = clEnqueueNDRangeKernel(queue, m_kDelinearize, 1, nullptr, &global,
+			nullptr, 0, nullptr, nullptr);
+
+		if (err != CL_SUCCESS) goto cleanup;
+	}
+
+	// ============================================================
+	// Conversion du buffer OpenCL vers UMat CV_32FC4
+	// ============================================================
+	//
+	// Ici on crée un UMat temporaire puis on utilise le mécanisme
+	// OpenCV/OpenCL pour récupérer le résultat.
+	//
+	// IMPORTANT :
+	// bufDst n'appartient pas à OpenCV, donc il faut copier vers
+	// un UMat OpenCV avant de le détruire.
+	// ============================================================
+
+	dstFloat.create(dstHeight, dstWidth, CV_32FC4);
+
+	cl_mem dstFloatBuffer =
+		static_cast<cl_mem>(dstFloat.handle(cv::ACCESS_WRITE));
+
+	if (dstFloatBuffer == nullptr) goto cleanup;
+
+	// ============================================================
+	// Copie GPU -> UMat GPU
+	// ============================================================
+
+	err = clEnqueueCopyBuffer(queue, bufDst, dstFloatBuffer, 0, 0,
+		dstCount * sizeof(cl_float4), 0, nullptr, nullptr);
+
+	if (err != CL_SUCCESS) goto cleanup;
+
+	// ============================================================
+	// Synchronisation
+	// ============================================================
+
+	err = clFinish(queue);
+
+	if (err != CL_SUCCESS) goto cleanup;
+
+	// ============================================================
+	// CV_32FC4 -> CV_8UC4
+	//
+	// BGRA reste BGRA.
+	// ============================================================
+
+	dstFloat.convertTo(dest, CV_8UC4, 255.0);
+
+cleanup:
+
+	if (bufMid != nullptr) clReleaseMemObject(bufMid);
+
+	if (bufDst != nullptr) clReleaseMemObject(bufDst);
+
+	return err == CL_SUCCESS;
+}
+
+/*
+bool COpenCLAvirResizer::Resize(
+	const cv::UMat & src,
+	cv::UMat & dest,
+	const SAvirResizeParams& params)
+{
+
+	if (src.empty() || dest.empty())
+		return false;
+
+
+	cv::UMat srcFloat;
+	src.convertTo(srcFloat, CV_32FC4, 1.0 / 255.0);
+
+	cv::UMat dstFloat;
+	dest.convertTo(dstFloat, CV_32FC4, 1.0 / 255.0);
+
+	cl_int err = CL_SUCCESS;
+
+	const size_t srcCount = (size_t)src.size().width * src.size().height;
+	const size_t midCount = (size_t)dest.size().width * src.size().height;   // apres la passe H
+	const size_t dstCount = (size_t)dest.size().width * dest.size().height;
+
+	cl_context m_context = openCLContext->GetContext();
+	cl_command_queue m_queue = (cl_command_queue)openCLContext->GetCommandQueue();
+
+	auto bufSrc = static_cast<cl_mem>(srcFloat.handle(cv::ACCESS_READ));
+	auto dstRGBA = static_cast<cl_mem>(dstFloat.handle(cv::ACCESS_RW));
+
+
 	if (err != CL_SUCCESS) return false;
 
 	cl_mem bufMid = clCreateBuffer(m_context, CL_MEM_READ_WRITE, midCount * sizeof(cl_float4), nullptr, &err);
@@ -263,7 +658,7 @@ bool COpenCLAvirResizer::Resize(
 	// --- passe horizontale ---
 	std::vector<SResizeTap> tapsH;
 	std::vector<float> coefsH;
-	BuildAxisFilters(srcWidth, dstWidth, params, tapsH, coefsH);
+	BuildAxisFilters(src.size().width, dest.size().width, params, tapsH, coefsH);
 
 	cl_mem bufTapsH = clCreateBuffer(m_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
 		tapsH.size() * sizeof(SResizeTap), tapsH.data(), &err);
@@ -271,7 +666,7 @@ bool COpenCLAvirResizer::Resize(
 		coefsH.size() * sizeof(float), coefsH.data(), &err);
 
 	{
-		int sw = srcWidth, sh = srcHeight, dw = dstWidth;
+		int sw = src.size().width, sh = src.size().height, dw = dest.size().width;
 		clSetKernelArg(m_kResizeH, 0, sizeof(cl_mem), &bufSrc);
 		clSetKernelArg(m_kResizeH, 1, sizeof(int), &sw);
 		clSetKernelArg(m_kResizeH, 2, sizeof(int), &sh);
@@ -279,7 +674,7 @@ bool COpenCLAvirResizer::Resize(
 		clSetKernelArg(m_kResizeH, 4, sizeof(int), &dw);
 		clSetKernelArg(m_kResizeH, 5, sizeof(cl_mem), &bufTapsH);
 		clSetKernelArg(m_kResizeH, 6, sizeof(cl_mem), &bufCoefsH);
-		const size_t g[2] = { (size_t)dstWidth, (size_t)srcHeight };
+		const size_t g[2] = { (size_t)dest.size().width, (size_t)src.size().height };
 		clEnqueueNDRangeKernel(m_queue, m_kResizeH, 2, nullptr, g, nullptr, 0, nullptr, nullptr);
 	}
 
@@ -289,7 +684,7 @@ bool COpenCLAvirResizer::Resize(
 	// --- passe verticale ---
 	std::vector<SResizeTap> tapsV;
 	std::vector<float> coefsV;
-	BuildAxisFilters(srcHeight, dstHeight, params, tapsV, coefsV);
+	BuildAxisFilters(src.size().height, dest.size().height, params, tapsV, coefsV);
 
 	cl_mem bufTapsV = clCreateBuffer(m_context, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR,
 		tapsV.size() * sizeof(SResizeTap), tapsV.data(), &err);
@@ -297,7 +692,7 @@ bool COpenCLAvirResizer::Resize(
 		coefsV.size() * sizeof(float), coefsV.data(), &err);
 
 	{
-		int mw = dstWidth, mh = srcHeight, dh = dstHeight;
+		int mw = dest.size().width, mh = src.size().height, dh = dest.size().height;
 		clSetKernelArg(m_kResizeV, 0, sizeof(cl_mem), &bufMid);
 		clSetKernelArg(m_kResizeV, 1, sizeof(int), &mw);
 		clSetKernelArg(m_kResizeV, 2, sizeof(int), &mh);
@@ -305,7 +700,7 @@ bool COpenCLAvirResizer::Resize(
 		clSetKernelArg(m_kResizeV, 4, sizeof(int), &dh);
 		clSetKernelArg(m_kResizeV, 5, sizeof(cl_mem), &bufTapsV);
 		clSetKernelArg(m_kResizeV, 6, sizeof(cl_mem), &bufCoefsV);
-		const size_t g[2] = { (size_t)dstWidth, (size_t)dstHeight };
+		const size_t g[2] = { (size_t)dest.size().width, (size_t)dest.size().height };
 		clEnqueueNDRangeKernel(m_queue, m_kResizeV, 2, nullptr, g, nullptr, 0, nullptr, nullptr);
 	}
 
@@ -314,7 +709,7 @@ bool COpenCLAvirResizer::Resize(
 	clReleaseMemObject(bufMid);
 
 	// --- nettete (optionnelle, seulement en agrandissement horizontal) ---
-	const double kx = (double)dstWidth / (double)srcWidth;
+	const double kx = (double)dest.size().width / (double)src.size().width;
 
 	if (params.sharpen && kx > 1.0)
 	{
@@ -323,7 +718,7 @@ bool COpenCLAvirResizer::Resize(
 			sk.size() * sizeof(float), sk.data(), &err);
 		cl_mem bufTmp = clCreateBuffer(m_context, CL_MEM_READ_WRITE, dstCount * sizeof(cl_float4), nullptr, &err);
 
-		int w = dstWidth, h = dstHeight, klen = (int)sk.size();
+		int w = dest.size().width, h = dest.size().height, klen = (int)sk.size();
 		float amount = params.sharpenAmount;
 
 		clSetKernelArg(m_kSharpenH, 0, sizeof(cl_mem), &bufDst);
@@ -368,7 +763,7 @@ bool COpenCLAvirResizer::Resize(
 			const cl_float4 zero = { { 0.0f, 0.0f, 0.0f, 0.0f } };
 			clEnqueueFillBuffer(m_queue, bufErr, &zero, sizeof(zero), 0, dstCount * sizeof(cl_float4), 0, nullptr, nullptr);
 
-			int w = dstWidth, h = dstHeight;
+			int w = dest.size().width, h = dest.size().height;
 			float peak = params.peakValue;
 			clSetKernelArg(m_kDitherErrDiff, 0, sizeof(cl_mem), &bufDst);
 			clSetKernelArg(m_kDitherErrDiff, 1, sizeof(int), &w);
@@ -397,5 +792,8 @@ bool COpenCLAvirResizer::Resize(
 	clReleaseMemObject(bufSrc);
 	clReleaseMemObject(bufDst);
 
+	srcFloat.convertTo(dest, CV_8UC4, 255.0);
+
 	return err == CL_SUCCESS;
 }
+*/

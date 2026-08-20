@@ -262,7 +262,7 @@ COpenCLFilter::COpenCLFilter(COpenCLContext* openCLContext)
 	flag = useMemory ? CL_MEM_USE_HOST_PTR : CL_MEM_COPY_HOST_PTR;
 	hq3d = nullptr;
     superSampling = std::make_unique<CSuperSampling>();
-
+	resizer = new COpenCLAvirResizer(openCLContext);
 }
 
 COpenCLFilter::~COpenCLFilter()
@@ -654,8 +654,8 @@ void COpenCLFilter::MotionBlurCompute(const vector<double>& kernelMotion, const 
 				.Image("input", clBuffer)
 				.Int("width", inputData.cols)
 				.Int("height", inputData.rows)
-				.FloatArray("kernelMotion", static_cast<cl_context>(ocl::Context::getDefault(false).ptr()), kernel.data(), size, flag)
-				.IntArray("offsets", static_cast<cl_context>(ocl::Context::getDefault(false).ptr()), offsetsMotion.data(), size * 2, flag)
+				.FloatArray("kernelMotion", openCLContext->GetContext(), kernel.data(), size, flag)
+				.IntArray("offsets", openCLContext->GetContext(), offsetsMotion.data(), size * 2, flag)
 				.Int("kernelSize", size);
 
 
@@ -1203,7 +1203,7 @@ void COpenCLFilter::ExecuteOpenCLCode(const wxString& programName, const wxStrin
 
 	ExecuteSafe([&]
 		{
-			ocl::Context context = openCLContext->GetExecutionContext().getContext();
+			//ocl::Context context = openCLContext->GetExecutionContext().getContext();
 			ocl::Program program = openCLContext->GetProgram(programName);
 
 			ocl::Kernel kernel(functionName, program);
@@ -1404,7 +1404,22 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 		}
 		else if (method == 7) //AVIR INTERPOLATION NOT SUPPORTED BY OPENCL
 		{
-			resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method - 1);
+
+			SAvirResizeParams params;
+			params.linearizeGamma = true;      // correct pour une image sRGB classique
+			params.sharpen = true;             // si tu agrandis et veux un rendu plus net
+			params.sharpenAmount = 0.35f;
+			params.dither = false;             // true seulement si tu redescends ensuite en 8 bits
+			params.peakValue = 1.0f;           // buffer normalise 0..1
+
+			cv::UMat dstRGBA;
+			dstRGBA.create(heightOut, widthOut, CV_8UC4);
+
+			bool result = resizer->Resize(
+				cvDestBgra,
+				dstRGBA,
+				params);
+
 		}
 		else if (method > 7)
 		{

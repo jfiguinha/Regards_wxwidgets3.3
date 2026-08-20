@@ -52,6 +52,8 @@ namespace Regards
 {
 	namespace OpenCL
 	{
+		class COpenCLContext;
+
 		struct SAvirResizeParams
 		{
 			double alpha = 4.76449;        ///< Parametre Alpha de la fenetre Peaked Cosine (cf. AVIR LPFltAlpha).
@@ -72,7 +74,7 @@ namespace Regards
 		class COpenCLAvirResizer
 		{
 		public:
-			COpenCLAvirResizer(cl_context context, cl_command_queue queue, cl_device_id device);
+			COpenCLAvirResizer(COpenCLContext* openCLContext);
 			~COpenCLAvirResizer();
 
 			COpenCLAvirResizer(const COpenCLAvirResizer&) = delete;
@@ -84,11 +86,12 @@ namespace Regards
 			/// srcRGBA : buffer hote, srcWidth*srcHeight*4 floats (RGBA).
 			/// dstRGBA : buffer hote DEJA ALLOUE, dstWidth*dstHeight*4 floats.
 			bool Resize(
-				const float* srcRGBA, int srcWidth, int srcHeight,
-				float* dstRGBA, int dstWidth, int dstHeight,
-				const SAvirResizeParams& params = SAvirResizeParams());
+				const cv::UMat& src,
+				cv::UMat& dest,
+				const SAvirResizeParams& params);
 
 		private:
+
 			struct SResizeTap
 			{
 				cl_int srcStart;
@@ -96,11 +99,8 @@ namespace Regards
 				cl_int coefOffset;
 			};
 
-			cl_context m_context;
-			cl_command_queue m_queue;
-			cl_device_id m_device;
-			cl_program m_program = nullptr;
-
+			COpenCLContext* openCLContext = nullptr;
+			cv::ocl::Program m_program;
 			cl_kernel m_kLinearize = nullptr;
 			cl_kernel m_kDelinearize = nullptr;
 			cl_kernel m_kResizeH = nullptr;

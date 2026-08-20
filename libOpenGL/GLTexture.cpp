@@ -47,8 +47,8 @@ cl_int CTextureGLPriv::CreateTextureInterop(GLTexture* glTexture)
 	if (clImage != nullptr)
 		return CL_SUCCESS;
 
-	cl_context       context = static_cast<cl_context>(openCLContext->GetExecutionContext().getContext().ptr());
-	cl_command_queue q = static_cast<cl_command_queue>(openCLContext->GetExecutionContext().getQueue().ptr());
+	cl_context       context = openCLContext->GetContext();
+	cl_command_queue q = openCLContext->GetCommandQueue();
 
 	cl_int status = 0;
 	clImage = clCreateFromGLTexture(context, CL_MEM_WRITE_ONLY, GL_TEXTURE_2D,

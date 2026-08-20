@@ -37,6 +37,16 @@ namespace Regards
                 return clExecCtx;
             }
 
+            cl_command_queue GetCommandQueue()
+            {
+                return commandQueue;
+            }
+
+            cl_context GetContext()
+            {
+                return static_cast<cl_context>(clExecCtx.getContext().ptr());
+            }
+
         private:
             cl_command_queue commandQueue = nullptr;
             std::map<wxString, cv::ocl::Program> openclBinaryMapping;

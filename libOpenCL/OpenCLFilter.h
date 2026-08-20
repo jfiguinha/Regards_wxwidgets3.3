@@ -9,7 +9,7 @@
 #endif
 #include <hqdn3d.h>
 #include "OpenCLContext.h"
-
+#include "COpenCLAvirResizer.h"
 
 class CSuperSampling;
 
@@ -111,7 +111,7 @@ namespace Regards
 			double oldLevelDenoise = 0;
 			int oldwidthDenoise = 0;
 			int oldheightDenoise = 0;
-
+			COpenCLAvirResizer * resizer = nullptr;
 			bool isVideo = false;
 			std::map<wxString,std::unique_ptr<OpenCLMemoryTemp>> openclMemTempMap;
 			std::unique_ptr<CSuperSampling> superSampling;

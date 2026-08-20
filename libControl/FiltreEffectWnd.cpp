@@ -27,12 +27,17 @@ CFiltreEffectScrollWnd::CFiltreEffectScrollWnd(wxWindow* parent, wxWindowID id, 
 {
 	this->bitmapWindowId = bitmapWindowId;
 	numFiltre = 0;
-	bitmap = std::make_unique<CImageLoadingFormat>();
+	bitmap = nullptr;
 	effectParameter = nullptr;
 	filtreEffectOld = nullptr;
 	Connect(wxEVENT_UPDATEFILTER, wxCommandEventHandler(CFiltreEffectScrollWnd::OnUpdateFilter));
 }
 
+CFiltreEffectScrollWnd::~CFiltreEffectScrollWnd(void)
+{
+	if (bitmap != nullptr)
+		delete bitmap;
+};
 
 void CFiltreEffectScrollWnd::SetBitmapToViewer(CImageLoadingFormat* bitmap)
 {
@@ -51,6 +56,8 @@ void CFiltreEffectScrollWnd::OnFiltreCancel()
 		bitmapViewer = static_cast<CBitmapWndViewer*>(bitmapWindow->GetWndPt());
 	}
 
+
+	/*
 	// Create a copy of the original bitmap to restore it in the viewer
 	CImageLoadingFormat * copybitmap = new CImageLoadingFormat();
 	cv::Mat mat = bitmap->GetMatrix().getMat();
@@ -59,6 +66,11 @@ void CFiltreEffectScrollWnd::OnFiltreCancel()
 	copybitmap->SetFilename(bitmap->GetFilename());
 
 	SetBitmapToViewer(copybitmap);
+	*/
+
+
+	SetBitmapToViewer(bitmap);
+	bitmap = nullptr;
 
 	if (bitmapViewer != nullptr && CFiltreData::NeedPreview(numFiltre))
 		bitmapViewer->RemoveListener();
@@ -170,7 +182,10 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 
 						bitmapViewer->SetBitmapPreviewEffect(numItem);
 
-						bitmap.reset(bitmapViewer->GetBitmap(true));
+						if (bitmap != nullptr)
+							delete bitmap;
+
+						bitmap = bitmapViewer->GetBitmap(true);
 
 						filtreEffect->Init(effectParameter.get(), bitmap->GetMatrix().getMat(), filename, numItem);
 
