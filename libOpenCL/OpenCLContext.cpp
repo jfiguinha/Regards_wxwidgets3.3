@@ -44,7 +44,6 @@ static const char* CL_GL_SHARING_EXT = "cl_khr_gl_sharing";
 
 using namespace Regards::OpenCL;
 
-std::map<wxString, cv::ocl::Program> COpenCLContext::openclBinaryMapping;
 
 COpenCLContext::~COpenCLContext()
 {

@@ -39,7 +39,7 @@ namespace Regards
 
         private:
             cl_command_queue commandQueue = nullptr;
-            static std::map<wxString, cv::ocl::Program> openclBinaryMapping;
+            std::map<wxString, cv::ocl::Program> openclBinaryMapping;
             cv::ocl::OpenCLExecutionContext clExecCtx;
 
             cl_command_queue CreateCommandQueue(
