@@ -1404,7 +1404,7 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 		}
 		else if (method == 7) //AVIR INTERPOLATION NOT SUPPORTED BY OPENCL
 		{
-			resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method);
+			resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method - 1);
 		}
 		else if (method > 7)
 		{

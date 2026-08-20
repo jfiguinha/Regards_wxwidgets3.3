@@ -33,7 +33,7 @@ namespace Regards::Control
 		void OnUpdateFilter(wxCommandEvent& event);
 		void SetBitmapToViewer(CImageLoadingFormat* bitmap);
 		//CImageLoadingFormat * SetBitmapEffect(const int &effect, CEffectParameter * effectParameter, CRegardsBitmap * bitmap);
-		CImageLoadingFormat* bitmap;
+		std::unique_ptr<CImageLoadingFormat> bitmap;
 		std::unique_ptr<CEffectParameter> effectParameter;
 		std::unique_ptr<CFiltreEffect> filtreEffectOld;
 		int numFiltre;

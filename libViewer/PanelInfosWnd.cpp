@@ -410,9 +410,28 @@ void CPanelInfosWnd::ApplyEffect(wxCommandEvent& event)
 
 void CPanelInfosWnd::OnFiltreOk(const int& numFiltre)
 {
-	wxBusyInfo wait("Please wait, working...");
-	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
-	ClickShowButton(WM_EFFECT);
+	CBitmapWndViewer* bitmapViewer = nullptr;
+	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(FindWindowById(BITMAPWINDOWVIEWERID));
+	if (bitmapWindow != nullptr)
+	{
+		bitmapViewer = static_cast<CBitmapWndViewer*>(bitmapWindow->GetWndPt());
+	}
+
+	if (bitmapViewer != nullptr)
+	{
+		wxBusyInfo wait("Please wait, working...");
+		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
+		bitmapViewer->SetBitmapPreviewEffect(0);
+	}
+
+	infosToolbar->SetEffectParameterInactif();
+
+	if (windowVisible != WM_INFOS)
+	{
+		windowVisible = WM_INFOS;
+		this->ClickShowButton(WM_INFOS);
+	}
+	LoadInfo();
 }
 
 void CPanelInfosWnd::OnFiltreCancel()
@@ -437,7 +456,7 @@ void CPanelInfosWnd::OnFiltreCancel()
 		wxCommandEvent evt(wxEVENT_REFRESHPICTURE);
 		mainWindow->GetEventHandler()->AddPendingEvent(evt);
 	}
-	ClickShowButton(WM_EFFECT);
+
 }
 
 void CPanelInfosWnd::EffectUpdate()

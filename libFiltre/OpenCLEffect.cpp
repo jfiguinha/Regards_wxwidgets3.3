@@ -66,7 +66,7 @@ int COpenCLEffect::GetWidth()
 	int width = 0;
 	ExecuteSafe([&](cv::UMat& image)
 		{
-			width = image.cols;
+			width = image.size().width;
 		});
 
 	return width;
@@ -77,7 +77,7 @@ int COpenCLEffect::GetHeight()
 	int height = 0;
 	ExecuteSafe([&](cv::UMat& image)
 		{
-			height = image.cols;
+			height = image.size().height;
 		});
 
 	return height;
