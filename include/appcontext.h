@@ -270,9 +270,9 @@ public:
 	bool isOpenCLInitialized = false;
 	bool firstElementToShow = true;
 	int numElementToLoad = 5;
-	string buildOption = "";//"-cl-mad-enable -cl-unsafe-math-optimizations";
+	string buildOption = "-cl-mad-enable -cl-unsafe-math-optimizations";
 
-	std::map<wxString, cv::ocl::Program> openclBinaryMapping;
+	
 	bool isGPsAvailable = false;
 	double value[256];
 	wxString special_key = "map=6";

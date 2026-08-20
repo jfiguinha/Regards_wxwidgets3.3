@@ -44,6 +44,17 @@ static const char* CL_GL_SHARING_EXT = "cl_khr_gl_sharing";
 
 using namespace Regards::OpenCL;
 
+std::map<wxString, cv::ocl::Program> COpenCLContext::openclBinaryMapping;
+
+COpenCLContext::~COpenCLContext()
+{
+	if (commandQueue != nullptr)
+	{
+		clReleaseCommandQueue(commandQueue);
+		commandQueue = nullptr;
+	}
+}
+
 void COpenCLContext::Bind()
 {
 	if (!clExecCtx.empty())
@@ -139,9 +150,9 @@ wxString COpenCLContext::GetDeviceInfo(
 
 cv::ocl::Program COpenCLContext::GetProgram(const wxString& programName)
 {
-    auto it = application_context.openclBinaryMapping.find(programName);
+    auto it = COpenCLContext::openclBinaryMapping.find(programName);
 
-    if (it != application_context.openclBinaryMapping.end())
+    if (it != COpenCLContext::openclBinaryMapping.end())
     {
         return it->second;
     }
@@ -155,7 +166,7 @@ cv::ocl::Program COpenCLContext::GetProgram(const wxString& programName)
     cv::String errmsg;
 
     auto [insertedIt, inserted] =
-        application_context.openclBinaryMapping.emplace(
+        COpenCLContext::openclBinaryMapping.emplace(
             programName,
             context.getProg(programSource, application_context.buildOption, errmsg));
 
@@ -573,22 +584,23 @@ void COpenCLContext::CreateDefaultOpenCLContext()
 	}
 }
 
-cl_command_queue COpenCLContext::CreateCommandQueue(cl_command_queue_properties props)
+cl_command_queue COpenCLContext::CreateCommandQueue(
+	cl_command_queue_properties props)
 {
-    if (s_queue)
-        return s_queue;
+	if (commandQueue != nullptr)
+		return commandQueue;
 
-    cl_int err = 0;
+	cl_int err = CL_SUCCESS;
 
-    s_queue = clCreateCommandQueue(
-            (cl_context)clExecCtx.getContext().ptr(),
-            (cl_device_id)clExecCtx.getDevice().ptr(),
-            props,
-            &err);
+	commandQueue = clCreateCommandQueue(
+		static_cast<cl_context>(clExecCtx.getContext().ptr()),
+		static_cast<cl_device_id>(clExecCtx.getDevice().ptr()),
+		props,
+		&err);
 
-    Error::CheckError(err);
+	Error::CheckError(err);
 
-    return s_queue;
+	return commandQueue;
 }
 
 

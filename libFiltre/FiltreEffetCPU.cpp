@@ -12,7 +12,7 @@
 #include <DeepLearning.h>
 #include "Wave.h"
 #include <ImageLoadingFormat.h>
-
+#include "avir.h"
 #include "MeanShift.h"
 #include <opencv2/xphoto.hpp>
 #include <FaceDetector.h>
@@ -1262,7 +1262,6 @@ Mat CFiltreEffetCPU::Interpolation(const Mat& inputData, const int& widthOut, co
 		// Application des méthodes d'interpolation
 		if (method == 7)
 		{
-			/*
 			cv::Mat inBuf, outBuf(Size(widthOut, heightOut), CV_8UC4, Scalar(0, 0, 0));
 			cvtColor(cvImage, inBuf, cv::COLOR_BGR2BGRA);
 
@@ -1275,7 +1274,6 @@ Mat CFiltreEffetCPU::Interpolation(const Mat& inputData, const int& widthOut, co
 			);
 
 			cvtColor(outBuf, cvImage, cv::COLOR_BGRA2BGR);
-			*/
 		}
 		else if (method > 7)
 		{
