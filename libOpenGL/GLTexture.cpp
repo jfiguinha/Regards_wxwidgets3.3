@@ -125,9 +125,8 @@ bool CTextureGLPriv::convertToGLTexture2D(cv::UMat& u, GLTexture* glTexture)
                     bitmapMatrix = u;
 			}
             
-            
-			cl_context       context = static_cast<cl_context>(openCLContext->GetExecutionContext().getContext().ptr());
-			cl_command_queue q = static_cast<cl_command_queue>(openCLContext->GetExecutionContext().getQueue().ptr());
+			cl_context       context = openCLContext->GetContext();
+			cl_command_queue q = openCLContext->GetCommandQueue();
             
 			cv::Size srcSize = u.size();
 			status = CreateTextureInterop(glTexture);

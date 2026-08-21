@@ -39,6 +39,8 @@ namespace Regards
 
             cl_command_queue GetCommandQueue()
             {
+                if (commandQueue == nullptr)
+                    CreateCommandQueue();
                 return commandQueue;
             }
 
@@ -52,7 +54,7 @@ namespace Regards
             std::map<wxString, cv::ocl::Program> openclBinaryMapping;
             cv::ocl::OpenCLExecutionContext clExecCtx;
 
-            cl_command_queue CreateCommandQueue(
+            void CreateCommandQueue(
                 cl_command_queue_properties queue_properties = 0);
 
             wxString GetDeviceInfo(
