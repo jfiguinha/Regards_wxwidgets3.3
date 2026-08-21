@@ -81,7 +81,7 @@ namespace Regards
 			COpenCLAvirResizer& operator=(const COpenCLAvirResizer&) = delete;
 
 			/// Compile avir_opencl_kernels.cl et cree les kernels. A appeler une fois.
-			bool Init(const char* clSourcePath);
+			bool Init();
 
 			/// srcRGBA : buffer hote, srcWidth*srcHeight*4 floats (RGBA).
 			/// dstRGBA : buffer hote DEJA ALLOUE, dstWidth*dstHeight*4 floats.
@@ -89,6 +89,11 @@ namespace Regards
 				const cv::UMat& src,
 				cv::UMat& dest,
 				const SAvirResizeParams& params);
+
+			bool IsOk()
+			{
+				return isOk;
+			}
 
 		private:
 
@@ -98,6 +103,8 @@ namespace Regards
 				cl_int tapCount;
 				cl_int coefOffset;
 			};
+
+			bool isOk = false;
 
 			COpenCLContext* openCLContext = nullptr;
 			cv::ocl::Program m_program;

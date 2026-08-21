@@ -17,7 +17,7 @@ namespace
 COpenCLAvirResizer::COpenCLAvirResizer(COpenCLContext* openCLContext)
 	: openCLContext(openCLContext)
 {
-	m_program = openCLContext->GetProgram("IDR_OPENCL_AVIR");
+	
 }
 
 COpenCLAvirResizer::~COpenCLAvirResizer()
@@ -54,14 +54,9 @@ cl_kernel COpenCLAvirResizer::CreateKernel(const char* name)
 	return k;
 }
 
-bool COpenCLAvirResizer::Init(const char* clSourcePath)
+bool COpenCLAvirResizer::Init()
 {
-	std::ifstream file(clSourcePath, std::ios::binary);
-	if (!file)
-	{
-		fprintf(stderr, "COpenCLAvirResizer: impossible d'ouvrir '%s'\n", clSourcePath);
-		return false;
-	}
+	m_program = openCLContext->GetProgram("IDR_OPENCL_AVIR");
 
 	m_kLinearize     = CreateKernel("k_linearize_srgb");
 	m_kDelinearize   = CreateKernel("k_delinearize_srgb");
@@ -72,8 +67,10 @@ bool COpenCLAvirResizer::Init(const char* clSourcePath)
 	m_kDitherRound   = CreateKernel("k_dither_round");
 	m_kDitherErrDiff = CreateKernel("k_dither_errdiffusion");
 
-	return m_kLinearize && m_kDelinearize && m_kResizeH && m_kResizeV &&
+	isOk = m_kLinearize && m_kDelinearize && m_kResizeH && m_kResizeV &&
 		m_kSharpenH && m_kSharpenV && m_kDitherRound && m_kDitherErrDiff;
+
+	return isOk;
 }
 
 // Fenetre Peaked Cosine d'AVIR, formule equivalente a

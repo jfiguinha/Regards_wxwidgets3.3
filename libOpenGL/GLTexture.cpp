@@ -170,9 +170,7 @@ void CTextureGLPriv::DeleteTextureInterop()
 	if (clImage == nullptr)
 		return;
 
-	cl_command_queue q = static_cast<cl_command_queue>(openCLContext->GetExecutionContext().getQueue().ptr());
-
-	clFinish(q);
+	cl_command_queue q = openCLContext->GetCommandQueue();
 
 	cl_int status = clEnqueueReleaseGLObjects(q, 1, &clImage, 0, nullptr, nullptr);
 	if (status != CL_SUCCESS)

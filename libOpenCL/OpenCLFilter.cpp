@@ -262,7 +262,8 @@ COpenCLFilter::COpenCLFilter(COpenCLContext* openCLContext)
 	flag = useMemory ? CL_MEM_USE_HOST_PTR : CL_MEM_COPY_HOST_PTR;
 	hq3d = nullptr;
     superSampling = std::make_unique<CSuperSampling>();
-	resizer = new COpenCLAvirResizer(openCLContext);
+	resizer = std::make_unique<COpenCLAvirResizer>(openCLContext);
+	resizer->Init();
 }
 
 COpenCLFilter::~COpenCLFilter()
@@ -1404,26 +1405,47 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 		}
 		else if (method == 7) //AVIR INTERPOLATION NOT SUPPORTED BY OPENCL
 		{
+			bool result = resizer->IsOk();
+			if (result)
+			{
+				SAvirResizeParams params;
+				params.linearizeGamma = true;      // correct pour une image sRGB classique
+				params.sharpen = true;             // si tu agrandis et veux un rendu plus net
+				params.sharpenAmount = 0.35f;
+				params.dither = false;             // true seulement si tu redescends ensuite en 8 bits
+				params.peakValue = 1.0f;           // buffer normalise 0..1
 
-			SAvirResizeParams params;
-			params.linearizeGamma = true;      // correct pour une image sRGB classique
-			params.sharpen = true;             // si tu agrandis et veux un rendu plus net
-			params.sharpenAmount = 0.35f;
-			params.dither = false;             // true seulement si tu redescends ensuite en 8 bits
-			params.peakValue = 1.0f;           // buffer normalise 0..1
+				cv::UMat dstRGBA;
+				dstRGBA.create(heightOut, widthOut, CV_8UC4);
+				
 
-			cv::UMat dstRGBA;
-			dstRGBA.create(heightOut, widthOut, CV_8UC4);
+				if (cvDestBgra.channels() == 3)
+				{
+					cv::UMat bitmapMatrix;
 
-			bool result = resizer->Resize(
-				cvDestBgra,
-				dstRGBA,
-				params);
+					cvtColor(cvDestBgra, bitmapMatrix, cv::COLOR_BGR2BGRA);
+
+					result = resizer->Resize(
+						bitmapMatrix,
+						dstRGBA,
+						params);
+				}
+				else
+				{
+					result = resizer->Resize(
+						cvDestBgra,
+						dstRGBA,
+						params);
+				}
+
+				if(result)
+					dstRGBA.copyTo(cvDestBgra);
+
+			}
+
 
 			if (!result)
 				resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method - 1);
-			else
-				dstRGBA.copyTo(cvDestBgra);
 
 		}
 		else if (method > 7)
