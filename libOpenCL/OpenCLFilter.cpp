@@ -1405,6 +1405,14 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 		}
 		else if (method == 7) //AVIR INTERPOLATION NOT SUPPORTED BY OPENCL
 		{
+#ifdef _DEBUG
+			using std::chrono::high_resolution_clock;
+			using std::chrono::duration_cast;
+			using std::chrono::duration;
+			using std::chrono::milliseconds;
+
+			auto t1 = high_resolution_clock::now();
+#endif	
 			bool result = resizer->IsOk();
 			if (result)
 			{
@@ -1446,6 +1454,25 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 
 			if (!result)
 				resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method - 1);
+
+#ifdef _DEBUG
+			auto t2 = high_resolution_clock::now();
+
+			/* Getting number of milliseconds as an integer. */
+			auto ms_int = duration_cast<milliseconds>(t2 - t1);
+
+			/* Getting number of milliseconds as a double. */
+			duration<double, std::milli> ms_double = t2 - t1;
+
+
+#ifdef WIN32
+			OutputDebugString(L"Time taken by COpenCLFilter::Interpolation is : ");
+			OutputDebugString(to_wstring(ms_int.count()).c_str());
+			OutputDebugString(L" ms \n");
+#else
+			std::cout << "Time taken by COpenCLFilter::Interpolation is : " << ms_int.count() << "ms\n";
+#endif
+#endif
 
 		}
 		else if (method > 7)
