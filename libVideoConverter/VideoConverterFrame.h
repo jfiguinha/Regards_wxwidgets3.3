@@ -21,7 +21,6 @@ public:
 
 private:
 
-	void OnEndDecompressFile(wxCommandEvent& event);
 	void OnCloseWindow(wxCloseEvent& event);
 	wxString SelectOutputFile(wxString& filename);
 	void ExitApplication();

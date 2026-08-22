@@ -77,10 +77,6 @@ CVideoConverterFrame::~CVideoConverterFrame()
 	RemoveIfExists(fileOutVideo);
 }
 
-void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
-{
-
-}
 
 wxString CVideoConverterFrame::SelectFile()
 {
@@ -142,10 +138,17 @@ wxString CVideoConverterFrame::SelectOutputFile(wxString& filename)
 
 void CVideoConverterFrame::ExitApplication()
 {
-	if (videoInterface != nullptr)
-	{
-		videoInterface->Close();
-	}
+	// Make sure the worker thread is not still touching member state (or the
+	// progress dialog) when the frame gets destroyed. This can block until the
+	// in-flight encode finishes; there is no cancellation flag yet.
+	if (m_encodeThread.joinable())
+		m_encodeThread.join();
+
+	RemoveIfExists(fileOut);
+	RemoveIfExists(fileOutAudio);
+	RemoveIfExists(fileOutVideo);
+
+	exit(0);
 }
 
 void CVideoConverterFrame::EncodeFile(CVideoOptionCompress* videoCompressOption, const wxString& input, const wxString& output, int rotation, std::function<void(int)> onComplete)
@@ -187,9 +190,18 @@ void CVideoConverterFrame::EncodeFile(CVideoOptionCompress* videoCompressOption,
 
 					if (ret == 0)
 					{
-						wxString filecompleted = CLibResource::LoadStringFromResource("LBLFILEENCODINGCOMPLETED", 1);
-						wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
-						wxMessageBox(filecompleted, infos);
+						if (m_dlgProgress->IsOk())
+						{
+							wxString filecompleted = CLibResource::LoadStringFromResource("LBLFILEENCODINGCOMPLETED", 1);
+							wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
+							wxMessageBox(filecompleted, infos);
+						}
+						else
+						{
+							wxString filecompleted = "File encoding has been interrupted";
+							wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
+							wxMessageBox(filecompleted, infos);
+						}
 					}
 
 					bool result = (ret == 0);
