@@ -166,13 +166,14 @@ int MyApp::Close()
 	//_CrtDumpMemoryLeaks();
 #endif
 
+	/*
 	// unique_ptr will free resources when reset/destroyed
 	frameStart.reset();
 	frameViewer.reset();
 	framePDF.reset();
 	frameVideoConverter.reset();
 	testFrame.reset();
-        
+     */  
 	if(vkdev != nullptr)
 		ncnn::destroy_gpu_instance();
 

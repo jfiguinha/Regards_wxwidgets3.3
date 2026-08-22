@@ -80,10 +80,10 @@ void CCentralWindow::OnExtractPage(wxCommandEvent& event)
 {
 	if (filename != "")
 	{
-		CSelectFileDlg selectFile(nullptr, -1, filename, _("Select Page To Extract"));
-		if (selectFile.ShowModal() == wxID_OK)
+		CSelectFileDlg * selectFile = new CSelectFileDlg(nullptr, -1, filename, _("Select Page To Extract"));
+		if (selectFile->ShowModal() == wxID_OK)
 		{
-			vector<int> listPage = selectFile.GetSelectItem();
+			vector<int> listPage = selectFile->GetSelectItem();
 			wxString fileExtract = CRegardsPDF::ExtractPage(filename, listPage);
 
 			wxFileDialog saveFileDialog(nullptr, _("Save Extract PDF page"), "", "",
@@ -112,10 +112,10 @@ void CCentralWindow::OnDeletePage(wxCommandEvent& event)
 {
 	if (filename != "")
 	{
-		CSelectFileDlg selectFile(this, -1, filename, _("Select Page To Delete"));
-		if (selectFile.ShowModal() == wxID_OK)
+		CSelectFileDlg* selectFile = new CSelectFileDlg(this, -1, filename, _("Select Page To Delete"));
+		if (selectFile->ShowModal() == wxID_OK)
 		{
-			vector<int> listPage = selectFile.GetSelectItem();
+			vector<int> listPage = selectFile->GetSelectItem();
 			CRegardsPDF::RemovePage(filename, listPage);
 			LoadFile(filename);
 		}
@@ -289,10 +289,10 @@ int CCentralWindow::LoadPictureFile(wxArrayString& listFile, wxString filenameOu
 
 			if (libPicture.GetNbImage(filename) > 1)
 			{
-				CSelectFileDlg selectFile(this, -1, filename, _("Select Page To Add"));
-				if (selectFile.ShowModal() == wxID_OK)
+				CSelectFileDlg* selectFile = new CSelectFileDlg(this, -1, filename, _("Select Page To Add"));
+				if (selectFile->ShowModal() == wxID_OK)
 				{
-					vector<int> listPage = selectFile.GetSelectItem();
+					vector<int> listPage = selectFile->GetSelectItem();
 					for (int numpage = 0; numpage < listPage.size(); numpage++)
 					{
 						CImageLoadingFormat* imageLoadingFormat = libPicture.LoadPicture(
@@ -331,10 +331,10 @@ wxString CCentralWindow::ProcessLoadFiles(wxArrayString& listFile)
 			int oldAnimationPosition = -1;
 			for (int i = 0; i < listFile.size(); i++)
 			{
-				CSelectFileDlg selectFile(this, -1, listFile[i], _("Select Page To Add"));
-				if (selectFile.ShowModal() == wxID_OK)
+				CSelectFileDlg * selectFile = new CSelectFileDlg(this, -1, listFile[i], _("Select Page To Add"));
+				if (selectFile->ShowModal() == wxID_OK)
 				{
-					vector<int> listPage = selectFile.GetSelectItem();
+					vector<int> listPage = selectFile->GetSelectItem();
 					CRegardsPDF::AddPage(listFile[i], temporyFile, listPage, oldAnimationPosition);
 				}
 			}

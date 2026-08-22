@@ -126,9 +126,7 @@ CViewerFrame::~CViewerFrame()
         exitTimer->Stop();
 
    viewerParam_->SaveFile();
-    
-	//if (!onExit)
-	//	Exit();
+
 }
 
 // ---------------------------------------------------------------------------
@@ -354,6 +352,22 @@ void CViewerFrame::Exit()
         if(mainInterface_ != nullptr)
             mainInterface_->Close();
 		onExit = true;
+
+        if (mainWindow_)
+            mainWindow_->SaveParameter();
+
+        if (eventFileSysTimer_ && eventFileSysTimer_->IsRunning())
+            eventFileSysTimer_->Stop();
+
+        if (loadPictureStartTimer_ && loadPictureStartTimer_->IsRunning())
+            loadPictureStartTimer_->Stop();
+
+        if (exitTimer && exitTimer->IsRunning())
+            exitTimer->Stop();
+
+        viewerParam_->SaveFile();
+
+        exit(0);
 	}
 }
 
