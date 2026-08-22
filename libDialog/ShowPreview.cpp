@@ -1,10 +1,12 @@
 #include <header.h>
 #include "ShowPreview.h"
+
 #if defined(__WXMSW__)
 #include "../include/window_id.h"
 #else
 #include <window_id.h>
 #endif
+
 #include <wx/filename.h>
 #include <libPicture.h>
 #include <ParamInit.h>
@@ -13,9 +15,15 @@
 #include <ImageLoadingFormat.h>
 #include <videothumb.h>
 #include <FileUtility.h>
+
 #include "CompressionAudioVideoOption.h"
 #include "ffmpeg_transcoding.h"
+
 #include <appcontext.h>
+
+#include <algorithm>
+#include <cstdint>
+
 extern AppContext application_context;
 
 using namespace Regards::Picture;
@@ -23,424 +31,576 @@ using namespace Regards::Window;
 using namespace Regards::Control;
 using namespace Regards::Video;
 
-
+namespace
+{
+    // Keep ownership of the event payload explicit. The payload is deleted
+    // by CShowPreview::OnUpdatePicture(), after the event has been processed.
+    inline CRenderPreview* GetRenderPreview(wxCommandEvent& event)
+    {
+        return static_cast<CRenderPreview*>(event.GetClientData());
+    }
+}
 
 void CShowPreview::UpdateScreenRatio()
 {
-	scrollbar->UpdateScreenRatio();
-	previewToolbar->UpdateScreenRatio();
-	bitmapWindow->UpdateScreenRatio();
-	this->Resize();
+    if (scrollbar)
+        scrollbar->UpdateScreenRatio();
+
+    if (previewToolbar)
+        previewToolbar->UpdateScreenRatio();
+
+    if (bitmapWindow)
+        bitmapWindow->UpdateScreenRatio();
+
+    Resize();
 }
 
-CShowPreview::CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config, CVideoOptionCompress* videoOption)
-	: CWindowMain("ShowBitmap", parent, id)
+CShowPreview::CShowPreview(
+    wxWindow* parent,
+    wxWindowID id,
+    CThemeParam* config,
+    CVideoOptionCompress* videoOptionPt)
+    : CWindowMain("ShowBitmap", parent, id)
+    , videoOption(videoOptionPt)
+    , configRegards(CParamInit::getInstance())
+    , defaultToolbar(true)
+    , defaultViewer(true)
+    , transitionEnd(false)
+    , progressValue(0)
+    , timeTotal(0.0)
+    , position(0)
+    , showOriginal(false)
+    , isFirstPicture(true)
+    , moveSlider(false)
+    , oldShowOriginal(false)
+    , firstTime(true)
+    , compressIsOK(true)
+    , key("")
+    , orientation(0)
 {
-	transitionEnd = false;
-	scrollbar = nullptr;
-	previewToolbar = nullptr;
-	bitmapWindow = nullptr;
-	configRegards = nullptr;
-	defaultToolbar = true;
-	defaultViewer = true;
-	this->videoOption = videoOption;
+    CThemeBitmapWindow themeBitmap;
+    CThemeScrollBar themeScroll;
+    CThemeToolbar themeToolbar;
+    CThemeSlider themeSlider;
 
-	CThemeBitmapWindow themeBitmap;
-	configRegards = CParamInit::getInstance();
-	CThemeScrollBar themeScroll;
-	CThemeToolbar themeToolbar;
-	CThemeSlider themeSlider;
-	std::vector<int> value = {
-		1, 2, 3, 4, 5, 6, 8, 12, 16, 25, 33, 50, 66, 75, 100, 133, 150, 166, 200, 300, 400, 500, 600, 700, 800, 1200,
-		1600
-	};
+    const std::vector<int> value = {
+        1, 2, 3, 4, 5, 6, 8, 12, 16, 25, 33, 50, 66, 75,
+        100, 133, 150, 166, 200, 300, 400, 500, 600, 700,
+        800, 1200, 1600
+    };
 
+    if (config)
+    {
+        config->GetBitmapToolbarTheme(&themeToolbar);
+        config->GetBitmapWindowTheme(&themeBitmap);
+        config->GetScrollTheme(&themeScroll);
+        config->GetVideoSliderTheme(&themeSlider);
+    }
 
-	if (config != nullptr)
-	{
-		config->GetBitmapToolbarTheme(&themeToolbar);
-	}
+    previewToolbar = std::make_unique<CPreviewToolbar>(
+        this,
+        wxID_ANY,
+        BITMAPWINDOWVIEWERIDDLG,
+        themeToolbar,
+        false);
 
-	previewToolbar = nullptr;
+    previewToolbar->SetTabValue(value);
 
-	previewToolbar = std::make_unique<CPreviewToolbar>(this, wxID_ANY, BITMAPWINDOWVIEWERIDDLG, themeToolbar, false);
-	previewToolbar->SetTabValue(value);
+    themeBitmap.colorScreen = wxColour("black");
 
-	if (config != nullptr)
-		config->GetBitmapWindowTheme(&themeBitmap);
+    bitmapWindow = std::make_unique<CBitmapWndRender>(
+        previewToolbar.get(),
+        0,
+        themeBitmap);
 
-	themeBitmap.colorScreen = wxColour("black");
+    bitmapWindowRender = std::make_unique<CBitmapWnd3D>(
+        this,
+        BITMAPWINDOWVIEWERIDDLG);
 
-	bitmapWindow = std::make_unique<CBitmapWndRender>(previewToolbar.get(), 0, themeBitmap);
-	bitmapWindowRender = std::make_unique<CBitmapWnd3D>(this, BITMAPWINDOWVIEWERIDDLG);
-	bitmapWindowRender->SetBitmapRenderInterface(bitmapWindow.get());
-	bitmapWindow->SetTabValue(value);
-	bitmapWindow->SetPreview(1);
-	if (config != nullptr)
-		config->GetScrollTheme(&themeScroll);
+    bitmapWindowRender->SetBitmapRenderInterface(bitmapWindow.get());
+    bitmapWindow->SetTabValue(value);
+    bitmapWindow->SetPreview(1);
 
-	scrollbar = std::make_unique<CScrollbarWnd>(this, bitmapWindowRender.get(), wxID_ANY, "BitmapScroll");
+    scrollbar = std::make_unique<CScrollbarWnd>(
+        this,
+        bitmapWindowRender.get(),
+        wxID_ANY,
+        "BitmapScroll");
 
-	if (config != nullptr)
-	{
-		config->GetVideoSliderTheme(&themeSlider);
-	}
+    sliderVideo = std::make_unique<CSliderVideoPreview>(
+        this,
+        wxID_ANY,
+        this,
+        themeSlider);
 
-	sliderVideo = std::make_unique<CSliderVideoPreview>(this, wxID_ANY, this, themeSlider);
+    Connect(
+        wxEVT_BITMAPZOOMIN,
+        wxEVT_COMMAND_TEXT_UPDATED,
+        wxCommandEventHandler(CShowPreview::OnViewerZoomIn));
 
-	Connect(wxEVT_BITMAPZOOMIN, wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(CShowPreview::OnViewerZoomIn));
-	Connect(wxEVT_BITMAPZOOMOUT, wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler(CShowPreview::OnViewerZoomOut));
-	Connect(wxEVENT_MOVELEFT, wxCommandEventHandler(CShowPreview::OnMoveLeft));
-	Connect(wxEVENT_MOVERIGHT, wxCommandEventHandler(CShowPreview::OnMoveRight));
-	Connect(wxEVENT_MOVETOP, wxCommandEventHandler(CShowPreview::OnMoveTop));
-	Connect(wxEVENT_MOVEBOTTOM, wxCommandEventHandler(CShowPreview::OnMoveBottom));
-	Connect(wxEVENT_SETCONTROLSIZE, wxCommandEventHandler(CShowPreview::OnControlSize));
-	Connect(wxEVENT_SETPOSITION, wxCommandEventHandler(CShowPreview::OnSetPosition));
+    Connect(
+        wxEVT_BITMAPZOOMOUT,
+        wxEVT_COMMAND_TEXT_UPDATED,
+        wxCommandEventHandler(CShowPreview::OnViewerZoomOut));
 
-	Connect(wxEVENT_SHOWORIGINAL, wxCommandEventHandler(CShowPreview::OnShowOriginal));
-	Connect(wxEVENT_SHOWNEW, wxCommandEventHandler(CShowPreview::OnShowNew));
-	Connect(wxEVENT_CONTEXTCREATE, wxCommandEventHandler(CShowPreview::OnContextCreate));
-	Connect(wxEVENT_UPDATEPICTURE, wxCommandEventHandler(CShowPreview::OnUpdatePicture));
-
-	wxString decoder = "";
-	progressValue = 0;
-
-	wxString resourcePath = CFileUtility::GetResourcesFolderPath();
-	
+    Connect(wxEVENT_MOVELEFT, wxCommandEventHandler(CShowPreview::OnMoveLeft));
+    Connect(wxEVENT_MOVERIGHT, wxCommandEventHandler(CShowPreview::OnMoveRight));
+    Connect(wxEVENT_MOVETOP, wxCommandEventHandler(CShowPreview::OnMoveTop));
+    Connect(wxEVENT_MOVEBOTTOM, wxCommandEventHandler(CShowPreview::OnMoveBottom));
+    Connect(wxEVENT_SETCONTROLSIZE, wxCommandEventHandler(CShowPreview::OnControlSize));
+    Connect(wxEVENT_SETPOSITION, wxCommandEventHandler(CShowPreview::OnSetPosition));
+    Connect(wxEVENT_SHOWORIGINAL, wxCommandEventHandler(CShowPreview::OnShowOriginal));
+    Connect(wxEVENT_SHOWNEW, wxCommandEventHandler(CShowPreview::OnShowNew));
+    Connect(wxEVENT_UPDATEPICTURE, wxCommandEventHandler(CShowPreview::OnUpdatePicture));
 }
-
 
 void CShowPreview::SetParameter(const wxString& videoFilename)
 {
-	isFirstPicture = true;
-	wxString decoder = "";
+    isFirstPicture = true;
+    firstTime = true;
+    filename = videoFilename;
+    position = 0;
 
-	progressValue = 0;
-	filename = videoFilename;
+    if (!sliderVideo || filename.empty())
+        return;
 
-	CVideoThumb video(filename);
-	timeTotal = video.GetMovieDuration();
-	orientation = video.GetOrientation();
-	sliderVideo->SetTotalSecondTime(timeTotal * 1000);
+    CVideoThumb video(filename);
 
-	MoveSlider(0);
+    timeTotal = video.GetMovieDuration();
+    orientation = video.GetOrientation();
+
+    sliderVideo->SetTotalSecondTime(
+        static_cast<int64_t>(timeTotal * 1000.0));
+
+    MoveSlider(0);
 }
 
-void CShowPreview::SetBitmapToViewer(CImageLoadingFormat* bitmap, bool isUpdate)
+void CShowPreview::SetBitmapToViewer(
+    CImageLoadingFormat* bitmap,
+    bool isUpdate)
 {
-	wxCommandEvent* event = nullptr;
-	if(isUpdate)
-		event = new wxCommandEvent(wxEVENT_UPDATEBITMAP);
-	else
-		event = new wxCommandEvent(wxEVENT_SETBITMAP);
-	event->SetClientData(bitmap);
-	wxQueueEvent(bitmapWindowRender.get(), event);
+    if (!bitmap || !bitmapWindowRender)
+        return;
+
+    auto* event = new wxCommandEvent(
+        isUpdate ? wxEVENT_UPDATEBITMAP : wxEVENT_SETBITMAP);
+
+    event->SetClientData(bitmap);
+
+    wxQueueEvent(bitmapWindowRender.get(), event);
 }
 
-void CShowPreview::ShowPicture(cv::Mat& bitmap, const wxString& label)
+void CShowPreview::ShowPicture(
+    cv::Mat& bitmap,
+    const wxString& label)
 {
-	if (!bitmap.empty())
-	{
-		auto imageLoadingFormat = new CImageLoadingFormat();
-		imageLoadingFormat->SetPicture(bitmap);
-		if (isFirstPicture)
-			SetBitmapToViewer(imageLoadingFormat, false);
-		else
-			SetBitmapToViewer(imageLoadingFormat, true);
+    if (bitmap.empty() || !bitmapWindow)
+        return;
 
-		if (isFirstPicture)
-			bitmapWindow->ShrinkImage();
+    auto* imageLoadingFormat = new CImageLoadingFormat();
+    imageLoadingFormat->SetPicture(bitmap);
+    imageLoadingFormat->SetOrientation(orientation);
 
-		auto dlg = static_cast<CompressionAudioVideoOption*>(this->FindWindowByName("CompressionAudioVideoOption"));
-		dlg->ChangeLabelPicture(label);
+    SetBitmapToViewer(imageLoadingFormat, !isFirstPicture);
 
-		isFirstPicture = false;
-	}
+    if (isFirstPicture)
+        bitmapWindow->ShrinkImage();
+
+    if (auto* dlg = static_cast<CompressionAudioVideoOption*>(
+        FindWindowByName("CompressionAudioVideoOption")))
+    {
+        dlg->ChangeLabelPicture(label);
+    }
+
+    isFirstPicture = false;
 }
 
 void CShowPreview::ShowOriginal()
 {
-	ShowPicture(decodeFrameOriginal, "Original Video");
+    ShowPicture(decodeFrameOriginal, "Original Video");
 }
 
 void CShowPreview::ShowNew()
 {
-	ShowPicture(decodeFrame, "New Video");
+    ShowPicture(decodeFrame, "New Video");
 }
 
-void CShowPreview::OnContextCreate(wxCommandEvent& event)
+void CShowPreview::OnShowOriginal(wxCommandEvent& WXUNUSED(event))
 {
-	//wxCommandEvent* evtevent = nullptr;
-	//evtevent = new wxCommandEvent(wxEVENT_CONTEXTCREATE);
-	//wxQueueEvent(this->GetParent(), evtevent);
+    showOriginal = true;
+    oldShowOriginal = true;
+    ShowOriginal();
 }
 
-void CShowPreview::OnShowOriginal(wxCommandEvent& event)
+void CShowPreview::OnShowNew(wxCommandEvent& WXUNUSED(event))
 {
-	ShowOriginal();
-	showOriginal = true;
-	oldShowOriginal = showOriginal;
-}
-
-void CShowPreview::OnShowNew(wxCommandEvent& event)
-{
-	ShowNew();
-	showOriginal = false;
-	oldShowOriginal = false;
+    showOriginal = false;
+    oldShowOriginal = false;
+    ShowNew();
 }
 
 void CShowPreview::OnUpdatePicture(wxCommandEvent& event)
 {
-	CRenderPreview* renderPreview = (CRenderPreview*)event.GetClientData();
+    auto* renderPreview = GetRenderPreview(event);
 
-	if (!renderPreview->compressIsOK)
-	{
-		wxCommandEvent evt(wxEVENT_ERRORCOMPRESSION);
-		evt.SetInt(renderPreview->ret);
-		renderPreview->parent->GetParent()->GetParent()->GetEventHandler()->AddPendingEvent(evt);
+    if (!renderPreview)
+        return;
 
-		ShowOriginal();
-	}
-	else
-	{
-		decodeFrame = renderPreview->decodeFrame;
-		decodeFrameOriginal = renderPreview->decodeFrameOriginal;
+    // A result can arrive after the user has moved the slider again.
+    // Do not display an obsolete frame.
+    const bool isCurrentRequest =
+        renderPreview->parent == this &&
+        renderPreview->filename == filename &&
+        renderPreview->position == position;
 
-		if (showOriginal)
-			ShowOriginal();
-		else
-			ShowNew();
-	}
+    if (isCurrentRequest)
+    {
+        if (!renderPreview->compressIsOK)
+        {
+            wxCommandEvent evt(wxEVENT_ERRORCOMPRESSION);
+            evt.SetInt(renderPreview->ret);
 
+            if (renderPreview->parent &&
+                renderPreview->parent->GetParent() &&
+                renderPreview->parent->GetParent()->GetParent())
+            {
+                renderPreview->parent
+                    ->GetParent()
+                    ->GetParent()
+                    ->GetEventHandler()
+                    ->AddPendingEvent(evt);
+            }
 
-	if (firstTime)
-	{
-		if (previewToolbar != nullptr)
-			previewToolbar->SetTrackBarPosition(bitmapWindow->GetPosRatio());
+            ShowOriginal();
+        }
+        else
+        {
+            decodeFrame = renderPreview->decodeFrame;
+            decodeFrameOriginal = renderPreview->decodeFrameOriginal;
 
-		firstTime = false;
-	}
+            if (showOriginal)
+                ShowOriginal();
+            else
+                ShowNew();
+        }
 
+        if (firstTime)
+        {
+            if (previewToolbar && bitmapWindow)
+                previewToolbar->SetTrackBarPosition(
+                    bitmapWindow->GetPosRatio());
 
-	sliderVideo->Stop();
+            firstTime = false;
+        }
 
-	StopThread();
+        if (sliderVideo)
+            sliderVideo->Stop();
+    }
 
-	delete renderPreview;
-	renderPreview = nullptr;
+    delete renderPreview;
 }
 
-void CShowPreview::SlidePosChange(const int& position, const wxString& key)
+void CShowPreview::SlidePosChange(
+    const int& newPosition,
+    const wxString& newKey)
 {
-	if (key == "Move")
-	{
-		this->key = key;
-		moveSlider = true;
-		showOriginal = true;
-		this->position = position;
-		UpdateBitmap("");
-	}
-	else
-	{
-		this->key = key;
-		showOriginal = oldShowOriginal;
-		moveSlider = false;
-		this->position = position;
-		UpdateBitmap("");
-	}
+    if (newKey == "Move")
+    {
+        key = newKey;
+        moveSlider = true;
+        showOriginal = true;
+        position = newPosition;
+        UpdateBitmap("");
+    }
+    else
+    {
+        key = newKey;
+        showOriginal = oldShowOriginal;
+        moveSlider = false;
+        position = newPosition;
+        UpdateBitmap("");
+    }
 }
 
-void CShowPreview::MoveSlider(const int64_t& position)
+void CShowPreview::MoveSlider(const int64_t& newPosition)
 {
-	showOriginal = oldShowOriginal;
-	moveSlider = false;
-	this->position = position;
-	UpdateBitmap("");
+    showOriginal = oldShowOriginal;
+    moveSlider = false;
+
+    // The original member is an int. Keep the conversion explicit.
+    position = static_cast<int>(newPosition);
+
+    UpdateBitmap("");
 }
 
-void CShowPreview::UpdateBitmap(const wxString& extension,
-	const bool& updatePicture)
+
+void CShowPreview::UpdateBitmap(const wxString& newExtension, bool updatePicture)
 {
-	wxString decoder = "";
-	this->extension = extension;
+    if (!sliderVideo || !videoOption || filename.empty())
+        return;
 
-	sliderVideo->Start();
+    extension = newExtension;
 
-	StopThread();
+    sliderVideo->Start();
 
-	CRenderPreview* renderPreview = new CRenderPreview();
-	renderPreview->extension = extension;
-	renderPreview->filename = filename;
-	renderPreview->position = position;
-	renderPreview->parent = this;
-	renderPreview->videoOption = *videoOption;
+    /*
+     * The existing class owns a single worker thread. We must join it before
+     * replacing it. This preserves the current header/API while avoiding
+     * detached threads and dangling CRenderPreview pointers.
+     *
+     * Important: this still blocks the GUI while the previous EncodeFrame()
+     * finishes. A fully asynchronous/cancellable implementation requires a
+     * small header change (persistent worker + cancellation/request ID).
+     */
+    StopThread();
 
-	threadStart = std::make_unique<std::thread>(ThreadLoading, renderPreview);
+    auto* renderPreview = new CRenderPreview();
+
+    renderPreview->extension = extension;
+    renderPreview->filename = filename;
+    renderPreview->position = position;
+    renderPreview->parent = this;
+    renderPreview->videoOption = *videoOption;
+    renderPreview->compressIsOK = false;
+    renderPreview->ret = -1;
+
+    threadStart = std::make_unique<std::thread>(
+        ThreadLoading,
+        renderPreview);
 }
 
 void CShowPreview::ThreadLoading(void* data)
 {
-	int ret = 0;
-	CRenderPreview * renderPreview = static_cast<CRenderPreview*>(data);
-	COpenCLContext openCLContext;
-	openCLContext.CreateDefaultOpenCLContext();
-	CFFmpegTranscoding transcodeFFmpeg(&openCLContext, &renderPreview->videoOption);
+    auto* renderPreview = static_cast<CRenderPreview*>(data);
 
-	wxString fileTemp = "";
+    if (!renderPreview)
+        return;
 
-	if (renderPreview->extension == "")
-	{
-		wxFileName filename(renderPreview->filename);
-		renderPreview->extension = filename.GetExt();
-	}
-	fileTemp = CFileUtility::GetTempFile("video_temp." + renderPreview->extension);
-	ret = transcodeFFmpeg.EncodeFrame(renderPreview->filename, fileTemp, renderPreview->position);
-	renderPreview->decodeFrameOriginal = transcodeFFmpeg.GetFrameOutputWithOutEffect();
+    COpenCLContext openCLContext;
+    openCLContext.CreateDefaultOpenCLContext();
 
-	if (ret == 0)
-	{
-		CVideoThumb video(fileTemp);
-		renderPreview->decodeFrame = video.GetVideoFramePos(0, 0, 0);
-		if (renderPreview->decodeFrame.empty())
-			renderPreview->decodeFrame = application_context.GetDefaultPicture();
+    CFFmpegTranscoding transcodeFFmpeg(&renderPreview->videoOption);
 
-		renderPreview->compressIsOK = true;
+    wxString fileTemp;
 
-	}
-	else
-		renderPreview->compressIsOK = false;
+    if (renderPreview->extension.empty())
+    {
+        const wxFileName fileName(renderPreview->filename);
+        renderPreview->extension = fileName.GetExt();
+    }
 
-	wxCommandEvent evt(wxEVENT_UPDATEPICTURE);
-	evt.SetClientData(renderPreview);
-	renderPreview->parent->GetEventHandler()->AddPendingEvent(evt);
+    fileTemp = CFileUtility::GetTempFile(
+        "video_temp." + renderPreview->extension);
 
+    if (fileTemp.empty())
+    {
+        renderPreview->ret = -1;
+        renderPreview->compressIsOK = false;
+    }
+    else
+    {
+        renderPreview->ret = transcodeFFmpeg.EncodeFrame(
+            renderPreview->filename,
+            fileTemp,
+            renderPreview->position, &openCLContext);
 
+        renderPreview->decodeFrameOriginal =
+            transcodeFFmpeg.GetFrameOutputWithOutEffect();
 
+        if (renderPreview->ret == 0)
+        {
+            CVideoThumb video(fileTemp);
+
+            renderPreview->decodeFrame =
+                video.GetVideoFramePos(0, 0, 0);
+
+            if (renderPreview->decodeFrame.empty())
+                renderPreview->decodeFrame =
+                application_context.GetDefaultPicture();
+
+            renderPreview->compressIsOK = true;
+        }
+        else
+        {
+            renderPreview->compressIsOK = false;
+        }
+
+        // The temporary encoded frame is no longer needed after CVideoThumb
+        // has been destroyed.
+        wxRemoveFile(fileTemp);
+    }
+
+    // The GUI object must still exist when posting the event.
+    // CShowPreview::StopThread() ensures that destruction does not race with
+    // the worker in the normal destruction path.
+    if (renderPreview->parent)
+    {
+        wxCommandEvent evt(wxEVENT_UPDATEPICTURE);
+        evt.SetClientData(renderPreview);
+
+        renderPreview->parent
+            ->GetEventHandler()
+            ->AddPendingEvent(evt);
+    }
+    else
+    {
+        delete renderPreview;
+    }
 }
-
-
 
 void CShowPreview::OnControlSize(wxCommandEvent& event)
 {
-	if (scrollbar != nullptr)
-	{
-		wxCommandEvent evt(wxEVENT_SETCONTROLSIZE);
-		evt.SetClientData(event.GetClientData());
-		scrollbar->GetEventHandler()->AddPendingEvent(evt);
-	}
+    if (!scrollbar)
+        return;
+
+    wxCommandEvent evt(wxEVENT_SETCONTROLSIZE);
+    evt.SetClientData(event.GetClientData());
+
+    scrollbar->GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CShowPreview::OnSetPosition(wxCommandEvent& event)
 {
-	if (scrollbar != nullptr)
-	{
-		wxCommandEvent evt(wxEVENT_SETPOSITION);
-		evt.SetClientData(event.GetClientData());
-		scrollbar->GetEventHandler()->AddPendingEvent(evt);
-	}
+    if (!scrollbar)
+        return;
+
+    wxCommandEvent evt(wxEVENT_SETPOSITION);
+    evt.SetClientData(event.GetClientData());
+
+    scrollbar->GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CShowPreview::OnMoveLeft(wxCommandEvent& event)
 {
-	if (scrollbar != nullptr)
-	{
-		wxCommandEvent evt(wxEVENT_MOVELEFT);
-		evt.SetInt(event.GetInt());
-		scrollbar->GetEventHandler()->AddPendingEvent(evt);
-	}
+    if (!scrollbar)
+        return;
+
+    wxCommandEvent evt(wxEVENT_MOVELEFT);
+    evt.SetInt(event.GetInt());
+
+    scrollbar->GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CShowPreview::OnMoveRight(wxCommandEvent& event)
 {
-	if (scrollbar != nullptr)
-	{
-		wxCommandEvent evt(wxEVENT_MOVERIGHT);
-		evt.SetInt(event.GetInt());
-		scrollbar->GetEventHandler()->AddPendingEvent(evt);
-	}
+    if (!scrollbar)
+        return;
+
+    wxCommandEvent evt(wxEVENT_MOVERIGHT);
+    evt.SetInt(event.GetInt());
+
+    scrollbar->GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CShowPreview::OnMoveTop(wxCommandEvent& event)
 {
-	if (scrollbar != nullptr)
-	{
-		wxCommandEvent evt(wxEVENT_MOVETOP);
-		evt.SetInt(event.GetInt());
-		scrollbar->GetEventHandler()->AddPendingEvent(evt);
-	}
+    if (!scrollbar)
+        return;
+
+    wxCommandEvent evt(wxEVENT_MOVETOP);
+    evt.SetInt(event.GetInt());
+
+    scrollbar->GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CShowPreview::OnMoveBottom(wxCommandEvent& event)
 {
-	if (scrollbar != nullptr)
-	{
-		wxCommandEvent evt(wxEVENT_MOVEBOTTOM);
-		evt.SetInt(event.GetInt());
-		scrollbar->GetEventHandler()->AddPendingEvent(evt);
-	}
+    if (!scrollbar)
+        return;
+
+    wxCommandEvent evt(wxEVENT_MOVEBOTTOM);
+    evt.SetInt(event.GetInt());
+
+    scrollbar->GetEventHandler()->AddPendingEvent(evt);
 }
 
 void CShowPreview::StopThread()
 {
-	if (threadStart != nullptr)
-	{
-		threadStart->join();
-		threadStart.reset();
-		threadStart = nullptr;
-	}
+    if (!threadStart)
+        return;
 
+    if (threadStart->joinable())
+        threadStart->join();
+
+    threadStart.reset();
 }
 
 CShowPreview::~CShowPreview()
 {
-	StopThread();
+    StopThread();
 }
 
 void CShowPreview::Resize()
 {
-	int width = GetWindowWidth();
-	int height = GetWindowHeight();
-	if (width <= 0 || height <= 0)
-		return;
+    const int width = GetWindowWidth();
+    const int height = GetWindowHeight();
 
-	scrollbar->ShowVerticalScroll();
-	scrollbar->ShowHorizontalScroll();
+    if (width <= 0 || height <= 0)
+        return;
 
-	int pictureWidth = width;
-	int pictureHeight = height - previewToolbar->GetHeight() - sliderVideo->GetHeight();
+    if (!scrollbar || !previewToolbar || !sliderVideo)
+        return;
 
-	scrollbar->SetSize(0, 0, pictureWidth, pictureHeight);
-	scrollbar->Refresh();
-	previewToolbar->SetSize(0, pictureHeight, width, previewToolbar->GetHeight());
-	previewToolbar->Refresh();
-	sliderVideo->SetSize(0, pictureHeight + sliderVideo->GetHeight(), width, sliderVideo->GetHeight());
-	sliderVideo->Refresh();
+    scrollbar->ShowVerticalScroll();
+    scrollbar->ShowHorizontalScroll();
+
+    const int pictureWidth = width;
+
+    const int pictureHeight = std::max(
+        0,
+        height -
+        previewToolbar->GetHeight() -
+        sliderVideo->GetHeight());
+
+    scrollbar->SetSize(
+        0,
+        0,
+        pictureWidth,
+        pictureHeight);
+
+    scrollbar->Refresh();
+
+    previewToolbar->SetSize(
+        0,
+        pictureHeight,
+        width,
+        previewToolbar->GetHeight());
+
+    previewToolbar->Refresh();
+
+    sliderVideo->SetSize(
+        0,
+        pictureHeight + sliderVideo->GetHeight(),
+        width,
+        sliderVideo->GetHeight());
+
+    sliderVideo->Refresh();
 }
-
 
 bool CShowPreview::SetBitmap(CImageLoadingFormat* bitmap)
 {
-	if (previewToolbar != nullptr)
-		previewToolbar->SetTrackBarPosition(bitmapWindow->GetPosRatio());
+    if (!bitmap || !bitmapWindow)
+        return false;
 
-	if (bitmapWindow != nullptr)
-	{
-		bitmap->SetOrientation(orientation);
-		SetBitmapToViewer(bitmap, false);
-	}
+    if (previewToolbar)
+        previewToolbar->SetTrackBarPosition(
+            bitmapWindow->GetPosRatio());
 
-	return true;
+    bitmap->SetOrientation(orientation);
+
+    SetBitmapToViewer(bitmap, false);
+
+    return true;
 }
 
-
-void CShowPreview::OnViewerZoomIn(wxCommandEvent& event)
+void CShowPreview::OnViewerZoomIn(wxCommandEvent& WXUNUSED(event))
 {
-	if (previewToolbar != nullptr)
-		previewToolbar->ChangeZoomInPos();
+    if (previewToolbar)
+        previewToolbar->ChangeZoomInPos();
 }
 
-void CShowPreview::OnViewerZoomOut(wxCommandEvent& event)
+void CShowPreview::OnViewerZoomOut(wxCommandEvent& WXUNUSED(event))
 {
-	if (previewToolbar != nullptr)
-		previewToolbar->ChangeZoomOutPos();
+    if (previewToolbar)
+        previewToolbar->ChangeZoomOutPos();
 }

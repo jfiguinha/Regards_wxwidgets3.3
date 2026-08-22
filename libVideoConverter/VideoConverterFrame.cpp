@@ -18,7 +18,7 @@
 #else
 #include <window_id.h>
 #endif
-
+#include "FFmpegTranscodingPimpl.h"
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
 BEGIN_EVENT_TABLE(CVideoConverterFrame, wxFrame)
@@ -38,6 +38,13 @@ namespace {
 			wxRemoveFile(path);
 	}
 
+	wxString FormatFFmpegError(int errnum)
+	{
+		char message[255];
+		av_make_error_string(message, AV_ERROR_MAX_STRING_SIZE, errnum);
+		return wxString(message);
+	}
+
 } // namespace
 
 // ----------------------------------------------------------------------------
@@ -45,13 +52,12 @@ namespace {
 // ----------------------------------------------------------------------------
 
 // frame constructor
-CVideoConverterFrame::CVideoConverterFrame(const wxString& title, const wxPoint& pos, const wxSize& size, IVideoConverterInterface* videoInterface,  long style) :
+CVideoConverterFrame::CVideoConverterFrame(const wxString& title, const wxPoint& pos, const wxSize& size, IVideoConverterInterface* videoInterface, long style) :
 	wxFrame(nullptr, FRAMEVIDEOCONVERTER_ID, title, pos, size, style)
 {
 	SetIcon(wxICON(sample));
 	this->videoInterface = videoInterface;
-	Connect(wxEVENT_ENDCOMPRESSION, wxCommandEventHandler(CVideoConverterFrame::OnEndDecompressFile));
-	openCLContext = std::make_unique<Regards::OpenCL::COpenCLContext>();
+
 
 	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
 	if (regardsParam != nullptr)
@@ -61,6 +67,12 @@ CVideoConverterFrame::CVideoConverterFrame(const wxString& title, const wxPoint&
 
 CVideoConverterFrame::~CVideoConverterFrame()
 {
+	// Make sure the worker thread is not still touching member state (or the
+	// progress dialog) when the frame gets destroyed. This can block until the
+	// in-flight encode finishes; there is no cancellation flag yet.
+	if (m_encodeThread.joinable())
+		m_encodeThread.join();
+
 	RemoveIfExists(fileOut);
 	RemoveIfExists(fileOutAudio);
 	RemoveIfExists(fileOutVideo);
@@ -68,35 +80,7 @@ CVideoConverterFrame::~CVideoConverterFrame()
 
 void CVideoConverterFrame::OnEndDecompressFile(wxCommandEvent& event)
 {
-	bool result = false;
-	int ret = event.GetInt();
-	if (ffmpegEncoder != nullptr)
-	{
-		ffmpegEncoder->EndDecodeFile(ret);
-		ffmpegEncoder.reset();
-	}
 
-
-	if (needToRemux)
-	{
-		RemoveIfExists(fileOutputPath);
-
-		if (isAudio && wxFileExists(fileOut) && wxFileExists(fileOutAudio))
-			result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOut.utf8_string(), fileOutAudio.utf8_string(), fileOutputPath.utf8_string());
-		else if (wxFileExists(fileOut) && wxFileExists(fileOutVideo))
-			result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOutVideo.utf8_string(), fileOut.utf8_string(), fileOutputPath.utf8_string());
-
-		//Cleanup
-		static const wxString file[] = {fileOutVideo , fileOutAudio, fileOut};
-		for (auto filepath : file)
-			RemoveIfExists(filepath);
-	}
-	else
-	{
-		RemoveIfExists(fileOut);
-	}
-
-	ExitApplication();
 }
 
 wxString CVideoConverterFrame::SelectFile()
@@ -109,7 +93,7 @@ wxString CVideoConverterFrame::SelectFile()
 
 	if (openFileDialog.ShowModal() == wxID_CANCEL)
 		return "";
-	
+
 
 	return openFileDialog.GetPath();
 }
@@ -148,9 +132,6 @@ wxString CVideoConverterFrame::SelectOutputFile(wxString& filename)
 		wxPostEvent(videoWindow, event);
 	}
 
-	wxFileName file_path(filepath);
-	wxString extension = file_path.GetExt();
-
 	const wxString ext = wxFileName(filepath).GetExt();
 	if (ext != "mp4" && ext != "webm" && ext != "mov" && ext != "mkv")
 	{
@@ -168,11 +149,83 @@ void CVideoConverterFrame::ExitApplication()
 	}
 }
 
+void CVideoConverterFrame::EncodeFile(CVideoOptionCompress* videoCompressOption, const wxString& input, const wxString& output, int rotation, std::function<void(int)> onComplete)
+{
+	// If a previous encode thread is still lingering (shouldn't normally happen
+	// since callers only start a new one from the completion callback), don't
+	// leak/orphan it.
+	if (m_encodeThread.joinable())
+		m_encodeThread.join();
+
+	m_dlgProgress = std::make_unique<CompressVideo>(nullptr, rotation);
+	m_dlgProgress->SetFocus();  // focus on my window
+	m_dlgProgress->Raise();  // bring window to front
+	m_dlgProgress->Show();
+
+	CompressVideo* progressDlg = m_dlgProgress.get();
+
+	m_encodeThread = std::thread([this, videoCompressOption, input, output, progressDlg, onComplete]()
+		{
+			std::unique_ptr<COpenCLContext> openCLContext = std::make_unique<COpenCLContext>();
+			openCLContext->CreateDefaultOpenCLContext();
+
+			CFFmpegTranscodingPimpl ffmpegtranscoding(openCLContext.get());
+
+			int ret = ffmpegtranscoding.EncodeFile(input, output, progressDlg, videoCompressOption);
+
+			// Everything below touches UI (dialogs, wxWindow state) and member
+			// fields shared with the UI thread: it must run back on the UI thread.
+			this->CallAfter([this, ret, onComplete]()
+				{
+					if (ret < 0)
+					{
+						wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
+						wxMessageBox(FormatFFmpegError(ret), errorConversion, wxICON_ERROR);
+					}
+
+					if (m_dlgProgress)
+						m_dlgProgress->Close();
+
+					if (ret == 0)
+					{
+						wxString filecompleted = CLibResource::LoadStringFromResource("LBLFILEENCODINGCOMPLETED", 1);
+						wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
+						wxMessageBox(filecompleted, infos);
+					}
+
+					bool result = (ret == 0);
+
+					if (needToRemux)
+					{
+						RemoveIfExists(fileOutputPath);
+
+						if (isAudio && wxFileExists(fileOut) && wxFileExists(fileOutAudio))
+							result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOut.utf8_string(), fileOutAudio.utf8_string(), fileOutputPath.utf8_string());
+						else if (wxFileExists(fileOut) && wxFileExists(fileOutVideo))
+							result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOutVideo.utf8_string(), fileOut.utf8_string(), fileOutputPath.utf8_string());
+						else
+							result = false;
+
+						// Cleanup - built fresh every call (was previously a `static`
+						// array initialized only once from stale member values).
+						const wxString filesToClean[] = { fileOutVideo, fileOutAudio, fileOut };
+						for (const auto& filepath : filesToClean)
+							RemoveIfExists(filepath);
+					}
+					else
+					{
+						RemoveIfExists(fileOut);
+					}
+
+					if (onComplete)
+						onComplete(result ? 0 : (ret < 0 ? ret : -1));
+				});
+		});
+}
+
 void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 {
 	CMediaInfo metadata;
-	bool exit_frame = false;
-	bool result = false;
 	CLibPicture libPicture;
 	fileOut = "";
 	wxString filename = fileIn;
@@ -185,116 +238,129 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 		ExitApplication();
 		return;
 	}
-	
+
 	int rotation = metadata.GetVideoRotation(filename);
-	int ret = 0;
 	fileOutputPath = SelectOutputFile(filename);
-	if(fileOutputPath.empty())
+	if (fileOutputPath.empty())
 	{
 		ExitApplication();
 		return;
 	}
 
-	std::unique_ptr<CompressionAudioVideoOption> compressAudioVideoOption = std::make_unique<CompressionAudioVideoOption>(this);
-	compressAudioVideoOption->SetFile(filename, fileOutputPath);
-	compressAudioVideoOption->ShowModal();
-	if (compressAudioVideoOption->IsOk())
+	m_compressAudioVideoOption = std::make_unique<CompressionAudioVideoOption>(this);
+	m_compressAudioVideoOption->SetFile(filename, fileOutputPath);
+	m_compressAudioVideoOption->ShowModal();
+
+	if (!m_compressAudioVideoOption->IsOk())
 	{
-		auto videoCompressOption = compressAudioVideoOption->GetVideoCompressionPt();
+		ExitApplication();
+		return;
+	}
 
-		ffmpegEncoder = std::make_unique<CFFmpegTranscoding>(openCLContext.get(), videoCompressOption);
+	auto videoCompressOption = m_compressAudioVideoOption->GetVideoCompressionPt();
 
-		wxString timeInput = "00:00:00";
-		wxString timeOutput = "00:00:00";
-		wxFileName file_temp(fileOutputPath);
-		fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), true);
+	wxFileName file_temp(fileOutputPath);
+	fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), true);
 
-		
+	wxString timeInput = "00:00:00";
+	wxString timeOutput = "00:00:00";
+	if (videoCompressOption->startTime != 0 || videoCompressOption->endTime != 0)
+	{
+		timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
+		timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
+	}
 
-		if (videoCompressOption->startTime != 0 || videoCompressOption->endTime != 0)
+	// Called once the (possibly async) encode step has finished, whatever
+	// path got us there. Mirrors the error-reporting that used to sit at the
+	// bottom of the old synchronous ExportVideo.
+	auto onEncodeComplete = [this](int ret)
 		{
-			timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
-			timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
+			if (ret != 0 && !m_compressAudioVideoOption->IsCancel())
+			{
+				wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
+				wxMessageBox(FormatFFmpegError(ret), errorConversion, wxICON_ERROR);
+			}
+			ExitApplication();
+		};
+
+	auto reportExtractionFailure = [this]()
+		{
+			if (!m_compressAudioVideoOption->IsCancel())
+			{
+				wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
+				wxMessageBox(errorConversion, errorConversion, wxICON_ERROR);
+			}
+			ExitApplication();
+		};
+
+	if ((videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy) ||
+		(!videoCompressOption->audioDirectCopy && !videoCompressOption->videoDirectCopy))
+	{
+		bool result = Regards::Media::ExecuteFFmpegCutVideo(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOut.utf8_string());
+
+		if (!result)
+		{
+			reportExtractionFailure();
+			return;
 		}
 
-		if ((videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy) || (!videoCompressOption
-			->audioDirectCopy && !videoCompressOption->videoDirectCopy))
+		if (videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy)
 		{
-
-
-			wxString timeInput = CConvertUtility::GetTimeLibelle(videoCompressOption->startTime);
-			wxString timeOutput = CConvertUtility::GetTimeLibelle(videoCompressOption->endTime);
-			result = Regards::Media::ExecuteFFmpegCutVideo(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOut.utf8_string());
-
-			if (videoCompressOption->audioDirectCopy && videoCompressOption->videoDirectCopy)
-			{
-				RemoveIfExists(fileOutputPath);
-				wxCopyFile(fileOut, fileOutputPath);
-				needToRemux = false;
-			}
-			else
-			{
-				RemoveIfExists(fileOutputPath);
-				ret = ffmpegEncoder->EncodeFile(this, fileOut, fileOutputPath, rotation);
-				needToRemux = false;
-			}
+			// Pure remux, no encoding needed: stays synchronous.
+			RemoveIfExists(fileOutputPath);
+			wxCopyFile(fileOut, fileOutputPath);
+			RemoveIfExists(fileOut);
+			needToRemux = false;
+			ExitApplication();
+			return;
 		}
 		else
 		{
-			if (videoCompressOption->audioDirectCopy)
-			{
-
-				wxFileName file_temp(fileOutputPath);
-				fileOutVideo = CFileUtility::GetTempFile("temp_video." + file_temp.GetExt(), true);
-				result = Regards::Media::ExecuteFFmpegExtractVideo(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOutVideo.utf8_string());
-
-				if (result && wxFileExists(fileOutVideo))
-				{
-					ffmpegEncoder->EncodeFile(this, fileOutVideo, fileOut, rotation);
-					isAudio = true;
-					needToRemux = true;
-				}
-				else
-					result = false;
-			}
-			else if (videoCompressOption->videoDirectCopy)
-			{
-				wxFileName file_temp(fileOutputPath);
-				fileOutAudio = CFileUtility::GetTempFile("temp_audio." + file_temp.GetExt(), true);
-				result = Regards::Media::ExecuteFFmpegExtractAudio(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOutAudio.utf8_string());
-
-				if (result && wxFileExists(fileOutAudio))
-				{
-					ret = ffmpegEncoder->EncodeFile(this, fileOutAudio, fileOut, rotation);
-					isAudio = false;
-					needToRemux = true;
-				}
-				else
-					result = false;
-			}
+			RemoveIfExists(fileOutputPath);
+			needToRemux = false;
+			EncodeFile(videoCompressOption, fileOut, fileOutputPath, rotation, onEncodeComplete);
+			return;
 		}
-
 	}
 	else
 	{
-		exit_frame = true;
+		if (videoCompressOption->audioDirectCopy)
+		{
+			fileOutVideo = CFileUtility::GetTempFile("temp_video." + file_temp.GetExt(), true);
+			bool result = Regards::Media::ExecuteFFmpegExtractVideo(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOutVideo.utf8_string());
+
+			if (!result || !wxFileExists(fileOutVideo))
+			{
+				reportExtractionFailure();
+				return;
+			}
+
+			isAudio = true;
+			needToRemux = true;
+			EncodeFile(videoCompressOption, fileOutVideo, fileOut, rotation, onEncodeComplete);
+			return;
+		}
+		else if (videoCompressOption->videoDirectCopy)
+		{
+			fileOutAudio = CFileUtility::GetTempFile("temp_audio." + file_temp.GetExt(), true);
+			bool result = Regards::Media::ExecuteFFmpegExtractAudio(filename.utf8_string(), timeInput.utf8_string(), timeOutput.utf8_string(), fileOutAudio.utf8_string());
+
+			if (!result || !wxFileExists(fileOutAudio))
+			{
+				reportExtractionFailure();
+				return;
+			}
+
+			isAudio = false;
+			needToRemux = true;
+			EncodeFile(videoCompressOption, fileOutAudio, fileOut, rotation, onEncodeComplete);
+			return;
+		}
 	}
 
-
-	if (!result && !compressAudioVideoOption->IsCancel())
-	{
-		wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
-		char message[255];
-		av_make_error_string(message, AV_ERROR_MAX_STRING_SIZE, ret);
-		wxMessageBox(message, errorConversion, wxICON_ERROR);
-		exit_frame = true;
-	}
-
-	if (exit_frame)
-	{
-		ExitApplication();
-	}
-
+	// Neither branch matched (shouldn't happen given the if/else above, but
+	// keep a safe fallback instead of silently doing nothing).
+	ExitApplication();
 }
 
 void CVideoConverterFrame::OnCloseWindow(wxCloseEvent& event)
