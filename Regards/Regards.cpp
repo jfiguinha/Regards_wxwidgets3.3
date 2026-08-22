@@ -135,9 +135,6 @@ int MyApp::Close()
 
 	CLibResource::KillSqlEngine();
 
-	if (regardsParam != nullptr)
-		regardsParam->SaveFile();
-
 	// Reset unique_ptrs; their deleters will call Destroy() on wx windows
 	// (frameStart may be a top-level window)
 
@@ -166,14 +163,7 @@ int MyApp::Close()
 	//_CrtDumpMemoryLeaks();
 #endif
 
-	/*
-	// unique_ptr will free resources when reset/destroyed
-	frameStart.reset();
-	frameViewer.reset();
-	framePDF.reset();
-	frameVideoConverter.reset();
-	testFrame.reset();
-     */  
+
 	if(vkdev != nullptr)
 		ncnn::destroy_gpu_instance();
 
@@ -296,21 +286,7 @@ bool MyApp::InitializeLocale()
 	if (result)
 		LogInfo("Font Config Initialized");
 #endif
-	/*
 
-
-	wxInitAllImageHandlers();
-	// folder:
-	SaveIcon(wxART_FOLDER, "folder.png");
-	SaveIcon(wxART_FOLDER_OPEN, "folder_open.png");
-	SaveIcon(wxART_HARDDISK, "harddisk.png");
-	SaveIcon(wxART_CDROM, "cdrom.png");
-	SaveIcon(wxART_FLOPPY, "floppy.png");
-	SaveIcon(wxART_REMOVABLE, "removable.png");
-	SaveIcon(wxART_NORMAL_FILE, "normal.png");
-
-	exit(0);
-	*/
 
 #ifdef WIN32
 	LCID lcid = GetThreadLocale();

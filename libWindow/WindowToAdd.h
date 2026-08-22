@@ -60,7 +60,7 @@ namespace Regards::Window
 		std::unique_ptr<CSeparationBarToAdd> separationBar;
 
 	private:
-		CWindowMain* window;
-		CWindowOpenGLMain* windowOpengl;
+		CWindowMain* window = nullptr;
+		CWindowOpenGLMain* windowOpengl = nullptr;
 	};
 }

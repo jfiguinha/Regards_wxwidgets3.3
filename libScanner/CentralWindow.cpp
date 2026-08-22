@@ -98,6 +98,7 @@ void CCentralWindow::OnExtractPage(wxCommandEvent& event)
 			wxString newfilename = saveFileDialog.GetPath();
 			wxCopyFile(fileExtract, newfilename);
 		}
+		delete selectFile;
 	}
 	else
 	{
@@ -337,6 +338,7 @@ wxString CCentralWindow::ProcessLoadFiles(wxArrayString& listFile)
 					vector<int> listPage = selectFile->GetSelectItem();
 					CRegardsPDF::AddPage(listFile[i], temporyFile, listPage, oldAnimationPosition);
 				}
+				delete selectFile;
 			}
 		}
 		else

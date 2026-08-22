@@ -91,7 +91,7 @@ namespace Regards::Window
 		// [QUALITE] loadingTimer supprimé : alloué mais jamais démarré ni géré
 		CWindowManager * windowManager;
 		std::unique_ptr<CWindowToAdd> centralWindow;
-		std::unique_ptr<CWindowToAdd> windowToaddCentral;
+		CWindowToAdd * windowToaddCentral;
 
 		bool oldshowScrollH = false;
 		bool oldshowScrollV = false;

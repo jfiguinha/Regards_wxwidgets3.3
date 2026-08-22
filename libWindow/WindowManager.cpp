@@ -1044,6 +1044,7 @@ void CWindowManager::OnLButtonUp()
 
 CWindowManager::~CWindowManager()
 {
+	
 	for (CWindowToAdd* windowToAdd : listWindow)
 	{
 		delete windowToAdd;

@@ -365,7 +365,15 @@ void CViewerFrame::Exit()
         if (exitTimer && exitTimer->IsRunning())
             exitTimer->Stop();
 
-        viewerParam_->SaveFile();
+
+        //Chargement des paramËtres de l'application
+        auto* regardsParam = CParamInit::getInstance();
+
+        if (regardsParam)
+            regardsParam->SaveFile();
+
+        if(viewerParam_)
+            viewerParam_->SaveFile();
 
         exit(0);
 	}
