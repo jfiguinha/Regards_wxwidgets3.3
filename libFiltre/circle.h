@@ -23,4 +23,5 @@ public:
 private:
 	static wxImage GetCircle(const int& rayon);
 	static std::map<int, wxImage> listOfCircle;
+	static std::mutex circleMutex;
 };
