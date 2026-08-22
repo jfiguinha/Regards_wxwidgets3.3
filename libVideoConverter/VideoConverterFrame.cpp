@@ -19,11 +19,6 @@
 #endif
 #include "FFmpegTranscoding.h"
 
-//Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
-BEGIN_EVENT_TABLE(CVideoConverterFrame, wxFrame)
-EVT_CLOSE(CVideoConverterFrame::OnCloseWindow)
-END_EVENT_TABLE()
-
 using namespace Regards::Picture;
 
 // ---------------------------------------------------------------------------
@@ -51,12 +46,9 @@ namespace {
 // ----------------------------------------------------------------------------
 
 // frame constructor
-CVideoConverterFrame::CVideoConverterFrame(const wxString& title, const wxPoint& pos, const wxSize& size, IVideoConverterInterface* videoInterface, long style) :
-	wxFrame(nullptr, FRAMEVIDEOCONVERTER_ID, title, pos, size, style)
+CVideoConverterFrame::CVideoConverterFrame(IVideoConverterInterface* videoInterface)
 {
-	SetIcon(wxICON(sample));
 	this->videoInterface = videoInterface;
-
 
 	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
 	if (regardsParam != nullptr)
@@ -80,7 +72,7 @@ CVideoConverterFrame::~CVideoConverterFrame()
 
 wxString CVideoConverterFrame::SelectFile()
 {
-	wxFileDialog openFileDialog(this, _("Open video file"), "", "",
+	wxFileDialog openFileDialog(nullptr, _("Open video file"), "", "",
 		"mp4 files (*.mp4)|*.mp4", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
 
 	wxString documentPath = CFileUtility::GetDocumentFolderPath();
@@ -119,13 +111,6 @@ wxString CVideoConverterFrame::SelectOutputFile(wxString& filename)
 
 	filepath = saveFileDialog.GetPath();
 	int index = saveFileDialog.GetFilterIndex();
-
-	wxWindow* videoWindow = this->FindWindowById(SHOWBITMAPVIEWERID);
-	if (videoWindow != nullptr)
-	{
-		wxCommandEvent event(wxEVENT_PAUSEMOVIE);
-		wxPostEvent(videoWindow, event);
-	}
 
 	const wxString ext = wxFileName(filepath).GetExt();
 	if (ext != "mp4" && ext != "webm" && ext != "mov" && ext != "mkv")
@@ -175,62 +160,54 @@ void CVideoConverterFrame::EncodeFile(CVideoOptionCompress* videoCompressOption,
 
 			int ret = ffmpegtranscoding.EncodeFile(input, output, progressDlg, videoCompressOption);
 
-			// Everything below touches UI (dialogs, wxWindow state) and member
-			// fields shared with the UI thread: it must run back on the UI thread.
-			this->CallAfter([this, ret, onComplete]()
+			if (ret < 0)
+			{
+				wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
+				wxMessageBox(FormatFFmpegError(ret), errorConversion, wxICON_ERROR);
+			}
+
+			if (m_dlgProgress)
+				m_dlgProgress->Close();
+
+			if (ret == 0)
+			{
+				if (m_dlgProgress->IsOk())
 				{
-					if (ret < 0)
-					{
-						wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);
-						wxMessageBox(FormatFFmpegError(ret), errorConversion, wxICON_ERROR);
-					}
+					wxString filecompleted = CLibResource::LoadStringFromResource("LBLFILEENCODINGCOMPLETED", 1);
+					wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
+					wxMessageBox(filecompleted, infos);
+				}
+				else
+				{
+					wxString filecompleted = "File encoding has been interrupted";
+					wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
+					wxMessageBox(filecompleted, infos);
+				}
+			}
 
-					if (m_dlgProgress)
-						m_dlgProgress->Close();
+			bool result = (ret == 0);
 
-					if (ret == 0)
-					{
-						if (m_dlgProgress->IsOk())
-						{
-							wxString filecompleted = CLibResource::LoadStringFromResource("LBLFILEENCODINGCOMPLETED", 1);
-							wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
-							wxMessageBox(filecompleted, infos);
-						}
-						else
-						{
-							wxString filecompleted = "File encoding has been interrupted";
-							wxString infos = CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
-							wxMessageBox(filecompleted, infos);
-						}
-					}
+			if (needToRemux)
+			{
+				RemoveIfExists(fileOutputPath);
 
-					bool result = (ret == 0);
+				if (isAudio && wxFileExists(fileOut) && wxFileExists(fileOutAudio))
+					result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOut.utf8_string(), fileOutAudio.utf8_string(), fileOutputPath.utf8_string());
+				else if (wxFileExists(fileOut) && wxFileExists(fileOutVideo))
+					result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOutVideo.utf8_string(), fileOut.utf8_string(), fileOutputPath.utf8_string());
+				else
+					result = false;
 
-					if (needToRemux)
-					{
-						RemoveIfExists(fileOutputPath);
-
-						if (isAudio && wxFileExists(fileOut) && wxFileExists(fileOutAudio))
-							result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOut.utf8_string(), fileOutAudio.utf8_string(), fileOutputPath.utf8_string());
-						else if (wxFileExists(fileOut) && wxFileExists(fileOutVideo))
-							result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOutVideo.utf8_string(), fileOut.utf8_string(), fileOutputPath.utf8_string());
-						else
-							result = false;
-
-						// Cleanup - built fresh every call (was previously a `static`
-						// array initialized only once from stale member values).
-						const wxString filesToClean[] = { fileOutVideo, fileOutAudio, fileOut };
-						for (const auto& filepath : filesToClean)
-							RemoveIfExists(filepath);
-					}
-					else
-					{
-						RemoveIfExists(fileOut);
-					}
-
-					if (onComplete)
-						onComplete(result ? 0 : (ret < 0 ? ret : -1));
-				});
+				// Cleanup - built fresh every call (was previously a `static`
+				// array initialized only once from stale member values).
+				const wxString filesToClean[] = { fileOutVideo, fileOutAudio, fileOut };
+				for (const auto& filepath : filesToClean)
+					RemoveIfExists(filepath);
+			}
+			else
+			{
+				RemoveIfExists(fileOut);
+			}
 		});
 }
 
@@ -258,7 +235,7 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 		return;
 	}
 
-	m_compressAudioVideoOption = std::make_unique<CompressionAudioVideoOption>(this);
+	m_compressAudioVideoOption = std::make_unique<CompressionAudioVideoOption>();
 	m_compressAudioVideoOption->SetFile(filename, fileOutputPath);
 	m_compressAudioVideoOption->ShowModal();
 
@@ -371,10 +348,5 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 
 	// Neither branch matched (shouldn't happen given the if/else above, but
 	// keep a safe fallback instead of silently doing nothing).
-	ExitApplication();
-}
-
-void CVideoConverterFrame::OnCloseWindow(wxCloseEvent& event)
-{
 	ExitApplication();
 }

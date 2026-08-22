@@ -31,7 +31,7 @@ class CVideoEffectParameter;
 class CompressionAudioVideoOption : public wxDialog
 {
 public:
-	CompressionAudioVideoOption(wxWindow* parent);
+	CompressionAudioVideoOption();
 	~CompressionAudioVideoOption() = default;
 	void GetCompressionOption();
 	void SetFile(const wxString& videoFilename, const wxString& videoOutputFilename);

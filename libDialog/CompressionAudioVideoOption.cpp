@@ -45,13 +45,13 @@ static void GetTimeToHourMinuteSecond(const long& timeToSplit, int& hour, int& m
 	second = timeToSplitlocal;
 }
 
-CompressionAudioVideoOption::CompressionAudioVideoOption(wxWindow* parent)
+CompressionAudioVideoOption::CompressionAudioVideoOption()
 {
 	isOk = false;
 	videoEffectParameter = std::make_unique<CVideoEffectParameter>();
 	
 	//(*Initialize(CompressionAudioVideoOption)
-	wxXmlResource::Get()->LoadObject(this, parent,_T("CompressionAudioVideoOption"),_T("wxDialog"));
+	wxXmlResource::Get()->LoadObject(this, nullptr,_T("CompressionAudioVideoOption"),_T("wxDialog"));
 	btnCancel = static_cast<wxButton*>(FindWindow(XRCID("ID_BTCANCEL")));
 	btnOk = static_cast<wxButton*>(FindWindow(XRCID("ID_BTOK")));
 	btnPreview = static_cast<wxButton*>(FindWindow(XRCID("ID_BTPREVIEW")));

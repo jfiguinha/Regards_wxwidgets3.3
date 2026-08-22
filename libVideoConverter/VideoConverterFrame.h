@@ -10,11 +10,11 @@ class CVideoOptionCompress;
 class CompressionAudioVideoOption;
 
 // Define a new frame type: this is going to be our main frame
-class CVideoConverterFrame : public wxFrame
+class CVideoConverterFrame
 {
 public:
 	// ctor(s)
-	CVideoConverterFrame(const wxString& title, const wxPoint& pos, const wxSize& size, IVideoConverterInterface* videoInterface, long style = wxDEFAULT_FRAME_STYLE);
+	CVideoConverterFrame(IVideoConverterInterface* videoInterface);
 	~CVideoConverterFrame();
 	void ExportVideo(const wxString& filename);
 

@@ -501,11 +501,7 @@ void MyApp::LaunchApplication()
 	{
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
-		frameVideoConverter = std::make_unique<CVideoConverterFrame>("RegardsConverter", wxDefaultPosition, wxSize(50, 50), this);
-		frameVideoConverter->Centre(wxBOTH);
-		frameVideoConverter->SetFocus();  // focus on my window
-		frameVideoConverter->Raise();  // bring window to front
-		frameVideoConverter->Show(true);
+		frameVideoConverter = std::make_unique<CVideoConverterFrame>(this);
 		frameVideoConverter->ExportVideo(fileToOpen);
 	}
 	else if (appName == "RegardsTest")
