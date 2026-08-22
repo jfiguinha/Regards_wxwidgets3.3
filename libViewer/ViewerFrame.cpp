@@ -349,8 +349,7 @@ void CViewerFrame::Exit()
 	else
 	{
 		CMainThemeInit::SaveTheme();
-        if(mainInterface_ != nullptr)
-            mainInterface_->Close();
+
 		onExit = true;
 
         if (mainWindow_)
@@ -374,6 +373,9 @@ void CViewerFrame::Exit()
 
         if(viewerParam_)
             viewerParam_->SaveFile();
+
+        if (mainInterface_ != nullptr)
+            mainInterface_->Close();
 
         exit(0);
 	}
