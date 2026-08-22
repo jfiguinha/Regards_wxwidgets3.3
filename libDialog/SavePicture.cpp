@@ -1,3 +1,4 @@
+#include <header.h>
 #include <FileUtility.h>
 #include <ImageLoadingFormat.h>
 #include <LibResource.h>
