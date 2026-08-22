@@ -5,13 +5,14 @@
 #include <VideoCompressOption.h>
 #include <wx/filename.h>
 #include <MediaInfo.h>
-
 #include <MediaExtractor.h>
 #include <ConvertUtility.h>
 #include <FileUtility.h>
 #include <LibResource.h>
 #include <libPicture.h>
-
+#include <ConfigRegards.h>
+#include <RegardsConfigParam.h>
+#include <ParamInit.h>
 #if defined(__WXMSW__)
 #include "../include/window_id.h"
 #else
@@ -50,7 +51,11 @@ CVideoConverterFrame::CVideoConverterFrame(const wxString& title, const wxPoint&
 	SetIcon(wxICON(sample));
 	this->videoInterface = videoInterface;
 	Connect(wxEVENT_ENDCOMPRESSION, wxCommandEventHandler(CVideoConverterFrame::OnEndDecompressFile));
-	
+	openCLContext = std::make_unique<Regards::OpenCL::COpenCLContext>();
+
+	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+	if (regardsParam != nullptr)
+		regardsParam->SetInterpolationType(1);
 
 }
 
@@ -195,15 +200,16 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 	compressAudioVideoOption->ShowModal();
 	if (compressAudioVideoOption->IsOk())
 	{
-		ffmpegEncoder = std::make_unique<CFFmpegTranscoding>();
+		auto videoCompressOption = compressAudioVideoOption->GetVideoCompressionPt();
+
+		ffmpegEncoder = std::make_unique<CFFmpegTranscoding>(openCLContext.get(), videoCompressOption);
 
 		wxString timeInput = "00:00:00";
 		wxString timeOutput = "00:00:00";
 		wxFileName file_temp(fileOutputPath);
 		fileOut = CFileUtility::GetTempFile("temp." + file_temp.GetExt(), true);
 
-		auto videoCompressOption = ffmpegEncoder->GetVideoCompressionPt();
-		compressAudioVideoOption->GetCompressionOption(videoCompressOption);
+		
 
 		if (videoCompressOption->startTime != 0 || videoCompressOption->endTime != 0)
 		{

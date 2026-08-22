@@ -33,7 +33,7 @@ class CompressionAudioVideoOption : public wxDialog
 public:
 	CompressionAudioVideoOption(wxWindow* parent);
 	~CompressionAudioVideoOption() = default;
-	void GetCompressionOption(CVideoOptionCompress* videoOptionCompress);
+	void GetCompressionOption();
 	void SetFile(const wxString& videoFilename, const wxString& videoOutputFilename);
 	wxButton* btnCancel;
 	wxButton* btnOk;
@@ -106,7 +106,7 @@ public:
 #endif
 	wxStaticBox* stPreviewPicture;
 	void ChangeLabelPicture(const wxString& label);
-
+	CVideoOptionCompress * GetVideoCompressionPt();
 protected:
 	//(*Identifiers(TiffOption)
 	//*)
@@ -146,7 +146,7 @@ private:
 	std::unique_ptr<Regards::Video::CVideoThumb>  ffmpegTranscoding = nullptr;
 	std::unique_ptr<CSliderVideoSelection> sliderVideoPosition = nullptr;
 	std::unique_ptr<CVideoEffectParameter> videoEffectParameter = nullptr;
-	std::unique_ptr<CFFmpegTranscoding> transcodeFFmpeg = nullptr;
 	std::unique_ptr<CShowPreview> showBitmapWindow = nullptr;
+	std::unique_ptr<CVideoOptionCompress> videoCompressOption;
 	DECLARE_EVENT_TABLE()
 };

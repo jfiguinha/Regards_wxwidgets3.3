@@ -7,7 +7,7 @@ class CVideoOptionCompress;
 class CFFmpegTranscoding
 {
 public:
-	CFFmpegTranscoding();
+	CFFmpegTranscoding(Regards::OpenCL::COpenCLContext * openCLContext, CVideoOptionCompress* videoCompressOption);
 	~CFFmpegTranscoding();
 	int EncodeFile(wxWindow* mainWindow, const wxString& input, const wxString& output, int rotation);
 	int EncodeFrame(const wxString& input, const wxString& output, const int& position);
@@ -15,16 +15,17 @@ public:
 	wxString GetOutputFilename();
 	cv::Mat GetFrameOutput();
 	cv::Mat GetFrameOutputWithOutEffect();
-	CVideoOptionCompress* GetVideoCompressionPt();
+
+	void SetOpenCLContext(Regards::OpenCL::COpenCLContext* openCLContext);
 protected:
 	static void EncodeFileThread(void* data);
 	wxString input;
 	wxString output;
 	std::unique_ptr<std::thread> encode_thread;
-	std::unique_ptr<Regards::OpenCL::COpenCLContext> openCLContext = nullptr;
+	Regards::OpenCL::COpenCLContext * openCLContext = nullptr;
 	cv::Mat data;
 	cv::Mat data_withouteffect;
 	std::unique_ptr<CompressVideo> m_dlgProgress;
 	wxWindow* mainWindow;
-	std::unique_ptr<CVideoOptionCompress> videoCompressOption;
+	CVideoOptionCompress * videoCompressOption;
 };

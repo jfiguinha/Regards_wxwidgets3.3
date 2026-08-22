@@ -4,9 +4,9 @@
 #include "SliderVideoPreview.h"
 #include "ScrollbarWnd.h"
 #include <VideoCompressOption.h>
+#include <OpenCLContext.h>
 using namespace Regards::Window;
 
-;
 class CFFmpegDecodeFrameFilter;
 class CFFmpegTranscoding;
 
@@ -28,12 +28,29 @@ namespace Regards
 
 	namespace Control
 	{
+		class CRenderPreview
+		{
+		public:
+			CRenderPreview() = default;
+			~CRenderPreview() = default;
+
+			cv::Mat decodeFrameOriginal;
+			cv::Mat decodeFrame;
+			wxWindow * parent;
+			CVideoOptionCompress videoOption;
+			bool compressIsOK;
+			wxString filename;
+			wxString extension;
+			int position;
+			int ret;
+		};
+
 		class CShowPreview : public CWindowMain, public CSliderInterface
 		{
 		public:
-			CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config);
+			CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config, CVideoOptionCompress * videoOptionPt);
 			~CShowPreview() override;
-			void SetParameter(const wxString& videoFilename, CFFmpegTranscoding * transcodeFFmpeg);
+			void SetParameter(const wxString& videoFilename);
 			//bool SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail);
 			//CRegardsBitmap* GetBitmap(const bool& source);
 			void UpdateScreenRatio() override;
@@ -54,12 +71,13 @@ namespace Regards
 			void UpdateBitmap(const wxString& extension,
 			                  const bool& updatePicture = true);
 
+
 		private:
 			void ShowOriginal();
 			void ShowNew();
 			void StopThread();
 			void SetBitmapToViewer(CImageLoadingFormat* bitmap, bool isUpdate);
-
+			void OnContextCreate(wxCommandEvent& event);
 			void OnViewerZoomIn(wxCommandEvent& event);
 			void OnViewerZoomOut(wxCommandEvent& event);
 			void Resize() override;
@@ -81,13 +99,14 @@ namespace Regards
 			std::unique_ptr<CSliderVideoPreview> sliderVideo;
 			std::unique_ptr<CBitmapWndRender> bitmapWindow;
 			std::unique_ptr<CBitmapWnd3D> bitmapWindowRender;
+			CVideoOptionCompress* videoOption;
 			CRegardsConfigParam* configRegards;
 
 			bool defaultToolbar;
 			bool defaultViewer;
 			//bool bitmapWndLocal;
-			std::unique_ptr<Video::CVideoThumb> videoOriginal = nullptr;
-			CFFmpegTranscoding* transcodeFFmpeg = nullptr;
+			//std::unique_ptr<Video::CVideoThumb> videoOriginal = nullptr;
+			//CFFmpegTranscoding* transcodeFFmpeg = nullptr;
 			cv::Mat decodeFrame;
 			cv::Mat decodeFrameOriginal;
 

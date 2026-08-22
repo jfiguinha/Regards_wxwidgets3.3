@@ -7,25 +7,21 @@
 #include <LibResource.h>
 
 
-CFFmpegTranscoding::CFFmpegTranscoding() :
+CFFmpegTranscoding::CFFmpegTranscoding(Regards::OpenCL::COpenCLContext* openCLContext, CVideoOptionCompress* videoCompressOption) :
 	encode_thread(nullptr),
 	m_dlgProgress(nullptr),
 	mainWindow(nullptr),
-	videoCompressOption(nullptr)
+	openCLContext(openCLContext),
+	videoCompressOption(videoCompressOption)
 {
-	videoCompressOption = std::make_unique< CVideoOptionCompress>();
-	openCLContext = std::make_unique<Regards::OpenCL::COpenCLContext>();
-	openCLContext->CreateDefaultOpenCLContext();
+	
 }
 
 CFFmpegTranscoding::~CFFmpegTranscoding()
 {
 }
 
-CVideoOptionCompress* CFFmpegTranscoding::GetVideoCompressionPt()
-{
-	return videoCompressOption.get();
-}
+
 
 wxString CFFmpegTranscoding::GetOutputFilename()
 {
@@ -34,8 +30,8 @@ wxString CFFmpegTranscoding::GetOutputFilename()
 
 int CFFmpegTranscoding::EncodeFrame(const wxString& input, const wxString& output, const int& position)
 {
-	CFFmpegTranscodingPimpl ffmpegtranscoding(openCLContext.get());
-	int ret = ffmpegtranscoding.EncodeOneFrame(nullptr, input, output, position, videoCompressOption.get());
+	CFFmpegTranscodingPimpl ffmpegtranscoding(openCLContext);
+	int ret = ffmpegtranscoding.EncodeOneFrame(nullptr, input, output, position, videoCompressOption);
 	if (!ffmpegtranscoding.GetFrameOutput().empty())
 	{
 		data = ffmpegtranscoding.GetFrameOutput();
@@ -50,6 +46,11 @@ cv::Mat CFFmpegTranscoding::GetFrameOutput()
 	cv::Mat bitmap;
 	data.copyTo(bitmap);
 	return bitmap;
+}
+
+void CFFmpegTranscoding::SetOpenCLContext(Regards::OpenCL::COpenCLContext* openCLContext)
+{
+	this->openCLContext = openCLContext;
 }
 
 cv::Mat CFFmpegTranscoding::GetFrameOutputWithOutEffect()
@@ -69,7 +70,7 @@ void CFFmpegTranscoding::EncodeFileThread(void* data)
 	CFFmpegTranscodingPimpl ffmpegtranscoding(openCLContext.get());
 
 	int ret = ffmpegtranscoding.EncodeFile(ffmpeg_encoding->input, ffmpeg_encoding->output,
-	                                       ffmpeg_encoding->m_dlgProgress.get(), ffmpeg_encoding->videoCompressOption.get());
+	                                       ffmpeg_encoding->m_dlgProgress.get(), ffmpeg_encoding->videoCompressOption);
 	if (ret < 0)
 	{
 		wxString errorConversion = CLibResource::LoadStringFromResource("LBLERRORCONVERSION", 1);

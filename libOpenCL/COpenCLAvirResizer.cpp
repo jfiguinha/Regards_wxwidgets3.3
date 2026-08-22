@@ -70,6 +70,8 @@ bool COpenCLAvirResizer::Init()
 	isOk = m_kLinearize && m_kDelinearize && m_kResizeH && m_kResizeV &&
 		m_kSharpenH && m_kSharpenV && m_kDitherRound && m_kDitherErrDiff;
 
+	isInit = true;
+
 	return isOk;
 }
 

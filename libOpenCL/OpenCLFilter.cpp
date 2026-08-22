@@ -263,7 +263,7 @@ COpenCLFilter::COpenCLFilter(COpenCLContext* openCLContext)
 	hq3d = nullptr;
     superSampling = std::make_unique<CSuperSampling>();
 	resizer = std::make_unique<COpenCLAvirResizer>(openCLContext);
-	resizer->Init();
+	
 }
 
 COpenCLFilter::~COpenCLFilter()
@@ -1413,6 +1413,10 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 
 			auto t1 = high_resolution_clock::now();
 #endif	
+
+			if(!resizer->IsInit())
+				resizer->Init();
+
 			bool result = resizer->IsOk();
 			if (result)
 			{

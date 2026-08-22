@@ -104,18 +104,6 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 			 if (regardsParam->GetIsOpenCLSupport())
 			{
                 
-#ifdef TOTO
-                
-                isOpenCLInitialized = true;
-                openclOpenGLInterop = false;
-                COpenCLContext::CreateDefaultOpenCLContext();
-
-				if (!isOpenCLInitialized)
-				{
-					regardsParam->SetIsOpenCLSupport(false);
-				}
-				regardsParam->SetIsOpenCLOpenGLInteropSupport(openclOpenGLInterop);
-#else
 				if (cv::ocl::haveOpenCL() && !application_context.isOpenCLInitialized && regardsParam->GetIsOpenCLOpenGLInteropSupport())
 				{
                    //  printf("CRenderOpenGL::Init 2 \n");
@@ -142,7 +130,6 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 					regardsParam->SetIsOpenCLSupport(false);
 				}
 				regardsParam->SetIsOpenCLOpenGLInteropSupport(application_context.openclOpenGLInterop);
-#endif
 			}
 		}
 		

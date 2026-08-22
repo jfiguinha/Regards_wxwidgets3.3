@@ -33,7 +33,7 @@ void CShowPreview::UpdateScreenRatio()
 	this->Resize();
 }
 
-CShowPreview::CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config)
+CShowPreview::CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config, CVideoOptionCompress* videoOption)
 	: CWindowMain("ShowBitmap", parent, id)
 {
 	transitionEnd = false;
@@ -43,6 +43,7 @@ CShowPreview::CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config)
 	configRegards = nullptr;
 	defaultToolbar = true;
 	defaultViewer = true;
+	this->videoOption = videoOption;
 
 	CThemeBitmapWindow themeBitmap;
 	configRegards = CParamInit::getInstance();
@@ -98,29 +99,28 @@ CShowPreview::CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config)
 
 	Connect(wxEVENT_SHOWORIGINAL, wxCommandEventHandler(CShowPreview::OnShowOriginal));
 	Connect(wxEVENT_SHOWNEW, wxCommandEventHandler(CShowPreview::OnShowNew));
-
+	Connect(wxEVENT_CONTEXTCREATE, wxCommandEventHandler(CShowPreview::OnContextCreate));
 	Connect(wxEVENT_UPDATEPICTURE, wxCommandEventHandler(CShowPreview::OnUpdatePicture));
 
 	wxString decoder = "";
 	progressValue = 0;
 
 	wxString resourcePath = CFileUtility::GetResourcesFolderPath();
-
+	
 }
 
-void CShowPreview::SetParameter(const wxString& videoFilename,
-	CFFmpegTranscoding* transcodeFFmpeg)
+
+void CShowPreview::SetParameter(const wxString& videoFilename)
 {
 	isFirstPicture = true;
 	wxString decoder = "";
-	this->transcodeFFmpeg = transcodeFFmpeg;
+
 	progressValue = 0;
 	filename = videoFilename;
 
-	CVideoThumb * video = new CVideoThumb(filename);
-	videoOriginal.reset(video);
-	timeTotal = videoOriginal->GetMovieDuration();
-	orientation = videoOriginal->GetOrientation();
+	CVideoThumb video(filename);
+	timeTotal = video.GetMovieDuration();
+	orientation = video.GetOrientation();
 	sliderVideo->SetTotalSecondTime(timeTotal * 1000);
 
 	MoveSlider(0);
@@ -160,37 +160,19 @@ void CShowPreview::ShowPicture(cv::Mat& bitmap, const wxString& label)
 
 void CShowPreview::ShowOriginal()
 {
-	//cv::Mat mat = CPictureUtility::ApplyRotationVideo(decodeFrameOriginal, orientation);
-	//ShowPicture(mat, "Original Video");
-	cv::Mat mat = decodeFrameOriginal;
-	/*
-	if (orientation != 0)
-	{
-		cv::flip(decodeFrameOriginal, mat, -1);
-		//cv::rotate(decodeFrameOriginal, mat, cv::ROTATE_90_COUNTERCLOCKWISE);
-		//cv::rotate(mat, mat, cv::ROTATE_90_COUNTERCLOCKWISE);
-		//cv::flip(decodeFrame, mat, 1);
-	}
-	*/
-	ShowPicture(mat, "Original Video");
-	//ShowPicture(decodeFrameOriginal, "Original Video");
+	ShowPicture(decodeFrameOriginal, "Original Video");
 }
 
 void CShowPreview::ShowNew()
 {
-	//cv::Mat mat = CPictureUtility::ApplyRotationVideo(decodeFrame, orientation);
-	//ShowPicture(mat, "Export Video");
-	cv::Mat mat = decodeFrame;
-	/*
-	if (orientation != 0)
-	{
-		cv::flip(decodeFrame, mat, -1);
-		//cv::rotate(decodeFrame, mat, cv::ROTATE_90_COUNTERCLOCKWISE);
-		//cv::rotate(mat, mat, cv::ROTATE_90_COUNTERCLOCKWISE);
-		//cv::flip(decodeFrame, mat, 1);
-	}
-	*/	
-	ShowPicture(mat, "New Video");
+	ShowPicture(decodeFrame, "New Video");
+}
+
+void CShowPreview::OnContextCreate(wxCommandEvent& event)
+{
+	//wxCommandEvent* evtevent = nullptr;
+	//evtevent = new wxCommandEvent(wxEVENT_CONTEXTCREATE);
+	//wxQueueEvent(this->GetParent(), evtevent);
 }
 
 void CShowPreview::OnShowOriginal(wxCommandEvent& event)
@@ -209,12 +191,21 @@ void CShowPreview::OnShowNew(wxCommandEvent& event)
 
 void CShowPreview::OnUpdatePicture(wxCommandEvent& event)
 {
-	if (!compressIsOK)
+	CRenderPreview* renderPreview = (CRenderPreview*)event.GetClientData();
+
+	if (!renderPreview->compressIsOK)
 	{
+		wxCommandEvent evt(wxEVENT_ERRORCOMPRESSION);
+		evt.SetInt(renderPreview->ret);
+		renderPreview->parent->GetParent()->GetParent()->GetEventHandler()->AddPendingEvent(evt);
+
 		ShowOriginal();
 	}
 	else
 	{
+		decodeFrame = renderPreview->decodeFrame;
+		decodeFrameOriginal = renderPreview->decodeFrameOriginal;
+
 		if (showOriginal)
 			ShowOriginal();
 		else
@@ -234,6 +225,9 @@ void CShowPreview::OnUpdatePicture(wxCommandEvent& event)
 	sliderVideo->Stop();
 
 	StopThread();
+
+	delete renderPreview;
+	renderPreview = nullptr;
 }
 
 void CShowPreview::SlidePosChange(const int& position, const wxString& key)
@@ -264,56 +258,8 @@ void CShowPreview::MoveSlider(const int64_t& position)
 	UpdateBitmap("");
 }
 
-void CShowPreview::ThreadLoading(void* data)
-{
-	int ret = 0;
-	auto showPreview = static_cast<CShowPreview*>(data);
-
-	wxString fileTemp = "";
-
-	if (!showPreview->moveSlider)
-	{
-		if (showPreview->extension == "")
-		{
-			wxFileName filename(showPreview->filename);
-			showPreview->extension = filename.GetExt();
-		}
-		fileTemp = CFileUtility::GetTempFile("video_temp." + showPreview->extension);
-		ret = showPreview->transcodeFFmpeg->EncodeFrame(showPreview->filename, fileTemp, showPreview->position);
-		showPreview->decodeFrameOriginal = showPreview->transcodeFFmpeg->GetFrameOutputWithOutEffect();
-
-		if (ret == 0)
-		{
-			CVideoThumb video(fileTemp);
-			showPreview->decodeFrame = video.GetVideoFramePos(0, 0, 0);
-			if (showPreview->decodeFrame.empty())
-				showPreview->decodeFrame = application_context.GetDefaultPicture();
-
-		}
-		else
-			showPreview->compressIsOK = false;
-	}
-	else
-	{
-		showPreview->decodeFrameOriginal = showPreview->transcodeFFmpeg->GetFrameOutputWithOutEffect();
-	}
-
-	if (!showPreview->compressIsOK)
-	{
-		wxCommandEvent evt(wxEVENT_ERRORCOMPRESSION);
-		evt.SetInt(ret);
-		showPreview->GetParent()->GetParent()->GetEventHandler()->AddPendingEvent(evt);
-	}
-	else
-	{
-		wxCommandEvent evt(wxEVENT_UPDATEPICTURE);
-		showPreview->GetEventHandler()->AddPendingEvent(evt);
-	}
-
-}
-
 void CShowPreview::UpdateBitmap(const wxString& extension,
-                                const bool& updatePicture)
+	const bool& updatePicture)
 {
 	wxString decoder = "";
 	this->extension = extension;
@@ -322,8 +268,57 @@ void CShowPreview::UpdateBitmap(const wxString& extension,
 
 	StopThread();
 
-	threadStart = std::make_unique<std::thread>(ThreadLoading, this);
+	CRenderPreview* renderPreview = new CRenderPreview();
+	renderPreview->extension = extension;
+	renderPreview->filename = filename;
+	renderPreview->position = position;
+	renderPreview->parent = this;
+	renderPreview->videoOption = *videoOption;
+
+	threadStart = std::make_unique<std::thread>(ThreadLoading, renderPreview);
 }
+
+void CShowPreview::ThreadLoading(void* data)
+{
+	int ret = 0;
+	CRenderPreview * renderPreview = static_cast<CRenderPreview*>(data);
+	COpenCLContext openCLContext;
+	openCLContext.CreateDefaultOpenCLContext();
+	CFFmpegTranscoding transcodeFFmpeg(&openCLContext, &renderPreview->videoOption);
+
+	wxString fileTemp = "";
+
+	if (renderPreview->extension == "")
+	{
+		wxFileName filename(renderPreview->filename);
+		renderPreview->extension = filename.GetExt();
+	}
+	fileTemp = CFileUtility::GetTempFile("video_temp." + renderPreview->extension);
+	ret = transcodeFFmpeg.EncodeFrame(renderPreview->filename, fileTemp, renderPreview->position);
+	renderPreview->decodeFrameOriginal = transcodeFFmpeg.GetFrameOutputWithOutEffect();
+
+	if (ret == 0)
+	{
+		CVideoThumb video(fileTemp);
+		renderPreview->decodeFrame = video.GetVideoFramePos(0, 0, 0);
+		if (renderPreview->decodeFrame.empty())
+			renderPreview->decodeFrame = application_context.GetDefaultPicture();
+
+		renderPreview->compressIsOK = true;
+
+	}
+	else
+		renderPreview->compressIsOK = false;
+
+	wxCommandEvent evt(wxEVENT_UPDATEPICTURE);
+	evt.SetClientData(renderPreview);
+	renderPreview->parent->GetEventHandler()->AddPendingEvent(evt);
+
+
+
+}
+
+
 
 void CShowPreview::OnControlSize(wxCommandEvent& event)
 {

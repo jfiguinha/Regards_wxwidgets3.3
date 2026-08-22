@@ -1,5 +1,6 @@
 #pragma once
 #include <MainInterface.h>
+#include <OpenCLContext.h>
 class CFFmpegTranscoding;
 
 // Define a new frame type: this is going to be our main frame
@@ -23,7 +24,7 @@ private:
 
 	//CompressionAudioVideoOption* compressAudioVideoOption = nullptr;
 	std::unique_ptr<CFFmpegTranscoding> ffmpegEncoder = nullptr;
-
+	std::unique_ptr<Regards::OpenCL::COpenCLContext> openCLContext = nullptr;
 	wxString fileOut = "";
 	wxString fileOutAudio = "";
 	wxString fileOutVideo = "";

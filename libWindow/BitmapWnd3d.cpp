@@ -177,7 +177,9 @@ void CBitmapWnd3D::OnPaint(wxPaintEvent& event)
 
 		renderOpenGL = new CRenderOpenGL(this);
 		renderOpenGL->Init(this);
-
+		wxCommandEvent* event = nullptr;
+		event = new wxCommandEvent(wxEVENT_CONTEXTCREATE);
+		wxQueueEvent(this->GetParent(), event);
 	}
 
 	if (GetOpenCLContext() != nullptr)

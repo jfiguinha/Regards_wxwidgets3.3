@@ -90,6 +90,11 @@ namespace Regards
 				cv::UMat& dest,
 				const SAvirResizeParams& params);
 
+			bool IsInit()
+			{
+				return isInit;
+			}
+
 			bool IsOk()
 			{
 				return isOk;
@@ -105,7 +110,7 @@ namespace Regards
 			};
 
 			bool isOk = false;
-
+			bool isInit = false;
 			COpenCLContext* openCLContext = nullptr;
 			cv::ocl::Program m_program;
 			cl_kernel m_kLinearize = nullptr;
