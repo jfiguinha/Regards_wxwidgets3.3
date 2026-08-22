@@ -31,7 +31,7 @@ namespace cv
 	class VideoCapture;
 }
 
-class CFFmpegTranscodingPimpl
+class CFFmpegTranscoding
 {
 public:
 	using FilteringContext = struct FilteringContext
@@ -63,8 +63,8 @@ public:
 	cv::Mat GetFrameOutput();
 	cv::Mat GetFrameOutputWithOutEffect();
 
-	CFFmpegTranscodingPimpl(COpenCLContext* openCLContext);
-	~CFFmpegTranscodingPimpl();
+	CFFmpegTranscoding(COpenCLContext* openCLContext);
+	~CFFmpegTranscoding();
 
 	int EncodeOneFrame(CompressVideo* m_dlgProgress, const wxString& input, const wxString& output, const long& time,
 	                   CVideoOptionCompress* videoCompressOption);

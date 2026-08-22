@@ -7,12 +7,9 @@
 #include "MainTheme.h"
 #include "MainThemeInit.h"
 #include <RegardsConfigParam.h>
-
 #include <LibResource.h>
 #include <picture_utility.h>
 #include <WindowUtility.h>
-
-#include <ffmpeg_transcoding.h>
 #include <ParamInit.h>
 #include <MediaExtractor.h>
 

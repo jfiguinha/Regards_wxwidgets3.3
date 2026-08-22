@@ -1,5 +1,4 @@
 #include <header.h>
-#include <ffmpeg_transcoding.h>
 #include "VideoConverterFrame.h"
 #include <CompressionAudioVideoOption.h>
 #include <VideoCompressOption.h>
@@ -18,7 +17,7 @@
 #else
 #include <window_id.h>
 #endif
-#include "FFmpegTranscodingPimpl.h"
+#include "FFmpegTranscoding.h"
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
 BEGIN_EVENT_TABLE(CVideoConverterFrame, wxFrame)
@@ -169,7 +168,7 @@ void CVideoConverterFrame::EncodeFile(CVideoOptionCompress* videoCompressOption,
 			std::unique_ptr<COpenCLContext> openCLContext = std::make_unique<COpenCLContext>();
 			openCLContext->CreateDefaultOpenCLContext();
 
-			CFFmpegTranscodingPimpl ffmpegtranscoding(openCLContext.get());
+			CFFmpegTranscoding ffmpegtranscoding(openCLContext.get());
 
 			int ret = ffmpegtranscoding.EncodeFile(input, output, progressDlg, videoCompressOption);
 

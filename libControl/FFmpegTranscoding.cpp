@@ -1,7 +1,6 @@
 // ReSharper disable All
 #include "header.h"
-#include "FFmpegTranscodingPimpl.h"
-
+#include "FFmpegTranscoding.h"
 #include <CompressVideo.h>
 #include <ImageLoadingFormat.h>
 #include "ffmpegToBitmap.h"
@@ -269,7 +268,7 @@ static wxString ConvertSecondToTime(int sec)
 	return wxString::Format("%02d:%02d:%02d\n", h, m, s);
 }
 
-CFFmpegTranscodingPimpl::CFFmpegTranscodingPimpl(COpenCLContext* openCLContext) : openCLContext(openCLContext),
+CFFmpegTranscoding::CFFmpegTranscoding(COpenCLContext* openCLContext) : openCLContext(openCLContext),
                                                      stream_ctx(nullptr),
                                                      m_dlgProgress(nullptr),
                                                      videoCompressOption(nullptr), duration{}
@@ -280,7 +279,7 @@ CFFmpegTranscodingPimpl::CFFmpegTranscodingPimpl(COpenCLContext* openCLContext) 
 	packet.size = 0;
 }
 
-void CFFmpegTranscodingPimpl::EndTreatment()
+void CFFmpegTranscoding::EndTreatment()
 {
 	if (cleanPacket)
 	{
@@ -293,7 +292,7 @@ void CFFmpegTranscodingPimpl::EndTreatment()
 }
 
 
-int CFFmpegTranscodingPimpl::IsSupportOpenCL()
+int CFFmpegTranscoding::IsSupportOpenCL()
 {
 	int supportOpenCL = 0;
 	CRegardsConfigParam* config = CParamInit::getInstance();
@@ -307,7 +306,7 @@ int CFFmpegTranscodingPimpl::IsSupportOpenCL()
 }
 
 
-CFFmpegTranscodingPimpl::~CFFmpegTranscodingPimpl()
+CFFmpegTranscoding::~CFFmpegTranscoding()
 {
 	EndTreatment();
 
@@ -336,7 +335,7 @@ CFFmpegTranscodingPimpl::~CFFmpegTranscodingPimpl()
 
 }
 
-void CFFmpegTranscodingPimpl::DisplayPreview(
+void CFFmpegTranscoding::DisplayPreview(
 	CompressVideo* dlgProgress,
 	const std::shared_ptr<PreviewData>& data)
 {
@@ -401,7 +400,7 @@ void CFFmpegTranscodingPimpl::DisplayPreview(
 	data->isend->store(true);
 }
 
-int CFFmpegTranscodingPimpl::hw_decoder_init(AVCodecContext* ctx, const enum AVHWDeviceType type)
+int CFFmpegTranscoding::hw_decoder_init(AVCodecContext* ctx, const enum AVHWDeviceType type)
 {
 	int err;
 
@@ -416,7 +415,7 @@ int CFFmpegTranscodingPimpl::hw_decoder_init(AVCodecContext* ctx, const enum AVH
 	return err;
 }
 
-enum AVPixelFormat CFFmpegTranscodingPimpl::get_hw_format(AVCodecContext* ctx,
+enum AVPixelFormat CFFmpegTranscoding::get_hw_format(AVCodecContext* ctx,
                                                           const enum AVPixelFormat* pix_fmts)
 {
 	const enum AVPixelFormat* p;
@@ -431,7 +430,7 @@ enum AVPixelFormat CFFmpegTranscodingPimpl::get_hw_format(AVCodecContext* ctx,
 	return AV_PIX_FMT_NONE;
 }
 
-double CFFmpegTranscodingPimpl::get_rotation(AVStream* st)
+double CFFmpegTranscoding::get_rotation(AVStream* st)
 {
 	int32_t* displaymatrix = 0;
 	const AVPacketSideData* psd = av_packet_side_data_get(st->codecpar->coded_side_data,
@@ -455,7 +454,7 @@ double CFFmpegTranscodingPimpl::get_rotation(AVStream* st)
 	return theta;
 }
 
-int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename)
+int CFFmpegTranscoding::open_input_file(const wxString& filename)
 {
 	int ret;
 	unsigned int i;
@@ -541,7 +540,7 @@ int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename)
 }
 
 
-int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename, const wxString& decodeHardware)
+int CFFmpegTranscoding::open_input_file(const wxString& filename, const wxString& decodeHardware)
 {
 	//if(decodeHardware == "")
 	//{
@@ -675,7 +674,7 @@ int CFFmpegTranscodingPimpl::open_input_file(const wxString& filename, const wxS
 }
 
 
-int CFFmpegTranscodingPimpl::EncodeFrame(const int& stream_index, int& positionMovie, const bool& isVideo,
+int CFFmpegTranscoding::EncodeFrame(const int& stream_index, int& positionMovie, const bool& isVideo,
                                          const bool& write)
 {
 	int ret = 0;
@@ -783,7 +782,7 @@ int CFFmpegTranscodingPimpl::EncodeFrame(const int& stream_index, int& positionM
 }
 
 
-AVDictionary* CFFmpegTranscodingPimpl::setEncoderParam(const AVCodecID& codec_id, AVCodecContext* pCodecCtx,
+AVDictionary* CFFmpegTranscoding::setEncoderParam(const AVCodecID& codec_id, AVCodecContext* pCodecCtx,
                                                        const wxString& encoderName)
 {
 	// some formats want stream headers to be separate
@@ -1183,7 +1182,7 @@ AVDictionary* CFFmpegTranscodingPimpl::setEncoderParam(const AVCodecID& codec_id
 }
 
 
-wxString CFFmpegTranscodingPimpl::GetCodecName(AVCodecID codec_type, const wxString& encoderHardware)
+wxString CFFmpegTranscoding::GetCodecName(AVCodecID codec_type, const wxString& encoderHardware)
 {
 	wxString codec_name;
 	//if (encoderHardware != "")
@@ -1271,7 +1270,7 @@ wxString CFFmpegTranscodingPimpl::GetCodecName(AVCodecID codec_type, const wxStr
 	return codec_name;
 }
 
-AVCodecID CFFmpegTranscodingPimpl::GetCodecID(AVMediaType codec_type) const
+AVCodecID CFFmpegTranscoding::GetCodecID(AVMediaType codec_type) const
 {
 	if (codec_type == AVMEDIA_TYPE_AUDIO)
 	{
@@ -1332,7 +1331,7 @@ AVCodecID CFFmpegTranscodingPimpl::GetCodecID(AVMediaType codec_type) const
 }
 
 
-wxString CFFmpegTranscodingPimpl::GetCodecNameForEncoder(AVCodecID vcodec, const wxString& nameEncoder)
+wxString CFFmpegTranscoding::GetCodecNameForEncoder(AVCodecID vcodec, const wxString& nameEncoder)
 {
 	wxString nameCodecEncoder = "";
 	switch (vcodec)
@@ -1359,14 +1358,14 @@ wxString CFFmpegTranscodingPimpl::GetCodecNameForEncoder(AVCodecID vcodec, const
 	return nameCodecEncoder;
 }
 
-int CFFmpegTranscodingPimpl::write_packet(void* opaque, uint8_t* buf, int buf_size)
+int CFFmpegTranscoding::write_packet(void* opaque, uint8_t* buf, int buf_size)
 {
 	auto dataOutput = static_cast<wxMemoryOutputStream*>(opaque);
 	dataOutput->WriteAll(buf, buf_size);
 	return buf_size;
 }
 
-void CFFmpegTranscodingPimpl::SetParamFromVideoCodec(AVCodecContext* c, AVCodecContext* pSourceCodecCtx)
+void CFFmpegTranscoding::SetParamFromVideoCodec(AVCodecContext* c, AVCodecContext* pSourceCodecCtx)
 {
 	c->codec_type = AVMEDIA_TYPE_VIDEO;
 	c->pix_fmt = AV_PIX_FMT_YUV420P;
@@ -1381,7 +1380,7 @@ void CFFmpegTranscodingPimpl::SetParamFromVideoCodec(AVCodecContext* c, AVCodecC
 	c->sample_aspect_ratio = pSourceCodecCtx->sample_aspect_ratio;
 }
 
-int CFFmpegTranscodingPimpl::open_output_file(const wxString& filename)
+int CFFmpegTranscoding::open_output_file(const wxString& filename)
 {
 	AVStream* out_stream;
 	AVStream* in_stream;
@@ -1610,7 +1609,7 @@ int CFFmpegTranscodingPimpl::open_output_file(const wxString& filename)
 }
 
 
-int CFFmpegTranscodingPimpl::encode_write_frame_withoutpos(AVFrame* filt_frame, unsigned int stream_index)
+int CFFmpegTranscoding::encode_write_frame_withoutpos(AVFrame* filt_frame, unsigned int stream_index)
 {
 	StreamContext* stream = &stream_ctx[stream_index];
 	int ret;
@@ -1648,7 +1647,7 @@ int CFFmpegTranscodingPimpl::encode_write_frame_withoutpos(AVFrame* filt_frame, 
 
 #define X265_TYPE_AUTO          0x0000 
 
-int CFFmpegTranscodingPimpl::encode_write_frame(AVFrame* filt_frame, unsigned int stream_index)
+int CFFmpegTranscoding::encode_write_frame(AVFrame* filt_frame, unsigned int stream_index)
 {
 	StreamContext* stream = &stream_ctx[stream_index];
 	int ret;
@@ -1723,7 +1722,7 @@ int CFFmpegTranscodingPimpl::encode_write_frame(AVFrame* filt_frame, unsigned in
 	return ret;
 }
 
-int CFFmpegTranscodingPimpl::filter_encode_write_frame(AVFrame* frame, unsigned int stream_index,
+int CFFmpegTranscoding::filter_encode_write_frame(AVFrame* frame, unsigned int stream_index,
                                                        CompressVideo* m_dlgProgress, const int& isvideo,
                                                        const bool& write)
 {
@@ -1788,7 +1787,7 @@ int CFFmpegTranscodingPimpl::filter_encode_write_frame(AVFrame* frame, unsigned 
 }
 
 
-void CFFmpegTranscodingPimpl::SetFrameData(AVFrame* src_frame, CompressVideo* m_dlgProgress)
+void CFFmpegTranscoding::SetFrameData(AVFrame* src_frame, CompressVideo* m_dlgProgress)
 {
 	if (isend)
 	{
@@ -1819,7 +1818,7 @@ void CFFmpegTranscodingPimpl::SetFrameData(AVFrame* src_frame, CompressVideo* m_
 }
 
 
-int CFFmpegTranscodingPimpl::flush_encoder(unsigned int stream_index)
+int CFFmpegTranscoding::flush_encoder(unsigned int stream_index)
 {
 	if (stream_ctx[stream_index].enc_ctx != nullptr)
 	{
@@ -1833,7 +1832,7 @@ int CFFmpegTranscodingPimpl::flush_encoder(unsigned int stream_index)
 	return -1;
 }
 
-int CFFmpegTranscodingPimpl::OpenFile(const wxString& input, const wxString& output)
+int CFFmpegTranscoding::OpenFile(const wxString& input, const wxString& output)
 {
 	int ret = 0;
 	bool isOpen = false;
@@ -1879,7 +1878,7 @@ int CFFmpegTranscodingPimpl::OpenFile(const wxString& input, const wxString& out
 }
 
 
-cv::Mat CFFmpegTranscodingPimpl::GetBitmapRGBA(AVFrame* tmp_frame)
+cv::Mat CFFmpegTranscoding::GetBitmapRGBA(AVFrame* tmp_frame)
 {
 	cv::Mat bitmapData = cv::Mat(tmp_frame->height, tmp_frame->width, CV_8UC4);
 
@@ -1913,7 +1912,7 @@ cv::Mat CFFmpegTranscodingPimpl::GetBitmapRGBA(AVFrame* tmp_frame)
 	return bitmapData;
 }
 
-void CFFmpegTranscodingPimpl::VideoTreatment(AVFrame*& tmp_frame, StreamContext* stream)
+void CFFmpegTranscoding::VideoTreatment(AVFrame*& tmp_frame, StreamContext* stream)
 {
 	//bool decodeBitmap = false;
 	cv::Mat mat;
@@ -2035,7 +2034,7 @@ void CFFmpegTranscodingPimpl::VideoTreatment(AVFrame*& tmp_frame, StreamContext*
 	}
 }
 
-void CFFmpegTranscodingPimpl::VideoInfos(StreamContext* stream)
+void CFFmpegTranscoding::VideoInfos(StreamContext* stream)
 {
 	end = std::chrono::steady_clock::now();
 
@@ -2046,7 +2045,7 @@ void CFFmpegTranscodingPimpl::VideoInfos(StreamContext* stream)
 }
 
 
-cv::Mat CFFmpegTranscodingPimpl::ApplyProcess(cv::Mat& src)
+cv::Mat CFFmpegTranscoding::ApplyProcess(cv::Mat& src)
 {
 	bool stabilizeFrame = videoCompressOption->videoEffectParameter.stabilizeVideo;
 	bool correctedContrast = videoCompressOption->videoEffectParameter.autoConstrast;
@@ -2203,7 +2202,7 @@ static void encode(AVCodecContext* enc_ctx, AVFrame* frame, AVPacket* pkt,
 	}
 }
 
-int CFFmpegTranscodingPimpl::ProcessEncodeOneFrameFile(AVFrame* dst, const int64_t& timeInSeconds)
+int CFFmpegTranscoding::ProcessEncodeOneFrameFile(AVFrame* dst, const int64_t& timeInSeconds)
 {
 	int ret = 0;
 	int stream_index = 0;
@@ -2310,7 +2309,7 @@ int CFFmpegTranscodingPimpl::ProcessEncodeOneFrameFile(AVFrame* dst, const int64
 }
 
 
-int CFFmpegTranscodingPimpl::ProcessEncodeFile(AVFrame* dst)
+int CFFmpegTranscoding::ProcessEncodeFile(AVFrame* dst)
 {
 	int ret = 0;
 	int stream_index = 0;
@@ -2430,7 +2429,7 @@ int CFFmpegTranscodingPimpl::ProcessEncodeFile(AVFrame* dst)
 	return ret;
 }
 
-int CFFmpegTranscodingPimpl::EncodeOneFrame(CompressVideo* m_dlgProgress, const wxString& input,
+int CFFmpegTranscoding::EncodeOneFrame(CompressVideo* m_dlgProgress, const wxString& input,
                                             const wxString& output, const long& time,
                                             CVideoOptionCompress* videoCompressOption)
 {
@@ -2473,7 +2472,7 @@ int CFFmpegTranscodingPimpl::EncodeOneFrame(CompressVideo* m_dlgProgress, const 
 }
 
 
-int CFFmpegTranscodingPimpl::EncodeFile(const wxString& input, const wxString& output, CompressVideo* m_dlgProgress,
+int CFFmpegTranscoding::EncodeFile(const wxString& input, const wxString& output, CompressVideo* m_dlgProgress,
                                         CVideoOptionCompress* videoCompressOption)
 {
 	int ret;
@@ -2523,7 +2522,7 @@ int CFFmpegTranscodingPimpl::EncodeFile(const wxString& input, const wxString& o
 	return ret;
 }
 
-void CFFmpegTranscodingPimpl::Release()
+void CFFmpegTranscoding::Release()
 {
 	if (ifmt_ctx != nullptr)
 	{
@@ -2566,7 +2565,7 @@ void CFFmpegTranscodingPimpl::Release()
 }
 
 
-void CFFmpegTranscodingPimpl::EncodeOneFrame(AVCodecContext* enc_ctx, AVFrame* frame, FILE* outfile)
+void CFFmpegTranscoding::EncodeOneFrame(AVCodecContext* enc_ctx, AVFrame* frame, FILE* outfile)
 {
 	int ret;
 	AVPacket enc_pkt;
@@ -2597,7 +2596,7 @@ void CFFmpegTranscodingPimpl::EncodeOneFrame(AVCodecContext* enc_ctx, AVFrame* f
 	av_packet_unref(&enc_pkt);
 }
 
-AVCodecContext* CFFmpegTranscodingPimpl::OpenFFmpegEncoder(AVCodecID codec_id, AVCodecContext* pSourceCodecCtx,
+AVCodecContext* CFFmpegTranscoding::OpenFFmpegEncoder(AVCodecID codec_id, AVCodecContext* pSourceCodecCtx,
                                                            AVStream* streamVideo, AVStream* streamVideoToEncode, wxString encoderName)
 {
 	AVCodecContext* c = nullptr;
@@ -2750,17 +2749,17 @@ AVCodecContext* CFFmpegTranscodingPimpl::OpenFFmpegEncoder(AVCodecID codec_id, A
 	return c;
 }
 
-cv::Mat CFFmpegTranscodingPimpl::GetFrameOutput()
+cv::Mat CFFmpegTranscoding::GetFrameOutput()
 {
 	return frameOutput.clone();
 }
 
-cv::Mat CFFmpegTranscodingPimpl::GetFrameOutputWithOutEffect()
+cv::Mat CFFmpegTranscoding::GetFrameOutputWithOutEffect()
 {
 	return frameOutputWithoutEffect.clone();
 }
 
-int CFFmpegTranscodingPimpl::EncodeOneFrameFFmpeg(const char* filename, AVFrame* dst, const int64_t& timeInSeconds)
+int CFFmpegTranscoding::EncodeOneFrameFFmpeg(const char* filename, AVFrame* dst, const int64_t& timeInSeconds)
 {
 	cv::Mat decodeFrame;
 	AVCodecID codec_name;

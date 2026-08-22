@@ -15,7 +15,7 @@
 #include <wx/dateevt.h>
 #include <videothumb.h>
 #include "ShowPreview.h"
-#include <ffmpeg_transcoding.h>
+
 
 
 using namespace Regards::Control;
