@@ -416,7 +416,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>RENDEROPENGL;_CRT_SECURE_NO_WARNINGS;WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>.;../include;../libParameter;../libResource;../libPicture;../libUtility;../libFiltreInterface;../Otherlib/OpenCV</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;../include;../libParameter;../libResource;../libPicture;../libUtility;../libFiltreInterface;../Otherlib/OpenCV;../libOpenCL</AdditionalIncludeDirectories>
       <InterproceduralOptimization>NoIPO</InterproceduralOptimization>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <FlushDenormalResultsToZero>true</FlushDenormalResultsToZero>
