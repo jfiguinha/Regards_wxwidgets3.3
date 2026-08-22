@@ -71,6 +71,11 @@ namespace Regards
 
             ~CShowPreview() override;
 
+            void SetErrorCompressionHandler(std::function<void(int)> handler)
+            {
+                errorCompressionHandler = handler;
+            }
+
             void SetParameter(const wxString& videoFilename);
 
             void UpdateScreenRatio() override;
@@ -169,7 +174,7 @@ namespace Regards
 
             wxString key;
             int orientation = 0;
-
+            std::function<void(int)> errorCompressionHandler;
             /*
              * Each call to UpdateBitmap() increments this value.
              * A result is displayed only if its requestId is still the

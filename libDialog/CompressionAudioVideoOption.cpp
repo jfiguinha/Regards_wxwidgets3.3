@@ -255,6 +255,12 @@ CompressionAudioVideoOption::CompressionAudioVideoOption(wxWindow* parent)
 	panel->Show(true);
 
 #endif
+
+	showBitmapWindow->SetErrorCompressionHandler([this](int errorCode) {
+		wxCommandEvent evt(wxEVENT_ERRORCOMPRESSION);
+		evt.SetInt(errorCode);
+		OnErrorCompression(evt);
+		});
 }
 
 void CompressionAudioVideoOption::SetBitmap(const long& pos)

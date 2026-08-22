@@ -1,4 +1,5 @@
 #pragma once
+#include <atomic>
 #ifndef WX_PRECOMP
 //(*HeadersPCH(TiffOption)
 #include <wx/checklst.h>
@@ -43,7 +44,11 @@ private:
 	void OnSetBitmap(wxCommandEvent& event);
 	wxBitmap _localBmp;
 	//*)
-	bool isOk;
+	// Written from the UI thread (OnbtnCancelClick) and read from the FFmpeg
+	// encode worker thread (via IsOk()) now that EncodeFile runs on a
+	// std::thread: must be atomic to avoid a data race / UB, and to
+	// guarantee the worker actually observes a cancellation in time.
+	std::atomic<bool> isOk;
 	int rotation = 0;
 	wxImage scale;
 	std::mutex muBitmap;

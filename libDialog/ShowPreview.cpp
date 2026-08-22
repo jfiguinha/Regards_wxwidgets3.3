@@ -209,11 +209,20 @@ void CShowPreview::OnUpdatePicture(wxCommandEvent& event) {
 
     if (isCurrentRequest) {
         if (!renderPreview->compressIsOK) {
-            wxCommandEvent evt(wxEVENT_ERRORCOMPRESSION);
-            evt.SetInt(renderPreview->ret);
-
-            if (renderPreview->parent && renderPreview->parent->GetParent() &&
+            if (errorCompressionHandler) {
+                // Preferred path: explicit hook set via
+                // SetErrorCompressionHandler(), no dependency on the wx
+                // window hierarchy shape.
+                errorCompressionHandler(renderPreview->ret);
+            }
+            else if (renderPreview->parent && renderPreview->parent->GetParent() &&
                 renderPreview->parent->GetParent()->GetParent()) {
+                // Legacy fallback, kept for callers that have not wired the
+                // handler above yet. Fragile: assumes a fixed depth of 2
+                // wx window levels between this control and the receiver.
+                wxCommandEvent evt(wxEVENT_ERRORCOMPRESSION);
+                evt.SetInt(renderPreview->ret);
+
                 renderPreview->parent->GetParent()
                     ->GetParent()
                     ->GetEventHandler()
@@ -331,6 +340,12 @@ void CShowPreview::ThreadLoading(void* data) {
 
         CFFmpegTranscoding ffmpegtranscoding(&openCLContext);
         int ret = ffmpegtranscoding.EncodeOneFrame(nullptr, renderPreview->filename, fileTemp, renderPreview->position, &renderPreview->videoOption);
+
+        // Was previously never written back to renderPreview->ret, which
+        // stayed at its -1 init value forever: the success branch below was
+        // therefore dead code and the "new video" preview never displayed.
+        renderPreview->ret = ret;
+
         if (!ffmpegtranscoding.GetFrameOutput().empty())
         {
             //renderPreview->decodeFrameOriginal = ffmpegtranscoding.GetFrameOutput();
