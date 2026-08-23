@@ -15,7 +15,7 @@ namespace Regards::Viewer
     class CPrintService
     {
     public:
-        explicit CPrintService(wxWindow* parent);
+        explicit CPrintService(wxFrame* parent);
 
         // Aperçu impression à partir d'un CImageLoadingFormat copié (PrintImagePreview original).
         void ShowImagePreview(const wxString& filename);
@@ -38,7 +38,7 @@ namespace Regards::Viewer
     private:
         void OpenPreviewFrame(wxPrintPreview* preview);
         void GeneratePreviewFrame(Regards::Control::CBitmapPrintout* bitmapPrintOut_first, Regards::Control::CBitmapPrintout* bitmapPrintOut_second);
-        wxWindow* parent_   = nullptr;
+        wxFrame * parent_   = nullptr;
         wxPreviewFrameModalityKind modality_ = wxPreviewFrame_AppModal;
     };
 }

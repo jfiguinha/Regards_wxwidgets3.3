@@ -135,6 +135,7 @@
         <IncludePath Value="../libDeepLearning"/>
         <IncludePath Value="../include"/>
         <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../libAppleFunction"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>

@@ -14,7 +14,7 @@ using namespace Regards::Control;
 using namespace Regards::Print;
 
 
-CPrintService::CPrintService(wxWindow* parent)
+CPrintService::CPrintService(wxFrame* parent)
     : parent_(parent)
 {
 }

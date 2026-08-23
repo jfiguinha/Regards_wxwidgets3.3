@@ -53,6 +53,7 @@
         <IncludePath Value="../libSqlData"/>
         <IncludePath Value="../libResource"/>
         <IncludePath Value="../libSqlEngine"/>
+        <IncludePath Value="../libAppleFunction"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>

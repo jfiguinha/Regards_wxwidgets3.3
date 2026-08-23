@@ -6,8 +6,6 @@
 #include <header.h>
 #include "picture_factory.h"
 
-
-
 #include <wx/filename.h>
 #include <wx/progdlg.h>
 #include <wx/dir.h>
@@ -75,6 +73,10 @@ using namespace Regards::exiv2;
 #include <nanosvg.h>
 #define NANOSVGRAST_IMPLEMENTATION
 #include <nanosvgrast.h>
+
+#ifdef __APPLE__
+#include <ReadImage.h>
+#endif
 
 #include <appcontext.h>
 extern AppContext application_context;
@@ -416,11 +418,16 @@ ImageLoader::ImageLoader()
     wic_ = std::make_unique<CWic>();
 #endif
 #ifdef __APPLE__
-    readimage_ = std::make_unique<CReadMacOSImage>();
+    readimage_ = new CReadMacOSImage();
 #endif
 }
 
-
+ImageLoader::~ImageLoader()
+{
+ #ifdef __APPLE__
+    delete readimage_;
+#endif   
+}
 void ImageLoader::SetSvgSize(int width, int height)
 {
     svgWidth_  = width;

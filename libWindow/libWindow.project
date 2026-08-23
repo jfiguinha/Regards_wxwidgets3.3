@@ -206,6 +206,7 @@
         <IncludePath Value="../Otherlib/wxSVG/include"/>
         <IncludePath Value="../libOpenCL"/>
         <IncludePath Value="../libSqlEngine"/>
+        <IncludePath Value="../libAppleFunction"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>

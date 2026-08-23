@@ -2,20 +2,17 @@
 // =============================================================================
 // Refactoring de CLibPicture en couches métier distinctes
 // =============================================================================
-
-#include <vector>
-#include <map>
-#include <cstdint>
-#include <wx/string.h>
-#include <opencv2/core.hpp>
 #if defined(WIN32)
 #include "wic.h"
 #endif
-#ifdef __APPLE__
-#include <ReadImage.h>
-#endif
+
+
 class CImageLoadingFormat;
 class CImageVideoThumbnail;
+
+#ifdef __APPLE__
+class CReadMacOSImage;
+#endif   
 
 namespace Regards {
 namespace Picture {
@@ -116,7 +113,7 @@ class ImageLoader
 {
 public:
     ImageLoader();
-    ~ImageLoader() = default;
+    ~ImageLoader();
 
     // Charge l'image fileName dans bitmap (frame numPicture, mode thumbnail ou full)
     void              Load(const wxString& fileName, bool isThumbnail,
@@ -164,7 +161,7 @@ private:
     std::unique_ptr<CWic> wic_ = nullptr;
 #endif
 #ifdef __APPLE__
-    std::unique_ptr<CReadMacOSImage> readimage_ = nullptr;
+    CReadMacOSImage * readimage_ = nullptr;
 #endif
 };
 

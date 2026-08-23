@@ -3,7 +3,6 @@
 #include "SqlThumbnail.h"
 #include "SqlThumbnailVideo.h"
 #include <libPicture.h>
-using namespace Regards::Sqlite;
 #include <wx/filename.h>
 #include <RegardsConfigParam.h>
 #include <ParamInit.h>
@@ -11,6 +10,7 @@ using namespace Regards::Sqlite;
 #include <SqlPhotos.h>
 using namespace Regards::Video;
 using namespace Regards::Picture;
+using namespace Regards::Sqlite;
 
 CThumbnailDataSQL::CThumbnailDataSQL(const wxString& filename, const bool& testValidity, const bool& generateVideoPlayer)
 	: CThumbnailData(filename)

@@ -54,6 +54,7 @@
         <IncludePath Value="../libParameter"/>
         <IncludePath Value="../Otherlib/wxSVG/include"/>
         <IncludePath Value="../libextern/libRapidXML"/>
+        <IncludePath Value="../libAppleFunction"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>

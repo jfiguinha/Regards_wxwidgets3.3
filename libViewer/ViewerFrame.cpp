@@ -29,6 +29,8 @@
 #ifndef wxHAS_IMAGES_IN_RESOURCES
 #ifdef __WXGTK__
 #include "../Resource/sample.xpm"
+#elif defined(__APPLE__)
+#include "../Resource/sample.xpm"
 #else
 #include "../../Resource/sample.xpm"
 #endif
@@ -148,6 +150,8 @@ void CViewerFrame::InitTimers()
 
 void CViewerFrame::InitMenuBar()
 {
+	const wxString labelPageMargins = CLibResource::LoadStringFromResource(L"labelPageMargins", 1); // L"Page margins";
+	const wxString labelPageMargins_link = CLibResource::LoadStringFromResource(L"labelPageMargins_link", 1);
     const wxString labelDecreaseIconSize      = CLibResource::LoadStringFromResource(L"labelDecreaseIconSize", 1);
     const wxString labelDecreaseIconSize_link = CLibResource::LoadStringFromResource(L"labelDecreaseIconSize_link", 1);
     const wxString labelEnlargeIconSize       = CLibResource::LoadStringFromResource(L"labelEnlargeIconSize", 1);
