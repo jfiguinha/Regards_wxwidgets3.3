@@ -11,8 +11,8 @@
 // ReSharper disable All
 #pragma once
 #include <header.h>
-#include "wx/xrc/xmlres.h"
-#include "wx/url.h"
+#include <wx/xrc/xmlres.h>
+#include <wx/url.h>
 #include <PrintEngine.h>
 #include <MainInterface.h>
 #include <RegardsConfigParam.h>
@@ -23,7 +23,6 @@
 #include <wx/display.h>
 #include <VideoConverterFrame.h>
 #include <ScannerFrame.h>
-#include "TestFrame.h"
 #include <ncnn/gpu.h>
 #include <signal.h>
 
@@ -236,13 +235,9 @@ private:
 
 	std::unique_ptr<CScannerFrame> framePDF;
 	std::unique_ptr<CVideoConverterFrame> frameVideoConverter;
-	std::unique_ptr<CTestFrame> testFrame;
 	std::unique_ptr<MyFrameIntro> frameStart;
 	std::unique_ptr<CViewerFrame> frameViewer;
 	
-	bool startVideoConverter = false;
-	bool startRegardsPDF = false;
-
 #ifdef __WXMSW__
 	//ULONG_PTR m_gdiplusToken;   // class member
 #endif

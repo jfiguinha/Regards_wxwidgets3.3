@@ -33,7 +33,6 @@ ncnn::VulkanDevice* vkdev = nullptr;
 
 using namespace cv;
 using namespace Regards::Picture;
-using namespace Regards::Video;
 using namespace Regards::OpenCL;
 
 extern int Start(int argc, char **argv);
@@ -173,20 +172,15 @@ int MyApp::Close()
 	return 0;
 }
 
-bool LocaleMakeDir(wxString folder)
+bool LocaleMakeDir(const wxString& folder)
 {
-	wxString documentPath = CFileUtility::GetDocumentFolderPath();
-#ifdef WIN32
-	documentPath.append("\\" + folder);
-#else
-	documentPath.append("/" + folder);
-#endif
+    wxFileName path(CFileUtility::GetDocumentFolderPath(), wxEmptyString);
+    path.AppendDir(folder);
 
-	if (!wxDirExists(documentPath))
-	{
-		return wxDir::Make(documentPath);
-	}
-	return true;	
+    if (path.DirExists())
+        return true;
+
+    return path.Mkdir(wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
 }
 
 wxBitmap GetIcon(const wxArtID& id, const wxSize& sz)
@@ -481,16 +475,6 @@ void MyApp::LaunchApplication()
 		frameVideoConverter = std::make_unique<CVideoConverterFrame>(this);
 		frameVideoConverter->ExportVideo(fileToOpen);
 	}
-	else if (appName == "RegardsTest")
-	{
-		wxDisplay display;
-		wxRect screen = display.GetClientArea();
-		testFrame = std::make_unique<CTestFrame>("RegardsTest", wxDefaultPosition, wxSize(50, 50));
-		testFrame->Centre(wxBOTH);
-		testFrame->SetFocus();  // focus on my window
-		testFrame->Raise();  // bring window to front
-		testFrame->Show(true);
-	}
 	else if (appName == "RegardsPDF")
 	{
 		wxDisplay display;
@@ -525,7 +509,6 @@ bool MyApp::OnInit()
 	frameViewer.reset();
 	framePDF.reset();
 	frameVideoConverter.reset();
-	testFrame.reset();
 
 	if (!InitializeLocale()) return false;
 	if (!InitializeDirectories()) return false;
