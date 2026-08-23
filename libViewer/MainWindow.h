@@ -126,7 +126,7 @@ namespace Regards::Viewer
         // ── Processus de fond ─────────────────────────────────────────
         std::unique_ptr<CFolderProcess>   folderProcess;
         std::unique_ptr<CThumbnailProcess> thumbnailProcess;
-        std::jthread versionUpdate;;
+        std::thread versionUpdate;
 
         // ── État général ──────────────────────────────────────────────
         CMainParam* viewerParam     = nullptr;

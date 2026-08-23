@@ -28,7 +28,7 @@
 #elif defined(WIN32)
 #include <LocalMapi.h>
 #else
-    #include "email.h"
+    #include <SendEmail.h>
 #endif
 
 using namespace Regards::Filter;
@@ -97,7 +97,7 @@ void CBitmapWndViewer::SendEmail()
 #else
 
 	CSendEmail sendEmail;
-	sendEmail.SendEmail("", subject, CConvertUtility::ConvertToStdString(fileName).c_str());
+	sendEmail.SendEmail("", subject, body, CConvertUtility::ConvertToStdString(filename).c_str());
 
 #endif
 }

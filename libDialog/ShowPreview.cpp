@@ -17,10 +17,12 @@
 #include <libPicture.h>
 #include <videothumb.h>
 #include <wx/filename.h>
-
+#include <RenderBitmapOpenGL.h>
 #include <algorithm>
 #include <cstdint>
-
+#include <FiltreEffet.h>
+#include <IFiltreEffet.h>
+#include <VideoStabilization.h>
 #include "CompressionAudioVideoOption.h"
 #include "FFmpegTranscoding.h"
 

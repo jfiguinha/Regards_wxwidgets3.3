@@ -245,7 +245,7 @@ void CMainWindow::InitBackgroundTasks()
 
     //scheduler->ReloadFromDatabase();
 
-    versionUpdate = std::jthread(
+    versionUpdate = std::thread(
         NewVersionAvailable,
         this
     );
@@ -982,7 +982,7 @@ void CMainWindow::NewVersionAvailable(void* param)
 
     int hasUpdate = 0;
 
-    if (response.Success())
+    if (response.IsSuccess())
     {
         wxString serverVersion = response.body;
         serverVersion = serverVersion.SubString(0, serverVersion.length() - 2);

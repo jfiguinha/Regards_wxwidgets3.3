@@ -96,7 +96,7 @@ private:
 	void PrintPreview(Regards::Control::CBitmapPrintout* bitmapPrintout);
 
 	//Toolbar
-	std::unique_ptr<Regards::Scanner::CCentralWindow> centralWindow;
+	Regards::Scanner::CCentralWindow * centralWindow;
 	//int m_imageCount;
 	ISCannerInterface * mainInterface;
 

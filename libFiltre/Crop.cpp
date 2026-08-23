@@ -104,7 +104,7 @@ void CCrop::Selection(const int32_t& xNewSize, const int32_t& yNewSize,
     const float& ratio) {
     const wxPoint point(xNewSize, yNewSize);
 
-    iSelect = SelectionType::None;
+    iSelect = SelectionType::Aucun;
 
     if (!VerifierValiditerPoint(point)) {
         UpdateCursor();
@@ -191,7 +191,7 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
     const float y = YRealPosition(yNewSize, m_lVScroll, ratio);
 
     switch (iSelect) {
-    case SelectionType::None:
+    case SelectionType::Aucun:
         ptSelection[POINT_NORTH_EAST].x = x;
         ptSelection[POINT_NORTH_EAST].y = ptSelection[POINT_NORTH_WEST].y;
 
@@ -262,7 +262,7 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
 void CCrop::InitPoint(const long& m_lx, const long& m_ly,
     const long& m_lHScroll, const long& m_lVScroll,
     const float& ratio) {
-    if (iSelect != SelectionType::None) return;
+    if (iSelect != SelectionType::Aucun) return;
 
     const wxPoint point(static_cast<int>(m_lx), static_cast<int>(m_ly));
 

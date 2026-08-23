@@ -1,6 +1,6 @@
 #include "header.h"
 #include "Gps.h"
-#include <httprequest.h>
+#include "httprequest.h"
 #include <ConvertUtility.h>
 #include <appcontext.h>
 extern AppContext application_context;
@@ -37,7 +37,7 @@ bool CGps::IsLocalisationAvailable(const wxString& server, const wxString& apiKe
 
 	HttpResponse response = Regards::Internet::CHttpRequest::Get(httpAdress);
 	wxString xml = "";
-	if (response.Success())
+	if (response.IsSuccess())
 		xml = response.body;
 	else
 		return false;
@@ -140,7 +140,7 @@ bool CGps::GeolocalisationGPS(const wxString& latitude, const wxString& longitud
 
 		HttpResponse response = Regards::Internet::CHttpRequest::Get(httpAdress);
 		wxString xml = "";
-		if (response.Success())
+		if (response.IsSuccess())
 		{
 			xml = response.body;
 			geoPluginVector.clear();

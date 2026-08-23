@@ -31,7 +31,7 @@ namespace Regards::FiltreEffet {
 
     private:
         enum class SelectionType : int {
-            None = 0,
+            Aucun = 0,
             Left = 1,
             Right = 2,
             Top = 3,
@@ -56,6 +56,6 @@ namespace Regards::FiltreEffet {
             const float& ratio);
 
         SelectionPoints ptSelection{};
-        SelectionType iSelect = SelectionType::None;
+        SelectionType iSelect = SelectionType::Aucun;
     };
 }  // namespace Regards::FiltreEffet

@@ -21,10 +21,10 @@ CSendEmail::~CSendEmail(void)
     if (_impl) { delete _impl; _impl = NULL; }
 }
 
-void CSendEmail::SendEmail(const wxString& to, const wxString& subject, const wxString& filePicture)
+void CSendEmail::SendEmail(const wxString& to, const wxString& subject, const wxString& body, const wxString& filePicture)
 {
     if (_impl)
-        _impl->SendEmail(to, subject, filePicture);
+        _impl->SendEmail(to, subject, body, filePicture);
 }
 
 #endif

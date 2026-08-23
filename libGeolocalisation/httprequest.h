@@ -19,7 +19,7 @@ namespace Regards::Internet
         wxString body;
         wxString errorMessage;
 
-        bool Success() const
+        bool IsSuccess() const
         {
             return curlCode == CURLE_OK &&
                 httpCode >= 200 &&

@@ -16,7 +16,7 @@ wxString EscapeSingleQuotes(const wxString& input)
     return output;
 }
 
-void MyEmailImpl::SendEmail(const wxString &to, const wxString &subject, const wxString &body, const wxString &filePicture)
+void MyEmailImpl::SendEmail(const wxString& to, const wxString& subject, const wxString& body,const wxString& filePicture)
 {
     wxString cmd = "xdg-email";
 

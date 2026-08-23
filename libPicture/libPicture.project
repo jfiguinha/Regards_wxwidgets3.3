@@ -31,6 +31,10 @@
     <File Name="RegardsPDF.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="VideoThumbnail">
+    <File Name="VideoThumbPimpl.h"/>
+    <File Name="VideoThumbPimpl.cpp"/>
+    <File Name="MediaExtractor.h"/>
+    <File Name="MediaExtractor.cpp"/>
     <File Name="FFmpegVideoThumb.h"/>
     <File Name="FFmpegVideoThumb.cpp"/>
     <File Name="aspectratio.h"/>
@@ -60,8 +64,8 @@
     <File Name="RotateByShear.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="libexif">
-    <File Name="PictureMetadataExiv_new.h"/>
-    <File Name="PictureMetadataExiv_new.cpp"/>
+    <File Name="PictureMetadataExiv.h"/>
+    <File Name="PictureMetadataExiv.cpp"/>
     <File Name="ThumbnailData.h"/>
     <File Name="Metadata.h"/>
     <File Name="MediaInfo.h"/>
@@ -69,8 +73,6 @@
     <File Name="MediaInfo.cpp"/>
     <File Name="MetadataExiv2.h"/>
     <File Name="MetadataExiv2.cpp"/>
-    <File Name="PictureMetadataExiv.h"/>
-    <File Name="PictureMetadataExiv.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Dialog">
     <File Name="GifOption.h"/>
@@ -149,9 +151,11 @@
     <File Name="yuv422.h"/>
     <File Name="Heic.h"/>
   </VirtualDirectory>
+  <Dependencies Name="Debug"/>
+  <Dependencies Name="Release"/>
   <Settings Type="Static Library">
     <GlobalSettings>
-      <Compiler Options="-Wall;$(shell ../libextern/wxconfig_cpp.sh);-pthread;-std=gnu++14;-Wno-narrowing" C_Options=";-Wall;" Assembler="">
+      <Compiler Options="-Wall;$(shell ../libextern/wxconfig_cpp.sh);-pthread;-std=gnu++17;-Wno-narrowing" C_Options=";-Wall;" Assembler="">
         <IncludePath Value="."/>
         <IncludePath Value="../include"/>
         <IncludePath Value="../libVideoThumbnail"/>
@@ -173,6 +177,7 @@
         <IncludePath Value="../Otherlib/libavif/include"/>
         <IncludePath Value="../Otherlib/wxPDFDoc/include"/>
         <IncludePath Value="../Otherlib"/>
+        <IncludePath Value="../libSqlEngine"/>
         <IncludePath Value="../libDeepLearning"/>
         <Preprocessor Value="__NEW_JXL__"/>
         <Preprocessor Value="AVIF_LIBYUV_ENABLED"/>
@@ -269,6 +274,4 @@
       </Completion>
     </Configuration>
   </Settings>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
 </CodeLite_Project>

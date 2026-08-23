@@ -1,6 +1,6 @@
 #include <header.h>
 #include "ScannerLauncher.h"
-
+#include <FileUtility.h>
 using namespace Regards::Viewer;
 
 int CScannerLauncher::Launch()

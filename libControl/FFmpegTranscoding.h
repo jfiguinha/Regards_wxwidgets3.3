@@ -174,7 +174,7 @@ private:
 	wxString outputFile;
 	std::map<int, int> streamCorrespondant;
 	uint8_t* frame_buffer_nv12 = nullptr;
-	std::unique_ptr<COpenCVStabilization> openCVStabilization = nullptr;
+	std::unique_ptr<Regards::OpenCV::COpenCVStabilization> openCVStabilization = nullptr;
 	int nbFrame = 0;
 	wxString colorRange = "";
 	wxString colorSpace = "";

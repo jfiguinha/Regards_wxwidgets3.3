@@ -145,9 +145,9 @@ bool GLSLShader::CreateVertexProgram(const wxString& nProgramID_i)
 	}
 
 	wxString kernelSource = CLibResource::GetOpenGLShaderProgram(nProgramID_i);
-
+    const char* src = kernelSource.c_str();
 	int length = static_cast<int>(kernelSource.size()) + 1;
-	glShaderSource(m_hVertexHandle, 1, (const GLcharARB**)&kernelSource.data(), &length);
+	glShaderSource(m_hVertexHandle, 1, &src, &length);
 
 	glCompileShader(m_hVertexHandle);
 

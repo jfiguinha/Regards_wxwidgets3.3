@@ -16,7 +16,11 @@
 #include <SqlPhotos.h>
 #include <FolderCatalog.h>
 #include "CategoryWnd.h"
-
+#include "CategoryTreeStatePersistence.h"
+#include "CategorySelectionController.h"
+#include "CategoryQueryService.h"
+#include "CategoryRepository.h"
+#include "CategoryHierarchyIndex.h"
 #include <ThumbnailMessage.h>
 #include <TreeWindow.h>
 #include <GpsEngine.h>

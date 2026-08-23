@@ -18,7 +18,7 @@
 #include <window_id.h>
 #endif
 #include "FFmpegTranscoding.h"
-
+#include <SliderVideoSelection.h>
 using namespace Regards::Picture;
 
 // ---------------------------------------------------------------------------

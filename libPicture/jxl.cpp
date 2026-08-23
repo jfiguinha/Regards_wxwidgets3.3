@@ -636,7 +636,7 @@ void CJxl::GetDimensions(const wxString& jxl_filename, int& width, int& height)
 	FILE* file = fopen(CConvertUtility::ConvertToStdString(jxl_filename).c_str(), "rb");
 	if (!file)
 	{
-		fprintf(stderr, "Failed to read file %s\n", CConvertUtility::ConvertToStdString(jxl_filename));
+		fprintf(stderr, "Failed to read file %s\n", CConvertUtility::ConvertToStdString(jxl_filename).c_str());
 		return;
 	}
 

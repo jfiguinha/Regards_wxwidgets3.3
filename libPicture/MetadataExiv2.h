@@ -1,5 +1,5 @@
 #pragma once
-#include <PictureMetadataExiv_new.h>
+#include <PictureMetadataExiv.h>
 class CMetadata;
 
 namespace Regards

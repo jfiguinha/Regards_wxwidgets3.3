@@ -7,8 +7,8 @@ echo $LOCALPATH
 
 export PKG_CONFIG_PATH=$HOME/ffmpeg_build/lib/pkgconfig
 
-unzip vcpkg-2025.09.17_linux_ubuntu20.zip
-mv vcpkg-2025.09.17_linux_ubuntu20 vcpkg
+unzip vcpkg-2026.04.27_ubuntu20.zip
+mv vcpkg-2026.04.27_ubuntu20 vcpkg
 
 cd vcpkg
 ./bootstrap-vcpkg.sh
@@ -20,6 +20,7 @@ cd vcpkg
 ./vcpkg install tbb
 ./vcpkg install exiv2[video,xmp,bmff]
 ./vcpkg install libavif[aom,dav1d]
+./vcpkg install libheif[aom,core,hevc]
 ./vcpkg install libmediainfo
 ./vcpkg install libexif
 ./vcpkg install jasper

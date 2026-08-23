@@ -2,6 +2,7 @@
 #include <RGBAQuad.h>
 #include <effect_id.h>
 #include <GLTexture.h>
+#include <IFiltreEffet.h>
 using namespace Regards::OpenGL;
 
 class Chqdn3d;

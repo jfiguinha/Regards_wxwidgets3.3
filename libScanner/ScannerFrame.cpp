@@ -105,9 +105,9 @@ CScannerFrame::CScannerFrame(const wxString& title, const wxString& openfile, IS
 	// create a status bar just for fun (by default with 1 pane only)
 	CreateStatusBar(1);
 
-	centralWindow = std::make_unique<CCentralWindow>(this, openfile, SCANNER_CENTRALVIEWERWINDOWID, this);
+	centralWindow = new Regards::Scanner::CCentralWindow(this, openfile, SCANNER_CENTRALVIEWERWINDOWID, this);
 	auto sizer = new wxBoxSizer(wxVERTICAL);
-	sizer->Add(centralWindow.get(), 1, wxEXPAND);
+	sizer->Add(centralWindow, 1, wxEXPAND);
 	SetSizer(sizer);
 
 	// dynamically connect all event handles
@@ -318,7 +318,7 @@ wxString CScannerFrame::ScanPage()
 
     if(scanSane->IsSourceSelected())
     {
-        wxScanSaneAcquireDialog d(this, -1, _("Acquire"), scanSane);
+        wxScanSaneAcquireDialog d(this, -1, _("Acquire"), scanSane.get());
         if (d.ShowModal() == wxID_OK)
         {
             image = d.GetImage();
