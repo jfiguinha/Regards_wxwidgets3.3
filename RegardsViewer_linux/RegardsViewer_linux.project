@@ -29,9 +29,11 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="../Regards/TestFrame.cpp"/>
     <File Name="../Regards/Regards.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="../Regards/TestFrame.h"/>
     <File Name="../Regards/Regards.h"/>
     <File Name="../Regards/SqlInit.h"/>
   </VirtualDirectory>
@@ -121,7 +123,7 @@
   </Dependencies>
   <Settings Type="Executable">
     <GlobalSettings>
-      <Compiler Options="-Wall;$(shell ../libextern/wxconfig_cpp.sh);-Wall;-std=gnu++17;-pthread;-finstrument-functions;" C_Options=";-Wall" Assembler="">
+      <Compiler Options="$(shell ../libextern/wxconfig_cpp.sh);-Wall;-std=gnu++17;-pthread;" C_Options=";-Wall" Assembler="">
         <IncludePath Value="."/>
         <IncludePath Value="../libVideoEffect"/>
         <IncludePath Value="../libSqlite"/>
