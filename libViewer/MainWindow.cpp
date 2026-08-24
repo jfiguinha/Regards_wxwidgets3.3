@@ -63,7 +63,24 @@ CMainWindow::CMainWindow(wxWindow* parent,
     InitBackgroundTasks();
 
 
-    if (!fileToOpen.empty())
+    bool startTimer = false;
+
+    if (fileToOpen.empty())
+    {
+        wxString firstFileToShow = "";
+        CMainParam* config = CMainParamInit::getInstance();
+        if (config != nullptr)
+            firstFileToShow = config->GetLastShowPicture();
+        if (firstFileToShow.empty())
+        {
+            startTimer = true;
+        }
+
+    }
+    else
+        startTimer = true;
+
+    if (startTimer)
         Connect(TIMER_LOADPICTURESTART, wxEVT_TIMER,
                 wxTimerEventHandler(CMainWindow::OnOpenFile),
                 nullptr, this);
