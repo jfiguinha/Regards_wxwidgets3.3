@@ -551,7 +551,7 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
             tempImage = nullptr;
 
             tempImage = new CImageLoadingFormat();
-            tempImage->UpdatePicture(bitmap->GetMatImage());
+            tempImage->SetPicture(bitmap->GetMatImage());
         }
     }
     else

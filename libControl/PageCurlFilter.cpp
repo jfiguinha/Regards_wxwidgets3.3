@@ -140,9 +140,7 @@ void CPageCurlFilter::GenerateTexture(CImageLoadingFormat* nextPicture, CImageLo
 				bitmapFirst->Flip();
 			}
 
-			//mat = bitmapFirst.GetMatrix().getMat();
-			Regards::Picture::CPictureArray pictureArray = bitmapFirst->GetMatrix();
-			pictureFirst->SetData(pictureArray, nullptr);
+			pictureFirst->SetData(bitmapFirst->GetMatrix(), nullptr);
 		}
 	}
 
