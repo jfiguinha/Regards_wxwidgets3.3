@@ -546,24 +546,15 @@ void CCategoryFolderWindow::FindPhotoCriteria(CFindPhotoCriteria* findPhotoCrite
 
 	geoloc.SetFile(listCriteriaPhoto.photoPath, notGeo);
 
-	if (!geoloc.HasGps())
-	{
-		//printf("Has not GPS %s \n ", CConvertUtility::ConvertToStdString((listCriteriaPhoto.photoPath)));
-		CInsertCriteria insertCriteria;
-		insertCriteria.type = CATEGORIE_GEO;
-		insertCriteria.value = notGeo;
-		listCriteriaPhoto.listCriteria.push_back(insertCriteria);
-	}
-	else
-	{
-		CFileGeolocation fileGeolocalisation(urlServer, apiKey);
-		fileGeolocalisation.SetFile(findPhotoCriteria->photoPath, notGeo);
-		CInsertCriteria insertCriteria;
-		insertCriteria.type = CATEGORIE_GEO;
-		insertCriteria.value = application_context.special_key + "/" + fileGeolocalisation.GetLatitude() + "/" + fileGeolocalisation.GetLongitude();
-		listCriteriaPhoto.listCriteria.push_back(insertCriteria);
 
-	}
+	CInsertCriteria insertCriteria;
+	insertCriteria.type = CATEGORIE_GEO;
+	if (!geoloc.HasGps())
+		insertCriteria.value = notGeo;
+	else
+		insertCriteria.value = application_context.special_key + "/" + geoloc.GetLatitude() + "/" + geoloc.GetLongitude();
+	listCriteriaPhoto.listCriteria.push_back(insertCriteria);
+
 
 	wxString datetime = geoloc.GetDateTimeInfos();
 
