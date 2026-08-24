@@ -348,6 +348,13 @@ wxImage CImageLoadingFormat::GetwxImage()
 	return wx;
 }
 
+cv::Mat CImageLoadingFormat::GetMatImage()
+{
+	if (!IsOk())
+		return cv::Mat();
+	return _image;
+}
+
 CxImage CImageLoadingFormat::GetCxImage()
 {
 	if (!IsOk())

@@ -354,8 +354,8 @@ void CCentralWindow::OnPictureNext(wxCommandEvent& e)         { viewerController
 void CCentralWindow::OnPictureFirst(wxCommandEvent& e)        { viewerController->OnPictureFirst(e); }
 void CCentralWindow::OnPictureLast(wxCommandEvent& e)         { viewerController->OnPictureLast(e);  }
 
-void CCentralWindow::StartDiaporama(wxCommandEvent& e)        { slideshowController->StartDiaporama(e); }
-void CCentralWindow::StopDiaporama(wxCommandEvent& e)         { slideshowController->StopDiaporama(e); }
+void CCentralWindow::StartDiaporama(wxCommandEvent& e) { slideshowController->StartDiaporama(e); mediaLoader->isDiaporama = true; }
+void CCentralWindow::StopDiaporama(wxCommandEvent& e)         { slideshowController->StopDiaporama(e);  mediaLoader->isDiaporama = false;}
 void CCentralWindow::OnTimerDiaporama(wxTimerEvent& e)        { slideshowController->OnTimerDiaporama(e); }
 void CCentralWindow::StartDiaporamaMessage(wxCommandEvent& e) { slideshowController->StartDiaporamaMessage(e); }
 void CCentralWindow::StopAnimationEvent(wxCommandEvent& e)    { slideshowController->StopAnimationEvent(e); }

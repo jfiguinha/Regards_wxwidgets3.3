@@ -60,6 +60,18 @@ wxString CViewerController::LoadingNextPicture(const bool& loadPicture, LoadingM
     if (!windowMode)
         return filename;
 
+    switch (mode)
+    {
+    case Last:
+    case Next:
+        isNext = true;
+        break;
+    case First:
+    case Previous:
+        isNext = false;
+        break;
+    }
+
     int numItem = 0;
     if (windowMode == WINDOW_EXPLORER && listPicture != nullptr)
     {
@@ -114,10 +126,8 @@ wxString CViewerController::LoadingNextPicture(const bool& loadPicture, LoadingM
     }
 
     if (!filename.empty() && loadPicture)
-    {
-        isNext = true;
         mediaLoader->LoadPicture(filename);
-    }
+    
     return filename;
 }
 

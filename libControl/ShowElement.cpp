@@ -438,6 +438,8 @@ void CShowElement::TransitionEnd()
         SetBitmapToViewer(tempImage, wxEVENT_SETBITMAP);
         if (pictureToolbar)
             pictureToolbar->SetTrackBarPosition(bitmapWindow->GetPosRatio());
+
+        tempImage = nullptr;
     }
 }
 
@@ -477,6 +479,8 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
     // On ne garde plus l'ancienne tempImage si ce n'est pas une miniature
     if (!isThumbnail)
     {
+        if(tempImage != nullptr)
+            delete tempImage;
         tempImage = nullptr;
     }
 
@@ -542,12 +546,19 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
         }
         if (needReload)
         {
-            tempImage = bitmap;
+            if (tempImage != nullptr)
+                delete tempImage;
+            tempImage = nullptr;
+
+            tempImage = new CImageLoadingFormat();
+            tempImage->UpdatePicture(bitmap->GetMatImage());
         }
     }
     else
     {
-		tempImage = nullptr;
+        if (tempImage != nullptr)
+            delete tempImage;
+        tempImage = nullptr;
     }
 
     if (pictureToolbar)

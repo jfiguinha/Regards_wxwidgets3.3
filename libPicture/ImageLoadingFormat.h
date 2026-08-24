@@ -42,6 +42,7 @@ public:
 	std::vector<uchar> GetJpegData();
 	wxImage GetwxImage();
 	CxImage GetCxImage();
+	cv::Mat GetMatImage();
 	cv::Mat GetFloatImage();
 	FIBITMAP* GetFreeImage();
 	void ReadFile(const wxString& filename);
