@@ -97,6 +97,37 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 
        // printf("CRenderOpenGL::Init \n");
 
+#ifdef __WXGTK__
+		CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+		if (regardsParam != nullptr)
+		{
+			 openCLContext->AssociateToVulkan();
+			if (regardsParam->GetIsOpenCLSupport())
+			{
+				try
+				{
+					openCLContext->CreateDefaultOpenCLContext();
+					application_context.isOpenCLInitialized = true;
+					application_context.openclOpenGLInterop = false;
+				}
+				catch (cv::Exception& e)
+				{
+					application_context.isOpenCLInitialized = false;
+					application_context.openclOpenGLInterop = false;
+					const char* err_msg = e.what();
+					std::cout << "exception caught: " << err_msg << std::endl;
+					std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
+					openCLContext->CreateDefaultOpenCLContext();
+				}
+				if (!application_context.isOpenCLInitialized)
+				{
+					regardsParam->SetIsOpenCLSupport(false);
+				}
+				regardsParam->SetIsOpenCLOpenGLInteropSupport(false);
+			}
+		}
+#else
+
 		CRegardsConfigParam* regardsParam = CParamInit::getInstance();
 		if (regardsParam != nullptr)
 		{
@@ -132,7 +163,7 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 				regardsParam->SetIsOpenCLOpenGLInteropSupport(application_context.openclOpenGLInterop);
 			}
 		}
-		
+#endif		
 		myGLVersion = 0;
 		version = glGetString(GL_VERSION);
 		sscanf(CConvertUtility::ConvertToStdString(version).c_str(), "%f", &myGLVersion);
