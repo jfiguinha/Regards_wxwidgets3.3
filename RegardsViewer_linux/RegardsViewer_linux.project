@@ -453,15 +453,14 @@
         <Library Value="wayland-cursor"/>
         <Library Value="Xss"/>
         <Library Value="lz4"/>
-        <Library Value="zstd"/>
         <Library Value="gomp"/>
+        <Library Value="zstd"/>
         <Library Value="wayland-client"/>
         <Library Value="wayland-egl"/>
         <Library Value="yuv"/>
         <Library Value="tinyxml2"/>
         <Library Value="utf8_range"/>
         <Library Value="utf8_validity"/>
-        <Library Value="omp"/>
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>

@@ -12,7 +12,6 @@ Description: RegardsViewer is a picture viewer and video player
  Support highDPI definition screen.
  Support Exif and xmp file information.
  Support New Apple Photo format for IOS 11 HEIF multithreading and Exif.
- Support New Apple Photo format for IOS 11 HEIF multithreading and Exif.
  GPS information from Photo and Apple iPhone video.
  High quality display interpolation.
  OpenGL picture display and OpenCL post effects.
