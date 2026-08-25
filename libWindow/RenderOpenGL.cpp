@@ -88,98 +88,126 @@ bool CRenderOpenGL::GetOpenGLInterop()
 
 void CRenderOpenGL::Init(wxGLCanvas* canvas)
 {
-	if (!isInit)
+	if (isInit || canvas == nullptr)
+		return;
+
+	// Le contexte OpenGL doit être courant sur ce thread avant
+	// toute tentative d'initialisation de l'interop OpenGL/OpenCL.
+	SetCurrent(*canvas);
+
+	application_context.isOpenCLInitialized = false;
+	application_context.openclOpenGLInterop = false;
+
+	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+
+	if (regardsParam != nullptr && openCLContext != nullptr)
 	{
-		SetCurrent(*canvas);
+		// Association Vulkan éventuelle.
+		openCLContext->AssociateToVulkan();
 
-		int epoxyversion = epoxy_gl_version();
-		bool pboSupported = epoxy_has_gl_extension("GL_ARB_pixel_buffer_object");
+		const bool openCLAvailable =
+			cv::ocl::haveOpenCL() &&
+			regardsParam->GetIsOpenCLSupport();
 
-       // printf("CRenderOpenGL::Init \n");
-
-#ifdef __WXGTK__
-		CRegardsConfigParam* regardsParam = CParamInit::getInstance();
-		if (regardsParam != nullptr)
+		if (openCLAvailable)
 		{
-			 openCLContext->AssociateToVulkan();
-			if (regardsParam->GetIsOpenCLSupport())
+			const bool wantOpenGLOpenCLInterop =
+				regardsParam->GetIsOpenCLOpenGLInteropSupport();
+
+			if (wantOpenGLOpenCLInterop)
 			{
+				// Le contexte OpenGL étant courant, on peut tenter
+				// de créer le contexte OpenCL interopérable avec OpenGL.
+				try
+				{
+					openCLContext->initializeContextFromGL();
+
+					application_context.isOpenCLInitialized = true;
+					application_context.openclOpenGLInterop = true;
+				}
+				catch (const cv::Exception& e)
+				{
+					std::cout
+						<< "OpenCL/OpenGL interop initialization failed: "
+						<< e.what()
+						<< std::endl;
+
+					application_context.isOpenCLInitialized = false;
+					application_context.openclOpenGLInterop = false;
+
+					// L'interopération n'est pas disponible.
+					// On tente néanmoins un contexte OpenCL classique.
+					try
+					{
+						openCLContext->CreateDefaultOpenCLContext();
+
+						application_context.isOpenCLInitialized = true;
+						application_context.openclOpenGLInterop = false;
+					}
+					catch (const cv::Exception& fallbackException)
+					{
+						std::cout
+							<< "OpenCL fallback initialization failed: "
+							<< fallbackException.what()
+							<< std::endl;
+
+						application_context.isOpenCLInitialized = false;
+						application_context.openclOpenGLInterop = false;
+					}
+				}
+			}
+			else
+			{
+				// OpenCL classique, sans partage avec OpenGL.
 				try
 				{
 					openCLContext->CreateDefaultOpenCLContext();
+
 					application_context.isOpenCLInitialized = true;
 					application_context.openclOpenGLInterop = false;
 				}
-				catch (cv::Exception& e)
+				catch (const cv::Exception& e)
 				{
+					std::cout
+						<< "OpenCL initialization failed: "
+						<< e.what()
+						<< std::endl;
+
 					application_context.isOpenCLInitialized = false;
 					application_context.openclOpenGLInterop = false;
-					const char* err_msg = e.what();
-					std::cout << "exception caught: " << err_msg << std::endl;
-					std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
-					openCLContext->CreateDefaultOpenCLContext();
 				}
-				if (!application_context.isOpenCLInitialized)
-				{
-					regardsParam->SetIsOpenCLSupport(false);
-				}
-				regardsParam->SetIsOpenCLOpenGLInteropSupport(false);
 			}
 		}
-#else
 
-		CRegardsConfigParam* regardsParam = CParamInit::getInstance();
-		if (regardsParam != nullptr)
-		{
-			 openCLContext->AssociateToVulkan();
-			 if (regardsParam->GetIsOpenCLSupport())
-			{
-                
-				if (cv::ocl::haveOpenCL() && !application_context.isOpenCLInitialized && regardsParam->GetIsOpenCLOpenGLInteropSupport())
-				{
-                   //  printf("CRenderOpenGL::Init 2 \n");
-					try
-					{
-						openCLContext->initializeContextFromGL();
-						application_context.isOpenCLInitialized = true;
-						application_context.openclOpenGLInterop = true;
-						//cv::ocl::Device(application_context.clExecCtx.getContext().device(0));
-					}
-					catch (cv::Exception& e)
-					{
-                        application_context.openclOpenGLInterop = false;
-						const char* err_msg = e.what();
-						std::cout << "exception caught: " << err_msg << std::endl;
-						std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
-						openCLContext->CreateDefaultOpenCLContext();
-					}
+		// Mémorise l'état réel obtenu, et pas seulement la préférence utilisateur.
+		regardsParam->SetIsOpenCLSupport(
+			application_context.isOpenCLInitialized);
 
-				}
+		regardsParam->SetIsOpenCLOpenGLInteropSupport(
+			application_context.openclOpenGLInterop);
+	}
 
-				if (!application_context.isOpenCLInitialized)
-				{
-					regardsParam->SetIsOpenCLSupport(false);
-				}
-				regardsParam->SetIsOpenCLOpenGLInteropSupport(application_context.openclOpenGLInterop);
-			}
-		}
-#endif		
-		myGLVersion = 0;
-		version = glGetString(GL_VERSION);
-		sscanf(CConvertUtility::ConvertToStdString(version).c_str(), "%f", &myGLVersion);
-		isInit = true;
+	// Récupération de la version OpenGL.
+	myGLVersion = 0.0f;
 
+	const GLubyte* versionString = glGetString(GL_VERSION);
 
-		textureDisplay = std::make_unique<GLTexture>();
-        
+	if (versionString != nullptr)
+	{
+		const std::string version =
+			CConvertUtility::ConvertToStdString(versionString);
+
+		sscanf(version.c_str(), "%f", &myGLVersion);
+	}
+
+	isInit = true;
+
+	textureDisplay = std::make_unique<GLTexture>();
 
 #ifndef USE_GLUT
-        LoadFont("Antonio-Bold.ttf");
+	LoadFont("Antonio-Bold.ttf");
 #endif
-
-	}
 }
-
 
 void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, wxString text)
 {
