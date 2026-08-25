@@ -437,3 +437,6 @@ libPicture/libPicture.txt
 /RegardsViewer_macsilicon/package
 RegardsViewer_macsilicon/package/.DS_Store
 RegardsViewer_macsilicon/package/RegardsViewer3/.DS_Store
+/libAppleFunction/Debug
+/RegardsViewer_macsilicon/Debug
+/xcode

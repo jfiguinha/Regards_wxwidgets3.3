@@ -101,7 +101,7 @@ wxString CFileUtility::GetAppleExecFolderPath(const wxString& folder)
 
 	wxString realPath;
 	realPath.append(path.begin(), path.begin() + index + exeFolderMacOs.size());
-	realPath.append(folder);
+	realPath.append(folder + "/");
 
 	return realPath;
 }
