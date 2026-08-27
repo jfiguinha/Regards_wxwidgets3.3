@@ -355,7 +355,7 @@ void CToolbarWindow::DrawBackground(wxDC* dc)
 	if (winW <= 0 || winH <= 0) return;
 
 	// Only reallocate the off-screen bitmap when the window is resized
-	if (!background.IsOk() || background.GetWidth() != winW || background.GetHeight() != winH)
+	if (!background.IsOk() || background.GetWidth() != winW || background.GetHeight() != winH)
 		background.Create(winW, winH);
 
 	{
