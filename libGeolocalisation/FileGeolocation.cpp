@@ -325,8 +325,9 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 					std::vector<wxString> gpsInfos = CConvertUtility::split(exifinfos, ' ');
 					if (gpsInfos.size() >= 2)
 					{
+						const wxUniChar degreeSign(0x00B0);
 						wxString latitude = gpsInfos[0];
-						std::vector<wxString> gpsInfosLat = CConvertUtility::split(latitude, '°');
+						std::vector<wxString> gpsInfosLat = CConvertUtility::split(latitude, degreeSign);
 						if (gpsInfosLat.size() > 1)
 						{
 							if (gpsInfosLat[1] == 'S')
@@ -337,7 +338,7 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 
 
 						wxString longitude = gpsInfos[1];
-						std::vector<wxString> gpsInfosLong = CConvertUtility::split(longitude, '°');
+						std::vector<wxString> gpsInfosLong = CConvertUtility::split(longitude, degreeSign);
 						if (gpsInfosLong.size() > 1)
 						{
 							if (gpsInfosLong[1] == 'W')
