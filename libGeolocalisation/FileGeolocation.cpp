@@ -322,22 +322,30 @@ void CFileGeolocation::SetFile(const wxString& picture, const wxString& libNotGe
 				if (it != vectorMeta.end())
 				{
 					wxString exifinfos = it->value;
-					std::vector<wxString> gpsInfos = CConvertUtility::split(exifinfos, L' ');
+					std::vector<wxString> gpsInfos = CConvertUtility::split(exifinfos, ' ');
 					if (gpsInfos.size() >= 2)
 					{
 						wxString latitude = gpsInfos[0];
-						std::vector<wxString> gpsInfosLat = CConvertUtility::split(latitude, L'°');
-						if (gpsInfosLat[1] == 'S')
-							latitudeGps = "-" + gpsInfosLat[0];
-						else
-							latitudeGps = gpsInfosLat[0];
+						std::vector<wxString> gpsInfosLat = CConvertUtility::split(latitude, '°');
+						if (gpsInfosLat.size() > 1)
+						{
+							if (gpsInfosLat[1] == 'S')
+								latitudeGps = "-" + gpsInfosLat[0];
+							else
+								latitudeGps = gpsInfosLat[0];
+						}
+
 
 						wxString longitude = gpsInfos[1];
-						std::vector<wxString> gpsInfosLong = CConvertUtility::split(longitude, L'°');
-						if (gpsInfosLong[1] == 'W')
-							longitudeGps = "-" + gpsInfosLong[0];
-						else
-							longitudeGps = gpsInfosLong[0];
+						std::vector<wxString> gpsInfosLong = CConvertUtility::split(longitude, '°');
+						if (gpsInfosLong.size() > 1)
+						{
+							if (gpsInfosLong[1] == 'W')
+								longitudeGps = "-" + gpsInfosLong[0];
+							else
+								longitudeGps = gpsInfosLong[0];
+						}
+
 
 						hasGps = true;
 					}
