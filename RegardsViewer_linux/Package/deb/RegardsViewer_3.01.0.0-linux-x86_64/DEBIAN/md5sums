@@ -9,7 +9,7 @@ a2efff5ecefe06ce9db134c381beb9c6  opt/RegardsViewer/libtbbmalloc_proxy.so.2
 cc025b0173fe7eee2e8b1732db8f1bc2  opt/RegardsViewer/Resources/1/msw/PDFOption.xrc
 86145872dce792cb9090e40612fcd065  opt/RegardsViewer/Resources/1/msw/webpoption.xrc
 3fa0fa0404ea85a66e24af4bd23802c6  opt/RegardsViewer/Resources/1/msw/ChangeLabel.xrc
-eec4b030a4d82528f5154c7680aa63d7  opt/RegardsViewer/Resources/1/msw/CompressionAudioVideoOption.xrc
+acbc39390935d37ce19744468d60c67e  opt/RegardsViewer/Resources/1/msw/CompressionAudioVideoOption.xrc
 93c6ecd401dbcc0b39381df6a6263409  opt/RegardsViewer/Resources/1/msw/ConfigRegards.xrc
 d7b0a0b3219e58cb1101cd94f36c751b  opt/RegardsViewer/Resources/1/msw/MoveFace.xrc
 5c17983ec490e480199e48af99ae8942  opt/RegardsViewer/Resources/1/msw/Association.xrc
@@ -31,7 +31,7 @@ c59a75126252aa74f5a5dd46616913da  opt/RegardsViewer/Resources/1/msw/CompressVide
 cc025b0173fe7eee2e8b1732db8f1bc2  opt/RegardsViewer/Resources/1/osx/PDFOption.xrc
 86145872dce792cb9090e40612fcd065  opt/RegardsViewer/Resources/1/osx/webpoption.xrc
 3fa0fa0404ea85a66e24af4bd23802c6  opt/RegardsViewer/Resources/1/osx/ChangeLabel.xrc
-eec4b030a4d82528f5154c7680aa63d7  opt/RegardsViewer/Resources/1/osx/CompressionAudioVideoOption.xrc
+acbc39390935d37ce19744468d60c67e  opt/RegardsViewer/Resources/1/osx/CompressionAudioVideoOption.xrc
 93c6ecd401dbcc0b39381df6a6263409  opt/RegardsViewer/Resources/1/osx/ConfigRegards.xrc
 d7b0a0b3219e58cb1101cd94f36c751b  opt/RegardsViewer/Resources/1/osx/MoveFace.xrc
 5c17983ec490e480199e48af99ae8942  opt/RegardsViewer/Resources/1/osx/Association.xrc
@@ -53,7 +53,7 @@ c59a75126252aa74f5a5dd46616913da  opt/RegardsViewer/Resources/1/osx/CompressVide
 cc025b0173fe7eee2e8b1732db8f1bc2  opt/RegardsViewer/Resources/1/linux/PDFOption.xrc
 86145872dce792cb9090e40612fcd065  opt/RegardsViewer/Resources/1/linux/webpoption.xrc
 3fa0fa0404ea85a66e24af4bd23802c6  opt/RegardsViewer/Resources/1/linux/ChangeLabel.xrc
-eec4b030a4d82528f5154c7680aa63d7  opt/RegardsViewer/Resources/1/linux/CompressionAudioVideoOption.xrc
+acbc39390935d37ce19744468d60c67e  opt/RegardsViewer/Resources/1/linux/CompressionAudioVideoOption.xrc
 93c6ecd401dbcc0b39381df6a6263409  opt/RegardsViewer/Resources/1/linux/ConfigRegards.xrc
 d7b0a0b3219e58cb1101cd94f36c751b  opt/RegardsViewer/Resources/1/linux/MoveFace.xrc
 5c17983ec490e480199e48af99ae8942  opt/RegardsViewer/Resources/1/linux/Association.xrc
@@ -199,7 +199,7 @@ eb964b3370343dfa7d49e9b618723e01  opt/RegardsViewer/Resources/theme/Regards.view
 34acd413477ef656807bfd2755e18135  opt/RegardsViewer/Resources/theme/Regards.viewer.light.theme
 207da462f2d9ca0c205be2ca90aee56a  opt/RegardsViewer/Resources/ca-bundle.crt
 33ce719b755d761fd0f59e86fa416a1d  opt/RegardsViewer/Resources/cameras.xml
-59d82abbfbbe50a80d529da047ae8980  opt/RegardsViewer/Resources/resource.db
+1d96cca66886db412b42f3f5cf15df05  opt/RegardsViewer/Resources/resource.db
 7fa8dcc444eab373194d1b7ec8f33d1e  opt/RegardsViewer/Resources/sample.xpm
 1b865dd9fc4dfc71aa7a3ffbfdceb082  opt/RegardsViewer/Resources/dll/TWAINDSM64.msm
 dcd85d844c1583c61d3afabd983aa0b5  opt/RegardsViewer/Resources/dll/TWAINDSM.dll
@@ -246,12 +246,11 @@ b3f7f1e5de736deb3a399a7fde8c1b18  opt/RegardsViewer/Resources/shader/opengl/new_
 5acce4be492dac79b8de6465c737ef98  opt/RegardsViewer/Resources/shader/opengl/new_shader/IDR_GLSL_SHADER_VIDEO.gl
 9aff499fdccf2a80a0bec5e5e2b51eee  opt/RegardsViewer/Resources/shader/opengl/new_shader/IDR_GLSL_INTERPOLATION.gl
 624be6b6a9d35efc5e31deea470bf879  opt/RegardsViewer/Resources/viewer.ico
-805f242d8b8cf4b34db5ef13cc29f364  opt/RegardsViewer/RegardsViewer
+979dc88fa8510b5dcf8be4506dac3ac8  opt/RegardsViewer/RegardsViewer
 a4bbdd9324c6d29fbc278fbaca07540f  opt/RegardsViewer/ffmpeg
 08154501deaec7ea36c35d1c2571e190  opt/RegardsViewer/libswscale.so.9
 5a38cd413ea90ac746252d1eef9d05c3  opt/RegardsViewer/libswresample.so.6
 4e7c74c8f1a7f07ee4db918778125ef1  opt/RegardsViewer/libavutil.so.60
-68b329da9893e34099c7d8ad5cb9c940  opt/RegardsViewer/.d
 12b558cbb95172a1fbef0f1c8f285fd9  opt/RegardsViewer/libavfilter.so.11
 6012af5c1f41f876459d828a59b114a8  opt/RegardsViewer/libavcodec.so.62
 3888d65d905a5f6b41d938f58f704dd9  opt/RegardsViewer/libtbbmalloc.so.2
