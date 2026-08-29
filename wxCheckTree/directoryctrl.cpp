@@ -457,19 +457,9 @@ void wxGenericDirCtrl::OnEraseBackground(wxEraseEvent& event)
 {
 }
 
-void wxGenericDirCtrl::OnMouseMove(wxMouseEvent& event)
-{
-	wxSetCursor(*wxSTANDARD_CURSOR);
-}
 
 wxGenericDirCtrl::~ wxGenericDirCtrl()
 {
-}
-
-void wxGenericDirCtrl::OnMouseEnter(wxMouseEvent& event)
-{
-	wxSetCursor(*wxSTANDARD_CURSOR);
-	//wxSetCursor(wxCursor(wxCURSOR_HAND));
 }
 
 void wxGenericDirCtrl::Init()
