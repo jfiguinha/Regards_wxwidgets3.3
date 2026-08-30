@@ -801,7 +801,7 @@ void CVideoControlSoft::OnUpdateFiltreEffect(wxCommandEvent& event)
 		config->SetVideoEffectParameter(videoParameter);
 	}
 
-	delete videoParameter;
+
 }
 
 void CVideoControlSoft::UpdateFiltre(CEffectParameter* effectParameter)
@@ -810,7 +810,7 @@ void CVideoControlSoft::UpdateFiltre(CEffectParameter* effectParameter)
 		return;
 
 	wxCommandEvent event(wxEVENT_UPDATEEFFECTFILTER);
-	event.SetClientData(new CEffectParameter(*effectParameter));
+	event.SetClientData(effectParameter);
 	wxQueueEvent(parentRender, event.Clone());
 }
 
@@ -835,7 +835,7 @@ void CVideoControlSoft::SetVideoPreviewEffect(CEffectParameter* effectParameter)
 
 CEffectParameter* CVideoControlSoft::GetParameter()
 {
-	return new CVideoEffectParameter(videoEffectParameter);
+	return &videoEffectParameter;
 }
 
 
