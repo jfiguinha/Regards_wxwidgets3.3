@@ -1401,22 +1401,21 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 		// Effets vidéo
 		// -------------------------------------------------------------
 
-		const bool hasAVFrame =
-			pictureFrame->dst != nullptr;
+		const bool hasAVFrame =	pictureFrame->dst != nullptr;
 
-		const bool applyEffects =
-			ApplyVideoEffect();
+		const bool applyEffects = ApplyVideoEffect();
 
+		/*
 		const bool useOpenCLEffect =
 			useOpenCL &&
 			openclEffectYUV &&
 			openclEffectYUV->IsOk();
-
+		*/
 		// -------------------------------------------------------------
 		// Conversion YUV / OpenCL
 		// -------------------------------------------------------------
 
-		if (useOpenCLEffect)
+		if (useOpenCL && openclEffectYUV)
 		{
 			if (hasAVFrame)
 			{
@@ -1496,7 +1495,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 				}
 			}
 
-			if (useOpenCLEffect)
+			if (useOpenCL && openclEffectYUV && openclEffectYUV->IsOk())
 				RenderToTexture();
 			else
 				RenderFFmpegToTexture();
