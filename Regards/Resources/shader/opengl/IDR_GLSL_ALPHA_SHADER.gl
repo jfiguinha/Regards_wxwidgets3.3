@@ -1,22 +1,17 @@
 //
 //To Optimize : https://zz85.github.io/glsl-optimizer/
 //
-#version 330 compatibility
+#version 330 core // Passage en core
 
 uniform sampler2D textureScreen;
 uniform float intensity;
 
-// Sortie obligatoire pour remplacer gl_FragColor en version moderne
+in vec2 TexCoord; // Reçu du vertex shader
 out vec4 FragColor;
 
 void main(void)
 {	
-    // texture2D est remplacé par la fonction moderne texture()
-    // gl_TexCoord[0].st reste disponible grâce au mode 'compatibility'
-    vec4 src_color = texture(textureScreen, gl_TexCoord[0].st);
-	
+    vec4 src_color = texture(textureScreen, TexCoord);
     float alpha = intensity / 100.0;
-
-    // Raccourci .rgb plus propre pour src_color.r, src_color.g, src_color.b
     FragColor = vec4(src_color.rgb, alpha);
 }

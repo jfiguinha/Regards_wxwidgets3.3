@@ -25,17 +25,19 @@ namespace Regards::OpenGL
 	class COpenGLShader
 	{
 	public:
-		bool EnableShader()
+
+		bool EnableShader(const float* projectionMatrix)
 		{
 			bool isOk = true;
-			if (m_pVertexShader)
-				isOk = m_pVertexShader->EnableShader();
-
-			if (!isOk)
-				return false;
 
 			if (m_pShader)
 				isOk = m_pShader->EnableShader();
+
+			// Envoi automatique de la projection si elle est fournie
+			if (isOk && m_pShader && projectionMatrix != nullptr)
+			{
+				m_pShader->SetMatrixParam("projection", projectionMatrix);
+			}
 
 			return isOk;
 		}
@@ -44,12 +46,6 @@ namespace Regards::OpenGL
 		{
 			bool isOk = true;
 
-			if (m_pVertexShader)
-				isOk = m_pVertexShader->DisableShader();
-
-			if (!isOk)
-				return false;
-
 			if (m_pShader)
 				isOk = m_pShader->DisableShader();
 
@@ -57,7 +53,7 @@ namespace Regards::OpenGL
 		}
 		wxString shaderName;
 		std::unique_ptr<GLSLShader> m_pShader = nullptr;
-		std::unique_ptr<GLSLShader> m_pVertexShader = nullptr;
+
 	};
 
 	class CRenderOpenGL : public wxGLContext
@@ -84,7 +80,6 @@ namespace Regards::OpenGL
         int LoadFont(const wxString & fontName);
 		int GetWidth();
 		int GetHeight();
-		std::unique_ptr<GLSLShader> CreateShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB);
 		COpenGLShader * FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB);
 
 		//void RenderToTexture();

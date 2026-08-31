@@ -281,12 +281,7 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, wxString te
 	}
 }
 
-std::unique_ptr<GLSLShader>  CRenderOpenGL::CreateShader(const wxString& shaderName, GLenum glSlShaderType_i)
-{
-	auto m_pShader = std::make_unique<GLSLShader>();
-	m_pShader->CreateProgram(shaderName, glSlShaderType_i);
-	return m_pShader;
-}
+
 
 void CRenderOpenGL::UpdateProjectionMatrix() {
 	int renderWidth = width;
@@ -344,9 +339,9 @@ COpenGLShader * CRenderOpenGL::FindShader(const wxString& shaderName,
 
     auto shader = std::make_unique<COpenGLShader>();
 
-    shader->shaderName = shaderName;
-	//shader->m_pVertexShader = CreateShader("IDR_GLSL_VERTEX", GL_VERTEX_SHADER);
-    shader->m_pShader = CreateShader(shaderName, shaderType);
+	shader->m_pShader = std::make_unique<GLSLShader>();
+	shader->m_pShader->CreateProgram("IDR_GLSL_VERTEX", GL_VERTEX_SHADER);
+	shader->m_pShader->CreateProgram(shaderName, shaderType);
 
 	//COpenGLShader * result = shader->m_pShader.get();
 
@@ -530,49 +525,40 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
 
 }
 
+
 void CRenderOpenGL::RenderQuadInternal(float width,
-                                       float height,
-                                       int left,
-                                       int top,
-                                       bool inverted,
-                                       bool flipH,
-                                       bool flipV)
+	float height,
+	int left,
+	int top,
+	bool inverted,
+	bool flipH,
+	bool flipV)
 {
-    glPushMatrix();
+	// 1. Définition des géométries sur le CPU
+	const GLfloat vertices[8] =
+	{
+		static_cast<GLfloat>(left),         static_cast<GLfloat>(top),
+		static_cast<GLfloat>(left + width), static_cast<GLfloat>(top),
+		static_cast<GLfloat>(left + width), static_cast<GLfloat>(top + height),
+		static_cast<GLfloat>(left),         static_cast<GLfloat>(top + height)
+	};
 
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY_EXT);
-    glEnableClientState(GL_VERTEX_ARRAY);
+	GLfloat texCoords[8];
+	FillTexCoords(texCoords, inverted, flipH, flipV);
 
-    const GLfloat vertices[8] =
-    {
-        static_cast<GLfloat>(left),
-        static_cast<GLfloat>(top),
+	// 3. Rendu moderne via les Layouts d'attributs (replaces VertexPointer/TexCoordPointer)
+	glEnableVertexAttribArray(0); // Correspond à layout(location = 0) in vec2 position
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertices);
 
-        static_cast<GLfloat>(left + width),
-        static_cast<GLfloat>(top),
+	glEnableVertexAttribArray(1); // Correspond à layout(location = 1) in vec2 texCoord
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords);
 
-        static_cast<GLfloat>(left + width),
-        static_cast<GLfloat>(top + height),
+	// Dessin du rectangle
+	glDrawArrays(GL_QUADS, 0, 4);
 
-        static_cast<GLfloat>(left),
-        static_cast<GLfloat>(top + height)
-    };
-
-    GLfloat texCoords[8];
-    FillTexCoords(texCoords, inverted, flipH, flipV);
-
-    glVertexPointer(2, GL_FLOAT, 0, vertices);
-    glTexCoordPointer(2, GL_FLOAT, 0, texCoords);
-
-    glDrawArrays(GL_QUADS, 0, 4);
-
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-    glPopMatrix();
-
-    // SAFE OPTIMIZATION:
-    // glFlush() supprimé volontairement
+	// Nettoyage des états d'attributs
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 }
 
 
@@ -735,15 +721,31 @@ void CRenderOpenGL::RenderQuad(GLTexture* texture, const bool& flipH, const bool
 }
 
 void CRenderOpenGL::RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* effectParameter, const int& left,
-                                   const int& top, const bool& inverted)
+	const int& top, const bool& inverted)
 {
-	bool renderPreview = false;
+
 	textureDisplay->Enable();
 
-	if (!renderPreview)
+
+	// 1. On cherche et on active le shader par défaut pour le Core Profile
+	COpenGLShader* defaultShader = FindShader(L"IDR_GLSL_TEXTURE");
+	if (defaultShader != nullptr)
 	{
-		RenderQuad(textureDisplay.get(), left, top, inverted);
+		defaultShader->EnableShader(projectionMatrix); // On injecte la matrice de projection
+
+		// 2. On lie la texture à l'uniform "textureScreen" du shader
+		defaultShader->m_pShader->SetTexture("textureScreen", textureDisplay->GetTextureID(), 0);
 	}
+
+	// 3. On dessine le rectangle
+	RenderQuad(textureDisplay.get(), left, top, inverted);
+
+	// 4. On désactive le shader
+	if (defaultShader != nullptr)
+	{
+		defaultShader->DisableShader();
+	}
+	
 
 	textureDisplay->Disable();
 }
@@ -902,7 +904,7 @@ void CRenderOpenGL::RenderText(wxString text, float x, float y, float scale, vec
 	glBindTexture(GL_TEXTURE_2D, 1);
 	COpenGLShader * m_pShader = FindShader(L"IDR_GLSL_COLOR");
 	if (m_pShader != nullptr)
-		m_pShader->EnableShader();
+		m_pShader->EnableShader(projectionMatrix);
     else 
         return;
         

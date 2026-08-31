@@ -91,7 +91,7 @@ bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool&
 	GLTexture* glTexture = renderOpenGL->GetGLTexture();
 	COpenGLShader * shader = renderOpenGL->FindShader(L"IDR_GLSL_INTERPOLATION");
 	if (!shader || !shader->m_pShader->IsOk()) return false;
-	if (!shader->EnableShader() || !shader->m_pShader->IsOk()) return false;
+	if (!shader->EnableShader(renderOpenGL->projectionMatrix) || !shader->m_pShader->IsOk()) return false;
 
 	shader->m_pShader->SetTexture("ImageTexture", textureVideo->GetTextureID(),0);
 	shader->m_pShader->SetParam("widthTex", static_cast<float>(textureVideo->GetWidth()));
@@ -178,7 +178,7 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 			{
                 if(shader->m_pShader->IsOk())
                 {
-                    if(shader->EnableShader())
+                    if(shader->EnableShader(renderOpenGL->projectionMatrix))
                     {                    
                         rect.top = (float)((glTexture->GetHeight() - rc.height) / 2) / (float)glTexture->GetHeight();
                         rect.bottom = 1.0f - rect.top;
@@ -209,7 +209,7 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 		if (shader != nullptr)
 		{
-			if(shader->EnableShader())
+			if(shader->EnableShader(renderOpenGL->projectionMatrix))
             {
                 rect.top = (float)((textureVideo->GetHeight() - heightOut) / 2) / (float)textureVideo->GetHeight();
                 rect.bottom = 1.0f - rect.top;
