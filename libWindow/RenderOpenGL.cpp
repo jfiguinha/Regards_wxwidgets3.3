@@ -288,24 +288,71 @@ std::unique_ptr<GLSLShader>  CRenderOpenGL::CreateShader(const wxString& shaderN
 	return m_pShader;
 }
 
-GLSLShader* CRenderOpenGL::FindShader(const wxString& shaderName,
+void CRenderOpenGL::UpdateProjectionMatrix() {
+	int renderWidth = width;
+	int renderHeight = height;
+
+	if (renderWidth <= 0) renderWidth = 1;
+
+	if (renderHeight <= 0) renderHeight = 1;
+
+	const float left = 0.0f;
+	const float right = static_cast<float>(renderWidth);
+
+	const float bottom = 0.0f;
+	const float top = static_cast<float>(renderHeight);
+
+	const float nearValue = -1.0f;
+	const float farValue = 1.0f;
+
+	projectionMatrix[0] = 2.0f / (right - left);
+
+	projectionMatrix[1] = 0.0f;
+	projectionMatrix[2] = 0.0f;
+	projectionMatrix[3] = 0.0f;
+
+	projectionMatrix[4] = 0.0f;
+
+	projectionMatrix[5] = 2.0f / (top - bottom);
+
+	projectionMatrix[6] = 0.0f;
+	projectionMatrix[7] = 0.0f;
+
+	projectionMatrix[8] = 0.0f;
+	projectionMatrix[9] = 0.0f;
+
+	projectionMatrix[10] = -2.0f / (farValue - nearValue);
+
+	projectionMatrix[11] = 0.0f;
+
+	projectionMatrix[12] = -(right + left) / (right - left);
+
+	projectionMatrix[13] = -(top + bottom) / (top - bottom);
+
+	projectionMatrix[14] = -(farValue + nearValue) / (farValue - nearValue);
+
+	projectionMatrix[15] = 1.0f;
+}
+
+COpenGLShader * CRenderOpenGL::FindShader(const wxString& shaderName,
                                       GLenum shaderType)
 {
     auto it = shaderMap.find(shaderName);
 
     if (it != shaderMap.end())
-        return it->second->m_pShader.get();
+        return it->second.get();
 
     auto shader = std::make_unique<COpenGLShader>();
 
     shader->shaderName = shaderName;
+	//shader->m_pVertexShader = CreateShader("IDR_GLSL_VERTEX", GL_VERTEX_SHADER);
     shader->m_pShader = CreateShader(shaderName, shaderType);
 
-    GLSLShader* result = shader->m_pShader.get();
+	//COpenGLShader * result = shader->m_pShader.get();
 
     shaderMap[shaderName] = std::move(shader);
 
-    return result;
+    return  shaderMap[shaderName].get();
 }
 
 CRenderOpenGL::~CRenderOpenGL()
@@ -546,6 +593,8 @@ GLvoid CRenderOpenGL::ReSizeGLScene(GLsizei width, GLsizei height) // Resize And
 
 	glMatrixMode(GL_MODELVIEW); // Select The Modelview Matrix
 	glLoadIdentity(); // Reset The Modelview Matrix
+
+	UpdateProjectionMatrix();
 }
 
 
@@ -851,7 +900,7 @@ void CRenderOpenGL::RenderText(wxString text, float x, float y, float scale, vec
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glBindTexture(GL_TEXTURE_2D, 1);
-    GLSLShader* m_pShader = FindShader(L"IDR_GLSL_COLOR");
+	COpenGLShader * m_pShader = FindShader(L"IDR_GLSL_COLOR");
 	if (m_pShader != nullptr)
 		m_pShader->EnableShader();
     else 
@@ -881,7 +930,7 @@ void CRenderOpenGL::RenderText(wxString text, float x, float y, float scale, vec
         };
         */
         if(ch.glTexture != nullptr)
-			RenderCharacter(m_pShader, ch.glTexture, xpos, ypos, scale, color);
+			RenderCharacter(m_pShader->m_pShader.get(), ch.glTexture, xpos, ypos, scale, color);
         // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
         x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
     }

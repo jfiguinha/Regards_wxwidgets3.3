@@ -23,7 +23,7 @@ CRenderBitmapOpenGL::CRenderBitmapOpenGL(CRenderOpenGL* renderOpenGL)
 	this->renderOpenGL = renderOpenGL;
 }
 
-GLSLShader* CRenderBitmapOpenGL::FindShader(const wxString& shaderName, GLenum glSlShaderType_i)
+COpenGLShader * CRenderBitmapOpenGL::FindShader(const wxString& shaderName, GLenum glSlShaderType_i)
 {
 	return renderOpenGL->FindShader(shaderName, glSlShaderType_i);
 }
@@ -74,12 +74,12 @@ void CRenderBitmapOpenGL::RenderWithAlphaChannel(GLTexture* glTexture, const int
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	GLSLShader* shader = renderOpenGL->FindShader(L"IDR_GLSL_ALPHA_SHADER");
+	COpenGLShader * shader = renderOpenGL->FindShader(L"IDR_GLSL_ALPHA_SHADER");
 	if (shader)
 	{
 		shader->EnableShader();
-		shader->SetTexture("textureScreen", glTexture->GetTextureID(),0);
-		shader->SetParam("intensity", alpha);
+		shader->m_pShader->SetTexture("textureScreen", glTexture->GetTextureID(),0);
+		shader->m_pShader->SetParam("intensity", alpha);
 	}
 
 	renderOpenGL->RenderQuad(glTexture, flipH, flipV, left, top, inverted);
@@ -154,12 +154,17 @@ void CRenderBitmapOpenGL::ShowSecondBitmapWithAlpha(GLTexture* textureTransition
 
 	textureTransition->Enable();
 
-	GLSLShader* shader = renderOpenGL->FindShader(L"IDR_GLSL_ALPHA_SHADER");
+	COpenGLShader * shader = renderOpenGL->FindShader(L"IDR_GLSL_ALPHA_SHADER");
 	if (shader)
 	{
 		shader->EnableShader();
-		shader->SetTexture("textureScreen", textureTransition->GetTextureID(),0);
-		shader->SetParam("intensity", alpha);
+
+		//Vertex
+		//shader->m_pVertexShader->SetMatrixParam("projection", renderOpenGL->projectionMatrix);
+
+		//Fragment
+		shader->m_pShader->SetTexture("textureScreen", textureTransition->GetTextureID(),0);
+		shader->m_pShader->SetParam("intensity", alpha);
 	}
 
 	ShowSecondBitmap(textureTransition, width, height, left, top);

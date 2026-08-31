@@ -33,23 +33,23 @@ void CPageCurlFilter::RenderTexture(CRenderBitmapOpenGL* renderOpenGL, const flo
 {
 	pictureFirst->Enable();
 	pictureNext->Enable();
-	GLSLShader* m_pShader = renderOpenGL->FindShader(L"IDR_GLSL_PAGECURL");
-	if (m_pShader != nullptr)
+	COpenGLShader * shader = renderOpenGL->FindShader(L"IDR_GLSL_PAGECURL");
+	if (shader != nullptr)
 	{
-		m_pShader->EnableShader();
-		if (!m_pShader->SetTexture("sourceTex", pictureFirst->GetTextureID(),0))
+		shader->EnableShader();
+		if (!shader->m_pShader->SetTexture("sourceTex", pictureFirst->GetTextureID(),0))
 		{
 			printf("SetTexture sourceTex failed \n ");
 		}
-		if (!m_pShader->SetTexture("targetTex", pictureNext->GetTextureID(),1))
+		if (!shader->m_pShader->SetTexture("targetTex", pictureNext->GetTextureID(),1))
 		{
 			printf("SetTexture sourceTex failed \n ");
 		}
-		if (!m_pShader->SetParam("time", time))
+		if (!shader->m_pShader->SetParam("time", time))
 		{
 			printf("SetParam intensity failed \n ");
 		}
-		if (!m_pShader->SetParam("invertTex", invert))
+		if (!shader->m_pShader->SetParam("invertTex", invert))
 		{
 			printf("SetParam intensity failed \n ");
 		}
@@ -57,8 +57,8 @@ void CPageCurlFilter::RenderTexture(CRenderBitmapOpenGL* renderOpenGL, const flo
 
 	renderOpenGL->ShowSecondBitmap(pictureNext.get(), width, height, left, top, true);
 
-	if (m_pShader != nullptr)
-		m_pShader->DisableShader();
+	if (shader != nullptr)
+		shader->DisableShader();
 
 	//glDisable(GL_BLEND);
 	pictureFirst->Disable();

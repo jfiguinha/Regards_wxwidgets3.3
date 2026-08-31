@@ -34,10 +34,14 @@ bool GLSLShader::check_shader_compile_status(GLuint obj)
 	{
 		GLint length;
 		glGetShaderiv(obj, GL_INFO_LOG_LENGTH, &length);
-		// The maxLength includes the NULL character
-		std::vector<GLchar> errorLog(length);
-		glGetShaderInfoLog(m_hShaderHandle, length, &length,  errorLog.data());
-		std::cout << errorLog.data() << std::endl;
+		if (length > 0)
+		{
+			// The maxLength includes the NULL character
+			std::vector<GLchar> errorLog(length);
+			glGetShaderInfoLog(obj, length, &length, errorLog.data());
+			std::cout << errorLog.data() << std::endl;
+		}
+
 		return false;
 	}
 	//printf("check_shader_compile_status is OK \n");
@@ -54,10 +58,14 @@ bool GLSLShader::check_program_link_status(GLuint obj)
 	{
 		GLint length;
 		glGetProgramiv(obj, GL_INFO_LOG_LENGTH, &length);
-		// The maxLength includes the NULL character
-		std::vector<GLchar> errorLog(length);
-		glGetProgramInfoLog(m_hShaderHandle, length, &length, errorLog.data());
-        std::cout << errorLog.data() << std::endl;
+		if (length > 0)
+		{
+			// The maxLength includes the NULL character
+			std::vector<GLchar> errorLog(length);
+			glGetProgramInfoLog(obj, length, &length, errorLog.data());
+			std::cout << errorLog.data() << std::endl;
+		}
+
 		return false;
 	}
 	return true;
