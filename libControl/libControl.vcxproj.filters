@@ -112,6 +112,9 @@
     <ClCompile Include="PhotoCriteriaUtility.cpp">
       <Filter>ExifModification</Filter>
     </ClCompile>
+    <ClCompile Include="PageCurlMesh.cpp">
+      <Filter>Bitmap\PostEffect</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CriteriaTree.h">
@@ -245,6 +248,9 @@
     </ClInclude>
     <ClInclude Include="PhotoCriteriaUtility.h">
       <Filter>ExifModification</Filter>
+    </ClInclude>
+    <ClInclude Include="PageCurlMesh.h">
+      <Filter>Bitmap\PostEffect</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -23,9 +23,9 @@ CRenderBitmapOpenGL::CRenderBitmapOpenGL(CRenderOpenGL* renderOpenGL)
 	this->renderOpenGL = renderOpenGL;
 }
 
-COpenGLShader * CRenderBitmapOpenGL::FindShader(const wxString& shaderName, GLenum glSlShaderType_i)
+COpenGLShader * CRenderBitmapOpenGL::FindShader(const wxString& shaderName, GLenum glSlShaderType_i, const wxString& vertexName)
 {
-	return renderOpenGL->FindShader(shaderName, glSlShaderType_i);
+	return renderOpenGL->FindShader(shaderName, glSlShaderType_i, vertexName);
 }
 
 void CRenderBitmapOpenGL::LoadingResource(const double& scale_factor, wxColor& colorActifReplacement)

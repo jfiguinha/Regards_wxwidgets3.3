@@ -330,7 +330,8 @@ void CRenderOpenGL::UpdateProjectionMatrix() {
 }
 
 COpenGLShader * CRenderOpenGL::FindShader(const wxString& shaderName,
-                                      GLenum shaderType)
+                                      GLenum shaderType,
+                                      const wxString& vertexName)
 {
     auto it = shaderMap.find(shaderName);
 
@@ -340,7 +341,7 @@ COpenGLShader * CRenderOpenGL::FindShader(const wxString& shaderName,
     auto shader = std::make_unique<COpenGLShader>();
 
 	shader->m_pShader = std::make_unique<GLSLShader>();
-	shader->m_pShader->CreateProgram("IDR_GLSL_VERTEX", GL_VERTEX_SHADER);
+	shader->m_pShader->CreateProgram(vertexName, GL_VERTEX_SHADER);
 	shader->m_pShader->CreateProgram(shaderName, shaderType);
 
 	//COpenGLShader * result = shader->m_pShader.get();

@@ -80,7 +80,7 @@ namespace Regards::OpenGL
         int LoadFont(const wxString & fontName);
 		int GetWidth();
 		int GetHeight();
-		COpenGLShader * FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB);
+		COpenGLShader * FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB, const wxString& vertexName = "IDR_GLSL_VERTEX");
 
 		//void RenderToTexture();
         void RenderText(wxString text, float x, float y, float scale, vec3f color);

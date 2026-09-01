@@ -51,6 +51,6 @@ public:
 
 protected:
 	
-	static std::unique_ptr<GLTexture> pictureNext;
-	static std::unique_ptr<GLTexture> pictureFirst;
+	std::unique_ptr<GLTexture> pictureNext;
+	std::unique_ptr<GLTexture> pictureFirst;
 };

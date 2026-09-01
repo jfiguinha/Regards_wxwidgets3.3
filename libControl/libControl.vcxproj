@@ -887,6 +887,7 @@
     <ClInclude Include="MoveEffectTexture.h" />
     <ClInclude Include="NoneEffectTextureEffect.h" />
     <ClInclude Include="PageCurlFilter.h" />
+    <ClInclude Include="PageCurlMesh.h" />
     <ClInclude Include="PhotoCriteriaUtility.h" />
     <ClInclude Include="PrintEngine.h" />
     <ClInclude Include="ShowElement.h" />
@@ -939,6 +940,7 @@
     <ClCompile Include="InfosSeparationBarFace.cpp" />
     <ClCompile Include="MoveEffectTexture.cpp" />
     <ClCompile Include="PageCurlFilter.cpp" />
+    <ClCompile Include="PageCurlMesh.cpp" />
     <ClCompile Include="PhotoCriteriaUtility.cpp" />
     <ClCompile Include="PrintEngine.cpp" />
     <ClCompile Include="ShowElement.cpp" />

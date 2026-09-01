@@ -25,7 +25,7 @@ namespace Regards::OpenGL
 		void RenderTextureWithAlpha(GLTexture* textureTransition, const int& alpha, const int& width,
 			const int& height, const int& left, const int& top);
 
-		COpenGLShader * FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB);
+		COpenGLShader * FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB, const wxString& vertexName = "IDR_GLSL_VERTEX");
 		float* GetProjectionMatrix();
 		CRenderOpenGL* GetRenderOpengl()
 		{
