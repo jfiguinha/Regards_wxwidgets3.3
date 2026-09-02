@@ -112,7 +112,7 @@
     <ClCompile Include="PhotoCriteriaUtility.cpp">
       <Filter>ExifModification</Filter>
     </ClCompile>
-    <ClCompile Include="PageCurlMesh.cpp">
+    <ClCompile Include="ZoomEffectTexture.cpp">
       <Filter>Bitmap\PostEffect</Filter>
     </ClCompile>
   </ItemGroup>
@@ -249,7 +249,7 @@
     <ClInclude Include="PhotoCriteriaUtility.h">
       <Filter>ExifModification</Filter>
     </ClInclude>
-    <ClInclude Include="PageCurlMesh.h">
+    <ClInclude Include="ZoomEffectTexture.h">
       <Filter>Bitmap\PostEffect</Filter>
     </ClInclude>
   </ItemGroup>

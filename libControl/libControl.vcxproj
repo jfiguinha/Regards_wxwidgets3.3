@@ -887,7 +887,6 @@
     <ClInclude Include="MoveEffectTexture.h" />
     <ClInclude Include="NoneEffectTextureEffect.h" />
     <ClInclude Include="PageCurlFilter.h" />
-    <ClInclude Include="PageCurlMesh.h" />
     <ClInclude Include="PhotoCriteriaUtility.h" />
     <ClInclude Include="PrintEngine.h" />
     <ClInclude Include="ShowElement.h" />
@@ -905,6 +904,7 @@
     <ClInclude Include="VideoControlInterface.h" />
     <ClInclude Include="VideoControl_soft.h" />
     <ClInclude Include="VideoInterface.h" />
+    <ClInclude Include="ZoomEffectTexture.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\include\header.cpp">
@@ -940,7 +940,6 @@
     <ClCompile Include="InfosSeparationBarFace.cpp" />
     <ClCompile Include="MoveEffectTexture.cpp" />
     <ClCompile Include="PageCurlFilter.cpp" />
-    <ClCompile Include="PageCurlMesh.cpp" />
     <ClCompile Include="PhotoCriteriaUtility.cpp" />
     <ClCompile Include="PrintEngine.cpp" />
     <ClCompile Include="ShowElement.cpp" />
@@ -954,6 +953,7 @@
     <ClCompile Include="ThumbnailViewerEffect.cpp" />
     <ClCompile Include="ThumbnailViewerEffectWnd.cpp" />
     <ClCompile Include="VideoControl_soft.cpp" />
+    <ClCompile Include="ZoomEffectTexture.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

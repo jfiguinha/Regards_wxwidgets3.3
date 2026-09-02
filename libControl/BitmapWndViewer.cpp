@@ -14,6 +14,7 @@
 #include <RenderBitmapOpenGL.h>
 #include "PageCurlFilter.h"
 #include "MoveEffectTexture.h"
+#include "ZoomEffectTexture.h"
 #include "NoneEffectTextureEffect.h"
 #include "DiaporamaEffect.h"
 
@@ -63,6 +64,9 @@ std::unique_ptr<IAfterEffect> CBitmapWndViewer::AfterEffectPt(const int& numFilt
 
 	case IDM_AFTEREFFECT_PAGECURL:
 		return std::make_unique<CPageCurlFilter>();
+
+	case IDM_AFTEREFFECT_ZOOM:
+		return std::make_unique<CZoomEffectTextureEffect>();
 
 	case IDM_DIAPORAMA_FUSION:
 	case IDM_AFTEREFFECT_FUSION:
