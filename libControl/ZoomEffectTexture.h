@@ -1,27 +1,35 @@
+#pragma once
+#include "BitmapFusionFilter.h"
 
-#include "MoveEffectTexture.h"
+class CImageLoadingFormat;
+class IBitmapDisplay;
+
 namespace Regards::Filter
 {
-    class CZoomEffectTextureEffect : public CBitmapFusionFilter
-    {
-    public:
-        CZoomEffectTextureEffect() = default;
-        ~CZoomEffectTextureEffect() override = default;
+	class CZoomEffectTexture : public CBitmapFusionFilter
+	{
+	public:
+		CZoomEffectTexture();
+		~CZoomEffectTexture() override;
+		int GetTypeFilter() override;
 
-        void AfterRender(CImageLoadingFormat* nextPicture,
-            CRenderBitmapOpenGL* renderOpenGL,
-            IBitmapDisplay* bmpViewer,
-            const int& etape,
-            const float& scale_factor,
-            const bool& isNext,
-            float& ratio) override;
+		GLTexture* GetTexture(const int& numTexture) override;
 
-        void RenderMoveTexture(int& x,
-            int& y,
-            GLTexture* glTexture,
-            const int& etape,
-            const bool& isNext) override;
+		void SetTransitionBitmap(const bool& start, IBitmapDisplay* bmpViewer,
+			CImageLoadingFormat* bmpSecond) override;
 
-        int GetTypeFilter() override;
-    };
+		void AfterRender(CImageLoadingFormat* nextPicture, CRenderBitmapOpenGL* renderOpenGL,
+			IBitmapDisplay* bmpViewer, const int& etape, const float& scale_factor, const bool& isNext,
+			float& ratio) override
+		{};
+		bool RenderTexture(CImageLoadingFormat* nextPicture, CImageLoadingFormat* source, IBitmapDisplay* bmpViewer,
+			CRenderBitmapOpenGL* renderOpenGL, const float& scale_factor, const int& etape) override;
+
+	private:
+		void GenerateTexture(CImageLoadingFormat* nextPicture, CImageLoadingFormat* source, IBitmapDisplay* bmpViewer);
+		virtual void RenderTexture(CRenderBitmapOpenGL* renderOpenGL, const float& time, const float& invert,
+			const int& width, const int& height, const int& left, const int& top);
+
+		bool initTexture = false;
+	};
 }

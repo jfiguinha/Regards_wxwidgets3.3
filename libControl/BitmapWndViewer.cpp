@@ -66,7 +66,7 @@ std::unique_ptr<IAfterEffect> CBitmapWndViewer::AfterEffectPt(const int& numFilt
 		return std::make_unique<CPageCurlFilter>();
 
 	case IDM_AFTEREFFECT_ZOOM:
-		return std::make_unique<CZoomEffectTextureEffect>();
+		return std::make_unique<CZoomEffectTexture>();
 
 	case IDM_DIAPORAMA_FUSION:
 	case IDM_AFTEREFFECT_FUSION:
