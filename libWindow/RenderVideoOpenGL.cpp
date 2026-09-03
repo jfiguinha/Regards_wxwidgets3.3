@@ -116,43 +116,37 @@ bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool&
 void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatRect& rect, const float& iTime, int& widthOut, const int& heightOut, const bool& flipH, const bool& flipV, const int& angle, wxRect& rc, const bool& inverted)
 {
 	GLTexture* glTexture = renderOpenGL->GetGLTexture();
-	COpenGLShader * shader = nullptr;
-
+	COpenGLShader* shader = nullptr;
 
 	glTexture->Enable();
 	textureVideo->Enable();
 
 	if (effectParameter->interpolationQuality > 0 && effectParameter->effectEnable)
 	{
-		COpenGLShader* shader = nullptr;
 		shader = renderOpenGL->FindShader(L"IDR_GLSL_SHADER_VIDEO");
-
-		if (shader != nullptr)
+		if (shader != nullptr && shader->m_pShader->IsOk())
 		{
 			if (shader->EnableShader(renderOpenGL->projectionMatrix))
 			{
 				rect.top = (float)((textureVideo->GetHeight() - heightOut) / 2) / (float)textureVideo->GetHeight();
 				rect.bottom = 1.0f - rect.top;
-
 				rect.left = (float)((textureVideo->GetWidth() - widthOut) / 2) / (float)textureVideo->GetWidth();
 				rect.right = 1.0f - rect.left;
 
 				RenderShader(shader->m_pShader.get(), textureVideo.get(), effectParameter, rect, iTime);
 			}
-
 		}
 
 		int width_local = textureVideo->GetWidth();
 		int height_local = textureVideo->GetHeight();
-
 		int left_local = (renderOpenGL->GetWidth() - width_local) / 2;
 		int top_local = (renderOpenGL->GetHeight() - height_local) / 2;
 
 		renderOpenGL->RenderQuad(textureVideo.get(), left_local, top_local, inverted);
 	}
 	else
-	{       
-        bool updateViewport = false;
+	{
+		bool updateViewport = false;
 		if (FFrameBuffer == 0)
 		{
 			widthBuffer = glTexture->GetWidth();
@@ -172,13 +166,11 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 		if (FFrameBuffer != 0 && (widthBuffer != glTexture->GetWidth() || heightBuffer != glTexture->GetHeight()))
 		{
-			// cleanup
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDeleteFramebuffers(1, &FFrameBuffer);
 			FFrameBuffer = 0;
 		}
 
-		// setup FBO
 		if (FFrameBuffer == 0)
 		{
 			glGenFramebuffers(1, &FFrameBuffer);
@@ -187,63 +179,50 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			widthBuffer = glTexture->GetWidth();
 			heightBuffer = glTexture->GetHeight();
-            updateViewport = true;
+			updateViewport = true;
 		}
 
-		// render to FBO
-        bool renderInterpolationOk = false;
 		glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
-        if(updateViewport)
-            glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
+		if (updateViewport)
+			glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
 
 		textureVideo->Enable();
-		renderInterpolationOk = RenderShaderInterpolation(rc, flipH, flipV, angle, inverted, effectParameter->interpolation);
+		RenderShaderInterpolation(rc, flipH, flipV, angle, inverted, effectParameter->interpolation);
 		textureVideo->Disable();
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-        bool enableTexture= true;
+		// RE-RÉGLAGE DU VIEWPORT DE SORTIE (Essentiel après un rendu FBO en Core Profile)
+		glViewport(0, 0, renderOpenGL->GetWidth(), renderOpenGL->GetHeight());
+
 		if (effectParameter->effectEnable)
-		{            
+		{
 			shader = renderOpenGL->FindShader(L"IDR_GLSL_SHADER_VIDEO");
-			if (shader != nullptr)
+			if (shader != nullptr && shader->m_pShader->IsOk())
 			{
-                if(shader->m_pShader->IsOk())
-                {
-                    if(shader->EnableShader(renderOpenGL->projectionMatrix))
-                    {                    
-                        rect.top = (float)((glTexture->GetHeight() - rc.height) / 2) / (float)glTexture->GetHeight();
-                        rect.bottom = 1.0f - rect.top;
+				if (shader->EnableShader(renderOpenGL->projectionMatrix))
+				{
+					rect.top = (float)((glTexture->GetHeight() - rc.height) / 2) / (float)glTexture->GetHeight();
+					rect.bottom = 1.0f - rect.top;
+					rect.left = (float)((glTexture->GetWidth() - rc.width) / 2) / (float)glTexture->GetWidth();
+					rect.right = 1.0f - rect.left;
 
-                        rect.left = (float)((glTexture->GetWidth() - rc.width) / 2) / (float)glTexture->GetWidth();
-                        rect.right = 1.0f - rect.left;
-
-                        RenderShader(shader->m_pShader.get(), glTexture, effectParameter, rect, iTime);
-                    }
-                }
+					RenderShader(shader->m_pShader.get(), glTexture, effectParameter, rect, iTime);
+				}
 			}
 		}
 		else
 		{
-			
-
-			// 2. Récupération et configuration du shader par défaut Core Profile
 			shader = renderOpenGL->FindShader(L"IDR_GLSL_TEXTURE", GL_FRAGMENT_SHADER);
 			if (shader != nullptr)
 			{
-				// Envoi de la matrice de projection globale
 				shader->EnableShader(renderOpenGL->projectionMatrix);
-
-				// Liaison de la texture à l'uniform "textureScreen" du shader par défaut
 				shader->m_pShader->SetTexture("sourceTex", glTexture->GetTextureID(), 0);
 			}
 		}
 
 		glTexture->Enable();
-		// 3. Rendu géométrique moderne (gère le VAO et les layouts d'attributs)
-		// Arguments : (texture, width, height, flipH=false, flipV=false, left, top, inverted=false)
 		renderOpenGL->RenderQuad(glTexture, 0, 0, inverted);
-
 	}
 
 	if (shader != nullptr)
@@ -252,9 +231,6 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 	textureVideo->Disable();
 	glTexture->Disable();
 }
-
-
-
 
 void CRenderVideoOpenGL::SetSubtitle(cv::Mat& subtitle)
 {

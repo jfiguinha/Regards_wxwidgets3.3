@@ -68,31 +68,22 @@ void CRenderBitmapOpenGL::RenderTexture(GLTexture* pictureNext, const int& width
 {
 	if (!pictureNext) return;
 
-	// 1. Activation de la texture sur l'unité par défaut (0)
 	pictureNext->Enable();
 
-	// 2. Récupération et configuration du shader par défaut Core Profile
 	COpenGLShader* defaultShader = renderOpenGL->FindShader(L"IDR_GLSL_TEXTURE", GL_FRAGMENT_SHADER);
 	if (defaultShader != nullptr)
 	{
-		// Envoi de la matrice de projection globale
 		defaultShader->EnableShader(renderOpenGL->projectionMatrix);
-
-		// Liaison de la texture à l'uniform "textureScreen" du shader par défaut
 		defaultShader->m_pShader->SetTexture("sourceTex", pictureNext->GetTextureID(), 0);
 	}
 
-	// 3. Rendu géométrique moderne (gère le VAO et les layouts d'attributs)
-	// Arguments : (texture, width, height, flipH=false, flipV=false, left, top, inverted=false)
 	renderOpenGL->RenderQuad(pictureNext, width, height, false, false, left, top, false);
 
-	// 4. Nettoyage des états
 	if (defaultShader != nullptr)
 		defaultShader->DisableShader();
 
 	pictureNext->Disable();
 }
-
 
 
 float* CRenderBitmapOpenGL::GetProjectionMatrix()

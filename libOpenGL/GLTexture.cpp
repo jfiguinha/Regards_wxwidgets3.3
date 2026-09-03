@@ -1,8 +1,6 @@
-﻿#include <epoxy/gl.h>
-#include <header.h>
-
+﻿#include <header.h>
+#include <epoxy/gl.h>
 #include <opencv2/core.hpp>
-
 #include "GLTexture.h"
 #ifdef __APPLE__
 #include <OpenCL/cl_gl.h>
@@ -165,16 +163,16 @@ void CTextureGLPriv::DeleteTextureInterop() {
 // GLTexture Implementation
 // ---------------------------------------------------------------------------
 GLTexture::GLTexture(void) {
-    m_nTextureID = static_cast<GLuint>(-1);
+    m_nTextureID = 0;  // Standard OpenGL pour une texture vide/non générée
     width = 0;
     height = 0;
-    format = GL_BGRA;  // Remplacement de GL_BGRA_EXT obsolète
+    format = GL_BGRA;
     dataformat = GL_BGRA;
     pboSupported = false;
 }
 
 GLTexture::GLTexture(const int& textureId, const int& width, const int& height)
-    : m_nTextureID(textureId),
+    : m_nTextureID(static_cast<GLuint>(textureId)),
     width(width),
     height(height),
     format(GL_BGRA),
@@ -207,7 +205,6 @@ bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap,
 
     if (deleteOldData) {
         Delete();
-        m_nTextureID = static_cast<GLuint>(-1);
     }
 
     if (kind == cv::_InputArray::KindFlag::UMAT &&
@@ -235,10 +232,9 @@ bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap,
             application_context.openclOpenGLInterop) {
             if (bitmap.getWidth() != width || height != bitmap.getHeight()) {
                 Delete();
-                m_nTextureID = static_cast<GLuint>(-1);
             }
 
-            if (m_nTextureID == static_cast<GLuint>(-1)) {
+            if (m_nTextureID == 0) {
                 width = bitmap.getWidth();
                 height = bitmap.getHeight();
                 glGenTextures(1, &m_nTextureID);
@@ -278,7 +274,7 @@ bool GLTexture::SetData(Regards::Picture::CPictureArray& bitmap,
 bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap) {
     cv::Mat mat = bitmap.getMat();
     if (mat.empty()) {
-        std::cerr << "GLTexture::SetTextureDataCPU: bitmap is empty\n";
+        std::cerr << "GLTexture::SetTextureData: bitmap is empty\n";
         return false;
     }
 
@@ -292,8 +288,8 @@ bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap) {
     else if (ch == 4)
         rgba = mat;
     else {
-        std::cerr << "GLTexture::SetTextureDataCPU: unsupported channel count "
-            << ch << "\n";
+        std::cerr << "GLTexture::SetTextureData: unsupported channel count " << ch
+            << "\n";
         return false;
     }
 
@@ -306,7 +302,7 @@ bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap) {
 
     GLenum currentDataformat = GL_BGRA;
 
-    if (m_nTextureID == static_cast<GLuint>(-1)) {
+    if (m_nTextureID == 0) {
         glGenTextures(1, &m_nTextureID);
         glBindTexture(GL_TEXTURE_2D, m_nTextureID);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -315,58 +311,67 @@ bool GLTexture::SetTextureData(Regards::Picture::CPictureArray& bitmap) {
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, newW, newH, 0, currentDataformat,
             GL_UNSIGNED_BYTE, rgba.data);
-        checkErrors("SetTextureDataCPU glTexImage2D");
+        checkErrors("SetTextureData glTexImage2D");
     }
     else if (newW != width || newH != height) {
         glBindTexture(GL_TEXTURE_2D, m_nTextureID);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, newW, newH, 0, currentDataformat,
             GL_UNSIGNED_BYTE, rgba.data);
-        checkErrors("SetTextureDataCPU glTexImage2D resize");
+        checkErrors("SetTextureData glTexImage2D resize");
     }
     else {
         glBindTexture(GL_TEXTURE_2D, m_nTextureID);
         glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, newW, newH, currentDataformat,
             GL_UNSIGNED_BYTE, rgba.data);
-        checkErrors("SetTextureDataCPU glTexSubImage2D");
+        checkErrors("SetTextureData glTexSubImage2D");
     }
-
     glBindTexture(GL_TEXTURE_2D, 0);
-
     width = newW;
     height = newH;
     return true;
 }
-
 void GLTexture::SetFilterType(const GLint FilterType_i,
     const GLint FilterValue_i) {
     glBindTexture(GL_TEXTURE_2D, m_nTextureID);
     glTexParameteri(GL_TEXTURE_2D, FilterType_i, FilterValue_i);
 }
-
 void GLTexture::checkErrors(std::string desc) {
     GLenum e = glGetError();
     if (e != GL_NO_ERROR) {
-        std::cerr << "OpenGL error in "
-            " << desc << "
-            ": "
-            << reinterpret_cast<const char*>(gluErrorString(e)) << " (" << e
+        std::string errStr;
+        switch (e) {
+        case GL_INVALID_ENUM:
+            errStr = "GL_INVALID_ENUM";
+            break;
+        case GL_INVALID_VALUE:
+            errStr = "GL_INVALID_VALUE";
+            break;
+        case GL_INVALID_OPERATION:
+            errStr = "GL_INVALID_OPERATION";
+            break;
+        case GL_OUT_OF_MEMORY:
+            errStr = "GL_OUT_OF_MEMORY";
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            errStr = "GL_INVALID_FRAMEBUFFER_OPERATION";
+            break;
+        default:
+            errStr = "UNKNOWN_ERROR";
+            break;
+        }
+        std::cerr << "OpenGL error in " << desc << ": " << errStr << " (" << e
             << ")\n";
     }
 }
-void GLTexture::Delete() 
-{
+void GLTexture::Delete() {
     checkErrors("GLTexture::Delete() entry");
-    if (m_nTextureID != -1 && m_nTextureID != 0)
-    {
-        glBindTexture(GL_TEXTURE_2D, m_nTextureID);
+    if (m_nTextureID != 0) {
         if (pimpl_) pimpl_->DeleteTextureInterop();
         glDeleteTextures(1, &m_nTextureID);
-        m_nTextureID = -1;
+        m_nTextureID = 0;
         width = 0;
         height = 0;
-        glBindTexture(GL_TEXTURE_2D, 0);
         checkErrors("GLTexture::Delete() glDeleteTextures");
     }
 }
-
 void GLTexture::Enable() { glBindTexture(GL_TEXTURE_2D, m_nTextureID); }

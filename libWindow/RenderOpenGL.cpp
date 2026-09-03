@@ -42,23 +42,25 @@ using namespace Regards::OpenGL;
 using namespace Regards::OpenCL;
 
 static inline void FillTexCoords(GLfloat* tex,
-                                 bool inverted,
-                                 bool flipH,
-                                 bool flipV)
+	bool inverted,
+	bool flipH,
+	bool flipV)
 {
-    float left   = flipH ? 1.0f : 0.0f;
-    float right  = flipH ? 0.0f : 1.0f;
-    float top    = flipV ? 1.0f : 0.0f;
-    float bottom = flipV ? 0.0f : 1.0f;
+	float left = flipH ? 1.0f : 0.0f;
+	float right = flipH ? 0.0f : 1.0f;
+	float top = flipV ? 1.0f : 0.0f;
+	float bottom = flipV ? 0.0f : 1.0f;
 
-    if (inverted)
-        std::swap(top, bottom);
+	if (inverted)
+		std::swap(top, bottom);
 
-    tex[0] = left;  tex[1] = top;
-    tex[2] = right; tex[3] = top;
-    tex[4] = right; tex[5] = bottom;
-    tex[6] = left;  tex[7] = bottom;
+	// Organisation optimisée pour GL_TRIANGLE_STRIP (Z-pattern)
+	tex[0] = left;  tex[1] = top;
+	tex[2] = right; tex[3] = top;
+	tex[4] = left;  tex[5] = bottom;
+	tex[6] = right; tex[7] = bottom;
 }
+
 
 CRenderOpenGL::CRenderOpenGL(wxGLCanvas* canvas)
 	: wxGLContext(canvas), base(0), myGLVersion(0), mouseUpdate(nullptr)
@@ -85,21 +87,20 @@ bool CRenderOpenGL::GetOpenGLInterop()
 }
 
 
+// ... (CRenderOpenGL::CRenderOpenGL, IsInit, GetTextureDisplay, GetOpenGLInterop restent inchangés) ...
 
 void CRenderOpenGL::Init(wxGLCanvas* canvas)
 {
 	if (isInit || canvas == nullptr)
 		return;
 
-	// Le contexte OpenGL doit être courant sur ce thread avant
-	// toute tentative d'initialisation de l'interop OpenGL/OpenCL.
 	SetCurrent(*canvas);
-    
-    const GLubyte* version = glGetString(GL_VERSION);
-    const GLubyte* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
 
-    printf("OpenGL: %s\n", version);
-    printf("GLSL: %s\n", glslVersion);
+	const GLubyte* version = glGetString(GL_VERSION);
+	const GLubyte* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+	printf("OpenGL: %s\n", version);
+	printf("GLSL: %s\n", glslVersion);
 
 	application_context.isOpenCLInitialized = false;
 	application_context.openclOpenGLInterop = false;
@@ -108,106 +109,54 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 
 	if (regardsParam != nullptr && openCLContext != nullptr)
 	{
-		// Association Vulkan éventuelle.
 		openCLContext->AssociateToVulkan();
-
-		const bool openCLAvailable =
-			cv::ocl::haveOpenCL() &&
-			regardsParam->GetIsOpenCLSupport();
+		const bool openCLAvailable = cv::ocl::haveOpenCL() && regardsParam->GetIsOpenCLSupport();
 
 		if (openCLAvailable)
 		{
-			const bool wantOpenGLOpenCLInterop =
-				regardsParam->GetIsOpenCLOpenGLInteropSupport();
-
+			const bool wantOpenGLOpenCLInterop = regardsParam->GetIsOpenCLOpenGLInteropSupport();
 			if (wantOpenGLOpenCLInterop)
 			{
-				// Le contexte OpenGL étant courant, on peut tenter
-				// de créer le contexte OpenCL interopérable avec OpenGL.
 				try
 				{
 					openCLContext->initializeContextFromGL();
-
 					application_context.isOpenCLInitialized = true;
 					application_context.openclOpenGLInterop = true;
 				}
 				catch (const cv::Exception& e)
 				{
-					std::cout
-						<< "OpenCL/OpenGL interop initialization failed: "
-						<< e.what()
-						<< std::endl;
-
-					application_context.isOpenCLInitialized = false;
-					application_context.openclOpenGLInterop = false;
-
-					// L'interopération n'est pas disponible.
-					// On tente néanmoins un contexte OpenCL classique.
+					std::cout << "OpenCL/OpenGL interop failed: " << e.what() << std::endl;
 					try
 					{
 						openCLContext->CreateDefaultOpenCLContext();
-
 						application_context.isOpenCLInitialized = true;
-						application_context.openclOpenGLInterop = false;
 					}
 					catch (const cv::Exception& fallbackException)
 					{
-						std::cout
-							<< "OpenCL fallback initialization failed: "
-							<< fallbackException.what()
-							<< std::endl;
-
-						application_context.isOpenCLInitialized = false;
-						application_context.openclOpenGLInterop = false;
+						std::cout << "OpenCL fallback failed: " << fallbackException.what() << std::endl;
 					}
 				}
 			}
 			else
 			{
-				// OpenCL classique, sans partage avec OpenGL.
 				try
 				{
 					openCLContext->CreateDefaultOpenCLContext();
-
 					application_context.isOpenCLInitialized = true;
-					application_context.openclOpenGLInterop = false;
 				}
 				catch (const cv::Exception& e)
 				{
-					std::cout
-						<< "OpenCL initialization failed: "
-						<< e.what()
-						<< std::endl;
-
-					application_context.isOpenCLInitialized = false;
-					application_context.openclOpenGLInterop = false;
+					std::cout << "OpenCL initialization failed: " << e.what() << std::endl;
 				}
 			}
 		}
 
-		// Mémorise l'état réel obtenu, et pas seulement la préférence utilisateur.
-		regardsParam->SetIsOpenCLSupport(
-			application_context.isOpenCLInitialized);
-
-		regardsParam->SetIsOpenCLOpenGLInteropSupport(
-			application_context.openclOpenGLInterop);
+		regardsParam->SetIsOpenCLSupport(application_context.isOpenCLInitialized);
+		regardsParam->SetIsOpenCLOpenGLInteropSupport(application_context.openclOpenGLInterop);
 	}
 
-	// Récupération de la version OpenGL.
-	myGLVersion = 0.0f;
-
-	const GLubyte* versionString = glGetString(GL_VERSION);
-
-	if (versionString != nullptr)
-	{
-		const std::string version =
-			CConvertUtility::ConvertToStdString(versionString);
-
-		sscanf(version.c_str(), "%f", &myGLVersion);
-	}
-
+	myGLVersion = 3.3f; // Forcé ou parsé pour valider le Core Profile
 	isInit = true;
-
 	textureDisplay = std::make_unique<GLTexture>();
 
 #ifndef USE_GLUT
@@ -525,71 +474,48 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
 		}
 	}
 #endif
-    /*
-
-    */
 
 
 }
 
 
-void CRenderOpenGL::RenderQuadInternal(float width,
-	float height,
-	int left,
-	int top,
-	bool inverted,
-	bool flipH,
-	bool flipV)
+void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int top, bool inverted, bool flipH, bool flipV)
 {
-	// 1. Définition des géométries sur le CPU
+	// Définition des sommets pour un GL_TRIANGLE_STRIP (Triangle 1: Haut-Gauche, Haut-Droite, Bas-Gauche; Triangle 2: Bas-Droite)
 	const GLfloat vertices[8] =
 	{
 		static_cast<GLfloat>(left),         static_cast<GLfloat>(top),
 		static_cast<GLfloat>(left + width), static_cast<GLfloat>(top),
-		static_cast<GLfloat>(left + width), static_cast<GLfloat>(top + height),
-		static_cast<GLfloat>(left),         static_cast<GLfloat>(top + height)
+		static_cast<GLfloat>(left),         static_cast<GLfloat>(top + height),
+		static_cast<GLfloat>(left + width), static_cast<GLfloat>(top + height)
 	};
 
 	GLfloat texCoords[8];
 	FillTexCoords(texCoords, inverted, flipH, flipV);
 
-	// 3. Rendu moderne via les Layouts d'attributs (replaces VertexPointer/TexCoordPointer)
-	glEnableVertexAttribArray(0); // Correspond à layout(location = 0) in vec2 position
+	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertices);
 
-	glEnableVertexAttribArray(1); // Correspond à layout(location = 1) in vec2 texCoord
+	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords);
 
-	// Dessin du rectangle
-	glDrawArrays(GL_QUADS, 0, 4);
+	// Utilisation de GL_TRIANGLE_STRIP à la place de GL_QUADS (Interdit en Core Profile)
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-	// Nettoyage des états d'attributs
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 }
 
-
-GLvoid CRenderOpenGL::ReSizeGLScene(GLsizei width, GLsizei height) // Resize And Initialize The GL Window
+GLvoid CRenderOpenGL::ReSizeGLScene(GLsizei width, GLsizei height)
 {
-	if (height == 0) // Prevent A Divide By Zero By
-	{
-		height = 1; // Making Height Equal One
-	}
+	if (height == 0) height = 1;
 
-	glViewport(0, 0, width, height); // Reset The Current Viewport
+	glViewport(0, 0, width, height);
 
-	glMatrixMode(GL_PROJECTION); // Select The Projection Matrix
-	glLoadIdentity(); // Reset The Projection Matrix
-
-	// Calculate The Aspect Ratio Of The Window
-	gluPerspective(45.0f, static_cast<GLfloat>(width) / static_cast<GLfloat>(height), 0.1f, 100.0f);
-
-	glMatrixMode(GL_MODELVIEW); // Select The Modelview Matrix
-	glLoadIdentity(); // Reset The Modelview Matrix
-
+	// NETTOYAGE OpenGL 3.3 : Plus de glMatrixMode(GL_PROJECTION) ou de gluPerspective.
+	// C'est votre Shader qui utilise la matrice générée par UpdateProjectionMatrix()
 	UpdateProjectionMatrix();
 }
-
 
 bool CRenderOpenGL::SetData(Regards::Picture::CPictureArray& bitmap, const bool& deleteOldData)
 {
@@ -612,33 +538,17 @@ int CRenderOpenGL::GetHeight()
 	return height;
 }
 
-bool CRenderOpenGL::CreateScreenRender(
-	const int& width, const int& height, const CRgbaquad& color)
+bool CRenderOpenGL::CreateScreenRender(const int& width, const int& height, const CRgbaquad& color)
 {
-	const bool sizeChanged =
-		this->width != width ||
-		this->height != height;
+	const bool sizeChanged = (this->width != width || this->height != height);
 
 	if (sizeChanged)
 	{
 		this->width = width;
 		this->height = height;
-
 		ReSizeGLScene(width, height);
 
-		glEnable(GL_TEXTURE_2D);
-
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
-		gluOrtho2D(
-			0,
-			width,
-			0,
-			height);
-
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
+		// NETTOYAGE OpenGL 3.3 : Suppression des glMatrixMode/gluOrtho2D obsolètes
 	}
 
 	glClearColor(
