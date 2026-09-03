@@ -1,17 +1,17 @@
 #version 330 core
 
-uniform sampler2D sourceTex; // Image de départ (photo 1)
-uniform sampler2D targetTex; // Image d'arrivée (photo 2)
+uniform sampler2D sourceTex; // Image de dpart (photo 1)
+uniform sampler2D targetTex; // Image d'arrive (photo 2)
 
-uniform float time;          // Étape de 0.0 à 100.0
-uniform float invertTex;     // Inversion éventuelle de la texture
+uniform float time;          // tape de 0.0  100.0
+uniform float invertTex;     // Inversion ventuelle de la texture
 
 in vec2 TexCoord;
 out vec4 FragColor;
 
 // Configuration de l'effet de lentille de verre
-const float LENS_RADIUS = 0.45;     // Rayon maximal de la lentille sur l'écran
-const float REFRACTION_INDEX = 0.3; // Indice de réfraction du verre (force de la distorsion)
+const float LENS_RADIUS = 0.45;     // Rayon maximal de la lentille sur l'cran
+const float REFRACTION_INDEX = 0.3; // Indice de rfraction du verre (force de la distorsion)
 
 vec2 GetCorrectedCoord() {
     vec2 coord = TexCoord.xy;
@@ -26,41 +26,41 @@ void main(void) {
     // Normalisation du temps entre 0.0 et 1.0
     float progress = time / 100.0;
     
-    // Cloche d'intensité : la lentille apparaît et disparaît de manière fluide (courbe sinusoïdale)
+    // Cloche d'intensit : la lentille apparat et disparat de manire fluide (courbe sinusodale)
     float lensIntensity = sin(progress * 3.14159265);
     
     // Calcul de la distance actuelle par rapport au centre
     vec2 dir = uv - center;
     float dist = length(dir);
     
-    // Rayon dynamique de la lentille qui grandit puis rétrécit durant la transition
+    // Rayon dynamique de la lentille qui grandit puis rtrcit durant la transition
     float currentRadius = LENS_RADIUS * lensIntensity;
     
     vec2 distortedUV = uv;
     
-    // Si le pixel se trouve à l'intérieur de la lentille de verre virtuelle
+    // Si le pixel se trouve  l'intrieur de la lentille de verre virtuelle
     if (dist < currentRadius && currentRadius > 0.0) {
-        // Normalisation de la distance locale à l'intérieur de la sphère (0.0 au centre, 1.0 au bord)
+        // Normalisation de la distance locale  l'intrieur de la sphre (0.0 au centre, 1.0 au bord)
         float normalizedDist = dist / currentRadius;
         
-        // Calcul de la hauteur Z de la demi-sphère virtuelle à ce point (théorème de Pythagore)
+        // Calcul de la hauteur Z de la demi-sphre virtuelle  ce point (thorme de Pythagore)
         float z = sqrt(1.0 - normalizedDist * normalizedDist);
         
-        // La normale à la surface de la sphère de verre
+        // La normale  la surface de la sphre de verre
         vec3 normal = vec3(dir / currentRadius * normalizedDist, z);
         
-        // Simulation de la réfraction : on décale les coordonnées UV le long de la normale x et y
-        // Plus on se rapproche du bord de la lentille, plus la réfraction est prononcée
+        // Simulation de la rfraction : on dcale les coordonnes UV le long de la normale x et y
+        // Plus on se rapproche du bord de la lentille, plus la rfraction est prononce
         distortedUV -= normal.xy * REFRACTION_INDEX * (1.0 - z) * lensIntensity;
     }
     
-    // Sécurité pour éviter que les reflets ne dépassent des limites de la texture
+    // Scurit pour viter que les reflets ne dpassent des limites de la texture
     distortedUV = clamp(distortedUV, 0.0, 1.0);
     
-    // Échantillonnage des deux images avec les coordonnées réfractées par le verre
+    // chantillonnage des deux images avec les coordonnes rfractes par le verre
     vec4 colorSource = texture(sourceTex, distortedUV);
     vec4 colorTarget = texture(targetTex, distortedUV);
     
-    // Fondu enchaîné (Cross-fade) linéaire synchronisé avec la progression globale
+    // Fondu enchan (Cross-fade) linaire synchronis avec la progression globale
     FragColor = mix(colorSource, colorTarget, progress);
 }

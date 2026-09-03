@@ -6,7 +6,7 @@
 uniform sampler2D textureScreen;
 uniform float intensity;
 
-in vec2 TexCoord; // Reçu du vertex shader
+in vec2 TexCoord; // Reu du vertex shader
 out vec4 FragColor;
 
 void main(void)

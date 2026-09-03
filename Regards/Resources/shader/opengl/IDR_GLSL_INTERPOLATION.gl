@@ -21,7 +21,7 @@ float amount = (time / 100.0) * (MAX_AMOUNT - MIN_AMOUNT) + MIN_AMOUNT;
 float cylinderCenter = amount;
 float cylinderAngle = 2.0 * PI * amount;
 
-in vec2 TexCoord; // Reçu du Vertex Shader générique
+in vec2 TexCoord; // Reu du Vertex Shader gnrique
 out vec4 FragColor;
 
 vec2 TextureCoordonnee() {

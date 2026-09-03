@@ -4,11 +4,11 @@
 #version 330 core
 
 
-uniform sampler2D sourceTex; // Image de départ (photo 1)
-uniform sampler2D targetTex; // Image d'arrivée (photo 2)
+uniform sampler2D sourceTex; // Image de dpart (photo 1)
+uniform sampler2D targetTex; // Image d'arrive (photo 2)
 
-uniform float time;          // Étape de 0.0 à 100.0
-uniform float invertTex;     // Inversion éventuelle de la texture
+uniform float time;          // tape de 0.0  100.0
+uniform float invertTex;     // Inversion ventuelle de la texture
 
 in vec2 TexCoord;
 out vec4 FragColor;
@@ -35,10 +35,10 @@ void main(void) {
     vec2 dir = uv - center;
     float dist = length(dir);
     
-    // Cloche d'intensité : l'effet est maximal à progress = 0.5 et nul à 0.0 et 1.0
+    // Cloche d'intensit : l'effet est maximal  progress = 0.5 et nul  0.0 et 1.0
     float waveIntensity = sin(progress * 3.14159265);
     
-    // Calcul de la déformation sinusoïdale basée sur la distance et le temps
+    // Calcul de la dformation sinusodale base sur la distance et le temps
     // L'utilisation de 'dir / dist' permet de repousser/attirer les pixels radialement
     vec2 distortedUV = uv;
     if (dist > 0.0) {
@@ -46,13 +46,13 @@ void main(void) {
         distortedUV += (dir / dist) * wave * AMPLITUDE * waveIntensity;
     }
     
-    // Assurer que les coordonnées restent dans les limites de la texture [0.0, 1.0]
+    // Assurer que les coordonnes restent dans les limites de la texture [0.0, 1.0]
     distortedUV = clamp(distortedUV, 0.0, 1.0);
     
-    // Échantillonnage des deux images avec les coordonnées déformées
+    // chantillonnage des deux images avec les coordonnes dformes
     vec4 colorSource = texture(sourceTex, distortedUV);
     vec4 colorTarget = texture(targetTex, distortedUV);
     
-    // Fondu enchaîné progressif (Cross-fade) synchronisé avec la puissance des vagues
+    // Fondu enchan progressif (Cross-fade) synchronis avec la puissance des vagues
     FragColor = mix(colorSource, colorTarget, progress);
 }
