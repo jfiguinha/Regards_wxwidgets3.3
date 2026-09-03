@@ -17,6 +17,7 @@
 #include "ZoomEffectTexture.h"
 #include "NoneEffectTextureEffect.h"
 #include "DiaporamaEffect.h"
+#include "GlassLensFilter.h"
 #include "WaveTextureFilter.h"
 #include <MainParam.h>
 #include <ParamInit.h>
@@ -67,6 +68,9 @@ std::unique_ptr<IAfterEffect> CBitmapWndViewer::AfterEffectPt(const int& numFilt
 
 	case IDM_AFTEREFFECT_WAVE:
 		return std::make_unique<CWaveTextureFiltre>();
+
+	case IDM_AFTEREFFECT_GLASSLENS:
+		return std::make_unique<CGlassLensFilter>();
 
 	case IDM_AFTEREFFECT_ZOOM:
 		return std::make_unique<CZoomEffectTexture>();
