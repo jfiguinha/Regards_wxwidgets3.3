@@ -79,7 +79,7 @@ void CRenderBitmapOpenGL::RenderTexture(GLTexture* pictureNext, const int& width
 		defaultShader->EnableShader(renderOpenGL->projectionMatrix);
 
 		// Liaison de la texture à l'uniform "textureScreen" du shader par défaut
-		defaultShader->m_pShader->SetTexture("textureScreen", pictureNext->GetTextureID(), 0);
+		defaultShader->m_pShader->SetTexture("sourceTex", pictureNext->GetTextureID(), 0);
 	}
 
 	// 3. Rendu géométrique moderne (gère le VAO et les layouts d'attributs)
@@ -146,7 +146,7 @@ void CRenderBitmapOpenGL::ShowArrowNext()
 	if (defaultShader != nullptr)
 	{
 		defaultShader->EnableShader(renderOpenGL->projectionMatrix);
-		defaultShader->m_pShader->SetTexture("textureScreen", textureArrowRight->GetTextureID(), 0);
+		defaultShader->m_pShader->SetTexture("sourceTex", textureArrowRight->GetTextureID(), 0);
 	}
 
 	renderOpenGL->RenderQuad(textureArrowRight.get(), left, top);
@@ -174,7 +174,7 @@ void CRenderBitmapOpenGL::ShowArrowPrevious()
 	if (defaultShader != nullptr)
 	{
 		defaultShader->EnableShader(renderOpenGL->projectionMatrix);
-		defaultShader->m_pShader->SetTexture("textureScreen", textureArrowLeft->GetTextureID(), 0);
+		defaultShader->m_pShader->SetTexture("sourceTex", textureArrowLeft->GetTextureID(), 0);
 	}
 
 	renderOpenGL->RenderQuad(textureArrowLeft.get(), left, top);

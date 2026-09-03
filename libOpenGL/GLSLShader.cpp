@@ -44,7 +44,7 @@ bool GLSLShader::check_shader_compile_status(GLuint obj)
 
 		return false;
 	}
-	//printf("check_shader_compile_status is OK \n");
+	printf("check_shader_compile_status is OK \n");
 	return true;
 }
 
@@ -68,6 +68,7 @@ bool GLSLShader::check_program_link_status(GLuint obj)
 
 		return false;
 	}
+    printf("check_program_link_status is OK \n");
 	return true;
 }
 

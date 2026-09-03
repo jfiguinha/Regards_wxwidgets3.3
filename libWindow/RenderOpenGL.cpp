@@ -94,6 +94,12 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 	// Le contexte OpenGL doit être courant sur ce thread avant
 	// toute tentative d'initialisation de l'interop OpenGL/OpenCL.
 	SetCurrent(*canvas);
+    
+    const GLubyte* version = glGetString(GL_VERSION);
+    const GLubyte* glslVersion = glGetString(GL_SHADING_LANGUAGE_VERSION);
+
+    printf("OpenGL: %s\n", version);
+    printf("GLSL: %s\n", glslVersion);
 
 	application_context.isOpenCLInitialized = false;
 	application_context.openclOpenGLInterop = false;
