@@ -117,15 +117,54 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 {
 	GLTexture* glTexture = renderOpenGL->GetGLTexture();
 	COpenGLShader * shader = nullptr;
-	
-    
-    
+
+
 	glTexture->Enable();
 	textureVideo->Enable();
-	if (frameBufferSupport && effectParameter->interpolationQuality == 0 && (effectParameter->interpolation > 0 || effectParameter->effectEnable))
+
+	if (effectParameter->interpolationQuality > 0 && effectParameter->effectEnable)
+	{
+		COpenGLShader* shader = nullptr;
+		shader = renderOpenGL->FindShader(L"IDR_GLSL_SHADER_VIDEO");
+
+		if (shader != nullptr)
+		{
+			if (shader->EnableShader(renderOpenGL->projectionMatrix))
+			{
+				rect.top = (float)((textureVideo->GetHeight() - heightOut) / 2) / (float)textureVideo->GetHeight();
+				rect.bottom = 1.0f - rect.top;
+
+				rect.left = (float)((textureVideo->GetWidth() - widthOut) / 2) / (float)textureVideo->GetWidth();
+				rect.right = 1.0f - rect.left;
+
+				RenderShader(shader->m_pShader.get(), textureVideo.get(), effectParameter, rect, iTime);
+			}
+
+		}
+
+		int width_local = textureVideo->GetWidth();
+		int height_local = textureVideo->GetHeight();
+
+		int left_local = (renderOpenGL->GetWidth() - width_local) / 2;
+		int top_local = (renderOpenGL->GetHeight() - height_local) / 2;
+
+		renderOpenGL->RenderQuad(textureVideo.get(), left_local, top_local, inverted);
+	}
+	else
 	{       
         bool updateViewport = false;
 		if (FFrameBuffer == 0)
+		{
+			widthBuffer = glTexture->GetWidth();
+			heightBuffer = glTexture->GetHeight();
+		}
+
+		if (angle == 90 || angle == 270)
+		{
+			widthBuffer = glTexture->GetHeight();
+			heightBuffer = glTexture->GetWidth();
+		}
+		else
 		{
 			widthBuffer = glTexture->GetWidth();
 			heightBuffer = glTexture->GetHeight();
@@ -156,18 +195,11 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 		glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
         if(updateViewport)
             glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
-		if (effectParameter->interpolation > 0)
-		{
-			textureVideo->Enable();
-			renderInterpolationOk = RenderShaderInterpolation(rc, flipH, flipV, angle, inverted, effectParameter->interpolation);
-			textureVideo->Disable();
-		}
-		if(!renderInterpolationOk)
-		{
-			textureVideo->Enable();
-			RenderWithInterpolation(renderOpenGL->GetWidth(), renderOpenGL->GetHeight(), flipH, flipV, angle, rc, !inverted);
-			textureVideo->Disable();
-		}
+
+		textureVideo->Enable();
+		renderInterpolationOk = RenderShaderInterpolation(rc, flipH, flipV, angle, inverted, effectParameter->interpolation);
+		textureVideo->Disable();
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         bool enableTexture= true;
@@ -187,52 +219,31 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
                         rect.right = 1.0f - rect.left;
 
                         RenderShader(shader->m_pShader.get(), glTexture, effectParameter, rect, iTime);
-                        
-                        enableTexture = false;
                     }
                 }
 			}
 		}
-		if(enableTexture)
+		else
 		{
-			glTexture->Enable();
+			
+
+			// 2. Récupération et configuration du shader par défaut Core Profile
+			shader = renderOpenGL->FindShader(L"IDR_GLSL_TEXTURE", GL_FRAGMENT_SHADER);
+			if (shader != nullptr)
+			{
+				// Envoi de la matrice de projection globale
+				shader->EnableShader(renderOpenGL->projectionMatrix);
+
+				// Liaison de la texture à l'uniform "textureScreen" du shader par défaut
+				shader->m_pShader->SetTexture("sourceTex", glTexture->GetTextureID(), 0);
+			}
 		}
 
+		glTexture->Enable();
+		// 3. Rendu géométrique moderne (gère le VAO et les layouts d'attributs)
+		// Arguments : (texture, width, height, flipH=false, flipV=false, left, top, inverted=false)
 		renderOpenGL->RenderQuad(glTexture, 0, 0, inverted);
 
-
-	}
-	else if(effectParameter->interpolationQuality > 0)
-	{
-		COpenGLShader* shader = nullptr;
-		shader = renderOpenGL->FindShader(L"IDR_GLSL_SHADER_VIDEO");
-
-		if (shader != nullptr)
-		{
-			if(shader->EnableShader(renderOpenGL->projectionMatrix))
-            {
-                rect.top = (float)((textureVideo->GetHeight() - heightOut) / 2) / (float)textureVideo->GetHeight();
-                rect.bottom = 1.0f - rect.top;
-
-                rect.left = (float)((textureVideo->GetWidth() - widthOut) / 2) / (float)textureVideo->GetWidth();
-                rect.right = 1.0f - rect.left;
-
-                RenderShader(shader->m_pShader.get(), textureVideo.get(), effectParameter, rect, iTime);
-            }
-
-		}
-
-		int width_local = textureVideo->GetWidth();
-		int height_local = textureVideo->GetHeight();
-
-		int left_local = (renderOpenGL->GetWidth() - width_local) / 2;
-		int top_local = (renderOpenGL->GetHeight() - height_local) / 2;
-
-		renderOpenGL->RenderQuad(textureVideo.get(), left_local, top_local, inverted);
-	}
-	else
-	{
-		RenderWithInterpolation(renderOpenGL->GetWidth(), renderOpenGL->GetHeight(), flipH, flipV, angle, rc, inverted);
 	}
 
 	if (shader != nullptr)
@@ -240,156 +251,9 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 	textureVideo->Disable();
 	glTexture->Disable();
-
 }
 
-void CRenderVideoOpenGL::RenderWithInterpolation(const int& widthOut, const int& heightOut, const bool& flipH, const bool& flipV, const int &angle, wxRect & rc, const bool& inverted)
-{
 
-	glPushMatrix();
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY_EXT);
-	glEnableClientState(GL_VERTEX_ARRAY);
-
-	bool _flipH = flipH;
-	bool _flipV = flipV;
-
-	//float xFactor = (float)rc.width / (float)textureVideo->GetWidth();
-	//float yFactor = (float)rc.height / (float)textureVideo->GetHeight();
-
-	int left = 0;
-	int top = 0;
-
-	if (renderOpenGL->GetWidth() > rc.width)
-	{
-		left = (renderOpenGL->GetWidth() - rc.width) / 2;
-	}
-	else
-	{
-		int diff = rc.width - renderOpenGL->GetWidth();
-		left = (diff - rc.x) - diff;
-	}
-
-	if (renderOpenGL->GetHeight() > rc.height)
-	{
-		top = (renderOpenGL->GetHeight() - rc.height) / 2;
-	}
-	else
-	{
-		top = rc.y - (rc.height - renderOpenGL->GetHeight());
-	}
-
-	GLfloat vertices[] = {
-		static_cast<GLfloat>(left), static_cast<GLfloat>(top),
-		static_cast<GLfloat>(rc.width) + static_cast<GLfloat>(left), static_cast<GLfloat>(top),
-		static_cast<GLfloat>(rc.width) + static_cast<GLfloat>(left),
-		static_cast<GLfloat>(rc.height) + static_cast<GLfloat>(top),
-		static_cast<GLfloat>(left), static_cast<GLfloat>(rc.height) + static_cast<GLfloat>(top)
-	};
-
-	if (angle == 180)
-	{
-		_flipH = !_flipH;
-		_flipV = !_flipV;
-	}
-
-	GLfloat texVertices[8];
-
-	if (inverted)
-	{
-		GLfloat vertices[] = {
-			0, 1,
-			1, 1,
-			1, 0,
-			0, 0
-		};
-
-		if (_flipV)
-		{
-			vertices[1] = 0;
-			vertices[3] = 0;
-			vertices[5] = 1;
-			vertices[7] = 1;
-		}
-
-		if (_flipH)
-		{
-			vertices[0] = 1;
-			vertices[2] = 0;
-			vertices[4] = 0;
-			vertices[6] = 1;
-		}
-
-		memcpy(&texVertices, &vertices, sizeof(GLfloat) * 8);
-	}
-	else
-	{
-		GLfloat vertices[] = {
-			0, 0,
-			1, 0,
-			1, 1,
-			0, 1
-		};
-
-		if (_flipV)
-		{
-			vertices[1] = 1;
-			vertices[3] = 1;
-			vertices[5] = 0;
-			vertices[7] = 0;
-		}
-
-		if (_flipH)
-		{
-			vertices[0] = 1;
-			vertices[2] = 0;
-			vertices[4] = 0;
-			vertices[6] = 1;
-		}
-
-		memcpy(&texVertices, &vertices, sizeof(GLfloat) * 8);
-	}
-
-	// If a rotation is requested (90/180/270), rotate the texture coordinates
-// so the displayed texture is rotated accordingly. The texVertices array
-// contains 4 pairs: (u0,v0),(u1,v1),(u2,v2),(u3,v3) matching the quad
-// vertices order. We remap these pairs by index rotations.
-	if (angle == 90 || angle == 270)
-	{
-		GLfloat rotated[8];
-		int offset = 0;
-		if (angle == 90)
-		{
-			// 90 deg clockwise -> new[i] = old[(i+3)%4]
-			//offset = 3;
-			offset = 3;
-		}
-		else if (angle == 270)
-		{
-			// 270 deg (or 90 ccw) -> new[i] = old[(i+1)%4]
-			//offset = 1;
-			offset = 1;
-		}
-
-		for (int i = 0; i < 4; ++i)
-		{
-			int src = (i + offset) % 4;
-			rotated[i * 2] = texVertices[src * 2];
-			rotated[i * 2 + 1] = texVertices[src * 2 + 1];
-		}
-
-		memcpy(texVertices, rotated, sizeof(rotated));
-	}
-
-	glVertexPointer(2, GL_FLOAT, 0, vertices);
-	glTexCoordPointer(2, GL_FLOAT, 0, texVertices);
-
-	glDrawArrays(GL_QUADS, 0, 4);
-
-	glDisableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
-	glPopMatrix();
-}
 
 
 void CRenderVideoOpenGL::SetSubtitle(cv::Mat& subtitle)
