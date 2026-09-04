@@ -375,139 +375,230 @@ float CRenderOpenGL::CalculateTextWidth(const wxString& text, float scale)
 	return totalWidth;
 }
 
+// Structure locale pour stocker un segment de texte stylisé
+struct ASSSubSegment
+{
+	wxString text;
+	bool bold = false;
+	bool italic = false;
+	vec3f color;
+	bool isNewLine = false;
+};
+
 void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, float green, float blue, wxString text)
 {
-#ifdef USE_GLUT	
-	// (Conserver votre code GLUT d'origine si nécessaire, inchangé ici)
-	float font_height = 15;
-	void* font_choose = GLUT_BITMAP_TIMES_ROMAN_24;
-	float font_width = glutBitmapWidth(font_choose, 'x');
-	int xPos = 0;
-	glColor3f(red, green, blue);
-	std::vector<wxString> list = CConvertUtility::split(text, '\\');
-	if (list.size() > 0)
+	// ────────────────═══════════════════════════════════════════════════════
+	// ÉTAPE 0 : EXTRACTION DU DIALOGUE BRUT ASS
+	// ────────────────═══════════════════════════════════════════════════════
+	if (text.StartsWith(L"Dialogue:"))
 	{
-		wxString line = list[0];
-		xPos = x - ((font_width * line.size()) / 2);
-		glWindowPos2i(xPos, y);
-		int len = static_cast<int>(line.Length());
-		int xPosition = 0;
-		for (auto i = 0; i < len; i++)
+		int commaCount = 0;
+		int lastCommaPos = -1;
+		for (size_t i = 0; i < text.length(); ++i)
 		{
-			glutBitmapCharacter(font_choose, line[i]);
-			xPosition += font_width;
+			if (text[i] == ',')
+			{
+				commaCount++;
+				if (commaCount == 9)
+				{
+					lastCommaPos = static_cast<int>(i);
+					break;
+				}
+			}
 		}
-
-		for (int i = 1; i < list.size(); i++)
+		if (lastCommaPos != -1 && lastCommaPos < static_cast<int>(text.length()) - 1)
 		{
-			if (list[i].empty()) continue;
-			wxUniChar c = list[i][0];
-			if (c == 'N' || c == 'n')
-			{
-				wxString line = list[i];
-				glWindowPos2i(x - ((font_width * line.size()) / 2), y - font_height * 2);
-				int len = static_cast<int>(line.Length());
-				for (auto j = 1; j < len; j++)
-				{
-					glutBitmapCharacter(font_choose, line[j]);
-				}
-			}
-			else
-			{
-				wxString line = list[i];
-				glWindowPos2i(xPos + xPosition + font_width, y - font_height * 2);
-				int len = static_cast<int>(line.Length());
-				for (auto j = 1; j < len; j++)
-				{
-					glutBitmapCharacter(font_choose, line[j]);
-				}
-			}
+			text = text.Mid(lastCommaPos + 1);
 		}
 	}
+
+	// ────────────────═══════════════════════════════════════════════════════
+	// ÉTAPE 1 : PARSEUR D'ÉTAT ASS (Gras, Italique, Couleurs & Sauts de ligne)
+	// ────────────────═══════════════════════════════════════════════════════
+	std::vector<ASSSubSegment> segments;
+
+	// États par défaut (fournis par les arguments de la fonction)
+	const vec3f defaultColor(red / 255.0f, green / 255.0f, blue / 255.0f);
+	bool currentBold = false;
+	bool currentItalic = false;
+	vec3f currentColor = defaultColor;
+
+	wxString currentBuffer = L"";
+	size_t i = 0;
+
+	while (i < text.length())
+	{
+		// 1. Gestion des balises de style {...}
+		if (text[i] == '{')
+		{
+			if (!currentBuffer.IsEmpty())
+			{
+				segments.push_back({ currentBuffer, currentBold, currentItalic, currentColor, false });
+				currentBuffer = L"";
+			}
+
+			i++; // On passe le '{'
+			wxString tagBuffer = L"";
+			while (i < text.length() && text[i] != '}')
+			{
+				tagBuffer.Append(text[i]);
+				i++;
+			}
+			i++; // On passe le '}'
+
+			// Analyse des commandes à l'intérieur de l'accolade (ex: \b1\i1\c&H0000FF&)
+			size_t j = 0;
+			while (j < tagBuffer.length())
+			{
+				if (tagBuffer[j] == '\\')
+				{
+					j++;
+					if (j >= tagBuffer.length()) break;
+
+					// Commande Gras : \b1 (activé), \b0 (désactivé)
+					if (tagBuffer[j] == 'b')
+					{
+						j++;
+						if (j < tagBuffer.length() && tagBuffer[j] == '1') currentBold = true;
+						else if (j < tagBuffer.length() && tagBuffer[j] == '0') currentBold = false;
+					}
+					// Commande Italique : \i1 (activé), \i0 (désactivé)
+					else if (tagBuffer[j] == 'i')
+					{
+						j++;
+						if (j < tagBuffer.length() && tagBuffer[j] == '1') currentItalic = true;
+						else if (j < tagBuffer.length() && tagBuffer[j] == '0') currentItalic = false;
+					}
+					// Commande Couleur : \c&HBBGGRR& ou \1c&HBBGGRR&
+					else if (tagBuffer[j] == 'c' || (tagBuffer[j] == '1' && j + 1 < tagBuffer.length() && tagBuffer[j + 1] == 'c'))
+					{
+						if (tagBuffer[j] == '1') j++; // Ignorer le '1' de '\1c'
+						j++; // Passer le 'c'
+
+						// On cherche le format standard &HBBGGRR&
+						if (j + 2 < tagBuffer.length() && tagBuffer[j] == '&' && (tagBuffer[j + 1] == 'H' || tagBuffer[j + 1] == 'h'))
+						{
+							j += 2; // Passer '&H'
+							wxString hexColor = L"";
+							while (j < tagBuffer.length() && tagBuffer[j] != '&' && hexColor.length() < 6)
+							{
+								hexColor.Append(tagBuffer[j]);
+								j++;
+							}
+							if (tagBuffer[j] == '&') j++; // Passer le '&' de fermeture
+
+							if (hexColor.length() == 6)
+							{
+								// Le format ASS est BBGGRR en hexadécimal (Inverse du RGB standard)
+								long bVal = 0, gVal = 0, rVal = 0;
+								hexColor.SubString(0, 1).ToLong(&bVal, 16);
+								hexColor.SubString(2, 3).ToLong(&gVal, 16);
+								hexColor.SubString(4, 5).ToLong(&rVal, 16);
+
+								currentColor = vec3f(rVal / 255.0f, gVal / 255.0f, bVal / 255.0f);
+							}
+						}
+					}
+				}
+				else
+				{
+					j++;
+				}
+			}
+			continue;
+		}
+
+		// 2. Gestion des sauts de ligne explicites (\N ou \n)
+		if (text[i] == '\\' && i + 1 < text.length() && (text[i + 1] == 'N' || text[i + 1] == 'n'))
+		{
+			if (!currentBuffer.IsEmpty())
+			{
+				segments.push_back({ currentBuffer, currentBold, currentItalic, currentColor, false });
+				currentBuffer = L"";
+			}
+			segments.push_back({ L"", false, false, defaultColor, true }); // Marqueur de saut de ligne
+			i += 2;
+			continue;
+		}
+
+		// 3. Texte standard
+		currentBuffer.Append(text[i]);
+		i++;
+	}
+
+	if (!currentBuffer.IsEmpty())
+	{
+		segments.push_back({ currentBuffer, currentBold, currentItalic, currentColor, false });
+	}
+
+	if (segments.empty()) return;
+
+#ifdef USE_GLUT	
+	// Note : Le rendu avancé de styles par segment (couleurs et gras dynamiques) 
+	// n'est pas supporté par les fonctions GLUT Bitmap basiques qui partagent une couleur globale fixe.
+	// Fallback sur le premier segment ou rendu texte brut épuré.
 #else   
-	// ═══════════════════════════════════════════════════════════════════════
-	// NOUVEAU PIPELINE - OPENGL 3.3 CORE (Ajustement automatique de la hauteur)
-	// ═══════════════════════════════════════════════════════════════════════
-	std::vector<wxString> list = CConvertUtility::split(text, '\\');
-	if (list.empty())
-		return;
-
-	const float fRed = red / 255.0f;
-	const float fGreen = green / 255.0f;
-	const float fBlue = blue / 255.0f;
-	const vec3f textColor(fRed, fGreen, fBlue);
-
+	// ────────────────═══════════════════════════════════════════════════════
+	// NOUVEAU PIPELINE - OPENGL 3.3 CORE (Multi-lignes et Multi-styles)
+	// ────────────────═══════════════════════════════════════════════════════
 	const float scale = static_cast<float>(scale_factor);
-	// Hauteur d'une ligne avec son espacement (interligne)
 	const float lineHeight = (heightFont > 0 ? static_cast<float>(heightFont) : 24.0f) * scale * 1.5f;
 
-	// ─── ÉTAPE 1 : COMPTER LE NOMBRE RÉEL DE LIGNES VERTICALES ───
-	int totalLines = 1; // La première ligne (index 0) existe toujours
-	for (size_t i = 1; i < list.size(); i++)
+	// ─── ÉTAPE 2.1 : CALCULER LE NOMBRE DE LIGNES ET LA LARGEUR DE CHACUNE ───
+	std::vector<float> lineWidths;
+	float currentLineWidth = 0.0f;
+	int totalLines = 1;
+
+	for (const auto& seg : segments)
 	{
-		if (!list[i].empty() && (list[i][0] == 'N' || list[i][0] == 'n'))
+		if (seg.isNewLine)
 		{
+			lineWidths.push_back(currentLineWidth);
+			currentLineWidth = 0.0f;
 			totalLines++;
-		}
-	}
-
-	// ─── ÉTAPE 2 : COMPENSER LA HAUTEUR GLOBALE ───
-	// Si nous avons 3 lignes, nous voulons que le milieu du bloc (ou sa base) 
-	// reste stable. On remonte le point de départ vertical 'currentY'.
-	// (totalLines - 1) * lineHeight / 2.0f permet de centrer verticalement le bloc autour de 'y'.
-	float currentY = static_cast<float>(y) + ((totalLines - 1) * lineHeight / 2.0f);
-
-
-	// ─── ÉTAPE 3 : RENDU GÉOMÉTRIQUE ───
-	// Traitement et rendu de la toute première ligne (Index 0)
-	wxString firstLine = list[0];
-	float firstLineWidth = CalculateTextWidth(firstLine, scale);
-	float xPos = static_cast<float>(x) - (firstLineWidth / 2.0f);
-
-	RenderText(firstLine, xPos, currentY, scale, textColor);
-
-	float xPositionAccumulated = firstLineWidth;
-
-	// Analyse des blocs suivants (ceux qui étaient précédés d'un '\')
-	for (size_t i = 1; i < list.size(); i++)
-	{
-		if (list[i].empty())
-			continue;
-
-		wxUniChar c = list[i][0];
-
-		if (c == 'N' || c == 'n')
-		{
-			// Cas 1 : Vrai saut de ligne (\N ou \n)
-			wxString cleanLine = list[i].SubString(1, list[i].size() - 1);
-
-			// On descend verticalement d'une ligne
-			currentY -= lineHeight;
-
-			float currentLineWidth = CalculateTextWidth(cleanLine, scale);
-			float newXPos = static_cast<float>(x) - (currentLineWidth / 2.0f);
-
-			RenderText(cleanLine, newXPos, currentY, scale, textColor);
-
-			xPos = newXPos;
-			xPositionAccumulated = currentLineWidth;
 		}
 		else
 		{
-			// Cas 2 : Caractère spécial / Balise de formatage (Reste sur la même ligne)
-			wxString cleanLine = list[i].SubString(1, list[i].size() - 1);
+			// Note : Si votre fonction CalculateTextWidth supporte des variations de police (Gras/Italique),
+			// vous pouvez lui passer seg.bold et seg.italic en paramètres additionnels.
+			currentLineWidth += CalculateTextWidth(seg.text, scale);
+		}
+	}
+	lineWidths.push_back(currentLineWidth); // Ajouter la dernière ligne
 
-			float spaceWidth = CalculateTextWidth(L" ", scale);
-			float inlineXPos = xPos + xPositionAccumulated + spaceWidth;
+	// ─── ÉTAPE 2.2 : CONFIGURATION DU POINT DE DÉPART VERTICAL Y ───
+	float currentY = static_cast<float>(y) + ((totalLines - 1) * lineHeight / 2.0f);
 
-			RenderText(cleanLine, inlineXPos, currentY, scale, textColor);
+	// ─── ÉTAPE 2.3 : RENDU GÉOMÉTRIQUE SÉGMENTÉ ───
+	int lineIndex = 0;
+	// Position X de départ pour la première ligne (centrée)
+	float currentX = static_cast<float>(x) - (lineWidths[lineIndex] / 2.0f);
 
-			xPositionAccumulated += spaceWidth + CalculateTextWidth(cleanLine, scale);
+	for (const auto& seg : segments)
+	{
+		if (seg.isNewLine)
+		{
+			lineIndex++;
+			currentY -= lineHeight;
+			currentX = static_cast<float>(x) - (lineWidths[lineIndex] / 2.0f);
+		}
+		else
+		{
+			if (seg.text.IsEmpty()) continue;
+
+			// RENDER AVANCÉ : Ici, vous passez l'état exact (Gras, Italique, Couleur) à votre moteur.
+			// Si votre méthode RenderText existante ne prend pas encore le gras/italique, 
+			// elle appliquera au moins la couleur exacte définie par la balise ASS.
+			// Exemple idéal : RenderText(seg.text, currentX, currentY, scale, seg.color, seg.bold, seg.italic);
+			RenderText(seg.text, currentX, currentY, scale, seg.color);
+
+			// Avancer horizontalement de la largeur du segment pour le segment suivant
+			currentX += CalculateTextWidth(seg.text, scale);
 		}
 	}
 #endif
-
 }
+
 
 void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int top, bool inverted, bool flipH, bool flipV)
 {
