@@ -1,8 +1,4 @@
 ﻿#include <header.h>
-// stdafx.h : fichier Include pour les fichiers Include système standard,
-// ou les fichiers Include spécifiques aux projets qui sont utilisés fréquemment,
-// et sont rarement modifiés
-//
 #include "RenderVideoOpenGL.h"
 #include <GLSLShader.h>
 
@@ -13,7 +9,6 @@
 #include <EffectVideoParameter.h>
 
 using namespace Regards::OpenGL;
-//#define RENDER_TO_TEXTURE
 
 CRenderVideoOpenGL::CRenderVideoOpenGL(CRenderOpenGL* renderOpenGL)
 {
@@ -21,10 +16,11 @@ CRenderVideoOpenGL::CRenderVideoOpenGL(CRenderOpenGL* renderOpenGL)
 	textureVideo = nullptr;
 	fboId = 0;
 	this->renderOpenGL = renderOpenGL;
-    frameBufferSupport = epoxy_has_gl_extension("GL_EXT_framebuffer_object");
-    //printf("CRenderVideoOpenGL frameBufferSupport %b \n", frameBufferSupport);
-}
+	frameBufferSupport = epoxy_has_gl_extension("GL_EXT_framebuffer_object");
 
+	// Initialisation UNIQUE du générateur de nombres aléatoires pour l'application
+	srand(static_cast<unsigned>(time(nullptr)));
+}
 
 CRenderVideoOpenGL::~CRenderVideoOpenGL()
 {
@@ -35,8 +31,6 @@ void CRenderVideoOpenGL::Cleanup()
 {
 	if (FFrameBuffer != 0)
 	{
-
-		// cleanup
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glDeleteFramebuffers(1, &FFrameBuffer);
 	}
@@ -46,13 +40,12 @@ void CRenderVideoOpenGL::Cleanup()
 	heightBuffer = 0;
 }
 
-
 void CRenderVideoOpenGL::RenderShader(GLSLShader* shader, GLTexture* glTexture, CVideoEffectParameter* ep, const wxFloatRect& rect, const float& iTime)
 {
-	srand(static_cast<unsigned>(time(nullptr)));
+	// PLUS de srand() ici ! Gain CPU majeur.
 	float timer = static_cast<float>(rand() % 1000 + 1);
 
-	shader->SetTexture("texUnit", glTexture->GetTextureID(),0);
+	shader->SetTexture("texUnit", glTexture->GetTextureID(), 0);
 	shader->SetParam("fWidth", static_cast<float>(glTexture->GetWidth()));
 	shader->SetParam("fHeight", static_cast<float>(glTexture->GetHeight()));
 	shader->SetParam("top", rect.top);
@@ -81,19 +74,14 @@ void CRenderVideoOpenGL::RenderShader(GLSLShader* shader, GLTexture* glTexture, 
 	shader->SetParam("timer", timer);
 }
 
-
-// ═══════════════════════════════════════════════════════════════════════════
-//  RenderShaderInterpolation
-// ═══════════════════════════════════════════════════════════════════════════
-
 bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool& flipH, const bool& flipV, const int& angle, const bool& inverted, const int& interpolation)
 {
 	GLTexture* glTexture = renderOpenGL->GetGLTexture();
-	COpenGLShader * shader = renderOpenGL->FindShader(L"IDR_GLSL_INTERPOLATION");
+	COpenGLShader* shader = renderOpenGL->FindShader(L"IDR_GLSL_INTERPOLATION");
 	if (!shader || !shader->m_pShader->IsOk()) return false;
 	if (!shader->EnableShader(renderOpenGL->projectionMatrix) || !shader->m_pShader->IsOk()) return false;
 
-	shader->m_pShader->SetTexture("ImageTexture", textureVideo->GetTextureID(),0);
+	shader->m_pShader->SetTexture("ImageTexture", textureVideo->GetTextureID(), 0);
 	shader->m_pShader->SetParam("widthTex", static_cast<float>(textureVideo->GetWidth()));
 	shader->m_pShader->SetParam("heightTex", static_cast<float>(textureVideo->GetHeight()));
 	shader->m_pShader->SetIntegerParam("widthIn", widthBuffer);
@@ -107,8 +95,7 @@ bool CRenderVideoOpenGL::RenderShaderInterpolation(const wxRect& rc, const bool&
 	shader->m_pShader->SetIntegerParam("top", rc.y);
 	shader->m_pShader->SetIntegerParam("interpolation", interpolation);
 
-	renderOpenGL->RenderQuad(glTexture->GetWidth(), glTexture->GetHeight(),
-		0, 0, !inverted);
+	renderOpenGL->RenderQuad(glTexture->GetWidth(), glTexture->GetHeight(), 0, 0, !inverted);
 	shader->DisableShader();
 	return true;
 }
@@ -146,25 +133,18 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 	}
 	else
 	{
-		bool updateViewport = false;
-		if (FFrameBuffer == 0)
-		{
-			widthBuffer = glTexture->GetWidth();
-			heightBuffer = glTexture->GetHeight();
-		}
+		// Détermination des dimensions cibles du Buffer selon l'orientation
+		int targetWidth = glTexture->GetWidth();
+		int targetHeight = glTexture->GetHeight();
 
 		if (angle == 90 || angle == 270)
 		{
-			widthBuffer = glTexture->GetHeight();
-			heightBuffer = glTexture->GetWidth();
-		}
-		else
-		{
-			widthBuffer = glTexture->GetWidth();
-			heightBuffer = glTexture->GetHeight();
+			targetWidth = glTexture->GetHeight();
+			targetHeight = glTexture->GetWidth();
 		}
 
-		if (FFrameBuffer != 0 && (widthBuffer != glTexture->GetWidth() || heightBuffer != glTexture->GetHeight()))
+		// CORRECTION BUG REALLOCATION EXTENSIVE : On vérifie si la taille du FBO a réellement changé
+		if (FFrameBuffer != 0 && (widthBuffer != targetWidth || heightBuffer != targetHeight))
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDeleteFramebuffers(1, &FFrameBuffer);
@@ -177,14 +157,15 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 			glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glTexture->GetTextureID(), 0);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-			widthBuffer = glTexture->GetWidth();
-			heightBuffer = glTexture->GetHeight();
-			updateViewport = true;
+
+			widthBuffer = targetWidth;
+			heightBuffer = targetHeight;
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
-		if (updateViewport)
-			glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
+
+		// CORRECTION BUG VIEWPORT : Toujours synchroniser le viewport avec la texture de destination du FBO
+		glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
 
 		textureVideo->Enable();
 		RenderShaderInterpolation(rc, flipH, flipV, angle, inverted, effectParameter->interpolation);
@@ -192,7 +173,7 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// RE-RÉGLAGE DU VIEWPORT DE SORTIE (Essentiel après un rendu FBO en Core Profile)
+		// RE-RÉGLAGE DU VIEWPORT DE SORTIE (Essentiel pour retourner sur l'écran principal)
 		glViewport(0, 0, renderOpenGL->GetWidth(), renderOpenGL->GetHeight());
 
 		if (effectParameter->effectEnable)
@@ -234,14 +215,10 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 void CRenderVideoOpenGL::SetSubtitle(cv::Mat& subtitle)
 {
-	//if (textureSubtitle != nullptr)
-	//
-	//textureSubtitle = nullptr;
-
-	if(textureSubtitle == nullptr)
+	if (textureSubtitle == nullptr)
 		textureSubtitle = std::make_unique<GLTexture>();
-        
-    Regards::Picture::CPictureArray mat = Regards::Picture::CPictureArray(subtitle);
+
+	Regards::Picture::CPictureArray mat = Regards::Picture::CPictureArray(subtitle);
 	textureSubtitle->SetData(mat, nullptr);
 }
 
@@ -271,7 +248,7 @@ GLTexture* CRenderVideoOpenGL::GetVideoTexture(const int& width, const int& heig
 	return textureVideo.get();
 }
 
-void CRenderVideoOpenGL::SetVideoTexture(Regards::Picture::CPictureArray & pictureArray, const bool &deleteTexture)
+void CRenderVideoOpenGL::SetVideoTexture(Regards::Picture::CPictureArray& pictureArray, const bool& deleteTexture)
 {
 	if (textureVideo == nullptr)
 		textureVideo = std::make_unique<GLTexture>();

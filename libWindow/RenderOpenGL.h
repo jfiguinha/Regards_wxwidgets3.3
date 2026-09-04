@@ -137,6 +137,20 @@ namespace Regards::OpenGL
 		int heightFont = 0;
         std::map<GLchar, Character> Characters;
 
+		// À insérer dans la section protected ou private de CRenderOpenGL dans RenderOpenGL.h
+	protected:
 
+		float CalculateTextWidth(const wxString& text, float scale);
+
+		struct TextVertex {
+			float x, y;   // Position (Attribut 0)
+			float u, v;   // Coordonnées de texture (Attribut 1)
+		};
+
+		GLuint textVAO = 0;
+		GLuint textVBO = 0;
+		GLuint textEBO = 0;
+
+		void InitTextBuffers();
 	};
 }

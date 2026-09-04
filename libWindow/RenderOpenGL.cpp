@@ -162,6 +162,8 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 #ifndef USE_GLUT
 	LoadFont("Antonio-Bold.ttf");
 #endif
+
+	InitTextBuffers();
 }
 
 void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, wxString text)
@@ -308,7 +310,9 @@ COpenGLShader * CRenderOpenGL::FindShader(const wxString& shaderName,
 
 CRenderOpenGL::~CRenderOpenGL()
 {
-
+	if (textVAO != 0) glDeleteVertexArrays(1, &textVAO);
+	if (textVBO != 0) glDeleteBuffers(1, &textVBO);
+	if (textEBO != 0) glDeleteBuffers(1, &textEBO);
 }
 
 wxGLContext* CRenderOpenGL::GetGLContext()
@@ -355,129 +359,155 @@ void CRenderOpenGL::Print(int x, int y, double scale_factor, const char* text)
 	RenderText(text, x, height - (heightFont * 0.3 * scale_factor), 0.3f * scale_factor, vec3f(0.5, 0.8f, 0.2f));
 
 #endif
-};
+}
+
+float CRenderOpenGL::CalculateTextWidth(const wxString& text, float scale)
+{
+	float totalWidth = 0.0f;
+	for (size_t i = 0; i < text.size(); ++i)
+	{
+		auto it = Characters.find(text[i]);
+		if (it != Characters.end())
+		{
+			totalWidth += (it->second.Advance >> 6) * scale;
+		}
+	}
+	return totalWidth;
+}
 
 void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, float green, float blue, wxString text)
 {
-    //RenderText(text, x, y, 1.0f, vec3f(0.5, 0.8f, 0.2f));
 #ifdef USE_GLUT	
+	// (Conserver votre code GLUT d'origine si nécessaire, inchangé ici)
 	float font_height = 15;
-    void * font_choose = GLUT_BITMAP_TIMES_ROMAN_24;
-	float font_width = glutBitmapWidth(font_choose, 'x');;
-    int xPos = 0;
-    glColor3f(red, green, blue); 
+	void* font_choose = GLUT_BITMAP_TIMES_ROMAN_24;
+	float font_width = glutBitmapWidth(font_choose, 'x');
+	int xPos = 0;
+	glColor3f(red, green, blue);
 	std::vector<wxString> list = CConvertUtility::split(text, '\\');
 	if (list.size() > 0)
 	{
 		wxString line = list[0];
-        xPos = x - ((font_width * line.size()) / 2);
+		xPos = x - ((font_width * line.size()) / 2);
 		glWindowPos2i(xPos, y);
-		//get the length of the string to display
 		int len = static_cast<int>(line.Length());
-
-		//glScalef(scale_factor,scale_factor,scale_factor); 
-        int xPosition = 0;
-		//loop to display character by character
+		int xPosition = 0;
 		for (auto i = 0; i < len; i++)
 		{
-			wxUniChar c = line[i];
-			char letter;
-			c.GetAsChar(&letter);
-			glutBitmapCharacter(font_choose, c);
-            xPosition += font_width;
+			glutBitmapCharacter(font_choose, line[i]);
+			xPosition += font_width;
 		}
-
-		for (int i = 1;i < list.size();i++)
-		{
-			wxUniChar c = list[i][0];
-			if (c == 'N' || c == 'n')
-			{
-				//New Line
-				wxString line = list[i];
-				glWindowPos2i(x - ((font_width * line.size()) / 2), y - font_height * 2);
-				//get the length of the string to display
-				int len = static_cast<int>(line.Length());
-
-				//glScalef(scale_factor,scale_factor,scale_factor); 
-
-				//loop to display character by character
-				for (auto i = 1; i < len; i++)
-				{
-					wxUniChar c = line[i];
-					char letter;
-					c.GetAsChar(&letter);
-					glutBitmapCharacter(font_choose, c);
-				}
-			}
-            else
-            {
-				wxString line = list[i];
-				glWindowPos2i(xPos + xPosition + font_width, y - font_height * 2);
-				//get the length of the string to display
-				int len = static_cast<int>(line.Length());
-
-				//glScalef(scale_factor,scale_factor,scale_factor); 
-
-				//loop to display character by character
-				for (auto i = 1; i < len; i++)
-				{
-					wxUniChar c = line[i];
-					char letter;
-					c.GetAsChar(&letter);
-					glutBitmapCharacter(font_choose, c);
-				}
-            }
-		}
-	}
-#else   
-	int xPos = 0;
-    
-    //cout << "Scale Factor : " << to_string(scale_factor) << endl;
-
-	std::vector<wxString> list = CConvertUtility::split(text, '\\');
-	if (list.size() > 0)
-	{
-		wxString line = list[0];
-		xPos = x - ((widthFont * scale_factor * line.size()) / 2);
-		//glWindowPos2i(xPos, y);
-		//get the length of the string to display
-		int len = static_cast<int>(line.Length());
-
-		//glScalef(scale_factor,scale_factor,scale_factor); 
-		int xPosition = 0;
-        
-        float fRed = red / 255.0f;
-        float fGreen = green / 255.0f;
-        float fBlue = blue / 255.0f;
-        
-		RenderText(line, xPos, y, scale_factor, vec3f(fRed, fGreen, fBlue));
-		xPosition += widthFont * len * scale_factor;
-
 
 		for (int i = 1; i < list.size(); i++)
 		{
+			if (list[i].empty()) continue;
 			wxUniChar c = list[i][0];
 			if (c == 'N' || c == 'n')
 			{
-				//New Line
 				wxString line = list[i];
-                line = line.SubString(1,line.size() - 1);
-				RenderText(line, x - ((widthFont * scale_factor * line.size()) / 2), y - heightFont * scale_factor, scale_factor, vec3f(fRed, fGreen, fBlue));
-
+				glWindowPos2i(x - ((font_width * line.size()) / 2), y - font_height * 2);
+				int len = static_cast<int>(line.Length());
+				for (auto j = 1; j < len; j++)
+				{
+					glutBitmapCharacter(font_choose, line[j]);
+				}
 			}
 			else
 			{
 				wxString line = list[i];
-                line = line.SubString(1,line.size() - 1);
-				RenderText(line, xPos + xPosition + widthFont * scale_factor, y - heightFont * scale_factor, scale_factor, vec3f(fRed, fGreen, fBlue));
+				glWindowPos2i(xPos + xPosition + font_width, y - font_height * 2);
+				int len = static_cast<int>(line.Length());
+				for (auto j = 1; j < len; j++)
+				{
+					glutBitmapCharacter(font_choose, line[j]);
+				}
 			}
+		}
+	}
+#else   
+	// ═══════════════════════════════════════════════════════════════════════
+	// NOUVEAU PIPELINE - OPENGL 3.3 CORE (Ajustement automatique de la hauteur)
+	// ═══════════════════════════════════════════════════════════════════════
+	std::vector<wxString> list = CConvertUtility::split(text, '\\');
+	if (list.empty())
+		return;
+
+	const float fRed = red / 255.0f;
+	const float fGreen = green / 255.0f;
+	const float fBlue = blue / 255.0f;
+	const vec3f textColor(fRed, fGreen, fBlue);
+
+	const float scale = static_cast<float>(scale_factor);
+	// Hauteur d'une ligne avec son espacement (interligne)
+	const float lineHeight = (heightFont > 0 ? static_cast<float>(heightFont) : 24.0f) * scale * 1.5f;
+
+	// ─── ÉTAPE 1 : COMPTER LE NOMBRE RÉEL DE LIGNES VERTICALES ───
+	int totalLines = 1; // La première ligne (index 0) existe toujours
+	for (size_t i = 1; i < list.size(); i++)
+	{
+		if (!list[i].empty() && (list[i][0] == 'N' || list[i][0] == 'n'))
+		{
+			totalLines++;
+		}
+	}
+
+	// ─── ÉTAPE 2 : COMPENSER LA HAUTEUR GLOBALE ───
+	// Si nous avons 3 lignes, nous voulons que le milieu du bloc (ou sa base) 
+	// reste stable. On remonte le point de départ vertical 'currentY'.
+	// (totalLines - 1) * lineHeight / 2.0f permet de centrer verticalement le bloc autour de 'y'.
+	float currentY = static_cast<float>(y) + ((totalLines - 1) * lineHeight / 2.0f);
+
+
+	// ─── ÉTAPE 3 : RENDU GÉOMÉTRIQUE ───
+	// Traitement et rendu de la toute première ligne (Index 0)
+	wxString firstLine = list[0];
+	float firstLineWidth = CalculateTextWidth(firstLine, scale);
+	float xPos = static_cast<float>(x) - (firstLineWidth / 2.0f);
+
+	RenderText(firstLine, xPos, currentY, scale, textColor);
+
+	float xPositionAccumulated = firstLineWidth;
+
+	// Analyse des blocs suivants (ceux qui étaient précédés d'un '\')
+	for (size_t i = 1; i < list.size(); i++)
+	{
+		if (list[i].empty())
+			continue;
+
+		wxUniChar c = list[i][0];
+
+		if (c == 'N' || c == 'n')
+		{
+			// Cas 1 : Vrai saut de ligne (\N ou \n)
+			wxString cleanLine = list[i].SubString(1, list[i].size() - 1);
+
+			// On descend verticalement d'une ligne
+			currentY -= lineHeight;
+
+			float currentLineWidth = CalculateTextWidth(cleanLine, scale);
+			float newXPos = static_cast<float>(x) - (currentLineWidth / 2.0f);
+
+			RenderText(cleanLine, newXPos, currentY, scale, textColor);
+
+			xPos = newXPos;
+			xPositionAccumulated = currentLineWidth;
+		}
+		else
+		{
+			// Cas 2 : Caractère spécial / Balise de formatage (Reste sur la même ligne)
+			wxString cleanLine = list[i].SubString(1, list[i].size() - 1);
+
+			float spaceWidth = CalculateTextWidth(L" ", scale);
+			float inlineXPos = xPos + xPositionAccumulated + spaceWidth;
+
+			RenderText(cleanLine, inlineXPos, currentY, scale, textColor);
+
+			xPositionAccumulated += spaceWidth + CalculateTextWidth(cleanLine, scale);
 		}
 	}
 #endif
 
-
 }
-
 
 void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int top, bool inverted, bool flipH, bool flipV)
 {
@@ -808,56 +838,100 @@ void CRenderOpenGL::RenderCharacter(GLSLShader* m_pShader, GLTexture* glTexture,
 	RenderQuad(glTexture, left, top, scale, true);
 }
 
-// render line of text
-// -------------------
+void CRenderOpenGL::InitTextBuffers()
+{
+	if (textVAO != 0) return;
+
+	glGenVertexArrays(1, &textVAO);
+	glGenBuffers(1, &textVBO);
+	glGenBuffers(1, &textEBO);
+
+	glBindVertexArray(textVAO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+	// On pré-alloue l'espace pour 4 sommets (1 Quad) de manière fixe
+	glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(TextVertex), nullptr, GL_DYNAMIC_DRAW);
+
+	// Attribut 0 : Position (x, y) -> 2 floats
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)0);
+
+	// Attribut 1 : Coordonnées de texture (u, v) -> 2 floats
+	// Le décalage est de 2 * sizeof(float) car les coordonnées viennent après x et y
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(TextVertex), (void*)(2 * sizeof(float)));
+
+	// Remplissage unique et définitif de l'EBO (les indices d'un quad ne changent jamais)
+	GLuint indices[6] = { 0, 2, 1, 1, 2, 3 };
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, textEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+}
+
 void CRenderOpenGL::RenderText(wxString text, float x, float y, float scale, vec3f color)
 {
 	if (text.size() <= 0)
 		return;
 
-	//glTexture->Enable();
+	if (textVAO == 0)
+		InitTextBuffers();
+
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glBindTexture(GL_TEXTURE_2D, 1);
-	COpenGLShader * m_pShader = FindShader(L"IDR_GLSL_COLOR");
-	if (m_pShader != nullptr)
-		m_pShader->EnableShader(projectionMatrix);
-    else 
-        return;
-        
-    // iterate through all characters
-    wxString::const_iterator c;
-    for (c = text.begin(); c != text.end(); c++) 
-    {
-        const Character& ch = Characters[*c];
 
-        float xpos = x + ch.Bearing.x * scale;
-        float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
-    
-        /*
-        float w = ch.Size.x * scale;
-        float h = ch.Size.y * scale;
-        // update VBO for each character
-        float vertices[6][4] = {
-            { xpos,     ypos + h,   0.0f, 0.0f },            
-            { xpos,     ypos,       0.0f, 1.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
+	COpenGLShader* m_pShader = FindShader(L"IDR_GLSL_COLOR");
+	if (m_pShader == nullptr || !m_pShader->EnableShader(projectionMatrix))
+	{
+		glDisable(GL_BLEND);
+		return;
+	}
 
-            { xpos,     ypos + h,   0.0f, 0.0f },
-            { xpos + w, ypos,       1.0f, 1.0f },
-            { xpos + w, ypos + h,   1.0f, 0.0f }           
-        };
-        */
-        if(ch.glTexture != nullptr)
-			RenderCharacter(m_pShader->m_pShader.get(), ch.glTexture, xpos, ypos, scale, color);
-        // now advance cursors for next glyph (note that advance is number of 1/64 pixels)
-        x += (ch.Advance >> 6) * scale; // bitshift by 6 to get value in pixels (2^6 = 64 (divide amount of 1/64th pixels by 64 to get amount of pixels))
-    }
-    
-	if (m_pShader != nullptr)
-		m_pShader->DisableShader();
-        
+	m_pShader->m_pShader->SetVec3Param("textColor", color);
+
+	glBindVertexArray(textVAO);
+
+	wxString::const_iterator c;
+	for (c = text.begin(); c != text.end(); c++)
+	{
+		const Character& ch = Characters[*c];
+		if (ch.glTexture == nullptr)
+			continue;
+
+		// Liaison de la texture spécifique au caractère
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, ch.glTexture->GetTextureID());
+		m_pShader->m_pShader->SetIntegerParam("text", 0);
+
+		// Calcul des coordonnées spatiales
+		float xpos = x + ch.Bearing.x * scale;
+		float ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+		float w = ch.Size.x * scale;
+		float h = ch.Size.y * scale;
+
+		// Tableau brut sur la pile : aucune allocation dynamique, aucun risque de crash mémoire
+		TextVertex vertices[4] = {
+			{ xpos,     ypos + h, 0.0f, 0.0f }, // Haut Gauche
+			{ xpos + w, ypos + h, 1.0f, 0.0f }, // Haut Droite
+			{ xpos,     ypos,     0.0f, 1.0f }, // Bas Gauche
+			{ xpos + w, ypos,     1.0f, 1.0f }  // Bas Droite
+		};
+
+		// Mise à jour de la mémoire du VBO sur le GPU
+		glBindBuffer(GL_ARRAY_BUFFER, textVBO);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+		// Rendu du Quad (les indices sont déjà pré-chargés de manière stable dans l'EBO)
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+		x += (ch.Advance >> 6) * scale;
+	}
+
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	m_pShader->DisableShader();
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDisable(GL_BLEND);
 }
-
