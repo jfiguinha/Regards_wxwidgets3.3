@@ -132,8 +132,10 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 		renderOpenGL->RenderQuad(textureVideo.get(), left_local, top_local, inverted);
 	}
 	else
-	{
+	{       
 		bool updateViewport = false;
+
+		// 1. Détermination des dimensions cibles pour la détection de changement d'angle
 		if (FFrameBuffer == 0)
 		{
 			widthBuffer = glTexture->GetWidth();
@@ -151,6 +153,7 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 			heightBuffer = glTexture->GetHeight();
 		}
 
+		// 2. Recréation du FBO si l'angle ou les dimensions de la texture changent
 		if (FFrameBuffer != 0 && (widthBuffer != glTexture->GetWidth() || heightBuffer != glTexture->GetHeight()))
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -158,20 +161,25 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 			FFrameBuffer = 0;
 		}
 
+		// 3. Initialisation du FBO
 		if (FFrameBuffer == 0)
 		{
 			glGenFramebuffers(1, &FFrameBuffer);
 			glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glTexture->GetTextureID(), 0);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 			widthBuffer = glTexture->GetWidth();
 			heightBuffer = glTexture->GetHeight();
 			updateViewport = true;
 		}
 
+		// 4. Rendu de l'interpolation et de la rotation dans le FBO
 		glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
 		if (updateViewport)
+		{
 			glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
+		}
 
 		textureVideo->Enable();
 		RenderShaderInterpolation(rc, flipH, flipV, angle, inverted, effectParameter->interpolation);
@@ -179,16 +187,14 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// RE-RÉGLAGE DU VIEWPORT DE SORTIE (Essentiel après un rendu FBO en Core Profile)
-		glViewport(0, 0, renderOpenGL->GetWidth(), renderOpenGL->GetHeight());
-
+		// 5. Application des effets ou rendu final sur l'écran
 		if (effectParameter->effectEnable)
-		{
+		{            
 			shader = renderOpenGL->FindShader(L"IDR_GLSL_SHADER_VIDEO");
 			if (shader != nullptr && shader->m_pShader->IsOk())
 			{
 				if (shader->EnableShader(renderOpenGL->projectionMatrix))
-				{
+				{                    
 					rect.top = (float)((glTexture->GetHeight() - rc.height) / 2) / (float)glTexture->GetHeight();
 					rect.bottom = 1.0f - rect.top;
 					rect.left = (float)((glTexture->GetWidth() - rc.width) / 2) / (float)glTexture->GetWidth();
@@ -218,6 +224,7 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 	textureVideo->Disable();
 	glTexture->Disable();
 }
+
 
 void CRenderVideoOpenGL::SetSubtitle(cv::Mat& subtitle)
 {
