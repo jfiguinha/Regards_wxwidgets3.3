@@ -162,7 +162,7 @@ vec4 ApplyFilter(vec4 src_color)
 	
 	if(sepia == 1)
 	{
-		// CORRECTION DU BUG SÉPIA via produit matriciel pur (conforme mathématiquement)
+		// CORRECTION DU BUG SPIA via produit matriciel pur (conforme mathmatiquement)
 		mat3 sepiaMat = mat3(
 			0.393, 0.349, 0.272,
 			0.769, 0.686, 0.534,
@@ -174,7 +174,7 @@ vec4 ApplyFilter(vec4 src_color)
 	return src_color;
 }
 
-// Version optimisée de Denoise : lit directement la texture brute
+// Version optimise de Denoise : lit directement la texture brute
 vec4 Denoise(vec4 centrPx)
 {
     float radius = floor(kSigma*sigma);
@@ -226,16 +226,16 @@ void main(void)
             src_color = vhsImage(src_color);
         }		
 		
-		// 1. On applique le Débruitage d'abord (si activé) sur la texture source
+		// 1. On applique le Dbruitage d'abord (si activ) sur la texture source
 		if(denoise == 1)
 		{
 			src_color = Denoise(src_color);
 		}
 
-		// 2. On applique les filtres d'effets (Netteté, Contraste, Sépia) UNE SEULE FOIS
+		// 2. On applique les filtres d'effets (Nettet, Contraste, Spia) UNE SEULE FOIS
 		src_color = ApplyFilter(src_color);
 
-		// 3. Ajout du Grain de film à la fin
+		// 3. Ajout du Grain de film  la fin
 		if(filmgrain == 1)
 		{
 			vec4 noise = vec4(pnoise3D(vec3(TexCoord * vec2(fWidth, fHeight), 0.0)));

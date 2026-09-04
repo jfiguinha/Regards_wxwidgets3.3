@@ -20,16 +20,16 @@ uniform int interpolation;
 in vec2 TexCoord;
 out vec4 FragColor;
 
-// Constantes globales pré-calculées
+// Constantes globales pr-calcules
 const float FILTER_PI  = 3.1415926535;
 const float FILTER_2PI = 6.2831853070;
 const float FILTER_4PI = 12.5663706140;
 const float INV_SQRT_OF_2PI = 0.3989422804;
 
-// Variable de travail partagée
+// Variable de travail partage
 vec2 texelSize;
 
-// Échantillonnage sécurisé et optimisé
+// chantillonnage scuris et optimis
 vec4 TextureValue(float posX, float posY, float xDiff, float yDiff)
 {
     float pixelX = posX * widthTex + xDiff;
@@ -42,7 +42,7 @@ vec4 TextureValue(float posX, float posY, float xDiff, float yDiff)
     return vec4(0.0);
 }
 
-// Sélection de Kernel simplifiée (basée sur la valeur absolue)
+// Slection de Kernel simplifie (base sur la valeur absolue)
 float KernelFilter_selection(float x, int type)
 {
     float ax = abs(x); 
@@ -222,7 +222,7 @@ void main()
             if (flipV == 1) posY = fheightOut - posY - 1.0;
         }
 
-        // Coordonnées de texture finales
+        // Coordonnes de texture finales
         vec2 uv_local = vec2(posX / fwidthOut, posY / fheightOut);
         if (angle == 90 || angle == 270) {
             uv_local = vec2(posX / fheightOut, posY / fwidthOut);

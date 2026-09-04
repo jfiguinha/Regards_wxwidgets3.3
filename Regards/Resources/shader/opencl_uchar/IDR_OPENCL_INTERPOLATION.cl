@@ -5,7 +5,7 @@
 #define FILTER_4PI  12.5663706144f
 #define FILTER_EPSILON 1.0e-6f
 
-// Unpacking / Packing RGBA optimisés
+// Unpacking / Packing RGBA optimiss
 inline float4 rgbaUintToFloat4(const uint c)
 {
     return (float4)(
@@ -24,13 +24,13 @@ inline uint rgbaFloat4ToUint(float4 rgba)
            (((uint)rgba.w & 0xFFu) << 24);
 }
 
-// Accès mémoire globale sécurisé
+// Accs mmoire globale scuris
 inline uint GetPixel(const __global uint* input, int x, int y, int width, int height)
 {
     return input[clamp(x, 0, width - 1) + clamp(y, 0, height - 1) * width];
 }
 
-// Évaluation de filtres allégée (utilisation de constantes directes multiplicatives au lieu de divisions)
+// valuation de filtres allge (utilisation de constantes directes multiplicatives au lieu de divisions)
 inline float KernelFilterSelection(const float x, const int type)
 {
     const float ax = fabs(x);
@@ -43,7 +43,7 @@ inline float KernelFilterSelection(const float x, const int type)
         if (ax < 1.0f)  return 1.5f * ax * ax * ax - 2.5f * ax * ax + 1.0f;
         return -0.5f * ax * ax * ax + 2.5f * ax * ax - 4.0f * ax + 2.0f;
     }
-    if (type == 5) { // Mitchell-Netravali (B=1/3, C=1/3 pré-calculé à la compilation)
+    if (type == 5) { // Mitchell-Netravali (B=1/3, C=1/3 pr-calcul  la compilation)
         if (ax >= 2.0f) return 0.0f;
         if (ax < 1.0f)  return (7.0f * ax * ax * ax - 12.0f * ax * ax + 5.33333333f) * 0.16666667f;
         return (-2.33333333f * ax * ax * ax + 12.0f * ax * ax - 20.0f * ax + 10.66666667f) * 0.16666667f;
@@ -100,14 +100,14 @@ inline uint KernelExecution(const float x, const float y, const __global uint* i
     const float fx = x - (float)baseX;
     const float fy = y - (float)baseY;
 
-    // Allocation sous forme de vecteurs de registres (Tableaux privés ultra-rapides)
+    // Allocation sous forme de vecteurs de registres (Tableaux privs ultra-rapides)
     float wx[4];
     float wy[4];
 
     ComputeWeights4(fx, type, wx);
     ComputeWeights4(fy, type, wy);
 
-    // Pré-calcul des lignes d'index pour économiser des multiplications dans la boucle
+    // Pr-calcul des lignes d'index pour conomiser des multiplications dans la boucle
     int idxY[4];
     idxY[0] = clamp(baseY - 1, 0, heightIn - 1) * widthIn;
     idxY[1] = clamp(baseY,     0, heightIn - 1) * widthIn;
@@ -148,7 +148,7 @@ inline uint CalculateInterpolation(const __global uint* input, const int widthIn
     float posX = ((float)x + left) * ratioX;
     float posY = ((float)y + top) * ratioY;
 
-    // Transformation de coordonnées optimisée (Regroupement des axes)
+    // Transformation de coordonnes optimise (Regroupement des axes)
     if (angle == 90) {
         float tmp = posX; posX = posY; posY = (float)heightIn - tmp - 1.0f;
     } else if (angle == 180) {

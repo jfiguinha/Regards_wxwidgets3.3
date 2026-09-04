@@ -133,18 +133,25 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 	}
 	else
 	{
-		// Détermination des dimensions cibles du Buffer selon l'orientation
-		int targetWidth = glTexture->GetWidth();
-		int targetHeight = glTexture->GetHeight();
+		bool updateViewport = false;
+		if (FFrameBuffer == 0)
+		{
+			widthBuffer = glTexture->GetWidth();
+			heightBuffer = glTexture->GetHeight();
+		}
 
 		if (angle == 90 || angle == 270)
 		{
-			targetWidth = glTexture->GetHeight();
-			targetHeight = glTexture->GetWidth();
+			widthBuffer = glTexture->GetHeight();
+			heightBuffer = glTexture->GetWidth();
+		}
+		else
+		{
+			widthBuffer = glTexture->GetWidth();
+			heightBuffer = glTexture->GetHeight();
 		}
 
-		// CORRECTION BUG REALLOCATION EXTENSIVE : On vérifie si la taille du FBO a réellement changé
-		if (FFrameBuffer != 0 && (widthBuffer != targetWidth || heightBuffer != targetHeight))
+		if (FFrameBuffer != 0 && (widthBuffer != glTexture->GetWidth() || heightBuffer != glTexture->GetHeight()))
 		{
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
 			glDeleteFramebuffers(1, &FFrameBuffer);
@@ -157,15 +164,14 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 			glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, glTexture->GetTextureID(), 0);
 			glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-			widthBuffer = targetWidth;
-			heightBuffer = targetHeight;
+			widthBuffer = glTexture->GetWidth();
+			heightBuffer = glTexture->GetHeight();
+			updateViewport = true;
 		}
 
 		glBindFramebuffer(GL_FRAMEBUFFER, FFrameBuffer);
-
-		// CORRECTION BUG VIEWPORT : Toujours synchroniser le viewport avec la texture de destination du FBO
-		glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
+		if (updateViewport)
+			glViewport(0, 0, glTexture->GetWidth(), glTexture->GetHeight());
 
 		textureVideo->Enable();
 		RenderShaderInterpolation(rc, flipH, flipV, angle, inverted, effectParameter->interpolation);
@@ -173,7 +179,7 @@ void CRenderVideoOpenGL::Render(CVideoEffectParameter* effectParameter, wxFloatR
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		// RE-RÉGLAGE DU VIEWPORT DE SORTIE (Essentiel pour retourner sur l'écran principal)
+		// RE-RÉGLAGE DU VIEWPORT DE SORTIE (Essentiel après un rendu FBO en Core Profile)
 		glViewport(0, 0, renderOpenGL->GetWidth(), renderOpenGL->GetHeight());
 
 		if (effectParameter->effectEnable)
