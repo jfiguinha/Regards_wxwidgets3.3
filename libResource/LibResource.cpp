@@ -118,7 +118,11 @@ wxString CLibResource::GetOpenGLShaderProgram(const wxString& idName)
 	CSqlResource sqlResource;
 	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
 	resourcePath.AppendDir("shader");
+#ifdef __APPLE__
+	resourcePath.AppendDir("opengl_mac");
+#else
 	resourcePath.AppendDir("opengl");
+#endif
 	resourcePath.SetFullName(sqlResource.GetOpenGLFromFile(idName));
 	return ReadFile(resourcePath.GetFullPath());
 }

@@ -6,6 +6,8 @@
 #include <GLTexture.h>
 #include "effect_id.h"
 
+#ifndef __APPLE__
+
 using namespace Regards::Filter;
 using namespace Regards::OpenGL;
 
@@ -156,3 +158,5 @@ GLTexture* CZoomEffectTexture::GetTexture(const int& numTexture)
 
 	return pictureNext.get();
 }
+
+#endif

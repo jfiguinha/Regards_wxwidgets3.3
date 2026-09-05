@@ -14,9 +14,98 @@
 #include <OpenCLContext.h>
 using namespace Regards::OpenGL;
 using namespace Regards::OpenCL;
-//#define RENDEROPENGL WM_USER+1
 
-;
+#ifdef __APPLE__
+
+class Character;
+class CFreeTypeFace;
+
+namespace Regards::OpenGL
+{
+	class COpenGLShader
+	{
+	public:
+		wxString shaderName;
+		std::unique_ptr<GLSLShader> m_pShader = nullptr;
+	};
+
+	class CRenderOpenGL : public wxGLContext
+	{
+	public:
+        
+        
+		CRenderOpenGL(wxGLCanvas* canvas);
+		~CRenderOpenGL() override;
+		GLTexture* GetGLTexture();
+		wxGLContext* GetGLContext();
+		bool GetOpenGLInterop();
+		bool SetData(Regards::Picture::CPictureArray& bitmap, const bool& deleteOldData = false);
+		bool CreateScreenRender(const int& width, const int& height, const CRgbaquad& color);
+		GLTexture* GetDisplayTexture(const int& width, const int& height);
+		void RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* effectParameter, const int& left,
+		                    const int& top, const bool& inverted = false);
+
+		void Print(int x, int y, double scaleFactor, const char* string);
+        void PrintSubtitle(int x, int y, double scale_factor, wxString text);
+		void PrintSubtitle(int x, int y, double scale_factor, float red, float green, float blue, wxString text);
+		void Init(wxGLCanvas* canvas);
+		bool IsInit();
+        int LoadFont(const wxString & fontName);
+		int GetWidth();
+		int GetHeight();
+		std::unique_ptr<GLSLShader> CreateShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB);
+		GLSLShader* FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB, const wxString& vertexName = "");
+
+		//void RenderToTexture();
+        void RenderText(wxString text, float x, float y, float scale, vec3f color);
+
+
+		GLvoid ReSizeGLScene(GLsizei width, GLsizei height);
+		void RenderQuad(int width, int height, int left, int top, bool inverted);
+		void RenderQuad(GLTexture* texture, int left = 0, int top = 0, bool inverted = false);
+        void RenderQuad(GLTexture* texture, float left = 0, float top = 0, float scale = 0, bool inverted = false);
+		void RenderQuad(GLTexture* texture, const int& width, const int& height, const bool& flipH,
+		                const bool& flipV, int left = 0, int top = 0, bool inverted = false);
+		void RenderQuad(GLTexture* texture, const bool& flipH, const bool& flipV, int left = 0, int top = 0,
+		                bool inverted = false);
+
+		GLTexture* GetTextureDisplay();
+		COpenCLContext* GetOpenCLContext(){ return openCLContext.get(); };
+       
+	protected:
+        
+		void LoadCharacter(unsigned char c, CFreeTypeFace & face);
+        void RenderCharacter(GLSLShader* m_pShader, GLTexture* glTexture, const float & left, const float & top, const float & scale, const vec3f & color);
+
+        void RenderQuadInternal(float width,
+                                       float height,
+                                       int left,
+                                       int top,
+                                       bool inverted,
+                                       bool flipH,
+                                       bool flipV);
+		std::unique_ptr<GLTexture> textureDisplay;
+		int width;
+		int height;
+		GLuint base;
+		wxString version;
+		float myGLVersion;
+		std::unordered_map<wxString, std::unique_ptr<COpenGLShader>> shaderMap;
+		bool isInit = false;
+		IMouseUpdate* mouseUpdate;
+
+
+		//OpenCL interop
+		std::unique_ptr<COpenCLContext> openCLContext = nullptr;
+		int widthFont = 0;
+		int heightFont = 0;
+        std::map<GLchar, Character> Characters;
+	};
+}
+
+
+#else
+
 class Character;
 class CFreeTypeFace;
 
@@ -154,3 +243,5 @@ namespace Regards::OpenGL
 		void InitTextBuffers();
 	};
 }
+
+#endif

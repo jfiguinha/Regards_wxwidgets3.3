@@ -14,11 +14,13 @@
 #include <RenderBitmapOpenGL.h>
 #include "PageCurlFilter.h"
 #include "MoveEffectTexture.h"
-#include "ZoomEffectTexture.h"
 #include "NoneEffectTextureEffect.h"
 #include "DiaporamaEffect.h"
+#ifndef __APPLE__
 #include "GlassLensFilter.h"
 #include "WaveTextureFilter.h"
+#include "ZoomEffectTexture.h"
+#endif
 #include <MainParam.h>
 #include <ParamInit.h>
 #include "ViewerParamInit.h"
@@ -66,6 +68,7 @@ std::unique_ptr<IAfterEffect> CBitmapWndViewer::AfterEffectPt(const int& numFilt
 	case IDM_AFTEREFFECT_PAGECURL:
 		return std::make_unique<CPageCurlFilter>();
 
+#ifndef __APPLE__
 	case IDM_AFTEREFFECT_WAVE:
 		return std::make_unique<CWaveTextureFiltre>();
 
@@ -74,7 +77,7 @@ std::unique_ptr<IAfterEffect> CBitmapWndViewer::AfterEffectPt(const int& numFilt
 
 	case IDM_AFTEREFFECT_ZOOM:
 		return std::make_unique<CZoomEffectTexture>();
-
+#endif
 	case IDM_DIAPORAMA_FUSION:
 	case IDM_AFTEREFFECT_FUSION:
 		return std::make_unique<CBitmapFusionFilter>();

@@ -450,3 +450,5 @@ RegardsViewer_linux/Package/deb/RegardsViewer_3.01.0.0_linux_amd64.deb
 /RegardsViewer_linux/Package/deb/RegardsViewer_3.01.0.0-linux-x86_64
 /RegardsViewer_linux/Package/deb/RegardsViewer_3.04.0.0-linux-x86_64
 RegardsViewer_linux/Package/deb/RegardsViewer_3.04.0.0_linux_amd64.deb
+Regards/Resources/.DS_Store
+Regards/Resources/shader/.DS_Store

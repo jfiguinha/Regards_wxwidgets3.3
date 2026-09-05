@@ -6,9 +6,35 @@
 #include <RenderOpenGL.h>
 using namespace Regards::OpenGL;
 
-//#define RENDEROPENGL WM_USER+1
+#ifdef __APPLE__
 
-;
+namespace Regards::OpenGL
+{
+	class CRenderBitmapOpenGL
+	{
+	public:
+		CRenderBitmapOpenGL(CRenderOpenGL* renderOpenGL);
+		~CRenderBitmapOpenGL();
+		void LoadingResource(const double& scale_factor, wxColor& colorActifReplacement);
+		void ShowArrowNext();
+		void ShowArrowPrevious();
+		void RenderTexture(GLTexture* textureTransition, const int& width, const int& height, const int& left,
+			const int& top, const bool& blend = true);
+		void RenderWithAlphaChannel(GLTexture* glTexture, const int& alpha, const int& left, const int& top,
+			const bool& flipH, const bool& flipV, const bool& inverted);
+		void RenderTextureWithAlpha(GLTexture* textureTransition, const int& alpha, const int& width,
+			const int& height, const int& left, const int& top);
+
+		GLSLShader* FindShader(const wxString& shaderName, GLenum glSlShaderType_i = GL_FRAGMENT_PROGRAM_ARB);
+
+	private:
+		std::unique_ptr<GLTexture> textureArrowRight;
+		std::unique_ptr<GLTexture> textureArrowLeft;
+		CRenderOpenGL* renderOpenGL = nullptr;
+	};
+}
+
+#else
 
 namespace Regards::OpenGL
 {
@@ -37,3 +63,5 @@ namespace Regards::OpenGL
 		CRenderOpenGL* renderOpenGL = nullptr;
 	};
 }
+
+#endif
