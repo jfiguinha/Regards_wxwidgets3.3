@@ -2,7 +2,7 @@
 //To Optimize : https://zz85.github.io/glsl-optimizer/
 //
 
-#version 150 compatibility
+
 uniform sampler2D sourceTex;
 uniform sampler2D targetTex;
 

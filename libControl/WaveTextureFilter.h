@@ -1,8 +1,5 @@
 #pragma once
 #include "BitmapFusionFilter.h"
-
-#ifndef __APPLE__
-
 class CImageLoadingFormat;
 class IBitmapDisplay;
 
@@ -35,5 +32,3 @@ namespace Regards::Filter
 		bool initTexture = false;
 	};
 }
-
-#endif
