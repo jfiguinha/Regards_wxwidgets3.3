@@ -452,3 +452,9 @@ RegardsViewer_linux/Package/deb/RegardsViewer_3.01.0.0_linux_amd64.deb
 RegardsViewer_linux/Package/deb/RegardsViewer_3.04.0.0_linux_amd64.deb
 Regards/Resources/.DS_Store
 Regards/Resources/shader/.DS_Store
+Regards/mac/.DS_Store
+Regards/mac/lib/.DS_Store
+Regards/Resources/1/.DS_Store
+RegardsViewer_macsilicon/change_dylib.sh
+RegardsViewer_macsilicon/change_dylib.sh
+.vscode/launch.json
