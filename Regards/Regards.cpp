@@ -29,6 +29,11 @@
 #include <ncnn/gpu.h>
 #include <exiv2/image.hpp>
 AppContext application_context;
+
+#ifdef __APPLE__
+#include <appglcontext.h>
+AppGLContext application_glcontext;
+#endif
 ncnn::VulkanDevice* vkdev = nullptr;
 
 using namespace cv;

@@ -43,6 +43,8 @@ using namespace Regards::OpenCL;
 
 #ifdef __APPLE__
 
+#include <appglcontext.h>
+extern AppGLContext application_glcontext;
 
 
 static inline void FillTexCoords(GLfloat* tex,
@@ -66,6 +68,7 @@ static inline void FillTexCoords(GLfloat* tex,
 
 CRenderOpenGL::CRenderOpenGL(wxGLCanvas* canvas)
 	: wxGLContext(canvas), base(0), myGLVersion(0), mouseUpdate(nullptr)
+//	: wxGLContext(canvas, nullptr, &application_glcontext.ctxAttrs), base(0), myGLVersion(0), mouseUpdate(nullptr)
 {
 	width = 0;
 	height = 0;
