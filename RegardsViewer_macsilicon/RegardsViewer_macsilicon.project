@@ -226,6 +226,8 @@
         <Library Value="swresample"/>
         <Library Value="swscale"/>
         <Library Value="jpeg"/>
+        <Library Value="plutovg"/>
+        <Library Value="lunasvg"/>
         <Library Value="lzma"/>
         <Library Value="SDL2"/>
         <Library Value="z"/>
