@@ -460,3 +460,4 @@ RegardsViewer_macsilicon/change_dylib.sh
 .vscode/launch.json
 RegardsViewer_macsilicon/certificat_apple.pfx
 RegardsViewer_macsilicon/COPYING
+include/.DS_Store
