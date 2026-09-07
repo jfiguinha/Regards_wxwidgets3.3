@@ -49,6 +49,7 @@ cd vcpkg
 ./vcpkg install libepoxy
 ./vcpkg install boost-lexical-cast
 ./vcpkg install tesseract
+./vcpkg install lunasvg
 cd ..
 
 #Compile heif-master

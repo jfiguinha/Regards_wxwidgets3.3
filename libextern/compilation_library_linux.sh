@@ -33,6 +33,7 @@ cd vcpkg
 ./vcpkg install ncnn[vulkan]
 ./vcpkg install boost-lexical-cast
 ./vcpkg install freeglut
+./vcpkg install lunasvg
 cd ..
 
 #Compile heif-master

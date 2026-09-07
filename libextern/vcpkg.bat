@@ -22,4 +22,5 @@ vcpkg install libepoxy
 vcpkg install boost-lexical-cast
 vcpkg install freeglut
 vcpkg install libxml2
+vcpkg install lunasvg
 
