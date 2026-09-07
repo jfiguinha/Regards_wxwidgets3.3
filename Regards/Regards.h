@@ -96,11 +96,6 @@ using namespace Regards::Print;
 using namespace Regards::Introduction;
 using namespace Regards::Viewer;
 
-#ifndef __APPLE__
-#include <GL/glut.h>
-#endif
-
-
 #include <wx/glcanvas.h>
 
 

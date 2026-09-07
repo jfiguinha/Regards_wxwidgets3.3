@@ -6,11 +6,6 @@
 #include <OpenCL/cl_gl.h>
 #include <OpenCL/cl_gl_ext.h>
 #endif
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
 #include <OpenCLContext.h>
 #include <ParamInit.h>
 #include <RegardsConfigParam.h>

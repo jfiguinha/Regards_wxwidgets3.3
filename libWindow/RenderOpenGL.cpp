@@ -164,6 +164,7 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 	InitTextBuffers();
 }
 
+/*
 void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, wxString text)
 {
 	float font_height = 15;
@@ -235,7 +236,7 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, wxString te
 		}
 	}
 }
-
+*/
 
 
 void CRenderOpenGL::UpdateProjectionMatrix() {
