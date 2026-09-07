@@ -564,8 +564,6 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
 
 }
 
-#ifdef __APPLE__
-
 void CRenderOpenGL::InitQuadBuffers()
 {
     if (quadVAO != 0) return; // Déjà initialisé
@@ -627,37 +625,6 @@ void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-
-#else
-
-void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int top, bool inverted, bool flipH, bool flipV)
-{
-	// Définition des sommets pour un GL_TRIANGLE_STRIP (Triangle 1: Haut-Gauche, Haut-Droite, Bas-Gauche; Triangle 2: Bas-Droite)
-	const GLfloat vertices[8] =
-	{
-		static_cast<GLfloat>(left),         static_cast<GLfloat>(top),
-		static_cast<GLfloat>(left + width), static_cast<GLfloat>(top),
-		static_cast<GLfloat>(left),         static_cast<GLfloat>(top + height),
-		static_cast<GLfloat>(left + width), static_cast<GLfloat>(top + height)
-	};
-
-	GLfloat texCoords[8];
-	FillTexCoords(texCoords, inverted, flipH, flipV);
-
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, vertices);
-
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, texCoords);
-
-	// Utilisation de GL_TRIANGLE_STRIP à la place de GL_QUADS (Interdit en Core Profile)
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-}
-
-#endif
 
 GLvoid CRenderOpenGL::ReSizeGLScene(GLsizei width, GLsizei height)
 {

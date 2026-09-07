@@ -85,8 +85,11 @@ namespace Regards::OpenGL
 
 
 		GLvoid ReSizeGLScene(GLsizei width, GLsizei height);
+
 		void RenderQuad(int width, int height, int left, int top, bool inverted);
+
 		void RenderQuad(GLTexture* texture, int left = 0, int top = 0, bool inverted = false);
+		
         void RenderQuad(GLTexture* texture, float left = 0, float top = 0, float scale = 0, bool inverted = false);
 		void RenderQuad(GLTexture* texture, const int& width, const int& height, const bool& flipH,
 		                const bool& flipV, int left = 0, int top = 0, bool inverted = false);
@@ -151,21 +154,18 @@ namespace Regards::OpenGL
 
 		void InitTextBuffers();
 
-#ifdef __APPLE__
+		// Structure pour encapsuler la géométrie d'un sommet de rectangle
+		struct QuadVertex {
+			float x, y; // Positions spatiales
+			float u, v; // Coordonnées de texture
+		};
 
-	// Structure pour encapsuler la géométrie d'un sommet de rectangle
-	struct QuadVertex {
-		float x, y; // Positions spatiales
-		float u, v; // Coordonnées de texture
-	};
+		// Variables membres à rajouter à la classe CRenderOpenGL
+		GLuint quadVAO = 0;
+		GLuint quadVBO = 0;
 
-	// Variables membres à rajouter à la classe CRenderOpenGL
-	GLuint quadVAO = 0;
-	GLuint quadVBO = 0;
+		// Méthode d'initialisation privée
+		void InitQuadBuffers();
 
-	// Méthode d'initialisation privée
-	void InitQuadBuffers();
-
-#endif
 	};
 }
