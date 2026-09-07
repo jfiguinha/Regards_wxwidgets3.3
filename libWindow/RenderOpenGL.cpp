@@ -26,6 +26,8 @@
 
 #ifdef __APPLE__
 #define USE_GLUT
+#include <appglcontext.h>
+extern AppGLContext application_glcontext;
 #endif
 
 class CFreeTypeFace
@@ -41,10 +43,9 @@ extern AppContext application_context;
 using namespace Regards::OpenGL;
 using namespace Regards::OpenCL;
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
-#include <appglcontext.h>
-extern AppGLContext application_glcontext;
+
 
 
 static inline void FillTexCoords(GLfloat* tex,
@@ -860,7 +861,11 @@ static inline void FillTexCoords(GLfloat* tex,
 
 
 CRenderOpenGL::CRenderOpenGL(wxGLCanvas* canvas)
+#ifdef __APPLE__
+	: wxGLContext(canvas, nullptr, &application_glcontext.ctxAttrs), base(0), myGLVersion(0), mouseUpdate(nullptr)
+#else
 	: wxGLContext(canvas), base(0), myGLVersion(0), mouseUpdate(nullptr)
+#endif
 {
 	width = 0;
 	height = 0;
@@ -1108,6 +1113,14 @@ CRenderOpenGL::~CRenderOpenGL()
 	if (textVAO != 0) glDeleteVertexArrays(1, &textVAO);
 	if (textVBO != 0) glDeleteBuffers(1, &textVBO);
 	if (textEBO != 0) glDeleteBuffers(1, &textEBO);
+
+#ifdef __APPLE__
+
+    // Nettoyage de notre nouveau Quad optimisé
+    if (quadVAO != 0) glDeleteVertexArrays(1, &quadVAO);
+    if (quadVBO != 0) glDeleteBuffers(1, &quadVBO);
+
+#endif
 }
 
 wxGLContext* CRenderOpenGL::GetGLContext()
@@ -1353,6 +1366,71 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
 
 }
 
+#ifdef __APPLE__
+
+void CRenderOpenGL::InitQuadBuffers()
+{
+    if (quadVAO != 0) return; // Déjà initialisé
+
+    glGenVertexArrays(1, &quadVAO);
+    glGenBuffers(1, &quadVBO);
+
+    glBindVertexArray(quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    
+    // On alloue la mémoire statiquement pour 4 sommets (1 Quad). 
+    // Le pointeur initial est nullptr car on enverra les coordonnées à la volée.
+    glBufferData(GL_ARRAY_BUFFER, 4 * sizeof(QuadVertex), nullptr, GL_DYNAMIC_DRAW);
+
+    // Attribut 0 : Position (x, y) -> 2 floats
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (void*)0);
+
+    // Attribut 1 : Coordonnées de texture (u, v) -> 2 floats
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(QuadVertex), (void*)(2 * sizeof(float)));
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int top, bool inverted, bool flipH, bool flipV)
+{
+    // Sécurité au cas où l'initialisation n'aurait pas été appelée
+    if (quadVAO == 0) {
+        InitQuadBuffers();
+    }
+
+    // Récupération des coordonnées de texture transformées
+    GLfloat texCoords[8];
+    FillTexCoords(texCoords, inverted, flipH, flipV);
+
+    // Organisation en tableau continu sur la pile CPU (très rapide)
+    // Conforme à la disposition GL_TRIANGLE_STRIP définie dans votre FillTexCoords (Z-pattern)
+    QuadVertex vertices[4] = {
+        { static_cast<float>(left),         static_cast<float>(top),          texCoords[0], texCoords[1] }, // Haut Gauche
+        { static_cast<float>(left + width), static_cast<float>(top),          texCoords[2], texCoords[3] }, // Haut Droite
+        { static_cast<float>(left),         static_cast<float>(top + height), texCoords[4], texCoords[5] }, // Bas Gauche
+        { static_cast<float>(left + width), static_cast<float>(top + height), texCoords[6], texCoords[7] }  // Bas Droite
+    };
+
+    // Liaison du VAO global unique
+    glBindVertexArray(quadVAO);
+
+    // Mise à jour de la mémoire VBO sur le GPU (Pas de réallocation, juste écriture)
+    glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices);
+
+    // Rendu immédiat géré efficacement par le pilote Apple Silicon
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    // Nettoyage des liaisons
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+
+#else
 
 void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int top, bool inverted, bool flipH, bool flipV)
 {
@@ -1380,6 +1458,8 @@ void CRenderOpenGL::RenderQuadInternal(float width, float height, int left, int 
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 }
+
+#endif
 
 GLvoid CRenderOpenGL::ReSizeGLScene(GLsizei width, GLsizei height)
 {

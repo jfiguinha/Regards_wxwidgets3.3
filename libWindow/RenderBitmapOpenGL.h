@@ -6,7 +6,7 @@
 #include <RenderOpenGL.h>
 using namespace Regards::OpenGL;
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
 namespace Regards::OpenGL
 {

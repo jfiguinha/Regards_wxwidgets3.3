@@ -10,7 +10,7 @@
 
 using namespace Regards::OpenGL;
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
 CRenderVideoOpenGL::CRenderVideoOpenGL(CRenderOpenGL* renderOpenGL)
 {

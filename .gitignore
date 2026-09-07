@@ -461,3 +461,4 @@ RegardsViewer_macsilicon/change_dylib.sh
 RegardsViewer_macsilicon/certificat_apple.pfx
 RegardsViewer_macsilicon/COPYING
 include/.DS_Store
+.vscode/tasks.json

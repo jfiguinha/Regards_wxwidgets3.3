@@ -15,7 +15,7 @@
 using namespace Regards::OpenGL;
 using namespace Regards::OpenCL;
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
 class Character;
 class CFreeTypeFace;
@@ -241,6 +241,23 @@ namespace Regards::OpenGL
 		GLuint textEBO = 0;
 
 		void InitTextBuffers();
+
+#ifdef __APPLE__
+
+	// Structure pour encapsuler la géométrie d'un sommet de rectangle
+	struct QuadVertex {
+		float x, y; // Positions spatiales
+		float u, v; // Coordonnées de texture
+	};
+
+	// Variables membres à rajouter à la classe CRenderOpenGL
+	GLuint quadVAO = 0;
+	GLuint quadVBO = 0;
+
+	// Méthode d'initialisation privée
+	void InitQuadBuffers();
+
+#endif
 	};
 }
 

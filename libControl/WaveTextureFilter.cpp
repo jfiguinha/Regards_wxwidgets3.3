@@ -18,7 +18,7 @@ CWaveTextureFiltre::~CWaveTextureFiltre()
 {}
 
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
 void CWaveTextureFiltre::RenderTexture(CRenderBitmapOpenGL* renderOpenGL, const float& time, const float& invert,
                                     const int& width, const int& height, const int& left, const int& top)

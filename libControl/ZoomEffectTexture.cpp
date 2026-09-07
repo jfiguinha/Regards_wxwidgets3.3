@@ -17,7 +17,7 @@ CZoomEffectTexture::CZoomEffectTexture()
 CZoomEffectTexture::~CZoomEffectTexture()
 {}
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
 void CZoomEffectTexture::RenderTexture(CRenderBitmapOpenGL* renderOpenGL, const float& time, const float& invert,
                                     const int& width, const int& height, const int& left, const int& top)

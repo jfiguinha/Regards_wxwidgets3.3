@@ -16,7 +16,7 @@
 using namespace Regards::OpenGL;
 using namespace Regards::Picture;
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
 
 CRenderBitmapOpenGL::CRenderBitmapOpenGL(CRenderOpenGL* renderOpenGL)

@@ -28,7 +28,7 @@ CPageCurlFilter::~CPageCurlFilter()
 
 }
 
-#ifdef __APPLE__
+#ifdef __OLD_OPENGL__
 
 
 void CPageCurlFilter::RenderTexture(CRenderBitmapOpenGL* renderOpenGL, const float& time, const float& invert,
