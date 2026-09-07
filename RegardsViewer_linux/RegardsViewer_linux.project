@@ -218,6 +218,8 @@
         <Library Value="xml2"/>
         <Library Value="raw_r"/>
         <Library Value="jasper"/>
+        <Library Value="lunasvg"/>
+        <Library Value="plutovg"/>
         <Library Value="avformat"/>
         <Library Value="avfilter"/>
         <Library Value="avcodec"/>

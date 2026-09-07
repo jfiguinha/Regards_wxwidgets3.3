@@ -211,9 +211,6 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 
 	textureDisplay = std::make_unique<GLTexture>();
 
-#ifndef USE_GLUT
-	LoadFont("Antonio-Bold.ttf");
-#endif
 }
 
 void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, wxString text)
@@ -327,9 +324,6 @@ wxGLContext* CRenderOpenGL::GetGLContext()
 
 void CRenderOpenGL::Print(int x, int y, double scale_factor, const char* text)
 {
-
-#ifdef USE_GLUT	
-
     float font_height = 15;
     
     if(scale_factor > 1.0f)
@@ -358,18 +352,10 @@ void CRenderOpenGL::Print(int x, int y, double scale_factor, const char* text)
     
     //glPopMatrix();
     //glColor4f(1,1,1,1);
-
-#else
-
-	RenderText(text, x, height - (heightFont * 0.3 * scale_factor), 0.3f * scale_factor, vec3f(0.5, 0.8f, 0.2f));
-
-#endif
 };
 
 void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, float green, float blue, wxString text)
 {
-    //RenderText(text, x, y, 1.0f, vec3f(0.5, 0.8f, 0.2f));
-#ifdef USE_GLUT	
 	float font_height = 15;
     void * font_choose = GLUT_BITMAP_TIMES_ROMAN_24;
 	float font_width = glutBitmapWidth(font_choose, 'x');;
@@ -438,56 +424,6 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
             }
 		}
 	}
-#else   
-	int xPos = 0;
-    
-    //cout << "Scale Factor : " << to_string(scale_factor) << endl;
-
-	std::vector<wxString> list = CConvertUtility::split(text, '\\');
-	if (list.size() > 0)
-	{
-		wxString line = list[0];
-		xPos = x - ((widthFont * scale_factor * line.size()) / 2);
-		//glWindowPos2i(xPos, y);
-		//get the length of the string to display
-		int len = static_cast<int>(line.Length());
-
-		//glScalef(scale_factor,scale_factor,scale_factor); 
-		int xPosition = 0;
-        
-        float fRed = red / 255.0f;
-        float fGreen = green / 255.0f;
-        float fBlue = blue / 255.0f;
-        
-		RenderText(line, xPos, y, scale_factor, vec3f(fRed, fGreen, fBlue));
-		xPosition += widthFont * len * scale_factor;
-
-
-		for (int i = 1; i < list.size(); i++)
-		{
-			wxUniChar c = list[i][0];
-			if (c == 'N' || c == 'n')
-			{
-				//New Line
-				wxString line = list[i];
-                line = line.SubString(1,line.size() - 1);
-				RenderText(line, x - ((widthFont * scale_factor * line.size()) / 2), y - heightFont * scale_factor, scale_factor, vec3f(fRed, fGreen, fBlue));
-
-			}
-			else
-			{
-				wxString line = list[i];
-                line = line.SubString(1,line.size() - 1);
-				RenderText(line, xPos + xPosition + widthFont * scale_factor, y - heightFont * scale_factor, scale_factor, vec3f(fRed, fGreen, fBlue));
-			}
-		}
-	}
-#endif
-    /*
-
-    */
-
-
 }
 
 void CRenderOpenGL::RenderQuadInternal(float width,
@@ -900,8 +836,6 @@ void CRenderOpenGL::RenderText(wxString text, float x, float y, float scale, vec
 	glDisable(GL_BLEND);
 }
 
-
-
 #else
 
 static inline void FillTexCoords(GLfloat* tex,
@@ -1022,9 +956,7 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 	isInit = true;
 	textureDisplay = std::make_unique<GLTexture>();
 
-#ifndef USE_GLUT
 	LoadFont("Antonio-Bold.ttf");
-#endif
 
 	InitTextBuffers();
 }
@@ -1185,43 +1117,7 @@ wxGLContext* CRenderOpenGL::GetGLContext()
 
 void CRenderOpenGL::Print(int x, int y, double scale_factor, const char* text)
 {
-
-#ifdef USE_GLUT	
-
-    float font_height = 15;
-    
-    if(scale_factor > 1.0f)
-        font_height = font_height * 2;
-
-    //glPushMatrix();
-	//glRasterPos2f(x, height - font_height);
-    //glLoadIdentity();
-	glWindowPos2i(x, height - font_height);
-    
-    
-    //glColor4f(0.5, 0.8f, 0.2f, 1.0f);   
-	//get the length of the string to display
-	int len = static_cast<int>(strlen(text));
-        
-    //glScalef(scale_factor,scale_factor,scale_factor); 
-
-	//loop to display character by character
-	for (auto i = 0; i < len; i++)
-	{
-        if(scale_factor > 1.0f)
-            glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, text[i]);
-        else
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, text[i]);
-	}
-    
-    //glPopMatrix();
-    //glColor4f(1,1,1,1);
-
-#else
-
 	RenderText(text, x, height - (heightFont * 0.3 * scale_factor), 0.3f * scale_factor, vec3f(0.5, 0.8f, 0.2f));
-
-#endif
 }
 
 float CRenderOpenGL::CalculateTextWidth(const wxString& text, float scale)
@@ -1395,12 +1291,7 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
 	}
 
 	if (segments.empty()) return;
-
-#ifdef USE_GLUT	
-	// Note : Le rendu avancé de styles par segment (couleurs et gras dynamiques) 
-	// n'est pas supporté par les fonctions GLUT Bitmap basiques qui partagent une couleur globale fixe.
-	// Fallback sur le premier segment ou rendu texte brut épuré.
-#else   
+ 
 	// ────────────────═══════════════════════════════════════════════════════
 	// NOUVEAU PIPELINE - OPENGL 3.3 CORE (Multi-lignes et Multi-styles)
 	// ────────────────═══════════════════════════════════════════════════════
@@ -1459,7 +1350,7 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
 			currentX += CalculateTextWidth(seg.text, scale);
 		}
 	}
-#endif
+
 }
 
 
