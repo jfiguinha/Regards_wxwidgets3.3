@@ -131,61 +131,56 @@ void CVideoConverterFrame::ExitApplication()
 	if (m_encodeThread.joinable())
 		m_encodeThread.join();
 
-	RemoveIfExists(fileOut);
-	RemoveIfExists(fileOutAudio);
-	RemoveIfExists(fileOutVideo);
+	// Cleanup - built fresh every call (was previously a `static`
+	// array initialized only once from stale member values).
+	const wxString filesToClean[] = { fileOutVideo, fileOutAudio, fileOutAudio_encode, fileOutVideo_encode };
+	for (const auto& filepath : filesToClean)
+		RemoveIfExists(filepath);
+
+
+	if (fileOut_cut != filename)
+		RemoveIfExists(fileOut_cut);
 
 	exit(0);
 }
-#include <thread>
-#include <atomic>
-#include <wx/progdlg.h>
-#include <wx/utils.h>
+
 
 int CVideoConverterFrame::EncodeAudioSample(CVideoOptionCompress* videoCompressOption, const wxString& input, const wxString& output) {
-	AudioEncoder encoder;
-	AudioEncoderOptions options;
+	// Sécurité : s'assurer qu'un ancien thread audio ne tourne plus
+	if (m_audioThread.joinable()) {
+		m_audioThread.join();
+	}
+
+	// Réinitialisation du flag d'annulation
+	m_audioCancelRequested.store(false);
+
+	// Allocation dynamique partagée des options pour le thread
+	auto options = std::make_shared<AudioEncoderOptions>();
 
 	// Configuration du codec
 	if (videoCompressOption->audioCodec == "AAC")
-	{
-		options.codec = AudioCodec::AAC;
-	}
+		options->codec = AudioCodec::AAC;
 	else if (videoCompressOption->audioCodec == "MP3")
-	{
-		options.codec = AudioCodec::MP3;
-	}
+		options->codec = AudioCodec::MP3;
 	else
-	{
-		options.codec = AudioCodec::VORBIS;
-	}
+		options->codec = AudioCodec::VORBIS;
 
 	// Configuration du mode de compression
-	if (videoCompressOption->audioBitRate > 0)
-	{
-		options.mode = EncodingMode::Bitrate;
-		options.bitrateKbps = videoCompressOption->audioBitRate;
+	if (videoCompressOption->audioBitRate > 0) {
+		options->mode = EncodingMode::Bitrate;
+		options->bitrateKbps = videoCompressOption->audioBitRate;
 	}
-	else
-	{
-		options.mode = EncodingMode::Quality;
-		options.quality = videoCompressOption->audioQuality;
+	else {
+		options->mode = EncodingMode::Quality;
+		options->quality = videoCompressOption->audioQuality;
 	}
 
-	// Conversion des chemins pour la classe standard
+	// Conversion des chemins
 	std::string strInput = CConvertUtility::ConvertToStdString(input);
 	std::string strOutput = CConvertUtility::ConvertToStdString(output);
 
-	// Variables atomiques partagées pour la communication inter-thread
-	std::atomic<bool> isFinished(false);
-	std::atomic<bool> cancelRequested(false);
-	std::atomic<int> progressPercent(0);
-	std::atomic<int> currentSeconds(0);
-	std::atomic<int> totalSeconds(0);
-	int result = 0;
-
-	// Création du dialogue de progression (Borné de 0 à 100 pour le pourcentage)
-	wxProgressDialog* m_dlgProgress = new wxProgressDialog(
+	// Création du dialogue de progression sur le thread UI principal
+	m_dlgAudioProgress = new wxProgressDialog(
 		"Encoding Audio",
 		"Starting encoding...",
 		100,
@@ -193,65 +188,64 @@ int CVideoConverterFrame::EncodeAudioSample(CVideoOptionCompress* videoCompressO
 		wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_AUTO_HIDE | wxPD_ELAPSED_TIME | wxPD_REMAINING_TIME
 	);
 
-	// Lancement du thread de traitement d'arrière-plan
-	std::thread workerThread([&]() {
-		result = encoder.EncodeAudioOnly(strInput, strOutput, options,
-			[&](double curSec, double totSec) -> bool
+	// Lancement du traitement audio en arrière-plan (Non bloquant pour l'UI)
+	m_audioThread = std::thread([this, strInput, strOutput, options]() {
+		auto encoder = std::make_unique<AudioEncoder>();
+
+		int result = encoder->EncodeAudioOnly(strInput, strOutput, *options,
+			[this](double curSec, double totSec) -> bool
 			{
-				// Vérifier si l'interface graphique a demandé une annulation
-				if (cancelRequested.load()) {
+				// Si l'UI a demandé l'annulation, on stoppe FFmpeg
+				if (m_audioCancelRequested.load()) {
 					return false;
 				}
 
-				// Stocker les données pour le thread principal
-				currentSeconds.store(static_cast<int>(curSec));
-				totalSeconds.store(static_cast<int>(totSec));
-
+				// Calcul du pourcentage
+				int percent = 0;
 				if (totSec > 0.0) {
-					int percent = static_cast<int>((curSec / totSec) * 100.0);
-					progressPercent.store(percent > 100 ? 100 : percent);
+					percent = static_cast<int>((curSec / totSec) * 100.0);
+					if (percent > 100) percent = 100;
 				}
+
+				// Envoi asynchrone et sécurisé de la progression au thread principal (UI)
+				wxTheApp->CallAfter([this, percent, curSec, totSec]() {
+					if (m_dlgAudioProgress) {
+						wxString msg = wxString::Format("Processing: %d / %d seconds", static_cast<int>(curSec), static_cast<int>(totSec));
+
+						// Si l'utilisateur clique sur "Annuler", Update renvoie false
+						if (!m_dlgAudioProgress->Update(percent, msg)) {
+							m_audioCancelRequested.store(true);
+						}
+					}
+					});
 
 				return true;
 			}
 		);
-		// Notifier le thread principal que le traitement est terminé
-		isFinished.store(true);
+
+		// Traitement de fin d'encodage audio déporté de manière synchrone sur le thread principal
+		wxTheApp->CallAfter([this, result]() {
+			// Destruction propre de l'interface graphique
+			if (m_dlgAudioProgress) {
+				m_dlgAudioProgress->Destroy();
+				m_dlgAudioProgress = nullptr;
+			}
+
+			// Détachement/Nettoyage du thread qui arrive à son terme
+			if (m_audioThread.joinable()) {
+				m_audioThread.detach();
+			}
+
+			// --- SUITE LOGIQUE DE VOTRE APPLICATION ---
+			// C'est ici que l'audio est officiellement terminé. 
+			// Si vous aviez besoin de faire le Muxing final ou d'appeler onComplete(result), 
+			// insérez cet appel ici pour qu'il s'exécute dès que le son est prêt.
+			});
 		});
 
-	// Boucle de rafraîchissement de l'interface sur le thread principal (UI Thread)
-	while (!isFinished.load())
-	{
-		// Permet à wxWidgets de traiter ses messages système internes (évite le gel de l'application)
-		wxYield();
-		wxMilliSleep(50); // Pause de 50ms pour économiser le CPU de l'interface
-
-		if (m_dlgProgress) {
-			int pct = progressPercent.load();
-			int cur = currentSeconds.load();
-			int tot = totalSeconds.load();
-
-			wxString msg = wxString::Format("Processing: %d / %d seconds", cur, tot);
-
-			// Update renvoie 'false' si l'utilisateur clique sur le bouton "Annuler"
-			if (!m_dlgProgress->Update(pct, msg)) {
-				cancelRequested.store(true); // Signale au thread FFmpeg de s'arrêter
-			}
-		}
-	}
-
-	// Attendre la fermeture propre et sécurisée du thread avant de détruire les objets locaux
-	if (workerThread.joinable()) {
-		workerThread.join();
-	}
-
-	// Nettoyage de la boîte de dialogue
-	if (m_dlgProgress) {
-		m_dlgProgress->Destroy();
-	}
-
-	// Retourner le résultat de l'encodage (ou AVERROR_EXIT en cas d'annulation totale)
-	return result;
+	// On retourne immédiatement 0. Le thread principal reste libre, 
+	// la boîte de dialogue vit et se rafraîchit nativement.
+	return 0;
 }
 
 
@@ -295,11 +289,7 @@ void CVideoConverterFrame::EncodeFile(CVideoOptionCompress* videoCompressOption,
 
 			result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOutVideo.utf8_string(), fileOutAudio.utf8_string(), fileOutputPath.utf8_string());
 
-			// Cleanup - built fresh every call (was previously a `static`
-			// array initialized only once from stale member values).
-			const wxString filesToClean[] = { fileOutVideo, fileOutAudio };
-			for (const auto& filepath : filesToClean)
-				RemoveIfExists(filepath);
+
 
 			if (result == 0)
 			{
@@ -316,14 +306,15 @@ void CVideoConverterFrame::EncodeFile(CVideoOptionCompress* videoCompressOption,
 					wxMessageBox(filecompleted, infos);
 				}
 			}
+
+
+
+			ExitApplication();
 		});
 
 
-	if(fileOut_cut != filename)
-		RemoveIfExists(fileOut_cut);	
 
 
-	ExitApplication();
 
 
 
@@ -446,7 +437,7 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 	{
 		//Compress Video and Copy Audio
 		bool result = Regards::Media::ExecuteFFmpegExtractAudio(fileOut_cut.utf8_string(), fileOutAudio.utf8_string());
-		if (result == false || !wxFileExists(fileOutVideo))
+		if (result == false || !wxFileExists(fileOutAudio))
 		{
 			reportExtractionFailure();
 			return;
@@ -473,15 +464,6 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 		if (wxFileExists(fileOutVideo) && wxFileExists(fileOutAudio))
 			result = Regards::Media::ExecuteFFmpegMuxVideoAudio(fileOutVideo.utf8_string(), fileOutAudio.utf8_string(), fileOutputPath.utf8_string());
 
-		// Cleanup - built fresh every call (was previously a `static`
-		// array initialized only once from stale member values).
-		const wxString filesToClean[] = { fileOutVideo, fileOutAudio };
-		for (const auto& filepath : filesToClean)
-			RemoveIfExists(filepath);
-
-		if (fileOut_cut != filename)
-			RemoveIfExists(fileOut_cut);
-
 		if (result == 0)
 		{
 			wxString filecompleted = CLibResource::LoadStringFromResource("LBLFILEENCODINGCOMPLETED", 1);
@@ -503,10 +485,10 @@ void CVideoConverterFrame::ExportVideo(const wxString& fileIn)
 
 
 	wxString fileOutAudio_encode = CFileUtility::GetTempFile("temp_audio_enc." + file_temp.GetExt(), true);
-	RemoveIfExists(fileOutAudio_encode);
 	wxString fileOutVideo_encode = CFileUtility::GetTempFile("temp_video_enc." + file_temp.GetExt(), true);
-	RemoveIfExists(fileOutVideo_encode);
 
+	RemoveIfExists(fileOutVideo_encode);
+	RemoveIfExists(fileOutAudio_encode);
 	//Other Case
 	result = Regards::Media::ExecuteFFmpegExtractAudio(fileOut_cut.utf8_string(), fileOutAudio_encode.utf8_string());
 	if (result == false || !wxFileExists(fileOutAudio_encode))
