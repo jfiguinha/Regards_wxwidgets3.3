@@ -3,7 +3,6 @@
 #include "FFmpegTranscoding.h"
 #include <CompressVideo.h>
 #include <ImageLoadingFormat.h>
-#include "ffmpegToBitmap.h"
 #include "VideoCompressOption.h"
 #include <wx/progdlg.h>
 #include <wx/filename.h>
