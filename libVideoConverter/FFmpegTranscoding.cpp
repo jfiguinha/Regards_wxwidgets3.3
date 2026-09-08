@@ -2080,7 +2080,7 @@ cv::Mat CFFmpegTranscoding::ApplyProcess(cv::Mat& src)
 
 		openclEffectVideo.ApplyVideoEffect(&videoCompressOption->videoEffectParameter);
 
-		mat = openclEffectVideo.GetMatrix().getMat();
+		mat = openclEffectVideo.GetMatrix().getMat().clone();
 	}
 	else
 	{

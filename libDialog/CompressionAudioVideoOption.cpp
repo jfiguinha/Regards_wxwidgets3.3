@@ -556,6 +556,7 @@ void CompressionAudioVideoOption::OnbtnPreviewClick(wxCommandEvent& event)
 
 CVideoOptionCompress* CompressionAudioVideoOption::GetVideoCompressionPt()
 {
+	GetCompressionOption();
 	return videoCompressOption.get();
 }
 

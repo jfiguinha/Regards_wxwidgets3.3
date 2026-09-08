@@ -860,7 +860,6 @@
     <ClInclude Include="jxl.h" />
     <ClInclude Include="JxrOption.h" />
     <ClInclude Include="libPicture.h" />
-    <ClInclude Include="MediaExtractor.h" />
     <ClInclude Include="MediaInfo.h" />
     <ClInclude Include="Metadata.h" />
     <ClInclude Include="MetadataExiv2.h" />
@@ -919,7 +918,6 @@
     <ClCompile Include="jxl.cpp" />
     <ClCompile Include="JxrOption.cpp" />
     <ClCompile Include="libPicture.cpp" />
-    <ClCompile Include="MediaExtractor.cpp" />
     <ClCompile Include="MediaInfo.cpp" />
     <ClCompile Include="MetadataExiv2.cpp" />
     <ClCompile Include="PDFOption.cpp" />

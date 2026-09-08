@@ -20,7 +20,7 @@ public:
 
 
 private:
-
+	int EncodeAudioSample(CVideoOptionCompress* videoCompressOption, const wxString& input, const wxString& output);
 	void OnCloseWindow(wxCloseEvent& event);
 	wxString SelectOutputFile(wxString& filename);
 	void ExitApplication();
@@ -37,6 +37,11 @@ private:
 	wxString fileOutAudio = "";
 	wxString fileOutVideo = "";
 	wxString fileOutputPath = "";
+
+	wxString fileOut_cut = "";
+	wxString fileOutAudio_encode = "";
+	wxString fileOutVideo_encode = "";
+	wxString filename = "";
 	bool needToRemux = false;
 	bool isAudio = false;
 	bool init = false;

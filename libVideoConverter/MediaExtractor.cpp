@@ -532,11 +532,11 @@ namespace Regards
                 // Progression
                 // ─────────────────────────────────────────────────
 
-                  const double endTime =
-                    range.end.value_or(m_durationSecs);
+                const double endTime = (range.end.has_value() && *range.end > 0.0)
+                    ? *range.end
+                    : m_durationSecs;
 
-                const double totalRange =
-                    endTime - range.start;
+                const double totalRange = endTime - range.start;
 
 
                 // ─────────────────────────────────────────────────
@@ -619,12 +619,29 @@ namespace Regards
                     // Avant début
                     // ─────────────────────────────────────────────
 
+                    // ─────────────────────────────────────────────────────────────
+                    // Avant début : On laisse passer si c'est le premier paquet (clé) 
+                    // renvoyé par le seek pour éviter de corrompre les images dépendantes.
+                    // ─────────────────────────────────────────────────────────────
                     if (pktTimeSecs < range.start)
                     {
-                        av_packet_unref(
-                            pkt.get());
+                        // Si c'est un paquet vidéo et qu'il s'agit d'une image clé, on la garde
+                        bool isKeyframe = (pkt->flags & AV_PKT_FLAG_KEY);
 
-                        continue;
+                        // Si ce n'est pas une image clé et qu'on a pas encore commencé ce flux, 
+                        // on est obligé de la jeter.
+                        if (firstTs[srcIdx] == AV_NOPTS_VALUE && !isKeyframe && inStream->codecpar->codec_type == AVMEDIA_TYPE_VIDEO)
+                        {
+                            av_packet_unref(pkt.get());
+                            continue;
+                        }
+
+                        // Si l'offset n'est pas défini, on accepte ce paquet pour caler le flux
+                        if (firstTs[srcIdx] != AV_NOPTS_VALUE)
+                        {
+                            av_packet_unref(pkt.get());
+                            continue;
+                        }
                     }
 
 
@@ -848,14 +865,12 @@ namespace Regards
 
         bool ExecuteFFmpegExtractVideo(
             const std::string& fileIn,
-            const std::string& timestart,
-            const std::string& timestop,
             const std::string& fileOut)
         {
             return RunExtraction(
                 fileIn,
-                timestart,
-                timestop,
+				"00:00:00.000",
+                "00:00:00.000",
                 fileOut,
                 ExtractionMode::VideoOnly);
         }
@@ -867,14 +882,12 @@ namespace Regards
 
         bool ExecuteFFmpegExtractAudio(
             const std::string& fileIn,
-            const std::string& timestart,
-            const std::string& timestop,
             const std::string& fileOut)
         {
             return RunExtraction(
                 fileIn,
-                timestart,
-                timestop,
+                "00:00:00.000",
+                "00:00:00.000",
                 fileOut,
                 ExtractionMode::AudioOnly);
         }
