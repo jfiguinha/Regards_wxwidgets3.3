@@ -462,3 +462,5 @@ RegardsViewer_macsilicon/certificat_apple.pfx
 RegardsViewer_macsilicon/COPYING
 include/.DS_Store
 .vscode/tasks.json
+/RegardsViewer_linux/Package/deb/RegardsViewer_3.05.0.0-linux-x86_64
+*.deb

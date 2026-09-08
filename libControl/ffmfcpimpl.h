@@ -5,7 +5,7 @@
 #include <atomic>
 #include <cstdint>
 #include <thread>
-
+#include <condition_variable>
 #include "VideoControlInterface.h"
 
 extern "C"

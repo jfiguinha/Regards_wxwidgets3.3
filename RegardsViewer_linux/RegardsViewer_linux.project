@@ -389,7 +389,8 @@
         <Library Value="z"/>
         <Library Value="tiff"/>
         <Library Value="lzma"/>
-        <Library Value="SDL2"/>
+        <Library Value="openal"/>
+        <Library Value="fmt"/>
         <Library Value="decor-0"/>
         <Library Value="sharpyuv"/>
         <Library Value="pangoft2-1.0"/>

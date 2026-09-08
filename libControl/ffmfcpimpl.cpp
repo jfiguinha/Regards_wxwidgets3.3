@@ -2122,220 +2122,201 @@ int CFFmfcPimpl::audio_decoder_thread(void* arg)
 
 int CFFmfcPimpl::audio_thread(void* arg)
 {
-	VideoState* is = static_cast<VideoState*>(arg);
-	if (!is)
-		return AVERROR(EINVAL);
+    VideoState* is = static_cast<VideoState*>(arg);
+    if (!is || !is->_pimpl)
+        return AVERROR(EINVAL);
 
-	// OpenAL est thread-local : le contexte doit être rendu courant dans
-	// le thread qui effectue alBufferData/alSourceQueueBuffers/etc.
-	if (!is->al_context || !alcMakeContextCurrent(is->al_context))
-	{
-		av_log(nullptr, AV_LOG_ERROR,
-			"OpenAL : impossible d'activer le contexte audio.\n");
-		return -1;
-	}
+    // 1. OpenAL est thread-local : le contexte DOIT être rendu courant 
+    // dans le thread exact qui effectue les opérations OpenAL.
+    if (!is->al_context || !alcMakeContextCurrent(is->al_context))
+    {
+        av_log(nullptr, AV_LOG_ERROR, "OpenAL : Impossible d'activer le contexte audio dans ce thread.\n");
+        return -1;
+    }
 
-	const int channels = is->audio_tgt.ch_layout.nb_channels;
-	const ALenum al_format =
-		(channels == 1) ? AL_FORMAT_MONO16 :
-		(channels == 2) ? AL_FORMAT_STEREO16 : 0;
+    const int channels = is->audio_tgt.ch_layout.nb_channels;
+    const ALenum al_format = (channels == 1) ? AL_FORMAT_MONO16 :
+                             (channels == 2) ? AL_FORMAT_STEREO16 : 0;
 
-	if (al_format == 0)
-	{
-		av_log(nullptr, AV_LOG_ERROR,
-			"OpenAL : nombre de canaux non supporté : %d\n", channels);
-		alcMakeContextCurrent(nullptr);
-		return -1;
-	}
+    if (al_format == 0)
+    {
+        av_log(nullptr, AV_LOG_ERROR, "OpenAL : Nombre de canaux non supporté : %d\n", channels);
+        alcMakeContextCurrent(nullptr);
+        return -1;
+    }
 
-	if (is->audio_tgt.fmt != AV_SAMPLE_FMT_S16)
-	{
-		av_log(nullptr, AV_LOG_ERROR,
-			"OpenAL : format cible inattendu : %s\n",
-			av_get_sample_fmt_name(is->audio_tgt.fmt));
-		alcMakeContextCurrent(nullptr);
-		return -1;
-	}
+    if (is->audio_tgt.fmt != AV_SAMPLE_FMT_S16)
+    {
+        av_log(nullptr, AV_LOG_ERROR, "OpenAL : Format cible attendu invalide (S16 requis).\n");
+        alcMakeContextCurrent(nullptr);
+        return -1;
+    }
 
-	is->audio_volume =
-		static_cast<float>(av_clip(is->_pimpl->percentVolume, 0, 100)) / 100.0f;
+    // Gestion initiale du volume
+    is->audio_volume = static_cast<float>(av_clip(is->_pimpl->percentVolume, 0, 100)) / 100.0f;
+    if (is->muted)
+        is->audio_volume = 0.0f;
+    alSourcef(is->al_source, AL_GAIN, is->audio_volume);
 
-	if (is->muted)
-		is->audio_volume = 0.0f;
+    int queued_count = 0;
+    int retry_attempts = 0;
 
-	alSourcef(is->al_source, AL_GAIN, is->audio_volume);
+    // 2. Remplissage initial de la file d'attente OpenAL (4 tampons)
+    for (int i = 0; i < 4 && !is->abort_request;)
+    {
+        const int audio_size = is->_pimpl->audio_decode_frame(is);
 
-	int queued_count = 0;
-	int retry_attempts = 0;
+        if (audio_size <= 0 || !is->audio_buf)
+        {
+            // PROTECTION ANTI-UNDERFLOW : Si la sampq est momentanément vide au démarrage,
+            // on attend quelques millisecondes que le décodeur audio produise du PCM.
+            if (frame_queue_nb_remaining(&is->sampq) == 0 && retry_attempts < 100)
+            {
+                std::this_thread::sleep_for(std::chrono::milliseconds(5));
+                retry_attempts++;
+                continue; // On réessaye pour le même index de tampon 'i'
+            }
+            break;
+        }
 
-	for (int i = 0; i < 4 && !is->abort_request;)
-	{
-		const int audio_size = is->_pimpl->audio_decode_frame(is);
+        // Réinitialisation du compteur si un décodage a réussi
+        retry_attempts = 0;
 
-		if (audio_size <= 0 || !is->audio_buf)
-		{
-			// CORRECTION SYNTAXE : Passage par adresse avec &is->sampq
-			if (frame_queue_nb_remaining(&is->sampq) == 0 && retry_attempts < 100)
-			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(5));
-				retry_attempts++;
-				continue; // Réessayer le même index de tampon 'i'
-			}
-			break;
-		}
+        alBufferData(is->al_buffers[i], al_format, is->audio_buf, audio_size, is->audio_tgt.freq);
+        ALenum error = alGetError();
+        if (error != AL_NO_ERROR)
+        {
+            av_log(nullptr, AV_LOG_ERROR, "OpenAL : alBufferData() initial a échoué (0x%04X)\n", error);
+            break;
+        }
 
-		// Réinitialiser le compteur de tentatives si un décodage a réussi
-		retry_attempts = 0;
+        alSourceQueueBuffers(is->al_source, 1, &is->al_buffers[i]);
+        error = alGetError();
+        if (error != AL_NO_ERROR)
+        {
+            av_log(nullptr, AV_LOG_ERROR, "OpenAL : alSourceQueueBuffers() initial a échoué (0x%04X)\n", error);
+            break;
+        }
 
-		alBufferData(
-			is->al_buffers[i],
-			al_format,
-			is->audio_buf,
-			audio_size,
-			is->audio_tgt.freq);
+        ++queued_count;
+        ++i; // On passe au tampon OpenAL suivant
+    }
 
-		ALenum error = alGetError();
-		if (error != AL_NO_ERROR)
-		{
-			av_log(nullptr, AV_LOG_ERROR, "OpenAL : alBufferData() : 0x%04X\n", error);
-			break;
-		}
+    if (queued_count == 0)
+    {
+        av_log(nullptr, AV_LOG_ERROR, "OpenAL : Aucun buffer audio disponible au démarrage.\n");
+        alcMakeContextCurrent(nullptr);
+        return -1;
+    }
 
-		alSourceQueueBuffers(is->al_source, 1, &is->al_buffers[i]);
+    // Lancement de la lecture audio
+    alSourcePlay(is->al_source);
+    ALenum error = alGetError();
+    if (error != AL_NO_ERROR)
+    {
+        av_log(nullptr, AV_LOG_ERROR, "OpenAL : alSourcePlay() a échoué (0x%04X)\n", error);
+        alcMakeContextCurrent(nullptr);
+        return -1;
+    }
 
-		error = alGetError();
-		if (error != AL_NO_ERROR)
-		{
-			av_log(nullptr, AV_LOG_ERROR, "OpenAL : alSourceQueueBuffers() : 0x%04X\n", error);
-			break;
-		}
+    // 3. Boucle principale de streaming
+    while (!is->abort_request && !exit_video.load(std::memory_order_acquire))
+    {
+        if (is->paused)
+        {
+            ALint state = AL_INITIAL;
+            alGetSourcei(is->al_source, AL_SOURCE_STATE, &state);
 
-		++queued_count;
-		++i; // On passe au tampon OpenAL suivant uniquement si l'injection a réussi
-	}
+            if (state == AL_PLAYING)
+                alSourcePause(is->al_source);
 
-	if (queued_count == 0)
-	{
-		av_log(nullptr, AV_LOG_ERROR, "OpenAL : aucun buffer audio disponible après attente du décodeur.\n");
-		alcMakeContextCurrent(nullptr);
-		return -1;
-	}
+            av_usleep(10000); // 10ms d'attente passive si en pause
+            continue;
+        }
 
-	alSourcePlay(is->al_source);
+        // Mise à jour dynamique du volume
+        is->audio_volume = static_cast<float>(av_clip(is->_pimpl->percentVolume, 0, 100)) / 100.0f;
+        if (is->muted)
+            is->audio_volume = 0.0f;
+        alSourcef(is->al_source, AL_GAIN, is->audio_volume);
 
-	ALenum error = alGetError();
-	if (error != AL_NO_ERROR)
-	{
-		av_log(nullptr, AV_LOG_ERROR,
-			"OpenAL : alSourcePlay() : 0x%04X\n", error);
-		alcMakeContextCurrent(nullptr);
-		return -1;
-	}
+        // Vérification des buffers OpenAL déjà consommés par la carte son
+        ALint processed = 0;
+        alGetSourcei(is->al_source, AL_BUFFERS_PROCESSED, &processed);
 
-	while (!is->abort_request &&
-		   !exit_video.load(std::memory_order_acquire))
-	{
-		if (is->paused)
-		{
-			ALint state = AL_INITIAL;
-			alGetSourcei(is->al_source, AL_SOURCE_STATE, &state);
+        while (processed > 0 && !is->abort_request)
+        {
+            ALuint buffer = 0;
+            alSourceUnqueueBuffers(is->al_source, 1, &buffer);
+            error = alGetError();
+            if (error != AL_NO_ERROR)
+            {
+                av_log(nullptr, AV_LOG_ERROR, "OpenAL : alSourceUnqueueBuffers() a échoué (0x%04X)\n", error);
+                break;
+            }
 
-			if (state == AL_PLAYING)
-				alSourcePause(is->al_source);
+            // Décode la frame suivante
+            const int audio_size = is->_pimpl->audio_decode_frame(is);
 
-			av_usleep(10000);
-			continue;
-		}
+            if (audio_size > 0 && is->audio_buf)
+            {
+                alBufferData(buffer, al_format, is->audio_buf, audio_size, is->audio_tgt.freq);
+                error = alGetError();
+                if (error != AL_NO_ERROR)
+                {
+                    av_log(nullptr, AV_LOG_ERROR, "OpenAL : alBufferData() en flux a échoué (0x%04X)\n", error);
+                    break;
+                }
 
-		is->audio_volume =
-			static_cast<float>(av_clip(is->_pimpl->percentVolume, 0, 100)) / 100.0f;
+                // Ré-injection du buffer rempli dans la file OpenAL
+                alSourceQueueBuffers(is->al_source, 1, &buffer);
+                error = alGetError();
+                if (error != AL_NO_ERROR)
+                {
+                    av_log(nullptr, AV_LOG_ERROR, "OpenAL : alSourceQueueBuffers() en flux a échoué (0x%04X)\n", error);
+                    break;
+                }
+            }
 
-		if (is->muted)
-			is->audio_volume = 0.0f;
+            --processed;
+        }
 
-		alSourcef(is->al_source, AL_GAIN, is->audio_volume);
+        // Sécurité en cas d'underflow critique (si la carte son a consommé plus vite que le décodeur)
+        ALint state = AL_STOPPED;
+        ALint queued = 0;
+        alGetSourcei(is->al_source, AL_SOURCE_STATE, &state);
+        alGetSourcei(is->al_source, AL_BUFFERS_QUEUED, &queued);
 
-		ALint processed = 0;
-		alGetSourcei(is->al_source, AL_BUFFERS_PROCESSED, &processed);
+        if (state != AL_PLAYING && queued > 0 && !is->paused)
+        {
+            alSourcePlay(is->al_source);
+        }
 
-		while (processed > 0 && !is->abort_request)
-		{
-			ALuint buffer = 0;
-			alSourceUnqueueBuffers(is->al_source, 1, &buffer);
+        // 4. Gestion de la synchronisation temporelle (Master Clock)
+        is->_pimpl->audio_callback_time = av_gettime_relative();
 
-			error = alGetError();
-			if (error != AL_NO_ERROR)
-			{
-				av_log(nullptr, AV_LOG_ERROR,
-					"OpenAL : alSourceUnqueueBuffers() : 0x%04X\n", error);
-				break;
-			}
+        if (!isnan(is->audio_clock))
+        {
+            // On met à jour l'horloge audio de référence basée sur la progression d'OpenAL
+            is->_pimpl->set_clock_at(
+                &is->audclk,
+                is->audio_clock,
+                is->audio_clock_serial,
+                is->_pimpl->audio_callback_time / 1000000.0
+            );
 
-			const int audio_size = is->_pimpl->audio_decode_frame(is);
+            // Synchronisation de l'horloge externe globale
+            is->_pimpl->sync_clock_to_slave(&is->extclk, &is->audclk);
+        }
 
-			if (audio_size > 0 && is->audio_buf)
-			{
-				alBufferData(
-					buffer,
-					al_format,
-					is->audio_buf,
-					audio_size,
-					is->audio_tgt.freq);
+        av_usleep(5000); // Latence de boucle de 5ms pour libérer le processeur
+    }
 
-				error = alGetError();
-				if (error != AL_NO_ERROR)
-				{
-					av_log(nullptr, AV_LOG_ERROR,
-						"OpenAL : alBufferData() : 0x%04X\n", error);
-					break;
-				}
+    // 5. Nettoyage du thread
+    alSourceStop(is->al_source);
+    alcMakeContextCurrent(nullptr);
 
-				alSourceQueueBuffers(is->al_source, 1, &buffer);
-
-				error = alGetError();
-				if (error != AL_NO_ERROR)
-				{
-					av_log(nullptr, AV_LOG_ERROR,
-						"OpenAL : alSourceQueueBuffers() : 0x%04X\n", error);
-					break;
-				}
-			}
-
-			--processed;
-		}
-
-		// Relance la source en cas d'underflow.
-		ALint state = AL_STOPPED;
-		ALint queued = 0;
-
-		alGetSourcei(is->al_source, AL_SOURCE_STATE, &state);
-		alGetSourcei(is->al_source, AL_BUFFERS_QUEUED, &queued);
-
-		if (state != AL_PLAYING && queued > 0 && !is->paused)
-			alSourcePlay(is->al_source);
-
-		is->_pimpl->audio_callback_time = av_gettime_relative();
-
-		if (!isnan(is->audio_clock))
-		{
-			is->_pimpl->set_clock_at(
-				&is->audclk,
-				is->audio_clock,
-				is->audio_clock_serial,
-				is->_pimpl->audio_callback_time / 1000000.0);
-
-			is->_pimpl->sync_clock_to_slave(
-				&is->extclk,
-				&is->audclk);
-		}
-
-		av_usleep(5000);
-	}
-
-	alSourceStop(is->al_source);
-	alcMakeContextCurrent(nullptr);
-
-	return 0;
+    return 0;
 }
 
 
@@ -2698,7 +2679,6 @@ out:
 
 	return ret;
 }
-
 void CFFmfcPimpl::stream_component_close(VideoState* is, int stream_index)
 {
 	AVFormatContext* ic = is->ic;
@@ -2711,33 +2691,42 @@ void CFFmfcPimpl::stream_component_close(VideoState* is, int stream_index)
 	switch (codecpar->codec_type)
 	{
 	case AVMEDIA_TYPE_AUDIO:
-		// 1. Arrêt du décodage : abort_request réveille sampq.
+		// 1. Arrêt du décodage : abort_request réveille sampq et stoppe le thread de décodage FFmpeg.
 		decoder_abort(&is->auddec, &is->sampq);
 
-		// 2. Le thread OpenAL peut maintenant sortir de audio_decode_frame().
+		// 2. Le thread OpenAL peut maintenant sortir de sa boucle et de audio_decode_frame().
 		if (is->audio_tid.joinable())
 			is->audio_tid.join();
 
-		// NETTOYAGE OPENAL
+		// NETTOYAGE OPENAL SÉCURISÉ
 		if (is->al_source) {
 			alSourceStop(is->al_source);
+			
+			// CORRECTION : Détacher impérativement tous les buffers de la source 
+			// avant de tenter de les supprimer, sinon OpenAL ignorera alDeleteBuffers.
+			alSourcei(is->al_source, AL_BUFFER, 0);
+			
 			alDeleteSources(1, &is->al_source);
 			is->al_source = 0;
 		}
+		
 		if (is->al_buffers[0] != 0) {
 			alDeleteBuffers(4, is->al_buffers);
 			memset(is->al_buffers, 0, sizeof(is->al_buffers));
 		}
+		
 		if (is->al_context) {
 			alcMakeContextCurrent(NULL);
 			alcDestroyContext(is->al_context);
 			is->al_context = nullptr;
 		}
+		
 		if (is->al_device) {
 			alcCloseDevice(is->al_device);
 			is->al_device = nullptr;
 		}
 
+		// Nettoyage FFmpeg Audio
 		decoder_destroy(&is->auddec);
 		swr_free(&is->swr_ctx);
 		av_freep(&is->audio_buf1);
@@ -2746,7 +2735,6 @@ void CFFmfcPimpl::stream_component_close(VideoState* is, int stream_index)
 		break;
 
 	case AVMEDIA_TYPE_VIDEO:
-
 		if (is->hwaccel_uninit)
 			is->hwaccel_uninit(is->viddec.avctx);
 
@@ -2755,13 +2743,13 @@ void CFFmfcPimpl::stream_component_close(VideoState* is, int stream_index)
 
 		decoder_abort(&is->viddec, &is->pictq);
 		decoder_destroy(&is->viddec);
-
-
 		break;
+
 	case AVMEDIA_TYPE_SUBTITLE:
 		decoder_abort(&is->subdec, &is->subpq);
 		decoder_destroy(&is->subdec);
 		break;
+		
 	default:
 		break;
 	}

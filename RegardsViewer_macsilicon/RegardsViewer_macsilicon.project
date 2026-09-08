@@ -229,7 +229,7 @@
         <Library Value="plutovg"/>
         <Library Value="lunasvg"/>
         <Library Value="lzma"/>
-        <Library Value="SDL2"/>
+        <Library Value="openal"/>
         <Library Value="z"/>
         <Library Value="bz2"/>
         <Library Value="heif_static"/>
