@@ -58,15 +58,6 @@ MyApp::MyApp()
 	int result = XInitThreads();
 #endif
 
-	int flags = SDL_INIT_AUDIO | SDL_INIT_TIMER;
-	//------SDL------------------------
-	//³õÊ¼»¯
-	if (SDL_Init(flags))
-	{
-		std::cerr << "unable to init SDL: " << SDL_GetError() << '\n';
-		wxMessageBox(_T("Could not initialize SDL Audio"));
-		//exit(1);
-	}
 }
 
 void MyApp::OnInitCmdLine(wxCmdLineParser& parser)

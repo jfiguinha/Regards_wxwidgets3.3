@@ -31,17 +31,8 @@
  #include <X11/Xlib.h>   
 #endif
 
-#ifdef TEST_WINDOWMANAGER
-#include <myFrame.h>
-#endif
 #ifdef USECURL
 #include <curl/curl.h>
-#endif
-
-
-#ifdef SDL2
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_audio.h>
 #endif
 
 #ifdef __WXMSW__
