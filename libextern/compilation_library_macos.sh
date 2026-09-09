@@ -50,6 +50,7 @@ cd vcpkg
 ./vcpkg install boost-lexical-cast
 ./vcpkg install tesseract
 ./vcpkg install lunasvg
+./vcpkg install openal-soft
 cd ..
 
 #Compile heif-master

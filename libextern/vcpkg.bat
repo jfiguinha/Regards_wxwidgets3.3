@@ -20,4 +20,5 @@ vcpkg install boost-lexical-cast
 vcpkg install libxml2
 vcpkg install tesseract
 vcpkg install lunasvg
+vcpkg install openal-soft
 vcpkg install opencv4[contrib,core,dnn,ffmpeg,ipp,jpeg,tbb,png,tiff,webp,openexr,opencl]
