@@ -309,6 +309,7 @@ CFFmpegTranscoding::~CFFmpegTranscoding()
 {
 	EndTreatment();
 
+
 	if (dst_hardware != nullptr)
 	{
 		av_frame_free(&dst_hardware);
@@ -319,6 +320,7 @@ CFFmpegTranscoding::~CFFmpegTranscoding()
 
 	if (convert_dst_hardware != nullptr)
 	{
+		av_freep(&convert_dst_hardware->data[0]); // Libère le buffer de pixels
 		av_frame_free(&convert_dst_hardware);
 	}
 
@@ -331,6 +333,8 @@ CFFmpegTranscoding::~CFFmpegTranscoding()
 
 	if (convertContext != nullptr)
 		sws_freeContext(convertContext);
+
+
 
 }
 
@@ -500,6 +504,11 @@ int CFFmpegTranscoding::open_input_file(const wxString& filename)
 			       "for stream #%u\n", i);
 			return ret;
 		}
+
+		// À ajouter juste avant avcodec_open2 pour le décodeur et l'encodeur :
+		codec_ctx->thread_count = 0; // '0' indique à FFmpeg d'utiliser automatiquement tous les cœurs disponibles
+		codec_ctx->thread_type = FF_THREAD_FRAME; // ou FF_THREAD_SLICE selon le codec
+
 		/* Reencode video & audio and remux subtitles etc. */
 		if (codec_ctx->codec_type == AVMEDIA_TYPE_VIDEO
 			|| codec_ctx->codec_type == AVMEDIA_TYPE_AUDIO)
@@ -596,6 +605,12 @@ int CFFmpegTranscoding::open_input_file(const wxString& filename, const wxString
 			av_log(nullptr, AV_LOG_ERROR, "Failed to allocate the decoder context for stream #%u\n", i);
 			return AVERROR(ENOMEM);
 		}
+
+		// À ajouter juste avant avcodec_open2 pour le décodeur et l'encodeur :
+		codec_ctx->thread_count = 0; // '0' indique à FFmpeg d'utiliser automatiquement tous les cœurs disponibles
+		codec_ctx->thread_type = FF_THREAD_FRAME; // ou FF_THREAD_SLICE selon le codec
+
+
 		ret = avcodec_parameters_to_context(codec_ctx, stream->codecpar);
 		if (ret < 0)
 		{
@@ -1650,76 +1665,38 @@ int CFFmpegTranscoding::encode_write_frame(AVFrame* filt_frame, unsigned int str
 {
 	StreamContext* stream = &stream_ctx[stream_index];
 	int ret;
-	AVPacket enc_pkt;
-   
-   /*
-    if (stream->codecpar->codec_id == AV_CODEC_ID_H265)
-    {
-        filt_frame->pict_type = X265_TYPE_AUTO;
-    }
-     * */
 
-	//av_log(nullptr, AV_LOG_INFO, "Encoding frame\n");
-	/* encode filtered frame */
-	enc_pkt.data = nullptr;
-	enc_pkt.size = 0;
-	av_init_packet(&enc_pkt);
-
+	// Allocation dynamique moderne propre à FFmpeg 8
+	AVPacket* enc_pkt = av_packet_alloc();
+	if (!enc_pkt) return AVERROR(ENOMEM);
 
 	ret = avcodec_send_frame(stream->enc_ctx, filt_frame);
-
 	if (ret >= 0)
 	{
 		while (ret >= 0)
 		{
-			ret = avcodec_receive_packet(stream->enc_ctx, &enc_pkt);
-
+			ret = avcodec_receive_packet(stream->enc_ctx, enc_pkt);
 			if (ret == AVERROR(EAGAIN) || ret == AVERROR_EOF)
 			{
 				ret = 0;
 				break;
 			}
-			/* prepare packet for muxing */
-			enc_pkt.stream_index = stream_index;
 
+			enc_pkt->stream_index = stream_index;
 			int outputIndex = streamCorrespondant[stream_index];
 
-			/*
-			if (ofmt_ctx->streams[outputIndex]->time_base.den != ifmt_ctx->streams[outputIndex]->time_base.den)
-				ofmt_ctx->streams[outputIndex]->time_base.den = ifmt_ctx->streams[outputIndex]->time_base.den;
-			if (ofmt_ctx->streams[outputIndex]->time_base.num != ifmt_ctx->streams[outputIndex]->time_base.num)
-				ofmt_ctx->streams[outputIndex]->time_base.num = ifmt_ctx->streams[outputIndex]->time_base.num;
-			*/
+			// Rescale des timestamps avec le pointeur
+			av_packet_rescale_ts(enc_pkt, stream->enc_ctx->time_base, ofmt_ctx->streams[outputIndex]->time_base);
 
-			if (ofmt_ctx->streams[outputIndex]->time_base.den == ifmt_ctx->streams[outputIndex]->time_base.den
-				&& ofmt_ctx->streams[outputIndex]->time_base.num == ifmt_ctx->streams[outputIndex]->time_base.num)
-			{
-				av_packet_rescale_ts(&enc_pkt,
-				                     ifmt_ctx->streams[outputIndex]->time_base,
-				                     ofmt_ctx->streams[outputIndex]->time_base);
-			}
-			else
-			{
-				av_packet_rescale_ts(&enc_pkt,
-				                     stream->enc_ctx->time_base,
-				                     ofmt_ctx->streams[outputIndex]->time_base);
-			}
-
-			if (enc_pkt.duration > 0)
-				enc_pkt.duration = av_rescale_q(enc_pkt.duration, ofmt_ctx->streams[outputIndex]->time_base,
-				                                stream->enc_ctx->time_base);
-
-			av_log(nullptr, AV_LOG_DEBUG, "Muxing frame\n");
-			/* mux encoded frame */
-			av_write_frame(ofmt_ctx, &enc_pkt);
-			//av_packet_unref(&enc_pkt);
+			av_write_frame(ofmt_ctx, enc_pkt);
+			av_packet_unref(enc_pkt); // Vide le contenu sans détruire le conteneur
 		}
 	}
 
-	av_packet_unref(&enc_pkt);
-
+	av_packet_free(&enc_pkt); // Libération finale
 	return ret;
 }
+
 
 int CFFmpegTranscoding::filter_encode_write_frame(AVFrame* frame, unsigned int stream_index,
                                                        CompressVideo* m_dlgProgress, const int& isvideo,
@@ -1746,25 +1723,33 @@ int CFFmpegTranscoding::filter_encode_write_frame(AVFrame* frame, unsigned int s
 				convert_dst_hardware->width = in_width;
 				convert_dst_hardware->height = in_height;
 				convert_dst_hardware->format = AV_PIX_FMT_NV12;
-				//frame_buffer_nv12 = (uint8_t*)av_malloc(av_image_get_buffer_size(AV_PIX_FMT_NV12, in_width, in_height, 1));
-				//av_image_fill_arrays(convert_dst_hardware->data, convert_dst_hardware->linesize, frame_buffer_nv12, AV_PIX_FMT_NV12, in_width, in_height, 1);
-                av_image_alloc(convert_dst_hardware->data, convert_dst_hardware->linesize, frame->width, frame->height,
-                               AV_PIX_FMT_NV12, 1);
 
-				convertContext = sws_alloc_context();
-
-				av_opt_set_int(convertContext, "srcw", frame->width, 0);
-				av_opt_set_int(convertContext, "srch", frame->height, 0);
-				av_opt_set_int(convertContext, "src_format", frame->format, 0);
-				av_opt_set_int(convertContext, "dstw", frame->width, 0);
-				av_opt_set_int(convertContext, "dsth", frame->height, 0);
-				av_opt_set_int(convertContext, "dst_format", outputFormat, 0);
-				av_opt_set_int(convertContext, "sws_flags", SWS_FAST_BILINEAR, 0);
-
-				if (sws_init_context(convertContext, nullptr, nullptr) < 0)
+				if (convert_dst_hardware == nullptr)
 				{
-					sws_freeContext(convertContext);
-					throw std::logic_error("Failed to initialise scale context");
+					convert_dst_hardware = av_frame_alloc();
+					convert_dst_hardware->width = frame->width;
+					convert_dst_hardware->height = frame->height;
+					convert_dst_hardware->format = AV_PIX_FMT_NV12;
+
+					// ALLOCATION UNIQUE ICI
+					av_image_alloc(convert_dst_hardware->data, convert_dst_hardware->linesize,
+						frame->width, frame->height, AV_PIX_FMT_NV12, 1);
+
+					convertContext = sws_alloc_context();
+
+					av_opt_set_int(convertContext, "srcw", frame->width, 0);
+					av_opt_set_int(convertContext, "srch", frame->height, 0);
+					av_opt_set_int(convertContext, "src_format", frame->format, 0);
+					av_opt_set_int(convertContext, "dstw", frame->width, 0);
+					av_opt_set_int(convertContext, "dsth", frame->height, 0);
+					av_opt_set_int(convertContext, "dst_format", outputFormat, 0);
+					av_opt_set_int(convertContext, "sws_flags", SWS_FAST_BILINEAR, 0);
+
+					if (sws_init_context(convertContext, nullptr, nullptr) < 0)
+					{
+						sws_freeContext(convertContext);
+						throw std::logic_error("Failed to initialise scale context");
+					}
 				}
 			}
 
@@ -2750,12 +2735,12 @@ AVCodecContext* CFFmpegTranscoding::OpenFFmpegEncoder(AVCodecID codec_id, AVCode
 
 cv::Mat CFFmpegTranscoding::GetFrameOutput()
 {
-	return frameOutput.clone();
+	return frameOutput;
 }
 
 cv::Mat CFFmpegTranscoding::GetFrameOutputWithOutEffect()
 {
-	return frameOutputWithoutEffect.clone();
+	return frameOutputWithoutEffect;
 }
 
 int CFFmpegTranscoding::EncodeOneFrameFFmpeg(const char* filename, AVFrame* dst, const int64_t& timeInSeconds)
