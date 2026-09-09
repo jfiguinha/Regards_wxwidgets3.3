@@ -44,6 +44,16 @@ CompressVideo::CompressVideo(wxWindow* parent, int rotation)
 	Connect(wxEVENT_SETSTATUSTEXT, wxCommandEventHandler(CompressVideo::OnSetText));
 
 	Connect(wxEVENT_UPDATEBITMAP, wxCommandEventHandler(CompressVideo::OnSetBitmap));
+
+	// FORCE le double-buffering natif de l'OS sur la fenêtre pour éliminer le scintillement
+	this->SetExtraStyle(wxWS_EX_PROCESS_UI_UPDATES);
+	this->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
+	// Si vous utilisez Windows, cette ligne empêche l'OS d'effacer le fond de manière agressive
+#ifdef __WXMSW__
+	this->SetWindowStyle(this->GetWindowStyle() | wxNO_FULL_REPAINT_ON_RESIZE);
+#endif
+
 #ifndef __APPLE__
 	bitmap->Show(false);
 #endif

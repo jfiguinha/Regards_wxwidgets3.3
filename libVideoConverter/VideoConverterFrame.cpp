@@ -136,6 +136,9 @@ void CVideoConverterFrame::ExitApplication()
 	if (fileOut_cut != filename)
 		RemoveIfExists(fileOut_cut);
 
+
+	videoInterface->Close();
+
 	exit(0);
 }
 

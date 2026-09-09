@@ -498,11 +498,6 @@ bool MyApp::OnInit()
 	LaunchApplication();
 
 	return true;
-
-	// success: wxApp::OnRun() will be called which will enter the main message
-	// loop and the application will run. If we returned false here, the
-	// application would exit immediately.
-	return true;
 }
 
 
