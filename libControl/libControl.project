@@ -37,8 +37,6 @@
     <File Name="ShowElement.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Video">
-    <File Name="FFmpegTranscoding.h"/>
-    <File Name="FFmpegTranscoding.cpp"/>
     <File Name="VideoCompressOption.h"/>
     <VirtualDirectory Name="Core">
       <File Name="SlideToolbar.h"/>
