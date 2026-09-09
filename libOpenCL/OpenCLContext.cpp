@@ -536,7 +536,7 @@ void ShowInfos()
 	}
 }
 
-void COpenCLContext::CreateDefaultOpenCLContext()
+bool COpenCLContext::CreateDefaultOpenCLContext()
 {
 	//ShowInfos();
 	
@@ -556,7 +556,7 @@ void COpenCLContext::CreateDefaultOpenCLContext()
 		errNum = clGetPlatformIDs(1, &firstPlatformId, &numPlatforms);
 		if (errNum != CL_SUCCESS || numPlatforms <= 0) {
 			cerr << "No OpenCL platforum found!" << endl;
-			return;
+			return false;
 		}
 
 		cl_context_properties contextProperties[3] = {
@@ -568,7 +568,7 @@ void COpenCLContext::CreateDefaultOpenCLContext()
 		if (errNum != CL_SUCCESS) {
 			cerr << "Unable to create GPU or CPU context" << endl;
 			//check_error(errNum);
-			return;
+			return false;
 		}
 		else
 		{
@@ -591,6 +591,8 @@ void COpenCLContext::CreateDefaultOpenCLContext()
 			regardsParam->SetOpenCLPlatformName(application_context.platformName);
 		//wxMessageBox(wxString::Format("OpenCL initialized with platform: %s", platformName), "OpenCL Info", wxOK | wxICON_INFORMATION);
 	}
+
+	return true;
 }
 
 void COpenCLContext::CreateCommandQueue(
