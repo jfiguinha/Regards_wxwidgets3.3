@@ -34,13 +34,14 @@
 											<flag>wxEXPAND|wxALL</flag>
 											<border>5</border>
 											<object class="wxRadioBox" name="ID_RBVIDEOCOMPRESSION">
-												<label>Video Conversion</label>
-												<style>wxRA_SPECIFY_ROWS</style>
-												<content>
-													<item>Conversion</item>
-													<item>Direct Copy</item>
-												</content>
-												<default>-1</default>
+        										<label>Video Conversion</label>
+        										<style>wxRA_SPECIFY_COLS</style>
+        										<content>
+            										<item>Conversion</item>
+            										<item>Direct Copy</item>
+        										</content>
+        										<dimension>2</dimension>
+		 									   <size>-1,60</size>
 											</object>
 										</object>
 										<!-- Video Option Group -->
@@ -306,12 +307,13 @@
 											<border>5</border>
 											<object class="wxRadioBox" name="ID_RBAUDIOCOMPRESSION">
 												<label>Audio Conversion</label>
-												<style>wxRA_SPECIFY_ROWS</style>
-												<content>
-													<item>Conversion</item>
-													<item>Direct Copy</item>
-												</content>
-												<default>-1</default>
+        										<style>wxRA_SPECIFY_COLS</style>
+        										<content>
+            										<item>Conversion</item>
+            										<item>Direct Copy</item>
+        										</content>
+        										<dimension>2</dimension>
+		 									   <size>-1,60</size>
 											</object>
 										</object>
 										<!-- Audio Option Group -->
