@@ -4,8 +4,16 @@
 #ifdef __APPLE__
 
 #include <OpenCL/opencl.h>
-#include <OpenGL/OpenGL.h>
+#include <OpenCL/cl_ext.h>
 #include <OpenCL/cl_gl.h>
+#include <OpenCL/cl_gl_ext.h> // <- TRÈS IMPORTANT: contient la macro CGL_SHAREGROUP
+#include <OpenGL/OpenGL.h>
+
+// Sécurité si le SDK est incomplet
+#ifndef CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE
+#define CL_CONTEXT_PROPERTY_USE_CGL_SHAREGROUP_APPLE 0x10000000
+#endif
+
 
 #else
 #include <CL/cl.h>

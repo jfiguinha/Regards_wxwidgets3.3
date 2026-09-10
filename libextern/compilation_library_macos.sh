@@ -17,7 +17,6 @@ mv vcpkg-2026.04.27_macos vcpkg
 cd vcpkg
 ./bootstrap-vcpkg.sh
 ./vcpkg install wxwidgets[webview] --allow-unsupported --x-abi-tools-use-exact-versions --recurse
-./vcpkg install sdl2
 cd ..
 
 unzip SVT-AV1-v2.3.0.zip
