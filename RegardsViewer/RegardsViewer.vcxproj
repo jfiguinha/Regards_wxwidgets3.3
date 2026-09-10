@@ -1238,7 +1238,6 @@ XCOPY /Y "$(SolutionDir)libextern\heif-master\lib\arm64\Release\heif_writer_shar
 XCOPY /Y "$(SolutionDir)libextern\qpdf-master\lib\arm64\release\qpdf29.dll" $(SolutionDir)$(Platform)\RegardsViewer\$(Configuration)\
 XCOPY /Y "$(SolutionDir)libextern\vcpkg\installed\arm64-windows\bin\*.dll" $(SolutionDir)$(Platform)\RegardsViewer\$(Configuration)\
 XCOPY /Y "$(SolutionDir)\libextern\ffmpeg-master\bin\*.dll" $(SolutionDir)$(Platform)\RegardsViewer\$(Configuration)\
-XCOPY /Y "$(SolutionDir)\libextern\ffmpeg-master\bin\ffmpeg.exe" $(SolutionDir)$(Platform)\RegardsViewer\$(Configuration)\
 XCOPY /Y "$(SolutionDir)libextern\mediainfo\*.dll"  $(SolutionDir)$(Platform)\RegardsViewer\$(Configuration)\</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
