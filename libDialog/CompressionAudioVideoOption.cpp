@@ -271,7 +271,12 @@ void CompressionAudioVideoOption::SetBitmap(const long& pos)
 		cv::Mat bitmap_local = ffmpegTranscoding->GetVideoFramePos(pos, 340, 240);
 		if (!bitmap_local.empty())
 		{
-			CPictureUtility::RotateExif(bitmap_local, orientation);
+			//bitmap_local = CPictureUtility::ApplyRotationVideo(bitmap_local, orientation);
+			if (orientation == 90 || orientation == 270)
+			{
+				flip(bitmap_local, bitmap_local, 1);
+				flip(bitmap_local, bitmap_local, 0);
+			}
 			wxImage picture = CLibPicture::ConvertRegardsBitmapToWXImage(bitmap_local);
 			int x = 0;
 			int y = 0;
