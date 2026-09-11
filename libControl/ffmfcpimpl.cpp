@@ -509,6 +509,8 @@ void CFFmfcPimpl::video_display(VideoState* is)
 			}
 			*/
 
+
+
 			// Remplacer la logique d'allocation par une affectation exclusive :
 			CDataAVFrame* dataFrame = new CDataAVFrame();
 			dataFrame->width = tmp_frame->width;
@@ -525,15 +527,50 @@ void CFFmfcPimpl::video_display(VideoState* is)
 			else
 			{
 				dataFrame->dst = nullptr; // Évite les pointeurs sauvages
-				dataFrame->matFrame = cv::Mat(tmp_frame->height, tmp_frame->width, CV_8UC4);
 
 				if (EnsureVideoConversionContext(tmp_frame))
 				{
-					uint8_t* convertedFrameBuffer = dataFrame->matFrame.data;
-					int linesize = tmp_frame->width * 4;
+					// 1. Déclaration de vrais tableaux C fixes à 4 plans (exigé par l'API FFmpeg)
+					uint8_t* dst_data[AV_NUM_DATA_POINTERS] = { nullptr };
+					int dst_linesize[AV_NUM_DATA_POINTERS] = { 0 };
+					
+					// Allocation sécurisée alignée par FFmpeg
+					int alloc_ret = av_image_alloc(
+						dst_data, dst_linesize, 
+						tmp_frame->width, tmp_frame->height, AV_PIX_FMT_BGRA, 
+						32 // Alignement strict requis pour les optimisations SIMD/AVX
+					);
 
-					sws_scale(localContext, tmp_frame->data, tmp_frame->linesize, 0, tmp_frame->height,
-						&convertedFrameBuffer, &linesize);
+					if (alloc_ret >= 0)
+					{
+						// 2. Conversion FFmpeg : écriture sécurisée via les tableaux de pointeurs complets
+						sws_scale(
+							localContext, 
+							tmp_frame->data, tmp_frame->linesize, 
+							0, tmp_frame->height,
+							dst_data, dst_linesize
+						);
+
+						// 3. Encapsulation OpenCV STRICTEMENT ciblée sur le Plan 0
+						// - dst_data[0] contient le pointeur linéaire sur les pixels BGRA
+						// - dst_linesize[0] contient le pas de ligne réel calculé par FFmpeg (qui doit valoir >= 4320)
+						cv::Mat wrappedMat(
+							tmp_frame->height, 
+							tmp_frame->width, 
+							CV_8UC4, 
+							dst_data[0], 
+							static_cast<size_t>(dst_linesize[0])
+						);
+
+						// Ajout d'une vérification de sécurité dans vos logs de debug
+						printf("[DEBUG CORRIGÉ] FFmpeg Plan 0 Linesize: %d, OpenCV Step: %d\n", dst_linesize[0], (int)wrappedMat.step);
+
+						// 4. Copie profonde (Deep Copy) pour le thread UI
+						dataFrame->matFrame = wrappedMat.clone();
+
+						// 5. Libération propre de la mémoire tampon FFmpeg via l'index 0
+						av_freep(&dst_data[0]);
+					}
 				}
 			}
 
