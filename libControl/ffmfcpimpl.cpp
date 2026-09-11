@@ -2163,8 +2163,7 @@ int CFFmfcPimpl::audio_thread(void* arg)
     if (!is || !is->_pimpl)
         return AVERROR(EINVAL);
 
-    // 1. OpenAL est thread-local : le contexte DOIT être rendu courant 
-    // dans le thread exact qui effectue les opérations OpenAL.
+    // 1. Activation obligatoire du contexte OpenAL dans ce thread spécifique
     if (!is->al_context || !alcMakeContextCurrent(is->al_context))
     {
         av_log(nullptr, AV_LOG_ERROR, "OpenAL : Impossible d'activer le contexte audio dans ce thread.\n");
@@ -2189,7 +2188,7 @@ int CFFmfcPimpl::audio_thread(void* arg)
         return -1;
     }
 
-    // Gestion initiale du volume
+    // Configuration initiale du volume
     is->audio_volume = static_cast<float>(av_clip(is->_pimpl->percentVolume, 0, 100)) / 100.0f;
     if (is->muted)
         is->audio_volume = 0.0f;
@@ -2205,19 +2204,18 @@ int CFFmfcPimpl::audio_thread(void* arg)
 
         if (audio_size <= 0 || !is->audio_buf)
         {
-            // PROTECTION ANTI-UNDERFLOW : Si la sampq est momentanément vide au démarrage,
-            // on attend quelques millisecondes que le décodeur audio produise du PCM.
+            // Tolérance d'attente au démarrage : on laisse quelques millisecondes 
+            // au décodeur pour alimenter la file 'sampq'
             if (frame_queue_nb_remaining(&is->sampq) == 0 && retry_attempts < 100)
             {
                 std::this_thread::sleep_for(std::chrono::milliseconds(5));
                 retry_attempts++;
-                continue; // On réessaye pour le même index de tampon 'i'
+                continue; 
             }
             break;
         }
 
-        // Réinitialisation du compteur si un décodage a réussi
-        retry_attempts = 0;
+        retry_attempts = 0; // Réinitialisation du compteur sur succès
 
         alBufferData(is->al_buffers[i], al_format, is->audio_buf, audio_size, is->audio_tgt.freq);
         ALenum error = alGetError();
@@ -2236,7 +2234,7 @@ int CFFmfcPimpl::audio_thread(void* arg)
         }
 
         ++queued_count;
-        ++i; // On passe au tampon OpenAL suivant
+        ++i; 
     }
 
     if (queued_count == 0)
@@ -2246,7 +2244,7 @@ int CFFmfcPimpl::audio_thread(void* arg)
         return -1;
     }
 
-    // Lancement de la lecture audio
+    // Lancement officiel de la lecture
     alSourcePlay(is->al_source);
     ALenum error = alGetError();
     if (error != AL_NO_ERROR)
@@ -2256,7 +2254,7 @@ int CFFmfcPimpl::audio_thread(void* arg)
         return -1;
     }
 
-    // 3. Boucle principale de streaming
+    // 3. Boucle principale de streaming / streaming à la volée
     while (!is->abort_request && !exit_video.load(std::memory_order_acquire))
     {
         if (is->paused)
@@ -2267,17 +2265,17 @@ int CFFmfcPimpl::audio_thread(void* arg)
             if (state == AL_PLAYING)
                 alSourcePause(is->al_source);
 
-            av_usleep(10000); // 10ms d'attente passive si en pause
+            av_usleep(10000); // Maintien d'une attente passive de 10ms si en pause
             continue;
         }
 
-        // Mise à jour dynamique du volume
+        // Gestion dynamique et temps réel du volume / mute
         is->audio_volume = static_cast<float>(av_clip(is->_pimpl->percentVolume, 0, 100)) / 100.0f;
         if (is->muted)
             is->audio_volume = 0.0f;
         alSourcef(is->al_source, AL_GAIN, is->audio_volume);
 
-        // Vérification des buffers OpenAL déjà consommés par la carte son
+        // Récupération des buffers consommés par la carte son
         ALint processed = 0;
         alGetSourcei(is->al_source, AL_BUFFERS_PROCESSED, &processed);
 
@@ -2292,33 +2290,43 @@ int CFFmfcPimpl::audio_thread(void* arg)
                 break;
             }
 
-            // Décode la frame suivante
+            // Décodage de la frame PCM suivante
             const int audio_size = is->_pimpl->audio_decode_frame(is);
 
-            if (audio_size > 0 && is->audio_buf)
+            // PROTECTION ANTI-UNDERFLOW CRITIQUE :
+            // Si la frame est vide (décodeur ralenti par un format exigeant ou exotique),
+            // on injecte un tampon de silence temporaire pour éviter l'effondrement d'OpenAL Soft.
+            if (audio_size <= 0 || !is->audio_buf)
             {
-                alBufferData(buffer, al_format, is->audio_buf, audio_size, is->audio_tgt.freq);
-                error = alGetError();
-                if (error != AL_NO_ERROR)
-                {
-                    av_log(nullptr, AV_LOG_ERROR, "OpenAL : alBufferData() en flux a échoué (0x%04X)\n", error);
-                    break;
-                }
-
-                // Ré-injection du buffer rempli dans la file OpenAL
+                std::vector<uint8_t> silence(2048, 0); 
+                alBufferData(buffer, al_format, silence.data(), static_cast<ALsizei>(silence.size()), is->audio_tgt.freq);
                 alSourceQueueBuffers(is->al_source, 1, &buffer);
-                error = alGetError();
-                if (error != AL_NO_ERROR)
-                {
-                    av_log(nullptr, AV_LOG_ERROR, "OpenAL : alSourceQueueBuffers() en flux a échoué (0x%04X)\n", error);
-                    break;
-                }
+                break;
+            }
+
+            // Injection des données PCM légitimes dans la file d'attente
+            alBufferData(buffer, al_format, is->audio_buf, audio_size, is->audio_tgt.freq);
+            error = alGetError();
+            if (error != AL_NO_ERROR)
+            {
+                av_log(nullptr, AV_LOG_ERROR, "OpenAL : alBufferData() en flux a échoué (0x%04X)\n", error);
+                break;
+            }
+
+            alSourceQueueBuffers(is->al_source, 1, &buffer);
+            error = alGetError();
+            if (error != AL_NO_ERROR)
+            {
+                av_log(nullptr, AV_LOG_ERROR, "OpenAL : alSourceQueueBuffers() en flux a échoué (0x%04X)\n", error);
+                break;
             }
 
             --processed;
         }
 
-        // Sécurité en cas d'underflow critique (si la carte son a consommé plus vite que le décodeur)
+        // SÉCURITÉ REPRISE DE LECTURE AUTOMATIQUE :
+        // Si OpenAL Soft est tombé en rupture totale de stock temporaire, il passe à l'état STOPPED.
+        // On force la relance immédiate dès que la file d'attente contient de nouveau du son.
         ALint state = AL_STOPPED;
         ALint queued = 0;
         alGetSourcei(is->al_source, AL_SOURCE_STATE, &state);
@@ -2329,12 +2337,11 @@ int CFFmfcPimpl::audio_thread(void* arg)
             alSourcePlay(is->al_source);
         }
 
-        // 4. Gestion de la synchronisation temporelle (Master Clock)
+        // 4. Synchronisation temporelle (Horloge Maîtresse)
         is->_pimpl->audio_callback_time = av_gettime_relative();
 
         if (!isnan(is->audio_clock))
         {
-            // On met à jour l'horloge audio de référence basée sur la progression d'OpenAL
             is->_pimpl->set_clock_at(
                 &is->audclk,
                 is->audio_clock,
@@ -2342,14 +2349,14 @@ int CFFmfcPimpl::audio_thread(void* arg)
                 is->_pimpl->audio_callback_time / 1000000.0
             );
 
-            // Synchronisation de l'horloge externe globale
+            // Synchronisation de l'horloge système globale sur l'audio
             is->_pimpl->sync_clock_to_slave(&is->extclk, &is->audclk);
         }
 
-        av_usleep(5000); // Latence de boucle de 5ms pour libérer le processeur
+        av_usleep(5000); // Sommeil léger de 5ms pour décharger le processeur
     }
 
-    // 5. Nettoyage du thread
+    // 5. Fermeture et désactivation du thread
     alSourceStop(is->al_source);
     alcMakeContextCurrent(nullptr);
 
