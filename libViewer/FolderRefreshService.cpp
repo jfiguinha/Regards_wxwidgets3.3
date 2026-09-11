@@ -173,6 +173,9 @@ void FolderRefreshService::UpdateFolderStatic(bool isDeleteFolder, bool refreshP
         const bool requestChanged = (oldRequest != requestSql);
         if (requestChanged || refreshPhotos)
         {
+            auto* viewerParam = CMainParamInit::getInstance();
+            if (viewerParam) viewerParam->SetLastSqlRequest(requestSql);
+
             isSqlUpdate = true;
             sqlFindPhotos.SearchPhotos(requestSql);
         }

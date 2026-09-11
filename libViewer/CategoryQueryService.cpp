@@ -94,6 +94,7 @@ wxString CategoryQueryService::BuildSqlRequest(
 void CategoryQueryService::UpdateAndNotify(PositionElementVector& elements,
                                             wxString& inOutOldRequest)
 {
+    /*
     const wxString newSql = BuildSqlRequest(elements);
     if (inOutOldRequest == newSql) return;
 
@@ -102,12 +103,12 @@ void CategoryQueryService::UpdateAndNotify(PositionElementVector& elements,
 
     auto* viewerParam = CMainParamInit::getInstance();
     if (viewerParam) viewerParam->SetLastSqlRequest(newSql);
-
+    */
     if (windowMain_)
     {
         const wxCommandEvent evt(wxEVENT_REFRESHFOLDERLIST);
         windowMain_->GetEventHandler()->AddPendingEvent(evt);
     }
 
-    inOutOldRequest = newSql;
+    //inOutOldRequest = newSql;
 }
