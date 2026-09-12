@@ -7,6 +7,7 @@
 #include <mutex>
 #include "SqlTransaction.h"
 #include <SqlParameter.h>
+#include <SqlPhotos.h>
 using namespace Regards::Picture;
 using namespace Regards::Sqlite;
 
@@ -215,6 +216,46 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 		}
 	}
 	return files.size();
+}
+
+
+
+int CSqlInsertFile::CheckFolderToRefresh(FolderCatalogVector& folders)
+{
+	int nbNewFile = 0;
+	CLibPicture libPicture;
+	CSqlTransaction sqlTransaction(m_databaseName);
+	CSqlPhotos sqlPhotos;
+
+	for (CFolderCatalog folder : folders)
+	{
+		wxArrayString files;
+
+		wxDir::GetAllFiles(folder.GetFolderPath(), &files, wxEmptyString, wxDIR_FILES);
+		if (files.size() > 0)
+			sort(files.begin(), files.end());
+
+		for (wxString file : files)
+		{
+			int extensionId = libPicture.TestImageFormat(file);
+			if (extensionId != 0)
+			{
+				int64_t id = sqlPhotos.GetPhotoId(file);
+				if (id == -1)
+				{
+					std::vector<std::unique_ptr<CSqlParameter>> parameter;
+					parameter.push_back(std::make_unique<CSqlInt>(folder.GetNumFolder()));
+					parameter.push_back(std::make_unique<CSqlString>(file));
+					parameter.push_back(std::make_unique<CSqlInt>(extensionId));
+					ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOS (NumFolderCatalog, FullPath, CriteriaInsert, Process, ExtensionId) VALUES (?, ?, 0, 0, ?)", parameter);
+					nbNewFile++;
+				}
+
+			}
+		}
+	}
+	sqlTransaction.commit();
+	return nbNewFile;
 }
 
 

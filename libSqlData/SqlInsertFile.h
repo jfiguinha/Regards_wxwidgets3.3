@@ -2,6 +2,7 @@
 #include "SqlExecuteRequest.h"
 #include <Photos.h>
 #include <wx/progdlg.h>
+#include <FolderCatalog.h>
 
 namespace Regards
 {
@@ -15,6 +16,7 @@ namespace Regards
 			CSqlInsertFile();
 			~CSqlInsertFile() = default;
 
+			int CheckFolderToRefresh(FolderCatalogVector& folders);
 			void InsertPhotoFolderToRefresh(const wxString& folder);
 			bool GetPhotoToAdd(vector<wxString>* listFile);
 			bool GetPhotoToRemove(vector<int>* listFile, const int& idFolder);
