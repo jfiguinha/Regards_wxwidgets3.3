@@ -171,10 +171,6 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 {
 	if (files.size() > 0)
 	{
-
-
-
-
 		CSqlTransaction sqlTransaction(m_databaseName);
 		int i = 0;
 		for(wxString file : files)
@@ -183,6 +179,10 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
             int extensionId = libPicture.TestImageFormat(file);
 			if (extensionId != 0 && GetNumPhoto(file) == 0)
 			{
+
+				if (i == 0)
+					firstFile = file;
+
 				std::vector<std::unique_ptr<CSqlParameter>> parameter;
 				parameter.push_back(std::make_unique<CSqlInt>(idFolder));
 				parameter.push_back(std::make_unique<CSqlString>(file));
@@ -190,30 +190,22 @@ int CSqlInsertFile::AddFileFromFolder(wxWindow* parent, wxProgressDialog* dialog
 				ExecuteSqlWithStatementNoResult("INSERT INTO PHOTOS (NumFolderCatalog, FullPath, CriteriaInsert, Process, ExtensionId) VALUES (?, ?, 0, 0, ?)", parameter);
 			}
 
-			if (dialog != nullptr)
+			if (dialog != nullptr && i%100==0)
 			{
-				wxString message = "In progress : " + to_string(++i) + "/" + to_string(files.Count());
+				wxString message = "In progress : " + to_string(i) + "/" + to_string(files.Count());
 				dialog->Update(i, message);
 			}
+
+			i++;
+		}
+
+		if (dialog != nullptr)
+		{
+			wxString message = "In progress : " + to_string(i) + "/" + to_string(files.Count());
+			dialog->Update(i, message);
 		}
 
 		sqlTransaction.commit();
-
-
-		CLibPicture libPicture;
-		bool first = true;
-		for (size_t i = 0; i < files.size(); i++)
-		{
-			wxString file = files[i];
-			if (libPicture.TestImageFormat(file) != 0)
-			{
-				if (first)
-				{
-					firstFile = file;
-					break;
-				}
-			}
-		}
 	}
 	return files.size();
 }
