@@ -444,10 +444,6 @@ bool MyApp::InitializeResources()
 void MyApp::LaunchApplication()
 {
 
-	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
-	if (regardsParam != nullptr)
-		application_context.SetInterpolationMethod(regardsParam->GetInterpolationType());
-
 	if (appName == "RegardsConverter")
 	{
 		wxDisplay display;
