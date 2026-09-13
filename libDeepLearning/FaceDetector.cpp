@@ -306,15 +306,23 @@ CSexeAndAge CFaceDetector::DetermineSexeAndAge(const cv::Mat& Face)
 
 	genderNet.setInput(blob);
 	vector<float> genderPreds = genderNet.forward();
+	if (genderPreds.empty())
+		return sexeAndAge;
 	// find max element index (distance function does the argmax() work in C++)
 	int max_index_gender = std::distance(genderPreds.begin(), max_element(genderPreds.begin(), genderPreds.end()));
+	if (max_index_gender < 0 || max_index_gender >= static_cast<int>(genderList.size()))
+		return sexeAndAge;
 	string gender = genderList[max_index_gender];
 
 
 	ageNet.setInput(blob);
 	vector<float> agePreds = ageNet.forward();
+	if (agePreds.empty())
+		return sexeAndAge;
 	// finding maximum indicd in the age_preds vector
 	int max_indice_age = std::distance(agePreds.begin(), max_element(agePreds.begin(), agePreds.end()));
+	if (max_indice_age < 0 || max_indice_age >= static_cast<int>(ageList.size()))
+		return sexeAndAge;
 	string age = ageList[max_indice_age];
 
 	cout << "Gender: " << gender << "  Age: " << age << endl;
@@ -339,8 +347,9 @@ Mat CFaceDetector::RotateAndExtractFace(const double& theta_deg_eye, const Rect&
 
 	bbox.x = max(bbox.x, 0);
 	bbox.y = max(bbox.y, 0);
-	bbox.width = max(bbox.width, 0);
-	bbox.height = max(bbox.height, 0);
+	bbox &= Rect(0, 0, image.cols, image.rows);
+	if (bbox.empty())
+		return {};
 	dst = image(bbox);
 
 
