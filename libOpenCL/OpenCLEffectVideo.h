@@ -63,8 +63,7 @@ namespace Regards
 
 		protected:
 
-			uint8_t* HQDn3D(uint8_t* y, int width, int height, const double& LumSpac = 4, const double& temporalLumaDefault = 6.0, const double& temporalSpatialLumaDefault = 4.0);
-
+			uint8_t* HQDn3D(uint8_t* y, int width, int height, const double& LumSpac, const double& temporalLumaDefault, const double& temporalSpatialLumaDefault);
 			void SetNV12(cv::UMat y, uint8_t* bufferUV, int sizeUV, const int& width,
 				const int& height, const int& lineSize, const int& widthOut, const int& heightOut,
 				const int& colorRange, const int& colorSpace, bool bgraOutput);
@@ -87,7 +86,6 @@ namespace Regards
 			cv::UMat paramOutput;
 			COpenCLContext* openCLContext = nullptr;
 			cl_mem_flags flag;
-			std::unique_ptr<Chqdn3d> hq3d = nullptr;
 			bool interpolatePicture = false;
 			bool needToTranscode = false;
 			bool isOk = false;
