@@ -43,7 +43,7 @@ int CColorization::load(const std::string& param_path, const std::string& model_
     return 0;
 }
 
-cv::Mat CColorization::colorization(const cv::Mat& bgr)
+cv::Mat CColorization::colorization(const cv::Mat& inputData)
 {
    // printf("CColorization::colorization \n");
     cv::Mat out_image;
@@ -52,6 +52,13 @@ cv::Mat CColorization::colorization(const cv::Mat& bgr)
       //fixed input size for the pretrained network
       const int W_in = 224;
       const int H_in = 224;
+
+      cv::Mat bgr;
+
+      if (inputData.channels() == 4)
+          cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
+      else
+          bgr = inputData;
       
       cv::Mat Base_img, lab, L, input_img;
       Base_img = bgr.clone();
@@ -104,10 +111,21 @@ cv::Mat CColorization::colorization(const cv::Mat& bgr)
       
       
       cvtColor(lab, color, cv::COLOR_Lab2BGR);
-      //normalize values to 0->255
       color.convertTo(color, CV_8UC3, 255);
-      
       color.copyTo(out_image);
+
+      if (inputData.channels() == 4)
+      {
+          cvtColor(lab, color, cv::COLOR_Lab2BGR);
+          color.convertTo(color, CV_8UC3, 255);
+          cvtColor(color, out_image, cv::COLOR_BGR2BGRA);
+      }
+      else
+      {
+          cvtColor(lab, color, cv::COLOR_Lab2BGR);
+          color.convertTo(color, CV_8UC3, 255);
+          color.copyTo(out_image);
+      }
       
 	}
 	catch (cv::Exception& e)

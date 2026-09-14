@@ -911,12 +911,12 @@ void CFaceDetector::ImageToJpegBuffer(const Mat& image, std::vector<uchar>& buff
 }
 
 void CFaceDetector::RemoveRedEye(
-	const cv::Mat& image,
+	cv::Mat& image,
 	const cv::Rect& eyeRect,
 	const cv::Rect& radius)
 {
 	if (image.empty() ||
-		image.channels() != 3 ||
+		(image.channels() != 3 && image.channels() != 4) ||
 		eyeRect.empty() ||
 		radius.empty())
 	{
@@ -924,7 +924,8 @@ void CFaceDetector::RemoveRedEye(
 	}
 
 	const cv::Rect imageBounds(
-		0, 0,
+		0,
+		0,
 		image.cols,
 		image.rows);
 
@@ -934,7 +935,34 @@ void CFaceDetector::RemoveRedEye(
 	if (selection.empty())
 		return;
 
-	cv::Mat eye = image(selection);
+	/*
+	 * La ROI est une vue sur l'image originale.
+	 */
+	cv::Mat eyeOriginal = image(selection);
+
+	/*
+	 * On travaille toujours en BGR.
+	 *
+	 * Pour une image BGRA, la conversion crée une nouvelle Mat.
+	 * Il faudra donc recopier le résultat dans eyeOriginal à la fin.
+	 */
+	cv::Mat eye;
+
+	if (image.channels() == 4)
+	{
+		cv::cvtColor(
+			eyeOriginal,
+			eye,
+			cv::COLOR_BGRA2BGR);
+	}
+	else
+	{
+		/*
+		 * clone() est volontaire ici : on travaille sur une copie
+		 * indépendante avant de recopier le résultat.
+		 */
+		eye = eyeOriginal.clone();
+	}
 
 	/*
 	 * Recherche des pixels rouges.
@@ -948,10 +976,13 @@ void CFaceDetector::RemoveRedEye(
 	cv::split(eye, channels);
 
 	cv::Mat maskRed;
-	cv::Mat maskGreen;
-	cv::Mat maskBlue;
+	cv::Mat maskRG;
+	cv::Mat maskRB;
+	cv::Mat mask;
 
-	// Rouge suffisamment intense
+	/*
+	 * Rouge suffisamment intense.
+	 */
 	cv::threshold(
 		channels[2],
 		maskRed,
@@ -979,26 +1010,21 @@ void CFaceDetector::RemoveRedEye(
 		blueFloat,
 		CV_32F);
 
-	cv::Mat maskRG;
-	cv::Mat maskRB;
-
 	cv::compare(
 		redFloat,
-		greenFloat * 1.35,
+		greenFloat * 1.35f,
 		maskRG,
 		cv::CMP_GT);
 
 	cv::compare(
 		redFloat,
-		blueFloat * 1.35,
+		blueFloat * 1.35f,
 		maskRB,
 		cv::CMP_GT);
 
 	/*
-	 * Combinaison des trois conditions.
+	 * Combinaison des conditions.
 	 */
-	cv::Mat mask;
-
 	cv::bitwise_and(
 		maskRed,
 		maskRG,
@@ -1033,7 +1059,7 @@ void CFaceDetector::RemoveRedEye(
 	 * Limite la correction à la zone radius
 	 * autour du centre de l'œil.
 	 */
-	cv::Point center(
+	const cv::Point center(
 		eye.cols / 2,
 		eye.rows / 2);
 
@@ -1052,6 +1078,9 @@ void CFaceDetector::RemoveRedEye(
 	if (correction.empty())
 		return;
 
+	/*
+	 * Masque local.
+	 */
 	cv::Mat localMask =
 		cv::Mat::zeros(
 			mask.size(),
@@ -1061,7 +1090,7 @@ void CFaceDetector::RemoveRedEye(
 		localMask(correction));
 
 	/*
-	 * Remplacement du rouge par une luminance neutre.
+	 * Conversion en luminance.
 	 */
 	cv::Mat gray;
 
@@ -1070,6 +1099,9 @@ void CFaceDetector::RemoveRedEye(
 		gray,
 		cv::COLOR_BGR2GRAY);
 
+	/*
+	 * Retour en BGR.
+	 */
 	cv::Mat corrected;
 
 	cv::cvtColor(
@@ -1077,9 +1109,46 @@ void CFaceDetector::RemoveRedEye(
 		corrected,
 		cv::COLOR_GRAY2BGR);
 
+	/*
+	 * Remplace uniquement les pixels rouges.
+	 */
 	corrected.copyTo(
 		eye,
 		localMask);
+
+	/*
+	 * ============================================================
+	 * RECOPIE EXPLICITE DANS L'IMAGE ORIGINALE
+	 * ============================================================
+	 */
+	cv::Mat originalROI = image(selection);
+
+	if (image.channels() == 3)
+	{
+		eye.copyTo(originalROI);
+	}
+	else
+	{
+		std::vector<cv::Mat> dstChannels;
+
+		cv::split(
+			originalROI,
+			dstChannels);
+
+		std::vector<cv::Mat> srcChannels;
+
+		cv::split(
+			eye,
+			srcChannels);
+
+		srcChannels[0].copyTo(dstChannels[0]);
+		srcChannels[1].copyTo(dstChannels[1]);
+		srcChannels[2].copyTo(dstChannels[2]);
+
+		cv::merge(
+			dstChannels,
+			originalROI);
+	}
 }
 
 double GetNumFaceCompatibleScore(

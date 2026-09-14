@@ -537,9 +537,15 @@ void COpenCLEffectVideo::HQDn3D(const double& LumSpac, const double& temporalLum
 
 		ExecuteSafe([&](cv::UMat& image)
 			{
+				cv::UMat bgr;
+				if (image.channels() == 4)
+					cvtColor(image, bgr, cv::COLOR_BGRA2BGR);
+				else
+					bgr = image;
+
 				width = image.cols;
 				height = image.rows;
-				cvtColor(image, ycbcr, cv::COLOR_BGR2YCrCb);
+				cvtColor(bgr, ycbcr, cv::COLOR_BGR2YCrCb);
 			});
 
 		if (hq3d == nullptr)
@@ -566,8 +572,18 @@ void COpenCLEffectVideo::HQDn3D(const double& LumSpac, const double& temporalLum
 
 		ExecuteSafe([&](cv::UMat& image_umat)
 			{
-				cv::cvtColor(ycbcr, image_umat, cv::COLOR_YCrCb2BGR);
+
+				if (image_umat.channels() == 4)
+				{
+					cv::UMat bgr;
+					cv::cvtColor(ycbcr, bgr, cv::COLOR_YCrCb2BGR);
+					cvtColor(bgr, image_umat, cv::COLOR_BGR2BGRA);
+				}
+				else
+					cv::cvtColor(ycbcr, image_umat, cv::COLOR_YCrCb2BGR);
 			});
+
+		
 	}
 	catch (cv::Exception& e)
 	{
