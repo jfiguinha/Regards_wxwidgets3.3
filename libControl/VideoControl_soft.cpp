@@ -2255,6 +2255,8 @@ void CVideoControlSoft::RenderToTexture()
     {
         if (openCVStabilization == nullptr)
             openCVStabilization = std::make_unique<Regards::OpenCV::COpenCVStabilization>(videoEffectParameter.stabilizeImageBuffere, openclEffectYUV->GetType());
+
+		openCVStabilization->SetNbFrameBuffer(videoEffectParameter.stabilizeImageBuffere);
 		openclEffectYUV->ApplyStabilization(&videoEffectParameter, openCVStabilization.get());
     }
 
