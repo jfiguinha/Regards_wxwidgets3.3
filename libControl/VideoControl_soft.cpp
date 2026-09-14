@@ -2284,9 +2284,9 @@ void CVideoControlSoft::RenderToTexture()
 	}
 
 	if (videoEffectParameter.interpolationQuality == 1)
-		pictureArray = openclEffectYUV->GetMatrix(false);
+		pictureArray.SetArray(openclEffectYUV->GetUMat(false));
 	else
-		pictureArray = openclEffectYUV->GetMatrix();
+		pictureArray.SetArray(openclEffectYUV->GetUMat());
 
 }
 

@@ -80,10 +80,20 @@ Regards::Picture::CPictureArray COpenCLEffectVideo::GetMatrix(const bool& src)
 	}
 	return paramSrc;
 
-
-	
 }
 
+
+
+cv::UMat& COpenCLEffectVideo::GetUMat(const bool& src)
+{
+
+	if (interpolatePicture)
+	{
+		return paramOutput;
+	}
+	return paramSrc;
+
+}
 
 void COpenCLEffectVideo::ConvertToBgr()
 {

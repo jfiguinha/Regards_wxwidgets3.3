@@ -37,7 +37,7 @@ namespace Regards
 			void SetMatrix(Regards::Picture::CPictureArray& frame) override;
 			void SetMatrix(cv::Mat* frame) override;
 			Regards::Picture::CPictureArray GetMatrix(const bool& src = true);
-
+			virtual cv::UMat& GetUMat(const bool& src = true);
 			void AutoContrast();
 			virtual void GetYUV420P(uint8_t* & y, uint8_t* & u, uint8_t* & v, const int& widthOut,
 			                        const int& heightOut);
