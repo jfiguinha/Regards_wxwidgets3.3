@@ -206,11 +206,7 @@ cv::Mat CColorisationNCNN::Execute(const cv::Mat& image)
     const int H_in = 256;
 
     cv::Mat Base_img, lab, L, input_img;
-
-    if (image.channels() == 4)
-        cvtColor(image, Base_img, cv::COLOR_BGRA2BGR);
-    else
-        Base_img = image.clone();
+    Base_img = image.clone();
 
     //normalize levels
     Base_img.convertTo(Base_img, CV_32F, 1.0 / 255);
@@ -260,21 +256,9 @@ cv::Mat CColorisationNCNN::Execute(const cv::Mat& image)
     //merge channels, and convert back to BGR
     cv::Mat color, chn[] = { L, a, b };
     cv::merge(chn, 3, lab);
-
-    if (image.channels() == 4)
-    {
-        cvtColor(lab, color, cv::COLOR_Lab2BGR);
-        color.convertTo(color, CV_8UC3, 255);
-        cvtColor(color, color, cv::COLOR_BGR2BGRA);
-    }
-    else
-    {
-        cvtColor(lab, color, cv::COLOR_Lab2BGR);
-        //normalize values to 0->255
-        color.convertTo(color, CV_8UC3, 255);
-    }
-
-
+    cvtColor(lab, color, cv::COLOR_Lab2BGR);
+    //normalize values to 0->255
+    color.convertTo(color, CV_8UC3, 255);
 
     return color;
 }
