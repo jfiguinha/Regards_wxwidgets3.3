@@ -28,13 +28,26 @@ void COpenCLEffectVideo::ExecuteSafe(F&& func)
 		{
 			convert = paramSrc;
 		}
+
+		// Exécution du filtre OpenCL sur la matrice locale
 		func(convert);
+
+		// CORRECTION : Réassignation obligatoire pour mettre à jour l'en-tête de la classe
+		if (interpolatePicture)
+		{
+			paramOutput = convert;
+		}
+		else
+		{
+			paramSrc = convert;
+		}
 	}
 	catch (const cv::Exception& e)
 	{
 		LogError(e.what());
 	}
 }
+
 
 
 
@@ -170,18 +183,21 @@ void COpenCLEffectVideo::ApplyOpenCVEffect(CVideoEffectParameter* videoEffectPar
 	{
 		cv::Mat image;
 
-		ExecuteSafe([&](cv::UMat& image_umat)
-			{
-				image_umat.copyTo(image);
-			});
-
+		if (interpolatePicture)
+		{
+			paramOutput.copyTo(image);
+		}
+		else
+		{
+			paramSrc.copyTo(image);
+		}
 		if (videoEffectParameter->filmEnhance)
 		{
 			image = CFaceDetector::SuperResolution(image);
+
 		}
 		if (videoEffectParameter->filmcolorisation)
 		{
-
 			image = CFaceDetector::Colorisation(image);
 		}
 

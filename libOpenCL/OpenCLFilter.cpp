@@ -75,8 +75,6 @@ void ExecuteSafeOpenCL(cv::UMat& inputData, F&& func)
 {
 	try
 	{
-		
-
 		const bool convert = inputData.channels() == 3;
 
 		if (convert)
@@ -88,9 +86,10 @@ void ExecuteSafeOpenCL(cv::UMat& inputData, F&& func)
 		}
 		else
 		{
-			cv::UMat resultBGR;
-			resultBGR = func(inputData);
+			// CORRECTION : On réaffecte directement le retour de func à inputData
+			cv::UMat resultBGR = func(inputData);
 			resultBGR.copyTo(inputData);
+			inputData = resultBGR; // Force la mise à jour de l'en-tête de référence
 		}
 	}
 	catch (const cv::Exception& e)
@@ -98,6 +97,8 @@ void ExecuteSafeOpenCL(cv::UMat& inputData, F&& func)
 		LogError(e.what());
 	}
 }
+
+
 
 template<typename F>
 void ExecuteSafeOpenCL3Channels(cv::UMat& inputData, F&& func)
@@ -109,38 +110,38 @@ void ExecuteSafeOpenCL3Channels(cv::UMat& inputData, F&& func)
 
 		const bool wasBGRA = inputData.channels() == 4;
 
-
-
 		if (wasBGRA)
 		{
-			// Keep the original alpha channel. OpenCL filters must not modify it.
 			cv::UMat alpha;
 			cv::UMat bgr;
 			cv::UMat restoredAlpha;
 
 			cv::extractChannel(inputData, alpha, 3);
-			cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
+			cv::cvtColor(inputData, bgr, cv::COLOR_BGR2BGR);
 			cv::UMat resultBGR = func(bgr);
 
 			if (resultBGR.empty())
 				return;
-			
+
 			if (alpha.size() == resultBGR.size())
 				restoredAlpha = alpha;
 			else
-				cv::resize(alpha, restoredAlpha, resultBGR.size(), 0.0, 0.0,
-					cv::INTER_LINEAR);
+				cv::resize(alpha, restoredAlpha, resultBGR.size(), 0.0, 0.0, cv::INTER_LINEAR);
 
 			cv::UMat resultBGRA;
 			cv::cvtColor(resultBGR, resultBGRA, cv::COLOR_BGR2BGRA);
 			cv::insertChannel(restoredAlpha, resultBGRA, 3);
+
+			// CORRECTION : Sécurisation de la mise à jour de la référence
 			resultBGRA.copyTo(inputData);
+			inputData = resultBGRA;
 		}
 		else
 		{
-			cv::UMat resultBGR;
-			resultBGR = func(inputData);
+			cv::UMat resultBGR = func(inputData);
+			// CORRECTION : Même chose pour le canal unique / 3 canaux directs
 			resultBGR.copyTo(inputData);
+			inputData = resultBGR;
 		}
 	}
 	catch (const cv::Exception& e)
