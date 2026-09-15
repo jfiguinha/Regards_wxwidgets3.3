@@ -75,21 +75,23 @@ void ExecuteSafeOpenCL(cv::UMat& inputData, F&& func)
 {
 	try
 	{
-		cv::UMat source;
+		
 
 		const bool convert = inputData.channels() == 3;
 
 		if (convert)
+		{
+			cv::UMat source;
 			cv::cvtColor(inputData, source, cv::COLOR_BGR2BGRA);
-		else
-			inputData.copyTo(source);
-
-		cv::UMat result = func(source);
-
-		if (convert)
+			cv::UMat result = func(source);
 			cv::cvtColor(result, inputData, cv::COLOR_BGRA2BGR);
+		}
 		else
-			result.copyTo(inputData);
+		{
+			cv::UMat resultBGR;
+			resultBGR = func(inputData);
+			resultBGR.copyTo(inputData);
+		}
 	}
 	catch (const cv::Exception& e)
 	{
@@ -107,35 +109,22 @@ void ExecuteSafeOpenCL3Channels(cv::UMat& inputData, F&& func)
 
 		const bool wasBGRA = inputData.channels() == 4;
 
-		// Keep the original alpha channel. OpenCL filters must not modify it.
-		cv::UMat alpha;
-		cv::UMat bgr;
+
 
 		if (wasBGRA)
 		{
-			cv::extractChannel(inputData, alpha, 3);
-			cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
-		}
-		else
-		{
-			inputData.copyTo(bgr);
-		}
-
-		cv::UMat resultBGR = func(bgr);
-
-		if (resultBGR.empty())
-			return;
-
-		if (wasBGRA)
-		{
-			/*
-			 * The filter may change the image size. In that case resize the
-			 * alpha as a safe fallback. Filters performing geometric
-			 * transformations should transform alpha identically at their
-			 * own level when exact alpha geometry is required.
-			 */
+			// Keep the original alpha channel. OpenCL filters must not modify it.
+			cv::UMat alpha;
+			cv::UMat bgr;
 			cv::UMat restoredAlpha;
 
+			cv::extractChannel(inputData, alpha, 3);
+			cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
+			cv::UMat resultBGR = func(bgr);
+
+			if (resultBGR.empty())
+				return;
+			
 			if (alpha.size() == resultBGR.size())
 				restoredAlpha = alpha;
 			else
@@ -149,6 +138,8 @@ void ExecuteSafeOpenCL3Channels(cv::UMat& inputData, F&& func)
 		}
 		else
 		{
+			cv::UMat resultBGR;
+			resultBGR = func(inputData);
 			resultBGR.copyTo(inputData);
 		}
 	}
@@ -165,22 +156,20 @@ cv::UMat ExecuteSafeOpenCLWithUMatOutput(cv::UMat& inputData, bool bgraOutput, F
 	cv::UMat dest;
 	try
 	{
-		cv::UMat source;
-
 		const bool convert = inputData.channels() == 3;
 
 		if (convert)
+		{
+			
+			cv::UMat source;
 			cv::cvtColor(inputData, source, cv::COLOR_BGR2BGRA);
-		else
-			inputData.copyTo(source);
-
-		cv::UMat result = func(source);
-
-
-		if (!bgraOutput)
+			cv::UMat result = func(source);
 			cv::cvtColor(result, dest, COLOR_BGRA2BGR);
+		}
 		else
-			result.copyTo(dest);
+		{
+			dest = func(inputData);
+		}
 
 	}
 	catch (const cv::Exception& e)
