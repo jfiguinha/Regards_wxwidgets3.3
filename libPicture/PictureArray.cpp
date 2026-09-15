@@ -13,18 +13,26 @@ CPictureArray::CPictureArray(cv::Mat& m)
 	kind = cv::_InputArray::KindFlag::MAT;
 }
 
-void CPictureArray::SetArray(cv::Mat& m)
+void CPictureArray::SetArray(cv::Mat m)
 {
 	m.copyTo(mat);
 	kind = cv::_InputArray::KindFlag::MAT;
 }
 
-void CPictureArray::SetArray(cv::UMat& m)
+void CPictureArray::SetArray(cv::UMat m)
 {
+	// On nettoie d'abord les anciens verrous CPU/GPU de l'instance courante
+	this->Release(); 
+
+#ifdef WIN32
 	m.copyTo(umat);
+#else
+	// Sous Linux, l'affectation directe de l'en-tête découplé
+	// permet de partager le buffer GPU sans déclencher de réallocation forcée.
+	this->umat = m; 
+#endif
 	kind = cv::_InputArray::KindFlag::UMAT;
 }
-
 
 CPictureArray::CPictureArray(cv::UMat& m)
 {

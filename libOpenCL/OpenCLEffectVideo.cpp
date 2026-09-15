@@ -97,7 +97,7 @@ Regards::Picture::CPictureArray COpenCLEffectVideo::GetMatrix(const bool& src)
 
 
 
-cv::UMat& COpenCLEffectVideo::GetUMat(const bool& src)
+cv::UMat COpenCLEffectVideo::GetUMat(const bool& src)
 {
 
 	if (interpolatePicture)
@@ -231,6 +231,11 @@ void COpenCLEffectVideo::AutoContrast()
 			openclFilter->BrightnessAndContrastAuto(image, 1.0);
 		});
 
+}
+
+void COpenCLEffectVideo::ClearCache()
+{
+	openclFilter->ClearCache();
 }
 
 

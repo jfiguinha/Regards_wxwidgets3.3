@@ -117,7 +117,7 @@ void ExecuteSafeOpenCL3Channels(cv::UMat& inputData, F&& func)
 			cv::UMat restoredAlpha;
 
 			cv::extractChannel(inputData, alpha, 3);
-			cv::cvtColor(inputData, bgr, cv::COLOR_BGR2BGR);
+			cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
 			cv::UMat resultBGR = func(bgr);
 
 			if (resultBGR.empty())
@@ -1244,10 +1244,24 @@ void COpenCLFilter::ExecuteOpenCLCode(const wxString& programName, const wxStrin
 		});
 }
 
+void COpenCLFilter::ClearCache()
+{
+	// Parcourir chaque élément du cache pour libérer physiquement les buffers GPU
+	for (auto& pair : openclMemTempMap)
+	{
+		if (pair.second)
+		{
+			pair.second->cl_image = nullptr;
+			pair.second->openclMem.release();
+		}
+	}
+	// Vider complètement la map
+	openclMemTempMap.clear();
+}
+
 UMat COpenCLFilter::ExecuteOpenCLCode(const wxString& programName, const wxString& functionName,
 	vector<COpenCLParameter*>& vecParam, const int& width, const int& height)
 {
-	// Une seule recherche dans la map grâce à l'insertion automatique si absent
 	auto& memInfoPtr = openclMemTempMap[functionName];
 	if (!memInfoPtr)
 	{
@@ -1256,16 +1270,20 @@ UMat COpenCLFilter::ExecuteOpenCLCode(const wxString& programName, const wxStrin
 
 	OpenCLMemoryTemp* memInfo = memInfoPtr.get();
 
-	// Crée ou redimensionne le UMat uniquement si nécessaire
+	// === OPTIMISATION SÉCURISÉE DE LA MÉMOIRE GPU ===
 	if (memInfo->openclMem.empty() ||
 		memInfo->openclMem.cols != width ||
 		memInfo->openclMem.rows != height)
 	{
+		// Sous Linux, forcer la libération de l'ancienne UMat et de son handle cl_mem
+		// AVANT de faire le .create() évite la fragmentation de la VRAM.
+		memInfo->cl_image = nullptr;
+		memInfo->openclMem.release(); 
+
 		memInfo->openclMem.create(height, width, CV_8UC4);
 		memInfo->cl_image = static_cast<cl_mem>(memInfo->openclMem.handle(ACCESS_WRITE));
 	}
 
-	// Récupère le handle si perdu
 	if (memInfo->cl_image == nullptr)
 	{
 		memInfo->cl_image = static_cast<cl_mem>(memInfo->openclMem.handle(ACCESS_WRITE));
@@ -1276,6 +1294,7 @@ UMat COpenCLFilter::ExecuteOpenCLCode(const wxString& programName, const wxStrin
 
 	return memInfo->openclMem;
 }
+
 
 UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method,
 	UMat& inputData, int flipH, int flipV, int angle, int ratio, bool bgraOutput)

@@ -1682,6 +1682,7 @@ void CVideoControlSoft::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenG
 		renderStart,
 		"CVideoControlSoft::OnPaint3D");
 #endif
+
 }
 
 int CVideoControlSoft::ChangeSubtitleStream(int newStreamSubtitle)
@@ -2282,6 +2283,9 @@ void CVideoControlSoft::RenderToTexture()
 	{
 		openclEffectYUV->ApplyOpenCVEffect(&videoEffectParameter);
 	}
+
+		// === AJOUT DE SÉCURITÉ POUR LINUX ===
+	pictureArray.Release(); 
 
 	if (videoEffectParameter.interpolationQuality == 1)
 		pictureArray.SetArray(openclEffectYUV->GetUMat(false));
