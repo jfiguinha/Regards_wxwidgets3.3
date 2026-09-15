@@ -183,6 +183,11 @@ void COpenCLEffectVideo::ApplyOpenCVEffect(CVideoEffectParameter* videoEffectPar
 	{
 		cv::Mat image;
 
+		ExecuteSafe([&](cv::UMat& image_umat)
+			{
+				image_umat.copyTo(image);
+			});
+		/*
 		if (interpolatePicture)
 		{
 			paramOutput.copyTo(image);
@@ -190,7 +195,7 @@ void COpenCLEffectVideo::ApplyOpenCVEffect(CVideoEffectParameter* videoEffectPar
 		else
 		{
 			paramSrc.copyTo(image);
-		}
+		}*/
 		if (videoEffectParameter->filmEnhance)
 		{
 			image = CFaceDetector::SuperResolution(image);
