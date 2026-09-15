@@ -563,8 +563,9 @@ void CFFmfcPimpl::video_display(VideoState* is)
 						);
 
 						// Ajout d'une vérification de sécurité dans vos logs de debug
+#ifdef _DEBUG
 						printf("[DEBUG CORRIGÉ] FFmpeg Plan 0 Linesize: %d, OpenCV Step: %d\n", dst_linesize[0], (int)wrappedMat.step);
-
+#endif
 						// 4. Copie profonde (Deep Copy) pour le thread UI
 						dataFrame->matFrame = wrappedMat.clone();
 
