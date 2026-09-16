@@ -71,6 +71,8 @@ bool CTextureGLPriv::convertToGLTexture2D(cv::UMat& u, GLTexture* glTexture) {
                 cvtColor(u, bitmapMatrix, cv::COLOR_BGRA2RGBA);
             }
 
+            cv::ocl::finish();
+
             if (!bitmapMatrix.isContinuous()) bitmapMatrix = bitmapMatrix.clone();
 
             cl_command_queue q = openCLContext->GetCommandQueue();
