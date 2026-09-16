@@ -105,7 +105,6 @@ private:
 	int oldheightDenoise = 0;
 	wxString filename;
 
-	cv::Mat alphaChannel;
 	cv::Mat input;
 	cv::Mat paramOutput;
 };
