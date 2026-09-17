@@ -41,115 +41,21 @@ using namespace Regards::FiltreEffet;
 #define FSRCNN 2
 #define LapSRN 3
 
-
-template<typename F>
-void ExecuteSafe3Channels(cv::Mat& inputData, F&& func)
-{
-    try
-    {
-        if (inputData.empty())
-            return;
-
-        const bool wasBGRA = inputData.channels() == 4;
-
-        if (wasBGRA)
-        {
-            cv::Mat alpha;
-            cv::Mat bgr;
-            cv::Mat restoredAlpha;
-
-            cv::extractChannel(inputData, alpha, 3);
-            cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
-
-            func(bgr);
-
-            if (bgr.empty())
-                return;
-
-            if (alpha.size() == bgr.size())
-                restoredAlpha = alpha;
-            else
-                cv::resize(
-                    alpha,
-                    restoredAlpha,
-                    bgr.size(),
-                    0.0,
-                    0.0,
-                    cv::INTER_LINEAR);
-
-            cv::Mat resultBGRA;
-            cv::cvtColor(bgr, resultBGRA, cv::COLOR_BGR2BGRA);
-
-            cv::insertChannel(restoredAlpha, resultBGRA, 3);
-
-            resultBGRA.copyTo(inputData);
-            inputData = resultBGRA;
-        }
-        else
-        {
-            func(inputData);
-        }
-    }
-    catch (const cv::Exception& e)
-    {
-        LogError(e.what());
-    }
-}
-
-
 template<typename F>
 void CFiltreEffetCPU::ExecuteSafe(F&& func)
 {
-    try
-    {
-		Mat& inputData = preview ? paramOutput : input;
-		if (inputData.empty())
+	try
+	{
+		Mat& image = preview ? paramOutput : input;
+		if (image.empty())
 			return;
 
-        const bool wasBGRA = inputData.channels() == 4;
-
-        if (wasBGRA)
-        {
-            cv::Mat alpha;
-            cv::Mat bgr;
-            cv::Mat restoredAlpha;
-
-            cv::extractChannel(inputData, alpha, 3);
-            cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
-
-            func(bgr);
-
-            if (bgr.empty())
-                return;
-
-            if (alpha.size() == bgr.size())
-                restoredAlpha = alpha;
-            else
-                cv::resize(
-                    alpha,
-                    restoredAlpha,
-                    bgr.size(),
-                    0.0,
-                    0.0,
-                    cv::INTER_LINEAR);
-
-            cv::Mat resultBGRA;
-            cv::cvtColor(bgr, resultBGRA, cv::COLOR_BGR2BGRA);
-
-            cv::insertChannel(restoredAlpha, resultBGRA, 3);
-
-            resultBGRA.copyTo(inputData);
-            inputData = resultBGRA;
-        }
-        else
-        {
-            func(inputData);
-        }
-    }
-    catch (const cv::Exception& e)
-    {
-        LogError(e.what());
-    }
+		func(image);
+	}
+	catch (const cv::Exception& e)
+	{
+		LogError(e.what());
+	}
 }
 
 class CFiltreEffetCPUImpl
@@ -360,21 +266,13 @@ CFiltreEffetCPU::CFiltreEffetCPU(CRgbaquad back_color, CImageLoadingFormat* bitm
 
 	if (bitmap != nullptr && bitmap->IsOk())
 	{
-		bitmap->GetMatImage().copyTo(input);
+		Mat local = bitmap->GetMatrix().getMat();
 		filename = bitmap->GetFilename();
+		vector<Mat> channels;
+		extractChannel(local, alphaChannel, 3);
+		cvtColor(local, input, COLOR_BGRA2BGR);
 		preview = false;
 	}
-}
-
-Regards::Picture::CPictureArray CFiltreEffetCPU::GetMatrix()
-{
-	Regards::Picture::CPictureArray out;
-	ExecuteSafe([&](cv::Mat& image)
-		{
-			out.SetArray(image);
-		});
-
-	return out;
 }
 
 
@@ -499,73 +397,80 @@ int CFiltreEffetCPU::GetHeight()
  *  \param clipHistPercent cut wings of histogram at given percent tipical=>1, 0=>Disabled
  *  \note In case of BGRA image, we won't touch the transparency
 */
-void CFiltreEffetCPU::BrightnessAndContrastAuto(Mat& source, float clipHistPercent)
-{   
-	ExecuteSafe3Channels(source,[&](cv::Mat& image)
+void CFiltreEffetCPU::BrightnessAndContrastAuto(Mat& image, float clipHistPercent)
+{
+    //printf("Use Auto Contrast \n");
+    
+	int histSize = 256;
+	float alpha, beta;
+	double minGray = 0, maxGray = 0;
+
+	Mat dst;
+	if (image.channels() == 4)
+		cvtColor(image, dst, COLOR_BGRA2BGR);
+	else if (image.channels() == 3)
+		dst = image;
+	else
+		return;
+
+	std::vector<cv::Mat> yuv_planes(3);
+	cv::Mat gpuframe_3channel(dst.size(), CV_8UC3);
+	cv::cvtColor(dst, gpuframe_3channel, COLOR_BGR2YUV, 3);
+	cv::split(gpuframe_3channel, yuv_planes);
+
+
+	if (clipHistPercent == 0)
+	{
+		// keep full available range
+		minMaxLoc(yuv_planes[0], &minGray, &maxGray);
+	}
+	else
+	{
+		Mat hist; //the grayscale histogram
+
+		float range[] = {0, 256};
+		const float* histRange = {range};
+		bool uniform = true;
+		bool accumulate = false;
+		calcHist(&yuv_planes[0], 1, nullptr, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
+
+		// calculate cumulative distribution from the histogram
+		std::vector<float> accumulator(histSize);
+		accumulator[0] = hist.at<float>(0);
+		for (int i = 1; i < histSize; i++)
 		{
-			int histSize = 256;
-			float alpha, beta;
-			double minGray = 0, maxGray = 0;
+			accumulator[i] = accumulator[i - 1] + hist.at<float>(i);
+		}
 
-			std::vector<cv::Mat> yuv_planes(3);
-			cv::Mat gpuframe_3channel(image.size(), CV_8UC3);
-			cv::cvtColor(image, gpuframe_3channel, COLOR_BGR2YUV, 3);
-			cv::split(gpuframe_3channel, yuv_planes);
+		// locate points that cuts at required value
+		float max = accumulator.back();
+		clipHistPercent *= (max / 100.0); //make percent as absolute
+		clipHistPercent /= 2.0; // left and right wings
+		// locate left cut
+		minGray = 0;
+		while (accumulator[minGray] < clipHistPercent)
+			minGray++;
 
-
-			if (clipHistPercent == 0)
-			{
-				// keep full available range
-				minMaxLoc(yuv_planes[0], &minGray, &maxGray);
-			}
-			else
-			{
-				Mat hist; //the grayscale histogram
-
-				float range[] = {0, 256};
-				const float* histRange = {range};
-				bool uniform = true;
-				bool accumulate = false;
-				calcHist(&yuv_planes[0], 1, nullptr, Mat(), hist, 1, &histSize, &histRange, uniform, accumulate);
-
-				// calculate cumulative distribution from the histogram
-				std::vector<float> accumulator(histSize);
-				accumulator[0] = hist.at<float>(0);
-				for (int i = 1; i < histSize; i++)
-				{
-					accumulator[i] = accumulator[i - 1] + hist.at<float>(i);
-				}
-
-				// locate points that cuts at required value
-				float max = accumulator.back();
-				clipHistPercent *= (max / 100.0); //make percent as absolute
-				clipHistPercent /= 2.0; // left and right wings
-				// locate left cut
-				minGray = 0;
-				while (accumulator[minGray] < clipHistPercent)
-					minGray++;
-
-				// locate right cut
-				maxGray = histSize - 1;
-				while (accumulator[maxGray] >= (max - clipHistPercent))
-				{
-					maxGray--;
-					if (maxGray == 0)
-						break;
-				}
-			}
+		// locate right cut
+		maxGray = histSize - 1;
+		while (accumulator[maxGray] >= (max - clipHistPercent))
+		{
+			maxGray--;
+			if (maxGray == 0)
+				break;
+		}
+	}
 
 
-			// current range
-			float inputRange = static_cast<float>(maxGray - minGray);
-			if (inputRange <= 0.0f)
-				return;
+	// current range
+	float inputRange = static_cast<float>(maxGray - minGray);
+	if (inputRange <= 0.0f)
+		return;
 
-			alpha = (histSize - 1) / inputRange; // alpha expands current range to histsize range
-			beta = -minGray * alpha; // beta shifts current range so that minGray will go to 0
+	alpha = (histSize - 1) / inputRange; // alpha expands current range to histsize range
+	beta = -minGray * alpha; // beta shifts current range so that minGray will go to 0
 
-			convertScaleAbs(image, image, alpha, beta);
-	});
+	convertScaleAbs(image, image, alpha, beta);
 }
 
 int CFiltreEffetCPU::BokehEffect(const int& radius, const int& boxsize, const int& nbFace, const wxRect& listFace)
@@ -895,8 +800,11 @@ void CFiltreEffetCPU::SetBitmap(CImageLoadingFormat* bitmap)
 {
 	if (bitmap != nullptr)
 	{
-		bitmap->GetMatImage().copyTo(input);
+		Mat local = bitmap->GetMatrix().getMat();
 		filename = bitmap->GetFilename();
+		vector<Mat> channels;
+		extractChannel(local, alphaChannel, 3);
+		cvtColor(local, input, COLOR_BGRA2BGR);
 		preview = false;
 	}
 }
@@ -1418,6 +1326,8 @@ Mat CFiltreEffetCPU::Interpolation(const Mat& inputData, const int& widthOut, co
 			else
 				flip(cvImage, cvImage, 0);
 		}
+
+		//cv::cvtColor(cvImage, cvImage, cv::COLOR_BGR2BGRA);
 	}
 	catch (Exception& e)
 	{
@@ -2049,6 +1959,44 @@ int CFiltreEffetCPU::Fusion(Mat& bitmapSecond, const float& pourcentage)
 	return 0;
 }
 
+
+Regards::Picture::CPictureArray CFiltreEffetCPU::GetMatrix()
+{
+	Regards::Picture::CPictureArray out;
+
+	Mat output;
+	const Mat & image = preview ? paramOutput : input;
+	if (image.empty())
+		return output;
+
+	image.copyTo(output);
+	if (output.channels() == 3)
+		cvtColor(output, output, COLOR_BGR2BGRA);
+	else
+	{
+		cv::Mat restoredAlpha;
+
+		if (alphaChannel.size() == output.size())
+			restoredAlpha = alphaChannel;
+		else
+			cv::resize(
+				alphaChannel,
+				restoredAlpha,
+				output.size(),
+				0.0,
+				0.0,
+				cv::INTER_LINEAR);
+
+		cv::cvtColor(output, output, cv::COLOR_BGR2BGRA);
+		cv::insertChannel(restoredAlpha, output, 3);
+	}
+			
+	out.SetArray(output);
+
+	return out;
+}
+
+
 Mat CFiltreEffetCPU::GetBitmap(const bool& source)
 {
 	Mat output;
@@ -2059,6 +2007,24 @@ Mat CFiltreEffetCPU::GetBitmap(const bool& source)
 	selected->copyTo(output);
 	if (output.channels() == 3)
 		cvtColor(output, output, COLOR_BGR2BGRA);
+	else
+	{
+		cv::Mat restoredAlpha;
+
+		if (alphaChannel.size() == output.size())
+			restoredAlpha = alphaChannel;
+		else
+			cv::resize(
+				alphaChannel,
+				restoredAlpha,
+				output.size(),
+				0.0,
+				0.0,
+				cv::INTER_LINEAR);
+
+		cv::cvtColor(output, output, cv::COLOR_BGR2BGRA);
+		cv::insertChannel(restoredAlpha, output, 3);
+	}
 
 	return output;
 }
