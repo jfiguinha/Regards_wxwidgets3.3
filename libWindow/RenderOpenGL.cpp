@@ -134,6 +134,8 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 					catch (const cv::Exception& fallbackException)
 					{
 						std::cout << "OpenCL fallback failed: " << fallbackException.what() << std::endl;
+						application_context.isOpenCLInitialized = false;
+						application_context.openclOpenGLInterop = false;
 					}
 				}
 			}
@@ -147,6 +149,8 @@ void CRenderOpenGL::Init(wxGLCanvas* canvas)
 				catch (const cv::Exception& e)
 				{
 					std::cout << "OpenCL initialization failed: " << e.what() << std::endl;
+					application_context.isOpenCLInitialized = false;
+					application_context.openclOpenGLInterop = false;
 				}
 			}
 		}
