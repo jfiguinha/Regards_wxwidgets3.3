@@ -30,6 +30,15 @@
 #error "You must set wxUSE_PRINTING_ARCHITECTURE to 1 in setup.h, and recompile the library."
 #endif
 
+#ifndef wxHAS_IMAGES_IN_RESOURCES
+#ifdef __WXGTK__
+#include "../Regards/Resources/viewer.xpm"
+#elif defined(__APPLE__)
+#include "../Regards/Resources/viewer.xpm"
+#else
+#include "../../Regards/Resources/viewer.xpm"
+#endif
+#endif
 
 using namespace std;
 using namespace Regards::Viewer;
@@ -57,6 +66,9 @@ CViewerFrame::CViewerFrame(const wxString& title, const wxPoint& pos, const wxSi
     , fileToOpen_(openfile)
 {
     mainInterface_->parent = this;
+    
+    
+    SetIcon(wxICON(viewer));
 
     // 1. Paramètres et thème
     InitParams();
