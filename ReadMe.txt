@@ -49,7 +49,8 @@ An OpenCL 1.2 compatible device is necessary to use this software.
 //**************************************************************************
 
 Create an account via the following website : https://www.geoapify.com/
-Create an API Key and add this key via the configuration dialog under RegardsViewer
+Create an API Key and add this key via the configuration dialog under RegardsViewer or open Regards.config file
+under My Documents/Regards folder and change <ApiKey> value
 
 //**************************************************************************
 //Software Review
@@ -71,6 +72,8 @@ OpenCV
 //**************************************************************************
 //What's New
 //**************************************************************************
+News for 3.11.0 :
+Correct bug on saving GPS Infos
 News for 3.10.0 :
 Correct bug on mac os on interop opencl opengl
 Correct bug when you save a picture with an effect
