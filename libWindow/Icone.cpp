@@ -123,8 +123,18 @@ wxImage CIcone::LoadImageResource(const wxString& resourceName)
 	return bitmap;
 }
 
-CIcone::CIcone(CThumbnailData* data) : numElement(0), oldx(0), oldy(0)
+CIcone::~CIcone(void)
 {
+	if (deleteData && pThumbnailData != nullptr)
+	{
+		delete pThumbnailData;
+		pThumbnailData = nullptr;
+	}
+}
+
+CIcone::CIcone(CThumbnailData* data, bool deleteData) : numElement(0), oldx(0), oldy(0)
+{
+	this->deleteData = deleteData;
 	pThumbnailData = nullptr;
 	showSelected = false;
 	isChecked = false;
@@ -147,7 +157,7 @@ CIcone::CIcone(CThumbnailData* data) : numElement(0), oldx(0), oldy(0)
 	if (data != nullptr)
 	{
 		numElement = data->GetNumElement();
-		pThumbnailData.reset(data);
+		pThumbnailData = data;
 	}
 	else
 	{
@@ -545,10 +555,12 @@ void CIcone::Invalidate() noexcept
 	redraw = true;
 }
 
+
 CThumbnailData* CIcone::GetPtData()
 {
-	return pThumbnailData.get();
+	return pThumbnailData;
 }
+
 
 void CIcone::CalculPosition(const wxImage& render)
 {

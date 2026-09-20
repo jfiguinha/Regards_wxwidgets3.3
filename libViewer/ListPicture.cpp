@@ -291,7 +291,7 @@ void CListPicture::GenerateIndexFile(wxCommandEvent& event)
 		{
 			// Correctif fuite memoire : anciennement "new CIcone(...)" jamais delete.
 			// unique_ptr choisi pour rester coherent avec le reste de la migration en cours.
-			auto pBitmapIcone = std::make_unique<CIcone>(icone->GetPtData());
+			auto pBitmapIcone = std::make_unique<CIcone>(icone->GetPtData(), false);
 			pBitmapIcone->SetNumElement(static_cast<int>(i));
 			pBitmapIcone->SetFilename(filename);
 			pBitmapIcone->SetBackgroundColor(color);

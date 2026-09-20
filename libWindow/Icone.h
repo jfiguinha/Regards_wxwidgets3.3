@@ -18,8 +18,8 @@ namespace Regards::Window
 	class CIcone
 	{
 	public:
-		CIcone(CThumbnailData* data);
-		~CIcone(void) = default;
+		CIcone(CThumbnailData* data, bool deleteData = true);
+		~CIcone(void);
 		void StartLoadingPicture();
 		void StopLoadingPicture();
 		void SetPictureLoading(const wxImage& imageLoading);
@@ -38,6 +38,7 @@ namespace Regards::Window
 		void SetPos(int x, int y);
 
 		CThumbnailData* GetPtData();
+
 
 		void SetTheme(CThemeIcone theme);
 
@@ -126,7 +127,7 @@ namespace Regards::Window
 		//Variable
 		//---------------------------------------------------
 		//int interpolationMethod;
-		std::unique_ptr<CThumbnailData> pThumbnailData;
+		CThumbnailData * pThumbnailData;
 
 		static wxImage videoCadre;
 		static wxImage photoTemp;
@@ -150,6 +151,7 @@ namespace Regards::Window
 		int y;
 		int oldx;
 		int oldy;
+		bool deleteData = true;
 
 		int thumbnailIconeCache;
 		CRegardsConfigParam* config;
