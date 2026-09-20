@@ -55,19 +55,11 @@ if [ ! -f FILE ]; then
     unzip release-qpdf-10.3.2.zip
 fi
 
-FILe=oneapi-tbb-2022.0.0-lin.tgz
-if [ ! -f FILE ]; then
-    wget https://github.com/uxlfoundation/oneTBB/releases/download/v2022.0.0/oneapi-tbb-2022.0.0-lin.tgz
-    tar -zxvf oneapi-tbb-2022.0.0-lin.tgz
-fi
-
 #LOCALPATH=$HOME/developpement/git/Regards/libextern
 LOCALPATH=$(pwd)
 echo $LOCALPATH
 
-
 export pc_libjpeg_LIBS=$LOCALPATH/vcpkg/installed/x64-linux/lib/libjpeg.a
-
 
 cd qpdf-release-qpdf-10.3.2
 ./autogen.sh
