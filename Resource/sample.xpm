@@ -1,5 +1,5 @@
 /* XPM */
-static char * viewer_xpm[] = {
+static char * sample_xpm[] = {
 /* columns rows colors chars-per-pixel */
 "512 512 163 2 ",
 "   c None",
