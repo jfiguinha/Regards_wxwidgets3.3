@@ -222,7 +222,8 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
         if (needToLoadPicture)
         {
             isPicture = true;
-
+            isVideo = false;
+            isAnimation = false;
             // Try thumbnail first (instant display while full image loads)
             if (!isDiaporama)
             {
