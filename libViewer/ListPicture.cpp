@@ -97,6 +97,7 @@ CListPicture::CListPicture(wxWindow* parent, wxWindowID id)
 			CThemeToolbar theme;
 			//viewerTheme->GetThumbnailToolbarTheme(theme);
 			viewerTheme->GetBitmapToolbarTheme(&theme);
+			theme.position = NAVIGATOR_RIGHT;
 			thumbToolbar = new CThumbnailToolBar(windowManager, wxID_ANY, theme, false);
 			thumbToolbar->SetTabValue(value);
 			thumbToolbar->SetTrackBarPosition(positionTab - 1);
