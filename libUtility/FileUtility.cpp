@@ -17,7 +17,7 @@ CFileUtility::~CFileUtility(void)
 
 std::string CFileUtility::GetFullpathModel(const wxString& filename)
 {
-	wxFileName path(GetDocumentFolderPath(), "");
+	wxFileName path(GetDocumentFolderPath(), wxEmptyString);
 	path.AppendDir("model");
 	path.SetFullName(filename);
 	return path.GetFullPath().utf8_string();
@@ -25,7 +25,7 @@ std::string CFileUtility::GetFullpathModel(const wxString& filename)
 
 wxString CFileUtility::GetOrCreateSubFolder(const wxString& folderName)
 {
-	wxFileName path(GetDocumentFolderPath(), "");
+	wxFileName path(GetDocumentFolderPath(), wxEmptyString);
 
 	path.AppendDir(folderName);
 
@@ -114,7 +114,7 @@ wxString CFileUtility::GetResourcesFolderPath()
 
 #else
 
-	wxFileName path(GetProgramFolderPath(), "");
+	wxFileName path(GetProgramFolderPath(), wxEmptyString);
 	path.AppendDir("Resources");
 	return path.GetFullPath();
 

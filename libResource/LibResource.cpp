@@ -72,7 +72,7 @@ vector<wxString> CLibResource::GetSavePictureExtension()
 wxImage CLibResource::CreatePictureFromSVG(const wxString& idName, const int& buttonWidth, const int& buttonHeight)
 {
 	CSqlResource sqlResource;
-	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath(), wxEmptyString);
 	resourcePath.AppendDir("vector");
 	resourcePath.SetFullName(sqlResource.GetVectorFromFile(idName));
 	return Regards::Picture::CLibPicture::CreatePictureFromSVGFilename(resourcePath.GetFullPath(), buttonWidth, buttonHeight);
@@ -80,7 +80,7 @@ wxImage CLibResource::CreatePictureFromSVG(const wxString& idName, const int& bu
 
 wxString CLibResource::LoadBitmapFromResource(const wxString& idName)
 {
-	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath(), wxEmptyString);
 	resourcePath.AppendDir("bitmap");
 	resourcePath.SetFullName(idName + ".png");
 	return resourcePath.GetFullPath();
@@ -101,7 +101,7 @@ wxString CLibResource::LoadStringFromResource(const wxString& idName, const int&
 wxString CLibResource::GetVector(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath(), wxEmptyString);
 	resourcePath.AppendDir("vector");
 	resourcePath.SetFullName(sqlResource.GetVectorFromFile(idName));
 	return ReadFile(resourcePath.GetFullPath());
@@ -117,7 +117,7 @@ int CLibResource::GetExtensionId(const wxString& extension)
 wxString CLibResource::GetOpenGLShaderProgram(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath(), wxEmptyString);
 	resourcePath.AppendDir("shader");
 #ifdef __OLD_OPENGL__
 	resourcePath.AppendDir("opengl_mac");
@@ -131,7 +131,7 @@ wxString CLibResource::GetOpenGLShaderProgram(const wxString& idName)
 wxString CLibResource::GetOpenCLUcharProgram(const wxString& idName)
 {
 	CSqlResource sqlResource;
-	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath());
+	wxFileName resourcePath = wxFileName(CFileUtility::GetResourcesFolderPath(), wxEmptyString);
 	resourcePath.AppendDir("shader");
 	resourcePath.AppendDir("opencl_uchar");
 	resourcePath.SetFullName(sqlResource.GetOpenCLUcharFromFile(idName));

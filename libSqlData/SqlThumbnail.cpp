@@ -169,8 +169,8 @@ void CSqlThumbnail::EraseThumbnail(const int& numPhoto)
 
 bool CSqlThumbnail::EraseThumbnail()
 {
-	wxFileName documentPath = wxFileName(CFileUtility::GetDocumentFolderPath());
-	documentPath.AppendDir("ThumbnailVideo");
+	wxFileName documentPath = wxFileName(CFileUtility::GetDocumentFolderPath(), wxEmptyString);
+	documentPath.AppendDir("Thumbnail");
 
 	wxArrayString files;
 	wxDir::GetAllFiles(documentPath.GetFullPath(), &files, wxEmptyString, wxDIR_FILES);

@@ -353,7 +353,7 @@ bool CSqlFacePhoto::DeletePhotoFaceDatabase(const wxString& path)
 
 bool CSqlFacePhoto::DeleteFaceDatabase()
 {
-	wxFileName documentPath(CFileUtility::GetDocumentFolderPath());
+	wxFileName documentPath(CFileUtility::GetDocumentFolderPath(), wxEmptyString);
 	documentPath.AppendDir("Face");
 
 	wxArrayString files;

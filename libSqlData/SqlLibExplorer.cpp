@@ -425,7 +425,7 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 			sqlVersion.DeleteVersion();
 			sqlVersion.InsertVersion("2.66.0.0");
 			hr = ExecuteSQLWithNoResult(SQL_CREATE_PHOTO_EXIF_TABLE);
-			wxFileName documentPath(CFileUtility::GetDocumentFolderPath());
+			wxFileName documentPath(CFileUtility::GetDocumentFolderPath(), wxEmptyString);
 			documentPath.AppendDir("Face");
 
 			wxArrayString files;

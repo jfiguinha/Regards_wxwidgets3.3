@@ -243,7 +243,7 @@ private:
 string CSuperSampling::GenerateModelPath(string modelName, int scale)
 {
 
-	wxFileName path = wxFileName(CFileUtility::GetResourcesFolderPath());
+	wxFileName path = wxFileName(CFileUtility::GetResourcesFolderPath(), wxEmptyString);
 	path.AppendDir("model");
 	path.SetFullName(modelName + "_x" + to_string(scale) + ".pb");
 
