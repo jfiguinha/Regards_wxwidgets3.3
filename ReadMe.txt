@@ -72,7 +72,7 @@ OpenCV
 //**************************************************************************
 //What's New
 //**************************************************************************
-News for 3.11.0 :
+News for 3.12.0 :
 Correct bug on saving GPS Infos
 News for 3.10.0 :
 Correct bug on mac os on interop opencl opengl
