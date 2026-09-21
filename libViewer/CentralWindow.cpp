@@ -289,6 +289,7 @@ void CCentralWindow::SetListeFile(const wxString& filename, const bool& isDelete
     if (thumbnailPicture != nullptr)
         thumbnailPicture->ApplyListeFile(isDeleteFolder, isSqlUpdate);
     mediaLoader->LoadPicture(filename);
+    viewerController->SetActif(filename);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
