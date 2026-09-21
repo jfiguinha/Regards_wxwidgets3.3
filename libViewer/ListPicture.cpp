@@ -162,6 +162,12 @@ void CListPicture::SetActifItem(const int& numItem, const bool& move)
 		thumbnailFolder->SetActifItem(numItem, move);
 }
 
+void CListPicture::SetActifItem(const wxString& filename, const bool& move)
+{
+	if (thumbnailFolder != nullptr)
+		thumbnailFolder->SetActifItem(filename, move);
+}
+
 int CListPicture::GetNumItem()
 {
 	if (thumbnailFolder != nullptr)

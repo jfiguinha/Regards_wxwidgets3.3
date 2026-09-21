@@ -754,6 +754,12 @@ void CListFace::SetActifItem(const int& numItem, const bool& move)
 		thumbnailFace->SetActifItem(numItem, move);
 }
 
+void CListFace::SetActifItem(const wxString &filename, const bool& move)
+{
+	if (thumbnailFace != nullptr)
+		thumbnailFace->SetActifItem(filename, move);
+}
+
 void CListFace::IntializeListFace()
 {
 	//Update Photo List

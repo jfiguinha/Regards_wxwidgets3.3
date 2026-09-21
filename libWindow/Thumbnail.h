@@ -59,6 +59,7 @@ namespace Regards::Window
 		virtual int GetIconeHeight();
 		virtual int GetIconeWidth();
 
+		virtual void SetActifItem(const wxString &filename, const bool& move);
 		virtual void SetActifItem(const int& idPhoto, const bool& move);
 		virtual void GetSelectItemFilename(vector<wxString>& vectorData);
 
@@ -76,6 +77,7 @@ namespace Regards::Window
 
 	protected:
 
+		void SetActifByNumItem(const int& numItem, const bool &move);
 		void Render(wxDC& dc);
 		void RefreshIcone(const int& idPhoto);
 		CIcone* GetIconeById(const int& idPhoto);

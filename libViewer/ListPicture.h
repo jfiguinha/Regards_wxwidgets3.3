@@ -29,6 +29,7 @@ namespace Regards
 			void UpdateScreenRatio() override;
 			int GetNumItem();
 			void SetActifItem(const int& numItem, const bool& move);
+			void SetActifItem(const wxString& filename, const bool& move);
 			int GetThumbnailHeight();
 			void SetListeFile(const int& typeAffichage, const bool& isDeleteFolder, const bool& isSqlUpdate);
 			void ChangeTypeAffichage(const long& typeAffichage);
@@ -67,10 +68,10 @@ namespace Regards
 			void CreateFolder(const wxString& newFolder);
 
 			// --- Helpers de factorisation (naming/export) ---
-			// Construit la liste des jetons de date (année / mois / jour) selon dateInfoSelection (0..3).
+			// Construit la liste des jetons de date (annï¿½e / mois / jour) selon dateInfoSelection (0..3).
 			std::vector<wxString> BuildDateTokens(const int& dateInfoSelection, const wxString& dateFile);
 			// Construit la liste des jetons geo (pays / ville / lieu) selon geoInfoSelection (0..3),
-			// ou le libellé "non geolocalise" si applicable.
+			// ou le libellï¿½ "non geolocalise" si applicable.
 			std::vector<wxString> BuildGeoTokens(const int& geoInfoSelection, const wxString& gpsFile);
 			// Concatene les jetons dans "result" avec le separateur donne.
 			// - createFolder == false (nom de fichier) : le tout premier jeton du premier groupe traite

@@ -35,6 +35,7 @@ namespace Regards
 			~CListFace() override;
 			void UpdateScreenRatio() override;
 			void SetActifItem(const int& numItem, const bool& move);
+			void SetActifItem(const wxString &filename, const bool& move);
 			int GetThumbnailHeight();
 			void Resize() override;
 			void ClosePane() override;
