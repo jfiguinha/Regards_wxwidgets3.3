@@ -42,7 +42,7 @@ namespace Regards::Viewer
         void     SetFilename(const wxString& f) { filename = f; }
 
         int  GetNbElement() const;
-
+        void SetActif(const wxString& f);
         // Receives the loaded bitmap from the thread (EVENT_SHOWPICTURE)
         void OnShowPicture(wxCommandEvent& event);
 

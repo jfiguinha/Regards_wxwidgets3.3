@@ -264,8 +264,8 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
     }
 
     // Sync active item in all list views
-    if (thumbnailPicture != nullptr)
-        thumbnailPicture->SetActifItem(GetPhotoId(this->filename), true);
+    //if (thumbnailPicture != nullptr)
+    //    thumbnailPicture->SetActifItem(GetPhotoId(this->filename), true);
 
     application_context.numElementToLoad++;
 

@@ -256,7 +256,9 @@ int      CCentralWindow::GetNbElement()                    { return viewerContro
 int CCentralWindow::LoadPicture(const wxString& f, const bool& r)
 { 
     viewerController->SetFilename(f);
-    return mediaLoader->LoadPicture(f, r);
+    mediaLoader->LoadPicture(f, r);
+    viewerController->SetActif(f);
+    return 0;
 }
 
 bool     CCentralWindow::IsVideo()                         { return mediaLoader->IsVideo(); }
