@@ -179,8 +179,11 @@ void CThumbnail::SetActifItem(const wxString &filename, const bool &move)
 	CIcone* icone = iconeList->FindElementByFilename(filename);
 	if (icone != nullptr)
 	{
+		int newPhotoId = icone->GetPtData()->GetNumPhotoId();
+
 		numItem = icone->GetNumElement();
-		if(numOldItem != numItem)
+		
+		if(numSelectPhotoId != newPhotoId)
 			SetActifByNumItem(numItem,move);
 	}
 }
@@ -275,7 +278,7 @@ void CThumbnail::SetActifItem(const int& idPhoto, const bool& move)
 		return;
 
 	int numItem = GetNumItemById(idPhoto);
-	if(numOldItem != numItem)
+	if(idPhoto != numSelectPhotoId)
 		SetActifByNumItem(numItem, move);
 }
 
