@@ -15,6 +15,7 @@ namespace Regards::Window
 		explicit CInfosSeparationBarFace(const CThemeInfosSeparationBar& theme);
 		~CInfosSeparationBarFace(void) override;
 
+		void EnableModification(const bool& enable);
 		void RenderIcone(wxDC* deviceContext, const int& posLargeur, const int& posHauteur) override;
 		void OnClick(const int& x, const int& y) override;
 		bool GetSelected();
@@ -42,6 +43,8 @@ namespace Regards::Window
 		wxRect rcDeleteIcone;
 		wxSize sizeDelete;
 
+
+		bool enableModification = true;
 		int xPosEdit{};
 		int yPosEdit{};
 		int xPosText{};

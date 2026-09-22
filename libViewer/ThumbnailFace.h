@@ -47,6 +47,8 @@ namespace Regards::Viewer
 		void MoveFace(const wxString& faceName);
 		void DeleteIcone(CIcone *  numSelect) override;
 		vector<int> GetFaceSelectID();
+		void EnableModification(const bool& enable) override;
+
 	protected:
 		void OnMouseRelease(const int& x, const int& y) override;
 		void MoveIcone(const int& numElement, const int& numFace);

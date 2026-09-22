@@ -312,18 +312,13 @@ void CListFace::OnFacePhotoAdd(wxCommandEvent& event)
 	if (type == 0)
 	{
 		nbProcessFacePhoto--;
-
-		muListFace.lock();
 		nbNbFace += nbFace;
-		muListFace.unlock();
 	}
 	else
 	{
 		nbProcessFaceRecognition--;
-
-		muListFace.lock();
 		nbNbFace--;
-		muListFace.unlock();
+
 	}
 		
 
@@ -622,7 +617,7 @@ void CListFace::ProcessIdle()
 	//Find Face 
 	int listPhotoSize = 0;
 	bool processPhoto = false;
-	muListPhoto.lock();
+
 
 	listPhotoSize = listPhoto.size();
 
@@ -636,7 +631,7 @@ void CListFace::ProcessIdle()
 		path->mainWindow = this;
 		path->thread = new thread(FacialRecognition, path);
 		nbProcessFacePhoto++;
-
+		posImageRecognize++;
 		processPhoto = true;
 
 		listPhoto.erase(listPhoto.begin());
@@ -644,13 +639,12 @@ void CListFace::ProcessIdle()
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 	}
 
-	muListPhoto.unlock();
 
 	if(processPhoto && sendMessageStatus)
 	{
 		auto thumbnailMessage = new CThumbnailMessage();
-		thumbnailMessage->nbPhoto = nbTotalFace;
-		thumbnailMessage->thumbnailPos = nbTotalFace -listPhotoSize;
+		thumbnailMessage->nbPhoto = nbTotalFace - posImageRecognize;
+		thumbnailMessage->thumbnailPos = posImageRecognize;
 		thumbnailMessage->nbElement = nbTotalFace;
 		thumbnailMessage->typeMessage = 4;
 		wxWindow* mainWnd = this->FindWindowById(MAINVIEWERWINDOWID);
@@ -659,9 +653,9 @@ void CListFace::ProcessIdle()
 		mainWnd->GetEventHandler()->AddPendingEvent(eventChange);
 	}
 	
-	muListFace.lock();
+
 	int nbFaceLocal = nbNbFace;
-	muListFace.unlock();
+
 
 	if (nbProcessFaceRecognition == 0)
 	{
@@ -673,16 +667,18 @@ void CListFace::ProcessIdle()
 			path->filename = "internal";
 			path->thread = new thread(FacialDetectionRecognition, path);
 			nbProcessFaceRecognition++;
+			posFaceRecognize++;
 
 			if (sendMessageStatus)
 			{
 				if (cleanDatabase)
 					CDeepLearning::CleanRecognition();
 				cleanDatabase = false;
+				int diff = (nbTotalFaceToRecognize - posFaceRecognize);
 				auto thumbnailMessage = new CThumbnailMessage();
-				thumbnailMessage->nbPhoto = nbFaceLocal;
-				thumbnailMessage->thumbnailPos = 0;
-				thumbnailMessage->nbElement = nbFaceLocal;
+				thumbnailMessage->nbPhoto = diff < 0 ? nbTotalFaceToRecognize  : diff;
+				thumbnailMessage->thumbnailPos = posFaceRecognize;
+				thumbnailMessage->nbElement = nbTotalFaceToRecognize;
 				thumbnailMessage->typeMessage = 5;
 				wxWindow* mainWnd = this->FindWindowById(MAINVIEWERWINDOWID);
 				wxCommandEvent eventChange(wxEVENT_UPDATESTATUSBARMESSAGE);
@@ -698,7 +694,22 @@ void CListFace::ProcessIdle()
 
 	if (listPhotoSize == 0 && nbFaceLocal == 0)
 	{
+
 		processIdle = false;
+		if (isEnable != true)
+		{
+			isEnable = true;
+			thumbnailFace->EnableModification(isEnable);
+		}
+	}
+	else
+	{
+		if (isEnable != false)
+		{
+			isEnable = false;
+			thumbnailFace->EnableModification(isEnable);
+		}
+		
 	}
 }
 
@@ -720,10 +731,10 @@ void CListFace::ThumbnailDatabaseRefresh(wxCommandEvent& event)
 
 void CListFace::ThumbnailMove(wxCommandEvent& event)
 {
-	if (thumbnailFace->GetNbElement() > 0)
+	if (thumbnailFace->GetFaceSelectID().size() > 0)
 	{
 		//Choix de la Face
-		MoveFaceDialog moveFaceDialog(this);
+		MoveFaceDialog moveFaceDialog(this->GetParent());
 		moveFaceDialog.ShowModal();
 		if (moveFaceDialog.IsOk())
 		{
@@ -731,6 +742,10 @@ void CListFace::ThumbnailMove(wxCommandEvent& event)
 		}
 
 		//Cleanup Name
+	}
+	else
+	{
+		wxMessageBox("No picture selected", "Informations");
 	}
 }
 
@@ -763,17 +778,18 @@ void CListFace::SetActifItem(const wxString &filename, const bool& move)
 void CListFace::IntializeListFace()
 {
 	//Update Photo List
-	muListPhoto.lock();
+
 	CSqlFacePhoto facePhoto;
 	listPhoto = facePhoto.GetPhotoListTreatment();
 	nbTotalFace = listPhoto.size();
-	muListPhoto.unlock();
 
-	muListFace.lock();
 	CSqlFindFacePhoto faceRecognition;
 	nbNbFace = faceRecognition.GetNbListFaceToRecognize();
 	nbTotalFaceToRecognize = nbNbFace;
-	muListFace.unlock();
+
+
+	posImageRecognize = 0;
+	posFaceRecognize = 0;
 }
 
 void CListFace::OnRefreshFolder(wxCommandEvent& event)

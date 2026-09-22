@@ -44,10 +44,10 @@ static Ptr<Facemark> facemark;
 static Ptr<FaceRecognizerSF> faceRecognizer;
 static Net ageNet;
 static Net genderNet;
-static std::unique_ptr<RealESRGAN>  real_net = nullptr;
-static std::unique_ptr<GFPGAN> gfpgan = nullptr;
-static std::unique_ptr<CColorisationNCNN> colorreal_net = nullptr;
-static std::unique_ptr<CColorization> color_net = nullptr;
+static RealESRGAN * real_net = nullptr;
+static GFPGAN *gfpgan = nullptr;
+static CColorisationNCNN * colorreal_net = nullptr;
+static CColorization * color_net = nullptr;
 
 static bool isRealESRGAN_load = false;
 static bool isGFPGAN_load = false;
@@ -79,7 +79,7 @@ static void LoadRealESRGAN()
 {
 	if (!isRealESRGAN_load)
 	{
-		real_net = std::make_unique<RealESRGAN>();
+		real_net = new RealESRGAN();
 		real_net->load(CFileUtility::GetFullpathModel("real_esrgan.param"), CFileUtility::GetFullpathModel("real_esrgan.bin"));
 	}
 	isRealESRGAN_load = true;
@@ -89,7 +89,7 @@ static void LoadGFPGAN()
 {
 	if (!isGFPGAN_load)
 	{
-		gfpgan = std::make_unique<GFPGAN>();
+		gfpgan = new GFPGAN();
 		gfpgan->load(CFileUtility::GetFullpathModel("encoder.param"), CFileUtility::GetFullpathModel("encoder.bin"), CFileUtility::GetFullpathModel("style.bin"));
 		ageNet = readNet(CFileUtility::GetFullpathModel("age_net.caffemodel"), CFileUtility::GetFullpathModel("age_deploy.prototxt"));
 		genderNet = readNet(CFileUtility::GetFullpathModel("gender_net.caffemodel"), CFileUtility::GetFullpathModel("gender_deploy.prototxt"));
@@ -101,7 +101,7 @@ static void LoadColorisationNCNN()
 {
 	if (!isColorisation_load)
 	{
-		colorreal_net = std::make_unique<CColorisationNCNN>();
+		colorreal_net = new CColorisationNCNN();
 		colorreal_net->load(CFileUtility::GetFullpathModel("siggraph17_color_sim.param"), CFileUtility::GetFullpathModel("siggraph17_color_sim.bin"));
 	}
 	isColorisation_load = true;
@@ -111,7 +111,7 @@ static void LoadColorisation()
 {
 	if (!isColorisation_load)
 	{
-		color_net = std::make_unique<CColorization>();
+		color_net = new CColorization();
 		color_net->load(CFileUtility::GetFullpathModel("ncnn_v1.param"), CFileUtility::GetFullpathModel("ncnn_v1.bin"));
 	}
 	isColorisation_load = true;

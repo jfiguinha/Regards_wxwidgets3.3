@@ -37,6 +37,8 @@ CThumbnailFace::~CThumbnailFace(void)
 
 void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 {
+
+
 	auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));
 	if (mainWindow != nullptr)
 	{
@@ -44,6 +46,11 @@ void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 		evt.SetExtraLong(numPhotoId);
 		mainWindow->GetEventHandler()->AddPendingEvent(evt);
 	}
+
+
+	if (!enableModification)
+		return;
+
 	CIcone* icone = GetIconeById(numPhotoId);
 	if (icone != nullptr)
 	{
@@ -61,6 +68,17 @@ void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 				}
 			}
 		}
+	}
+}
+
+void CThumbnailFace::EnableModification(const bool& enable)
+{
+	this->enableModification = enable;
+
+	for (int i =0;i < listSeparator.size();i++)
+	{
+		CInfosSeparationBarFace * separator = (CInfosSeparationBarFace*)listSeparator[i].get();
+		separator->EnableModification(enable);
 	}
 }
 
@@ -194,6 +212,8 @@ void CThumbnailFace::InitListFace()
 	for (int i = 0; i < iconeList->GetNbElement(); ++i)
 	{
 		auto* icone = iconeList->GetElement(i);
+		if (icone == nullptr)
+			continue;
 
 		auto* data =
 			static_cast<CThumbnailDataFace*>(icone->GetPtData());
@@ -232,7 +252,8 @@ void CThumbnailFace::init()
 	for (int i = 0; i < iconeList->GetNbElement(); ++i)
 	{
 		auto* icone = iconeList->GetElement(i);
-
+		if (icone == nullptr)
+			continue;
 		if (auto* data =
 			static_cast<CThumbnailDataFace*>(icone->GetPtData()))
 		{

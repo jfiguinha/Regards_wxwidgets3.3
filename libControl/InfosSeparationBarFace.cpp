@@ -49,11 +49,16 @@ void CInfosSeparationBarFace::SetNumFace(const CFaceName& faceName)
 	this->isSelected = faceName.isSelectable;
 }
 
+void CInfosSeparationBarFace::EnableModification(const bool& enable)
+{
+	enableModification = enable;
+}
+
 void CInfosSeparationBarFace::OnClick(const int& x, const int& y)
 {
 	bool updateInfos = false;
-
-
+	if (!enableModification)
+		return;
 
 	if ((rcSelect.x < x && x < (rcSelect.x + rcSelect.width)) && ((rcSelect.y) < y && y < (rcSelect.y + rcSelect.
 		height)))

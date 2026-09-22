@@ -81,13 +81,13 @@ namespace Regards
 			bool resourceLoaded = false;
 			bool cleanDatabase = false;
 			vector<wxString> listPhoto;
-			mutex muListPhoto;
 
-			mutex muListFace;
 			int nbNbFace;
 			int nbTotalFace = 0;
 			int nbTotalFaceToRecognize = 0;	
-			//std::thread * threadResource = nullptr;
+			bool isEnable = true;
+			int posImageRecognize = 0;
+			int posFaceRecognize = 0;
 		};
 	}
 }

@@ -1007,9 +1007,34 @@ void CThumbnail::OnLButtonUp(wxMouseEvent& event)
 	}
 }
 
+void CThumbnail::EnableModification(const bool& enable)
+{
+	enableModification = enable;
+}
+
 
 void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 {
+	if (!enableModification)
+	{
+		wxClientDC winDC(this);
+		this->SetFocus();
+		int xPos = event.GetX();
+		int yPos = event.GetY();
+
+
+		CIcone* pBitmapIcone = FindElement(xPos, yPos);
+		if (pBitmapIcone != nullptr)
+			if (pBitmapIcone->GetPtData() != nullptr)
+			{
+				int iconePhotoId = pBitmapIcone->GetPtData()->GetNumPhotoId();
+				OnPictureClick(iconePhotoId);
+			}
+
+		return;
+	}
+
+
 	wxClientDC winDC(this);
 	this->SetFocus();
 	int xPos = event.GetX();
@@ -1037,6 +1062,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 
 	if (pBitmapIcone != nullptr)
 	{
+
 		numSelectPhotoId = iconePhotoId;
 		int value = pBitmapIcone->OnClick(xPos, yPos, posLargeur, posHauteur);
 		//
@@ -1053,13 +1079,15 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 			OnPictureClick(numSelectPhotoId);
 			pBitmapIcone->SetSelected(true);
 		}
+
+
 	}
 	else
 	{
 		FindOtherElement(&winDC, xPos, yPos);
 	}
 
-	if (numActifPhotoId != -1 && enableDragAndDrop && isIconeSelected)
+	if (numActifPhotoId != -1 && enableDragAndDrop && isIconeSelected && enableModification)
 	{
 		if (timeClick->IsRunning())
 			timeClick->Stop();

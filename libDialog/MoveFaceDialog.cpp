@@ -3,36 +3,43 @@
 #include <SqlFindFacePhoto.h>
 using namespace Regards::Sqlite;
 
-#ifndef WX_PRECOMP
-//(*InternalHeadersPCH(MoveFaceDialog)
-//*)
-#endif
-//(*InternalHeaders(MoveFaceDialog)
 #include <wx/xrc/xmlres.h>
-//*)
 
-//(*IdInit(MoveFaceDialog)
-//*)
 
 BEGIN_EVENT_TABLE(MoveFaceDialog, wxDialog)
-		//(*EventTable(MoveFaceDialog)
-		//*)
+
 END_EVENT_TABLE()
 
 MoveFaceDialog::MoveFaceDialog(wxWindow* parent)
 {
 	isOk = false;
-	//(*Initialize(MoveFaceDialog)
-	wxXmlResource::Get()->LoadObject(this, parent,_T("MoveFaceDialog"),_T("wxDialog"));
-	cbFaceLabel = static_cast<wxComboBox*>(FindWindow(XRCID("ID_COMBOBOX2")));
-	deviceLabel = static_cast<wxStaticText*>(FindWindow(XRCID("ID_STATICTEXT1")));
-	btnOk = static_cast<wxButton*>(FindWindow(XRCID("ID_BUTTON1")));
-	BtnCancel = static_cast<wxButton*>(FindWindow(XRCID("ID_BUTTON2")));
 
-	Connect(XRCID("ID_BUTTON1"),wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MoveFaceDialog::OnbtnOkClick);
-	Connect(XRCID("ID_BUTTON2"),wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MoveFaceDialog::OnBtnCancelClick);
+	// 1. Initialisation de la classe de base requise pour wxWidgets 3.x+
+	// (Si vous héritez de wxDialog, il faut s'assurer que l'instance XRC sait à quoi se lier)
+	if (!wxXmlResource::Get()->LoadDialog(this, parent, "MoveFaceDialog"))
+	{
+		wxMessageBox("Erreur Critique : Le layout XML 'MoveFaceDialog' n'a pas pu être chargé.\nVérifiez que le fichier XRC est présent dans le dossier de l'exécutable.", "Erreur de Ressources");
+		return;
+	}
+
+	// 2. Récupération sécurisée des contrôles
+	cbFaceLabel = static_cast<wxComboBox*>(FindWindow(XRCID("ID_CBLISTFACE")));
+	deviceLabel = static_cast<wxStaticText*>(FindWindow(XRCID("ID_STATICTEXT1")));
+	btnOk = static_cast<wxButton*>(FindWindow(XRCID("ID_OK")));
+	BtnCancel = static_cast<wxButton*>(FindWindow(XRCID("ID_CANCEL")));
+
+	
+	// 3. Test anti-crash de sécurité
+	if (!cbFaceLabel || !btnOk || !BtnCancel)
+	{
+		wxMessageBox("Erreur : Un ou plusieurs éléments (ComboBox, Boutons) sont introuvables dans le fichier XRC.", "Erreur XRCID");
+		return;
+	}
+
+	// 4. Connexion des événements (Uniquement si les pointeurs sont valides !)
+	Connect(XRCID("ID_OK"), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MoveFaceDialog::OnbtnOkClick);
+	Connect(XRCID("ID_CANCEL"), wxEVT_COMMAND_BUTTON_CLICKED, (wxObjectEventFunction)&MoveFaceDialog::OnBtnCancelClick);
 	Connect(wxID_ANY, wxEVT_INIT_DIALOG, (wxObjectEventFunction)&MoveFaceDialog::OnInit);
-	//*)
 }
 
 MoveFaceDialog::~MoveFaceDialog()

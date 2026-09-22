@@ -67,6 +67,8 @@ namespace Regards::Window
 
 		void UpdateScreenRatio() override;
 
+		virtual void EnableModification(const bool &enable);
+
 		void Resize() override;
 		static bool ItemCompFonct(int xPos, int yPos, CIcone* icone, CWindowMain* parent);
 		static bool ItemCompFonctPhotoId(int xPos, int yPos, CIcone* icone, CWindowMain* parent);
@@ -262,5 +264,7 @@ namespace Regards::Window
 		std::unique_ptr<wxTimer> timeClick;
         std::unique_ptr<wxActivityIndicator> m_waitingAnimation;
 		int pictureAnimationPos = 0;
+
+		bool enableModification = true;
 	};
 }
