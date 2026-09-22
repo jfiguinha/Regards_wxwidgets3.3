@@ -150,6 +150,10 @@ void CMainWindow::InitState()
     isCheckNewVersion = false;
     faceDetection   = 0;
 
+    if (CRegardsConfigParam* rp = CParamInit::getInstance(); rp != nullptr)
+        faceDetection = rp->GetFaceDetection();
+
+
     folderProcess    = std::make_unique<CFolderProcess>(this);
     thumbnailProcess = std::make_unique<CThumbnailProcess>(this);
     viewerParam      = CMainParamInit::getInstance();
