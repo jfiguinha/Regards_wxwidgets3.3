@@ -62,8 +62,8 @@ bool CSqlFaceLabel::UpdateNumFaceLabel(const int& numFace, const int& NewNumName
 bool CSqlFaceLabel::UpdateFaceLabel(const int& numFace, const wxString& faceName)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numFace));
 	parameter.push_back(std::make_unique<CSqlString>(faceName));
+	parameter.push_back(std::make_unique<CSqlInt>(numFace));
 	return ExecuteSqlWithStatementNoResult("UPDATE FACE_NAME SET faceName = ? where numFace = ?", parameter);
 }
 

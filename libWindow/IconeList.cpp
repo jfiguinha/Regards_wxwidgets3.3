@@ -74,13 +74,16 @@ int CIconeList::GetPhotoId(const int& numElement)
 
 void CIconeList::RemoveElement(int numElement)
 {
-    if (numElement >= pIconeList.size())
-        return;
+	std::unique_lock lock(mutexList);
 
-    CIcone* icone = pIconeList[numElement];
+	IconeVector pNewIconeList;
+	if (numElement >= pIconeList.size())
+		return;
 
-    if (icone != nullptr)
-    {
+	CIcone* icone = pIconeList[numElement];
+
+	if (icone != nullptr)
+	{
 		if (CThumbnailData* data = icone->GetPtData();
 			data != nullptr)
 		{
@@ -88,10 +91,18 @@ void CIconeList::RemoveElement(int numElement)
 			pIconeByFilename[data->GetFilename()] = nullptr;
 		}
 
-        delete icone;
-    }
+		delete icone;
+	}
 
-    pIconeList[numElement] = nullptr;
+	pIconeList[numElement] = nullptr;
+
+	for (int i = 0; i < pIconeList.size(); i++)
+	{
+		if (i != numElement)
+			pNewIconeList.push_back(pIconeList[i]);
+	}
+
+	pIconeList = pNewIconeList;
 }
 
 CIcone* CIconeList::GetElement(const int& numElement)

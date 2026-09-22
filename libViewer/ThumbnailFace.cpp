@@ -187,6 +187,13 @@ CIcone* CThumbnailFace::FindFaceElement(wxString filepath, int numFace)
 	return iconeList->FindFaceElement(filepath, numFace, &_pf);
 }
 
+void CThumbnailFace::EraseData()
+{
+	iconeList->EraseThumbnailList();
+	listSeparator.clear();
+}
+
+
 void CThumbnailFace::InitListFace()
 {	
 	auto viewerParam = CMainParamInit::getInstance();
@@ -213,7 +220,12 @@ void CThumbnailFace::InitListFace()
 	{
 		auto* icone = iconeList->GetElement(i);
 		if (icone == nullptr)
+		{
+			iconeList->RemoveElement(i);
+			--i;
 			continue;
+		}
+			
 
 		auto* data =
 			static_cast<CThumbnailDataFace*>(icone->GetPtData());
@@ -254,6 +266,8 @@ void CThumbnailFace::init()
 		auto* icone = iconeList->GetElement(i);
 		if (icone == nullptr)
 			continue;
+
+
 		if (auto* data =
 			static_cast<CThumbnailDataFace*>(icone->GetPtData()))
 		{
@@ -275,7 +289,8 @@ void CThumbnailFace::init()
 	for (int i = 0; i < listFace.size(); i++)
 	{
 		std::vector<CFaceFilePath> listPhotoFace = sqlFindFacePhoto.GetListPhotoFace(listFace.at(i).numFace, pertinence);
-		AddSeparatorBar(iconeList.get(), listFace.at(i).faceName, listFace.at(i), listPhotoFace, nbElement, iconIndex);
+		if(listPhotoFace.size() > 0)
+			AddSeparatorBar(iconeList.get(), listFace.at(i).faceName, listFace.at(i), listPhotoFace, nbElement, iconIndex);
 	}
 
 

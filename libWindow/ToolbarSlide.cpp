@@ -209,9 +209,9 @@ void CToolbarSlide::SetBackgroundBitmap(const wxBitmap& background)
 
 void CToolbarSlide::CalculPositionButton()
 {
-	if (position > 0)
+	if (position >= 0)
 	{
-		float pourcentage = static_cast<float>(position) / static_cast<float>(tabValue.size());
+		float pourcentage = static_cast<float>(position) / static_cast<float>(tabValue.size()-1);
 		CalculPositionButton(
 			positionSlider.x + static_cast<int>(static_cast<float>(positionSlider.width) * pourcentage));
 	}
@@ -243,9 +243,9 @@ void CToolbarSlide::DrawShapeElement(wxDC* dc, const wxRect& rc)
 		wxRect rcPast;
 		rcPast.x = rc.x;
 
-		if (position > 0)
+		if (position >= 0)
 		{
-			const float pourcentage = static_cast<float>(position) / static_cast<float>(tabValue.size());
+			const float pourcentage = static_cast<float>(position) / static_cast<float>(tabValue.size() - 1);
 			rcPast.width = (rc.width * pourcentage);
 			rcPast.y = rc.y;
 			rcPast.height = themeSlider.GetRectangleHeight();

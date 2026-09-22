@@ -163,6 +163,7 @@ CListFace::CListFace(wxWindow* parent, wxWindowID id)
 
 
 
+
 CThumbnailFace* CListFace::GetThumbnailFace()
 {
 	return thumbnailFace;
@@ -724,6 +725,8 @@ void CListFace::ThumbnailDatabaseRefresh(wxCommandEvent& event)
 {
 	cleanDatabase = true;
 	RefreshPane();
+	IntializeListFace();
+	thumbnailFace->EraseData();
 	thumbnailFace->init();
 	processIdle = true;
 	needToRefresh = true;

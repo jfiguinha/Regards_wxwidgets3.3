@@ -48,7 +48,7 @@ namespace Regards::Viewer
 		void DeleteIcone(CIcone *  numSelect) override;
 		vector<int> GetFaceSelectID();
 		void EnableModification(const bool& enable) override;
-
+		void EraseData();
 	protected:
 		void OnMouseRelease(const int& x, const int& y) override;
 		void MoveIcone(const int& numElement, const int& numFace);
