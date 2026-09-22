@@ -397,8 +397,8 @@ void CThumbnailFace::MoveFace(const wxString& faceName)
 					if (icone->IsChecked())
 					{
 						auto thumbnailData = static_cast<CThumbnailDataFace*>(icone->GetPtData());
-						//int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
-						//if (numFaceCompatible != numFace)
+						int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
+						if (numFaceCompatible != numFace)
 						{
 							MoveIcone(numElement, numFace);
 							faceRecognition.MoveFaceRecognition(thumbnailData->GetNumFace(), numFace);
@@ -423,7 +423,7 @@ void CThumbnailFace::MoveFace(const wxString& faceName)
 	auto eventChange = new wxCommandEvent(wxEVT_CRITERIACHANGE);
 	wxQueueEvent(mainWnd, eventChange);
 
-	needToRefresh = true;
+	init();
 }
 
 vector<int> CThumbnailFace::GetFaceSelectID()
