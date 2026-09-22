@@ -4,6 +4,7 @@
 namespace Regards::Viewer
 {
     class CCentralWindow;
+    class CMainWindow;
     class CCategoryFolderWindow;
 
     /**
@@ -25,7 +26,7 @@ namespace Regards::Viewer
          * @param eventSink   Fenêtre parente — pour FindWindowById
          */
         FolderRefreshService(CCentralWindow* centralWnd,
-                             wxWindow*       eventSink,
+                             CMainWindow*       eventSink,
                              int             faceDetection);
 
         /**
@@ -57,7 +58,7 @@ namespace Regards::Viewer
         void RefreshDependentWindows(CCategoryFolderWindow* categoryFolder);
 
         CCentralWindow* centralWnd;
-        wxWindow*       eventSink;
+        CMainWindow*       eventSink;
         int             faceDetection;
 
         wxString localFilename;

@@ -50,6 +50,13 @@ namespace Regards::Window
 
 		bool processEnd;
 
+#ifdef WIN32
+
+		static bool EnableEfficacityMode();
+		static bool DisableEfficacityMode();
+
+#endif
+
 	protected:
 
 		virtual void ProcessOnSizeEvent(wxWindow* window, wxSizeEvent& event);

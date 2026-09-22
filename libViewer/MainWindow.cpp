@@ -64,6 +64,9 @@ CMainWindow::CMainWindow(wxWindow* parent,
     InitBackgroundTasks();
 
 
+    isProcessThumbnailRunning = true;
+    processThumbnailThread = new std::thread(ProcessThumbnail, this);
+
 	checkFolderThread = std::thread(CheckFolder,this);
 
     bool startTimer = false;
@@ -187,14 +190,14 @@ void CMainWindow::InitUI(IStatusBarInterface* statusbar)
     statusBar = new wxStatusBar(
         this, wxID_ANY, wxSTB_DEFAULT_STYLE, "wxStatusBar");
 
-    int tabWidth[] = {100, 300, 300, 300};
+    int tabWidth[] = {100, 400, 400, 300};
     statusBar->SetFieldsCount(4);
     statusBar->SetStatusWidths(4, tabWidth);
 
     progressBar = new wxGauge(
         statusBar, wxID_ANY, 200,
-        wxPoint(1000, 0),
-        wxSize(200, statusBar->GetSize().y),
+        wxPoint(900, 0),
+        wxSize(300, statusBar->GetSize().y),
         wxGA_HORIZONTAL);
 
     progressBar->SetRange(100);
@@ -248,7 +251,7 @@ void CMainWindow::BindEvents()
     Connect(wxEVENT_UPDATECHECKINSTATUS, wxCommandEventHandler(CMainWindow::OnCheckInUpdateStatus));
     Connect(wxEVENT_UPDATECHECKINFOLDER, wxCommandEventHandler(CMainWindow::OnRemoveFileFromCheckIn));
     Connect(wxEVENT_FOLDERCHECK, wxCommandEventHandler(CMainWindow::OnFolderCheck));
-
+    Connect(wxEVENT_ENDTHUMBNAILPROCESS, wxCommandEventHandler(CMainWindow::OnProcessThumbnailEnd));
 
     auto start_time = std::chrono::steady_clock::now();
     for (int i = 0; i < 6; i++)
@@ -293,6 +296,48 @@ void CMainWindow::InitBackgroundTasks()
     processEnd    = false;
 
 
+}
+
+
+void CMainWindow::ProcessThumbnail(void* data)
+{
+	int nbProcesseur = 1;
+    CMainWindow* main = static_cast<CMainWindow*>(data);
+
+    if (CRegardsConfigParam* cfg = CParamInit::getInstance(); cfg != nullptr)
+        nbProcesseur = cfg->GetThumbnailProcess();
+
+
+    while (!main->stopProcessThumbnail)
+    {
+        //---------------------------------------
+        // Scheduling des miniatures
+        //---------------------------------------
+        if (main->processThumbnail)
+        {
+            int nbElementInIconeList = CThumbnailBuffer::GetVectorSize();
+            if (!main->scheduler->Tick(nbProcesseur, nbElementInIconeList))
+            {
+                main->processThumbnail = false;
+                continue;
+            }
+            wxMilliSleep(100);
+        }
+        else
+            wxSleep(1);
+    }
+
+    wxCommandEvent evt(wxEVENT_ENDTHUMBNAILPROCESS);
+    main->GetEventHandler()->AddPendingEvent(evt);
+}
+
+
+void CMainWindow::OnProcessThumbnailEnd(wxCommandEvent& event)
+{
+    isProcessThumbnailRunning = false;
+    processThumbnailThread->join();
+    delete processThumbnailThread;
+    processThumbnailThread = nullptr;
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -353,15 +398,16 @@ void CMainWindow::ProcessIdle()
         hasPendingWork = true;
     }
 
-    //---------------------------------------
-    // Scheduling des miniatures
-    //---------------------------------------
-    nbElementInIconeList = CThumbnailBuffer::GetVectorSize();
-    if (scheduler->Tick(nbProcesseur, nbElementInIconeList))
-        hasPendingWork = true;
+    if (stopProcessThumbnail)
+    {
+        stopProcessThumbnail = false;
+        processThumbnailThread = new std::thread(ProcessThumbnail, this);
+    }
+
 
     processIdle = hasPendingWork;
 }
+
 
 // ═════════════════════════════════════════════════════════════════════════════
 // API publique — délégation aux services
@@ -369,7 +415,9 @@ void CMainWindow::ProcessIdle()
 
 bool CMainWindow::GetProcessEnd()
 {
-    if (scheduler->GetNbProcess() > 0 || isCheckingFile || checkFolderThread.joinable())
+    stopProcessThumbnail = true;
+
+    if (scheduler->GetNbProcess() > 0 || isProcessThumbnailRunning  || isCheckingFile || checkFolderThread.joinable())
         return false;
     return true;
 }
@@ -656,6 +704,7 @@ void CMainWindow::OnUpdateFolder(wxCommandEvent& event)
     for (int i = 0; i < 6; i++)
         lastClickTime[i] = start_time;
 
+    processThumbnail = false;
 
     if (newPath != nullptr)
     {
@@ -895,7 +944,7 @@ void CMainWindow::SetDataToStatusBar(void* thumbMessage, const wxString& picture
 
     int nbPhoto = msg->nbElement - msg->nbPhoto;
 
-    auto remaining_time = elapsed_time* nbPhoto;
+    auto remaining_time = elapsed_time* msg->nbPhoto;
 
     auto remaining_sec = std::chrono::duration_cast<std::chrono::seconds>(remaining_time).count();
 
@@ -942,7 +991,7 @@ void CMainWindow::UpdateMessage(wxCommandEvent& event)
     auto* msg         = new CThumbnailMessage();
     msg->nbPhoto      = nbPhoto;
     msg->thumbnailPos = scheduler->GetThumbnailPos();
-    msg->nbElement    = nbElementInIconeList;
+    msg->nbElement    = CThumbnailBuffer::GetVectorSize();
     msg->typeMessage  = 3;
 
     if (auto* mw = FindWindowById(MAINVIEWERWINDOWID); mw != nullptr)

@@ -8,12 +8,13 @@
 #include "ViewerParamInit.h"
 #include <window_id.h>
 #include <TreeWindow.h>
+#include <MainWindow.h>
 #include <ScrollbarWnd.h>
 using namespace Regards::Viewer;
 using namespace Regards::Sqlite;
 
 FolderRefreshService::FolderRefreshService(CCentralWindow* centralWnd,
-                                           wxWindow*       eventSink,
+                                            CMainWindow*       eventSink, 
                                            int             faceDetection)
     : centralWnd(centralWnd)
     , eventSink(eventSink)
@@ -217,6 +218,8 @@ void FolderRefreshService::UpdateFolderStatic(bool isDeleteFolder, bool refreshP
     // Résolution du fichier sélectionné
     //------------------------------------------
     ResolveCurrentFilename();
+
+    eventSink->processThumbnail = true;
 
     //------------------------------------------
     // Rafraîchissement de la fenêtre centrale

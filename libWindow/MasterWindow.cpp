@@ -10,6 +10,56 @@ tbb::concurrent_vector<CMasterWindow*> CMasterWindow::listMainWindow;
 tbb::concurrent_vector<CMasterWindow*> CMasterWindow::listProcessWindow;
 std::atomic_bool CMasterWindow::stopProcess = false;
 
+#ifdef WIN32
+// Active le Mode Efficacité sur le processus courant
+bool CMasterWindow::EnableEfficacityMode() {
+	// 1. Définir la priorité CPU sur IDLE (Arrière-plan)
+	if (!SetPriorityClass(GetCurrentProcess(), IDLE_PRIORITY_CLASS)) {
+		return false;
+	}
+
+	// 2. Configurer le bridage d'énergie (EcoQoS)
+	PROCESS_POWER_THROTTLING_STATE powerThrottling{};
+	powerThrottling.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+	powerThrottling.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+	powerThrottling.StateMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+
+	if (!SetProcessInformation(
+		GetCurrentProcess(),
+		ProcessPowerThrottling,
+		&powerThrottling,
+		sizeof(powerThrottling)))
+	{
+		// En cas d'échec de EcoQoS, on remet la priorité par défaut
+		SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS);
+		return false;
+	}
+
+	return true;
+}
+
+// Désactive le Mode Efficacité (Retour à la normale)
+bool CMasterWindow::DisableEfficacityMode() {
+	// 1. Repasser en priorité normale
+	if (!SetPriorityClass(GetCurrentProcess(), NORMAL_PRIORITY_CLASS)) {
+		return false;
+	}
+
+	// 2. Désactiver le EcoQoS
+	PROCESS_POWER_THROTTLING_STATE powerThrottling{};
+	powerThrottling.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
+	powerThrottling.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
+	powerThrottling.StateMask = 0; // On retire le masque d'exécution basse vitesse
+
+	return SetProcessInformation(
+		GetCurrentProcess(),
+		ProcessPowerThrottling,
+		&powerThrottling,
+		sizeof(powerThrottling));
+}
+
+#endif
+
 void CMasterWindow::StopAllProcess(const wxString& title, const wxString& message, wxWindow* parentWindow,
                                    const int& nbTry)
 {

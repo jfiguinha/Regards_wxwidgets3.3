@@ -40,6 +40,7 @@ namespace Regards::Viewer
         ID_WINDOWPICTURE = 20,
         ID_DIAPORAMA = 21,
         ID_EDIT = 22,
+        ID_ECONOMY = 23,
         ID_VIDEO = 1018,
         ID_AUDIO = 1019,
         ID_SUBTITLE = 1020,
@@ -117,6 +118,7 @@ namespace Regards::Viewer
         void HideScanner(wxCommandEvent& event);
 #ifdef WIN32
         void OnAssociate(wxCommandEvent& event);
+        void OnEconomyMode(wxCommandEvent& event);
 #endif
 #ifdef __WXMAC__
         void OnPageMargins(wxCommandEvent& event);

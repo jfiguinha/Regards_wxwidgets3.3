@@ -54,6 +54,8 @@ namespace Regards::Viewer
 
         void OnOpenFileOrFolder(wxCommandEvent& event);
 
+        std::atomic<bool> processThumbnail = true;
+
     private:
         // ── Initialisation ────────────────────────────────────────────
         void InitState();
@@ -105,7 +107,7 @@ namespace Regards::Viewer
         void ClickShowButton(const int& id, const int& refresh);
 		void OnFolderCheck(wxCommandEvent& event);
         void OnEditFile(wxCommandEvent& event);
-
+        void OnProcessThumbnailEnd(wxCommandEvent& event);
         static void NewVersionAvailable(void* param);
 
         void SetDataToStatusBar(void* thumbnailMessage, const wxString& message);
@@ -155,6 +157,11 @@ namespace Regards::Viewer
         wxRect      posWindow;
         std::chrono::steady_clock::time_point  lastClickTime[6];
 		std::thread checkFolderThread;
+		std::thread* processThumbnailThread = nullptr;
+		bool isProcessThumbnailRunning = false;
+		
+        std::atomic<bool> stopProcessThumbnail = false;
+        static void ProcessThumbnail(void* data);
     };
 
 } // namespace Regards::Viewer

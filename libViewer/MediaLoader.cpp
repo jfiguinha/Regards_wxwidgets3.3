@@ -136,8 +136,8 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
         int width = 0, height = 0, rotation = 0;
         libPicture.GetPictureDimensions(newFilename, width, height, rotation);
         auto* pictureInfos = new CPictureInfosMessage();
-        pictureInfos->filename = newFilename;
-        pictureInfos->infos    = std::to_string(width) + "x" + std::to_string(height);
+        pictureInfos->filename = "Filename : " + newFilename;
+        pictureInfos->infos    = "Size : " + std::to_string(width) + "x" + std::to_string(height);
 
         wxWindow* mainWindow = parent->FindWindowById(MAINVIEWERWINDOWID);
         if (mainWindow != nullptr)

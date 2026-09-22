@@ -171,6 +171,13 @@ void CViewerFrame::InitMenuBar()
 #ifdef WIN32
     menuFile->Append(ID_ASSOCIATE, "&Associate", "Associate");
     menuFile->AppendSeparator();
+
+    menuFile->AppendCheckItem(ID_ECONOMY, "&Economy Mode", "Enable or disable economy mode");
+
+    // 4. Définir l'état initial (coché par défaut ici)
+    menuFile->Check(ID_ECONOMY, false);
+
+    menuFile->AppendSeparator();
 #endif
     menuFile->Append(WXPRINT_PAGE_SETUP, labelPageSetup_link, labelPageSetup);
 #ifdef __WXMAC__
@@ -213,6 +220,7 @@ void CViewerFrame::BindEvents()
 	Connect(ID_EXPORT, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnExport));
 #ifdef WIN32
 	Connect(ID_ASSOCIATE, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnAssociate));
+    Connect(ID_ECONOMY, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnEconomyMode));
 #endif
 	Connect(ID_SCANNER, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnScanner));
     Connect(wxID_EDIT, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnEdit));
@@ -568,6 +576,16 @@ void CViewerFrame::OnAssociate(wxCommandEvent&)
 {
     const wxString path = CFileUtility::GetProgramFolderPath() + "\\associate.exe";
     ShellExecute(GetHWND(), L"runas", path, nullptr, nullptr, SW_SHOWNORMAL);
+}
+
+void CViewerFrame::OnEconomyMode(wxCommandEvent& event)
+{
+    if (event.IsChecked()) {
+        CMasterWindow::EnableEfficacityMode();
+    }
+    else {
+        CMasterWindow::DisableEfficacityMode();
+    }
 }
 #endif
 
