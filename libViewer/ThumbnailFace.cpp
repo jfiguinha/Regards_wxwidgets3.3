@@ -48,8 +48,7 @@ void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 	}
 
 
-	if (!enableModification)
-		return;
+	/*
 
 	CIcone* icone = GetIconeById(numPhotoId);
 	if (icone != nullptr)
@@ -69,6 +68,8 @@ void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 			}
 		}
 	}
+
+	*/
 }
 
 void CThumbnailFace::EnableModification(const bool& enable)
@@ -396,8 +397,8 @@ void CThumbnailFace::MoveFace(const wxString& faceName)
 					if (icone->IsChecked())
 					{
 						auto thumbnailData = static_cast<CThumbnailDataFace*>(icone->GetPtData());
-						int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
-						if (numFaceCompatible != numFace)
+						//int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
+						//if (numFaceCompatible != numFace)
 						{
 							MoveIcone(numElement, numFace);
 							faceRecognition.MoveFaceRecognition(thumbnailData->GetNumFace(), numFace);
@@ -526,8 +527,8 @@ void CThumbnailFace::OnMouseRelease(const int& x, const int& y)
 						if (icone->IsChecked())
 						{
 							auto thumbnailData = static_cast<CThumbnailDataFace*>(icone->GetPtData());
-							int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
-							if (numFaceCompatible != numFace)
+							//int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
+							//if (numFaceCompatible != numFace)
 							{
 								faceMove = true;
 								needToMove = true;

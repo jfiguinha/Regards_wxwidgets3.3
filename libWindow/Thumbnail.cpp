@@ -824,6 +824,7 @@ void CThumbnail::OnMouseMove(wxMouseEvent& event)
 
 	if (mouseClickBlock && enableDragAndDrop && isChecked)
 	{
+		isDragAndDropUse = true;
 		int xPos = event.GetX();
 		int yPos = event.GetY();
 		if (numActifPhotoId != -1)
@@ -999,12 +1000,14 @@ void CThumbnail::OnLButtonUp(wxMouseEvent& event)
 	int yPos = event.GetY();
 	timeClick->Stop();
 	mouseClickBlock = false;
-	if (mouseClickMove && enableDragAndDrop)
+	if (mouseClickMove && enableDragAndDrop && isDragAndDropUse)
 	{
 		OnMouseRelease(xPos, yPos);
 		mouseClickMove = false;
 		needToRefresh = true;
 	}
+
+	isDragAndDropUse = false;
 }
 
 void CThumbnail::EnableModification(const bool& enable)
@@ -1040,7 +1043,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 	int xPos = event.GetX();
 	int yPos = event.GetY();
 
-	mouseClickBlock = true;
+	
 	bool isIconeSelected = false;
 	int iconePhotoId = -1;
 	CIcone* pBitmapIcone = FindElement(xPos, yPos);
@@ -1089,6 +1092,9 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 
 	if (numActifPhotoId != -1 && enableDragAndDrop && isIconeSelected && enableModification)
 	{
+
+		mouseClickBlock = true;
+
 		if (timeClick->IsRunning())
 			timeClick->Stop();
 

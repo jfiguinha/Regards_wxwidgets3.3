@@ -112,22 +112,7 @@ void CThumbnailFaceToolBar::EventManager(const int& id)
 			if (windowMain != nullptr)
 			{
 				wxCommandEvent evt(wxEVENT_FACEADD);
-				vector<int> faceId = listFace->GetFaceSelectID();
-				if (faceId.size() > 0)
-				{
-					vector<int>* data = new vector<int>();
-					*data = faceId;
-					evt.SetClientData(data);
-					windowMain->GetEventHandler()->AddPendingEvent(evt);
-				}
-				else
-				{
-					wxString labelInformations = CLibResource::LoadStringFromResource(
-						L"labelInformations", 1);
-					wxString notCompatibleFormat = "Please select a face";
-					wxMessageBox(notCompatibleFormat, labelInformations,
-						wxICON_INFORMATION);
-				}
+				windowMain->GetEventHandler()->AddPendingEvent(evt);
 			}
 
 		}

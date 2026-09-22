@@ -129,7 +129,7 @@ wxString CViewerController::LoadingNextPicture(const bool& loadPicture, LoadingM
     if (!filename.empty() && loadPicture)
         mediaLoader->LoadPicture(filename);
 
-    listFace->SetActifItem(filename, false);
+    //listFace->SetActifItem(filename, false);
     thumbnailPicture->SetActifItem(filename, false);
     listPicture->SetActifItem(filename, false);
     return filename;
@@ -137,7 +137,7 @@ wxString CViewerController::LoadingNextPicture(const bool& loadPicture, LoadingM
 
 void CViewerController::SetActif(const wxString& filename)
 {
-    listFace->SetActifItem(filename, false);
+    //listFace->SetActifItem(filename, false);
     thumbnailPicture->SetActifItem(filename, false);
     listPicture->SetActifItem(filename, false);
 }

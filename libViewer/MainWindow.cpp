@@ -848,20 +848,13 @@ void CMainWindow::OnFaceAdd(wxCommandEvent& event)
     wxTextEntryDialog dlg(this, "", "Add a New Person");
     if (dlg.ShowModal() != wxID_OK) return;
 
-    auto* numFace  = static_cast<vector<int>*>(event.GetClientData());
     wxString label = dlg.GetValue();
 
     if (label.size() > 3)
     {
         CSqlFaceLabel sqlFaceLabel;
-        sqlFaceLabel.InsertFaceLabel(numFace->at(0), label, 1);
-
-        CSqlFaceRecognition faceRecognition;
-        for (int id : *numFace)
-            faceRecognition.MoveFaceRecognition(id, numFace->at(0));
-
-        numFace->clear();
-        delete numFace;
+        int lastFaceNameId = sqlFaceLabel.GetLastFaceNameNum() + 1;
+        sqlFaceLabel.InsertFaceLabel(lastFaceNameId, label, 1);
 
         if (auto* w = FindWindowById(LISTFACEID); w != nullptr)
         {
@@ -872,8 +865,7 @@ void CMainWindow::OnFaceAdd(wxCommandEvent& event)
     }
     else
     {
-        numFace->clear();
-        delete numFace;
+
         wxString wrong = CLibResource::LoadStringFromResource(L"wronglabelsize", 1);
         wxString err   = CLibResource::LoadStringFromResource(L"erroronlabelsize", 1);
         wxMessageBox(wrong, err, wxICON_ERROR);

@@ -15,6 +15,7 @@ namespace Regards
 			bool InsertFaceLabel(const int& numFace, const wxString& faceName, const int& isSelectable);
 			bool UpdateFaceLabel(const int& numFace, const wxString& faceName);
 			bool UpdateNumFaceLabel(const int& numFace, const int& NewNumName);
+			int GetLastFaceNameNum();
 			bool UpdateFaceLabel(const int& numFace, const int& isSelectable);
 			wxString GetFaceName(int numFace);
 			int GetFaceNumLabel(int numFace);

@@ -252,6 +252,7 @@ namespace Regards::Window
 		std::vector<wxString> listIconeToGenerate;
 		wxWindowID localid;
 
+		bool isDragAndDropUse = false;
         
 		std::unique_ptr<CIconeList> iconeList = nullptr;
 		static std::unique_ptr<wxAnimation> m_animation;

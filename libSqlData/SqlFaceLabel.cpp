@@ -22,6 +22,15 @@ bool CSqlFaceLabel::InsertFaceLabel(const int& numFace, const wxString& faceName
 }
 
 
+int CSqlFaceLabel::GetLastFaceNameNum()
+{
+	numFace = -1;
+	type = 2;
+	ExecuteRequest("SELECT NumFace FROM FACE_NAME ORDER BY NumFace desc LIMIT 1");
+	return numFace;
+}
+
+
 int CSqlFaceLabel::GetLastFaceNum()
 {
 	numFace = -1;

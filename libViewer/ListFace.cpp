@@ -742,6 +742,8 @@ void CListFace::ThumbnailMove(wxCommandEvent& event)
 		if (moveFaceDialog.IsOk())
 		{
 			thumbnailFace->MoveFace(moveFaceDialog.GetFaceNameSelected());
+			processIdle = true;
+			needToRefresh = true;
 		}
 
 		//Cleanup Name
