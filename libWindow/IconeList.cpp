@@ -76,7 +76,6 @@ void CIconeList::RemoveElement(int numElement)
 {
 	std::unique_lock lock(mutexList);
 
-	IconeVector pNewIconeList;
 	if (numElement >= pIconeList.size())
 		return;
 
@@ -84,26 +83,22 @@ void CIconeList::RemoveElement(int numElement)
 
 	if (icone != nullptr)
 	{
-		if (CThumbnailData* data = icone->GetPtData();
-			data != nullptr)
+		if (CThumbnailData* data = icone->GetPtData(); data != nullptr)
 		{
-			pIconeByPhotoId[data->GetNumPhotoId()] = nullptr;
-			pIconeByFilename[data->GetFilename()] = nullptr;
+			// Utilisation de unsafe_erase(), sécurisé ici grâce au mutexList
+			pIconeByPhotoId.unsafe_erase(data->GetNumPhotoId());
+			pIconeByFilename.unsafe_erase(data->GetFilename());
 		}
-
 		delete icone;
 	}
 
-	pIconeList[numElement] = nullptr;
+	// Déplacement des éléments restants vers la gauche pour combler le vide
+	std::move(pIconeList.begin() + numElement + 1, pIconeList.end(), pIconeList.begin() + numElement);
 
-	for (int i = 0; i < pIconeList.size(); i++)
-	{
-		if (i != numElement)
-			pNewIconeList.push_back(pIconeList[i]);
-	}
-
-	pIconeList = pNewIconeList;
+	// Réduction de la taille du concurrent_vector de 1
+	pIconeList.resize(pIconeList.size() - 1);
 }
+
 
 CIcone* CIconeList::GetElement(const int& numElement)
 {
