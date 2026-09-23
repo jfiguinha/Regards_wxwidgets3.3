@@ -129,17 +129,36 @@ wxString CViewerController::LoadingNextPicture(const bool& loadPicture, LoadingM
     if (!filename.empty() && loadPicture)
         mediaLoader->LoadPicture(filename);
 
-    //listFace->SetActifItem(filename, false);
-    thumbnailPicture->SetActifItem(filename, false);
-    listPicture->SetActifItem(filename, false);
+    if (windowMode != WINDOW_FACE)
+    {
+        thumbnailPicture->SetActifItem(filename, false);
+        listPicture->SetActifItem(filename, false);
+    }
     return filename;
 }
 
 void CViewerController::SetActif(const wxString& filename)
 {
-    //listFace->SetActifItem(filename, false);
-    thumbnailPicture->SetActifItem(filename, false);
-    listPicture->SetActifItem(filename, false);
+    if (windowMode != WINDOW_FACE)
+    {
+        thumbnailPicture->SetActifItem(filename, false);
+        listPicture->SetActifItem(filename, false);
+    }
+
+}
+
+void CViewerController::LoadFaceActifItem()
+{
+    wxString filename = listFace->GetActifItem();
+    if (!filename.empty())
+        mediaLoader->LoadPicture(filename);
+}
+
+void CViewerController::LoadActif()
+{
+    wxString filename = thumbnailPicture->GetActifItem();
+    if(!filename.empty())
+        mediaLoader->LoadPicture(filename);
 }
 
 wxString CViewerController::ImageSuivante(const bool& loadPicture)

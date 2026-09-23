@@ -207,6 +207,16 @@ CCentralWindow::~CCentralWindow()
 
 }
 
+void CCentralWindow::LoadActifItem()
+{
+    viewerController->LoadActif();
+}
+
+void CCentralWindow::LoadFaceActifItem()
+{
+    viewerController->LoadFaceActifItem();
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Public API — thin forwarders
 // ─────────────────────────────────────────────────────────────────────────────
@@ -290,6 +300,11 @@ void CCentralWindow::SetListeFile(const wxString& filename, const bool& isDelete
         thumbnailPicture->ApplyListeFile(isDeleteFolder, isSqlUpdate);
     mediaLoader->LoadPicture(filename);
     viewerController->SetActif(filename);
+}
+
+int CCentralWindow::GetWindowMode()
+{
+    return windowModeController->GetWindowMode();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

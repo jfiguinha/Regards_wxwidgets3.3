@@ -45,7 +45,8 @@ namespace Regards::Viewer
         void SetActif(const wxString& f);
         // Receives the loaded bitmap from the thread (EVENT_SHOWPICTURE)
         void OnShowPicture(wxCommandEvent& event);
-
+        void LoadActif();
+        void LoadFaceActifItem();
         // Navigation events forwarded from CCentralWindow
         void OnPictureNext(wxCommandEvent& event)     { ImageSuivante(); }
         void OnPicturePrevious(wxCommandEvent& event) { ImagePrecedente(); }

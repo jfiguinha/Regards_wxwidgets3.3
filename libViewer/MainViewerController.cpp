@@ -143,6 +143,9 @@ void CMainViewerController::UpdateScreenRatio()
 
 void CMainViewerController::SetViewerModeEvent(int mode)
 {
+
+
+
     if (auto* central = eventSink->FindWindowById(CENTRALVIEWERWINDOWID))
     {
         wxCommandEvent evt(wxEVENT_SETMODEVIEWER);

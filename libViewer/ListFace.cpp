@@ -182,6 +182,11 @@ int CListFace::ImageSuivante()
 	return numItem;
 }
 
+wxString CListFace::GetActifItem()
+{
+	return thumbnailFace->GetActifItem();
+}
+
 
 wxString CListFace::GetFilename(const int& numItem)
 {

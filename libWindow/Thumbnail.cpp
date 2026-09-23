@@ -329,6 +329,17 @@ wxString CThumbnail::GetFilename(const int& numItem)
 	return filename;
 }
 
+wxString CThumbnail::GetActifItem()
+{
+	if (numSelectPhotoId != -1)
+	{
+		CIcone* numActif = GetIconeById(numSelectPhotoId);
+		if (numActif != nullptr)
+			return numActif->GetFilename();
+	}
+	return "";
+}
+
 void CThumbnail::SetTheme(CThemeThumbnail* theme)
 {
 	themeThumbnail = *theme;

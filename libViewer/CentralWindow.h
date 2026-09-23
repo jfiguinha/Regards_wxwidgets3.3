@@ -62,7 +62,9 @@ namespace Regards::Viewer
         bool IsCompatibleFullscreen();
         void TransitionEnd();
         bool IsDiaporamaStart();
-
+        int GetWindowMode();
+        void LoadActifItem();
+        void LoadFaceActifItem();
     private:
         bool GetProcessEnd() override;
         void Resize()        override;
@@ -119,5 +121,6 @@ namespace Regards::Viewer
         std::unique_ptr<CWindowModeController>       windowModeController = nullptr;
 
         int  faceDetection = 0;
+
     };
 }

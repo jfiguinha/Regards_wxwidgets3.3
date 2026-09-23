@@ -47,7 +47,7 @@ namespace Regards
 			int GetNumItem();
 			vector<int> GetFaceSelectID();
 			CThumbnailFace* GetThumbnailFace();
-			
+			wxString GetActifItem();
 
 		private:
 			static void FacialDetectionRecognition(void* param);

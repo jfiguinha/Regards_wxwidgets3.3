@@ -33,7 +33,7 @@ namespace Regards::Window
 		int GetNbElement();
 		int GetNumPhotoId(const int& numItem);
 		int GetNumItem();
-
+		wxString GetActifItem();
 		int GetHauteur()
 		{
 			return posHauteur;
@@ -267,5 +267,7 @@ namespace Regards::Window
 		int pictureAnimationPos = 0;
 
 		bool enableModification = true;
+
+		int numClickIcone = 0;
 	};
 }

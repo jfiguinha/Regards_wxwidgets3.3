@@ -1009,6 +1009,12 @@ void CMainWindow::UpdateMessage(wxCommandEvent& event)
 
 void CMainWindow::ClickShowButton(const int& id, const int& /*refresh*/)
 {
+    bool needToLoadpicture = false;
+    int oldMode = centralWnd->GetWindowMode();
+    wxString filename = "";
+
+
+
     switch (id)
     {
     case WINDOW_VIEWER:   viewerCtrl->SetViewerModeEvent(1); break;
@@ -1024,6 +1030,16 @@ void CMainWindow::ClickShowButton(const int& id, const int& /*refresh*/)
     }
     break;
     }
+
+    if (oldMode == WINDOW_FACE)
+    {
+        centralWnd->LoadActifItem();
+    }
+    else if (id == WINDOW_FACE)
+    {
+        centralWnd->LoadFaceActifItem();
+    }
+
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
