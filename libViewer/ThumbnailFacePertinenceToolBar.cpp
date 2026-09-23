@@ -37,6 +37,21 @@ CThumbnailFacePertinenceToolBar::CThumbnailFacePertinenceToolBar(wxWindow* paren
 	plus = CreateButton(L"IDB_PLUS", L"LBLZOOMON", WM_ZOOMON, false);
 }
 
+void CThumbnailFacePertinenceToolBar::EnableModification(const bool& enable)
+{
+	enableModification = enable;
+}
+
+
+bool CThumbnailFacePertinenceToolBar::TestIfEnable()
+{
+	if (!enableModification)
+	{
+		wxMessageBox("Face detection is working. Please wait", "Informations");
+		return false;
+	}
+	return true;
+}
 
 void CThumbnailFacePertinenceToolBar::ZoomOn()
 {
@@ -97,6 +112,9 @@ void CThumbnailFacePertinenceToolBar::SlidePosChange(const int& position, const 
 
 void CThumbnailFacePertinenceToolBar::OnChangeValue()
 {
+	if (!TestIfEnable())
+		return;
+
 	CMainParam* viewerParam = CMainParamInit::getInstance();
 	if (viewerParam != nullptr)
 	{
@@ -121,10 +139,14 @@ void CThumbnailFacePertinenceToolBar::EventManager(const int& id)
 	switch (id)
 	{
 	case WM_ZOOMON:
+		if (!TestIfEnable())
+			return;
 		ZoomOn();
 		break;
 
 	case WM_ZOOMOUT:
+		if (!TestIfEnable())
+			return;
 		ZoomOff();
 		break;
 	}

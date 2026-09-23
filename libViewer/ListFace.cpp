@@ -705,7 +705,6 @@ void CListFace::ProcessIdle()
 		if (isEnable != true)
 		{
 			isEnable = true;
-			thumbnailFace->EnableModification(isEnable);
 		}
 	}
 	else
@@ -713,11 +712,16 @@ void CListFace::ProcessIdle()
 		if (isEnable != false)
 		{
 			isEnable = false;
-			thumbnailFace->EnableModification(isEnable);
 		}
 		
 	}
+
+	thumbnailFace->EnableModification(isEnable);
+	thumbFaceToolbar->EnableModification(isEnable);
+	thumbFacePertinenceToolbar->EnableModification(isEnable);
 }
+
+
 
 void CListFace::ThumbnailRefresh(wxCommandEvent& event)
 {

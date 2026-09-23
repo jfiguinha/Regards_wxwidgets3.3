@@ -18,7 +18,7 @@ namespace Regards::Viewer
 		bool ZoomOn();
 		bool ZoomOff();
 		void ZoomPos(const int& position) override;
-
+		void EnableModification(const bool& enable);
 		void SlidePosChange(const int& position, const wxString& key) override;
 
 		void MoveSlider(const int64_t& position) override
@@ -31,13 +31,15 @@ namespace Regards::Viewer
 
 	private:
 		void EventManager(const int& id) override;
-
+		bool TestIfEnable();
 		std::unique_ptr<CToolbarSlide> slide;
 		std::unique_ptr<CToolbarButton> add = nullptr;
 		std::unique_ptr<CToolbarButton> copy = nullptr;
 		std::unique_ptr<CToolbarButton> moins = nullptr;
 		std::unique_ptr<CToolbarButton> plus = nullptr;
 		std::unique_ptr<CToolbarButton> refreshButton = nullptr;
+
+		bool enableModification = true;
 	};
 }
 #endif

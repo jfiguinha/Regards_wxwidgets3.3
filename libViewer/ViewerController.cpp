@@ -151,14 +151,21 @@ void CViewerController::LoadFaceActifItem()
 {
     wxString filename = listFace->GetActifItem();
     if (!filename.empty())
+    {
         mediaLoader->LoadPicture(filename);
+        listFace->SetActifItem(filename, false);
+    }
 }
 
 void CViewerController::LoadActif()
 {
     wxString filename = thumbnailPicture->GetActifItem();
-    if(!filename.empty())
+    if (!filename.empty())
+    {
         mediaLoader->LoadPicture(filename);
+        SetActif(filename);
+
+    }
 }
 
 wxString CViewerController::ImageSuivante(const bool& loadPicture)

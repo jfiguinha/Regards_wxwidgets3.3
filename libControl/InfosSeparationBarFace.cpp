@@ -33,6 +33,17 @@ CInfosSeparationBarFace::CInfosSeparationBarFace(const CThemeInfosSeparationBar&
 	libelleDelete = "Delete Face";
 }
 
+bool CInfosSeparationBarFace::TestIfEnable()
+{
+	if (!enableModification)
+	{
+		wxMessageBox("Face detection is working. Please wait", "Informations");
+		return false;
+	}
+	return true;
+}
+
+
 int CInfosSeparationBarFace::GetNumFace()
 {
 	return this->numFace;
@@ -57,7 +68,7 @@ void CInfosSeparationBarFace::EnableModification(const bool& enable)
 void CInfosSeparationBarFace::OnClick(const int& x, const int& y)
 {
 	bool updateInfos = false;
-	if (!enableModification)
+	if (!TestIfEnable())
 		return;
 
 	if ((rcSelect.x < x && x < (rcSelect.x + rcSelect.width)) && ((rcSelect.y) < y && y < (rcSelect.y + rcSelect.

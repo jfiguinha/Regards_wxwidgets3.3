@@ -70,6 +70,7 @@ namespace Regards
 			static void LoadResource(void* param);
 			void OnFaceVideoAdd(wxCommandEvent& event);
 			void IntializeListFace();
+			
 
 			CWindowManager * windowManager = nullptr;
 			CScrollbarWnd * thumbscrollbar = nullptr;

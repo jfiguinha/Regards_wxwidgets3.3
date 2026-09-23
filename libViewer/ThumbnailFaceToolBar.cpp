@@ -88,6 +88,11 @@ void CThumbnailFaceToolBar::SlidePosChange(const int& position, const wxString& 
 	}
 }
 
+void CThumbnailFaceToolBar::EnableModification(const bool& enable)
+{
+	enableModification = enable;
+}
+
 void CThumbnailFaceToolBar::ZoomPos(const int& position)
 {
 	auto listFace = static_cast<CListFace*>(this->FindWindowById(LISTFACEID));
@@ -99,6 +104,16 @@ void CThumbnailFaceToolBar::ZoomPos(const int& position)
 	}
 }
 
+bool CThumbnailFaceToolBar::TestIfEnable()
+{
+	if (!enableModification)
+	{
+		wxMessageBox("Face detection is working. Please wait", "Informations");
+		return false;
+	}
+	return true;
+}
+
 void CThumbnailFaceToolBar::EventManager(const int& id)
 {
 	auto listFace = static_cast<CListFace*>(this->FindWindowById(LISTFACEID));
@@ -108,6 +123,9 @@ void CThumbnailFaceToolBar::EventManager(const int& id)
 		{
 		case WM_ADD:
 		{
+			if (!TestIfEnable())
+				return;
+
 			auto windowMain = static_cast<CWindowMain*>(this->FindWindowById(MAINVIEWERWINDOWID));
 			if (windowMain != nullptr)
 			{
@@ -135,6 +153,8 @@ void CThumbnailFaceToolBar::EventManager(const int& id)
 
 		case WM_COPY:
 			{
+				if (!TestIfEnable())
+					return;
 				if (listFace != nullptr)
 				{
 					wxCommandEvent evt(wxEVENT_THUMBNAILMOVE);
@@ -165,6 +185,10 @@ void CThumbnailFaceToolBar::EventManager(const int& id)
 
 			break;
 		case WM_REFRESH:
+
+			if (!TestIfEnable())
+				return;
+
 			if (listFace != nullptr)
 			{
 				wxCommandEvent evt(wxEVENT_THUMBNAILREFRESHFACE);

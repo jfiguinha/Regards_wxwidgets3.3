@@ -46,30 +46,6 @@ void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 		evt.SetExtraLong(numPhotoId);
 		mainWindow->GetEventHandler()->AddPendingEvent(evt);
 	}
-
-
-	/*
-
-	CIcone* icone = GetIconeById(numPhotoId);
-	if (icone != nullptr)
-	{
-		if (icone->GetPtData() != nullptr)
-		{
-			CLibPicture libPicture;
-			if (libPicture.TestIsVideo(icone->GetPtData()->GetFilename()))
-			{
-				wxWindow* window = this->FindWindowById(BITMAPWINDOWVIEWERID);
-				if (window != nullptr)
-				{
-					wxCommandEvent evt(wxEVENT_SETPOSITION);
-					evt.SetExtraLong(icone->GetPtData()->GetNumFrame());
-					window->GetEventHandler()->AddPendingEvent(evt);
-				}
-			}
-		}
-	}
-
-	*/
 }
 
 void CThumbnailFace::EnableModification(const bool& enable)

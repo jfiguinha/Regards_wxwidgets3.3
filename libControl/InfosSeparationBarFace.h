@@ -24,7 +24,7 @@ namespace Regards::Window
 		int GetNumFace();
 
 	protected:
-
+		bool TestIfEnable();
 		void RenderTitle(wxDC* dc) override;
 
 		wxImage bitmapCheckOn;
