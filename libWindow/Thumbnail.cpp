@@ -1093,8 +1093,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 			OnPictureClick(numSelectPhotoId);
 			pBitmapIcone->SetSelected(true);
 		}
-
-
+		SetActifItem(numSelectPhotoId, false);
 	}
 	else
 	{
