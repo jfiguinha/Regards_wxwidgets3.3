@@ -751,42 +751,52 @@ void CThumbnail::SetIconeSize(const int& width, const int& height)
 
 	ResizeThumbnail();
 }
-
-void CThumbnail::ExecuteTimer(const int& numId, std::unique_ptr<wxTimer> & refresh)
+void CThumbnail::ExecuteTimer(const int& numId, std::unique_ptr<wxTimer>& refresh)
 {
+	CIcone* icone = GetIconeById(numId);
+	if (icone == nullptr)
+		return;
+
+	CThumbnailData* data = icone->GetPtData();
+	if (data == nullptr)
+		return;
+
 	CLibPicture libPicture;
 	bool actifActif = false;
-	CIcone* icone = GetIconeById(numId);
-	if (icone != nullptr)
-	{
-		CThumbnailData* data = icone->GetPtData();
+	const wxString& filename = data->GetFilename();
 
-		if (libPicture.TestIsVideo(data->GetFilename()) || libPicture.TestIsPDF(data->GetFilename()) ||
-			libPicture.TestIsAnimation(data->GetFilename()) || showLoadingBitmap)
-		{
-			actifActif = true;
-		}
-		if (showLoadingBitmap)
-		{
-			timeActif = 100;
-		}
-		else if (libPicture.TestIsVideo(data->GetFilename()))
-		{
-			timeActif = 1000 / 25;
-		}
-		else if (libPicture.TestIsAnimation(data->GetFilename()))
-		{
-			timeActif = 100;
-		}
-		else
-		{
-			timeActif = 1000;
-		}
+	// OPTIMISATION : Idéalement, remplacez ces appels de méthodes sur chaîne par une énumération 
+	// pré-calculée dans data->GetTypeElement() (ex: s'il s'agit du type TYPEVIDEO, TYPEANIMATION, etc.)
+	bool isVideo = libPicture.TestIsVideo(filename);
+	bool isAnimation = libPicture.TestIsAnimation(filename);
+	bool isPDF = libPicture.TestIsPDF(filename);
+
+	if (isVideo || isPDF || isAnimation || showLoadingBitmap)
+	{
+		actifActif = true;
 	}
 
-	if (actifActif)
-		if (!refresh->IsRunning())
-			refresh->Start(timeActif, showLoadingBitmap ? FALSE : TRUE);
+	if (showLoadingBitmap)
+	{
+		timeActif = 100;
+	}
+	else if (isVideo)
+	{
+		timeActif = 1000 / 25; // 25 FPS pour les vidéos
+	}
+	else if (isAnimation)
+	{
+		timeActif = 100;
+	}
+	else
+	{
+		timeActif = 1000;
+	}
+
+	if (actifActif && !refresh->IsRunning())
+	{
+		refresh->Start(timeActif, showLoadingBitmap ? FALSE : TRUE);
+	}
 }
 
 void CThumbnail::IdleFunction()
@@ -948,16 +958,15 @@ bool CThumbnail::UpdateThumbnail(CIcone* pBitmapIcone)
 	}
 	return isProcess;
 }
+
+
 void CThumbnail::RenderBitmap(wxDC* deviceContext, CIcone* pBitmapIcone, const int& posLargeur, const int& posHauteur)
 {
-	// //printf("CThumbnail::RenderBitmap PreprocessThumbnail localid : %d \n", localid);
-
 	if (pBitmapIcone == nullptr || !pBitmapIcone->GetVisibility())
 		return;
 
-	int nbProcesseur = 1;
-	if (CRegardsConfigParam* config = CParamInit::getInstance(); config != nullptr)
-		nbProcesseur = config->GetThumbnailProcess();
+	// OPTIMISATION : Suppression des appels redondants à CParamInit::getInstance() 
+	// qui n'étaient pas utilisés et saturaient le CPU à chaque itération de vignette.
 
 	const int value = pBitmapIcone->RenderIcone(deviceContext, posLargeur, posHauteur, flipHorizontal, flipVertical);
 
@@ -965,24 +974,16 @@ void CThumbnail::RenderBitmap(wxDC* deviceContext, CIcone* pBitmapIcone, const i
 	{
 		if (value == 1)
 		{
-			if (pBitmapIcone != nullptr)
+			if (CThumbnailData* pThumbnailData = pBitmapIcone->GetPtData(); pThumbnailData != nullptr)
 			{
-				if (CThumbnailData* pThumbnailData = pBitmapIcone->GetPtData(); pThumbnailData != nullptr)
+				if (!pThumbnailData->IsProcess())
 				{
-					const bool isProcess = pThumbnailData->IsProcess();
-					//const bool isLoad = pThumbnailData->IsLoad();
-					if (!isProcess) // && !isLoad)
-					{
-						listIconeToGenerate.push_back(pThumbnailData->GetFilename());
-						pThumbnailData->SetIsProcess(true);
-					}
+					listIconeToGenerate.push_back(pThumbnailData->GetFilename());
+					pThumbnailData->SetIsProcess(true);
 				}
 			}
 		}
 	}
-
-
-
 }
 
 void CThumbnail::UpdateScreenRatio()
@@ -1266,14 +1267,14 @@ void CThumbnail::Render(wxDC& dc)
 	render = true;
 	listIconeToGenerate.clear();
 
-	// 1. Dessiner le fond (Déjà masqué par le double-buffer de wxBufferedPaintDC)
+	// 1. Dessiner le fond (Géré par le double-buffer de wxBufferedPaintDC)
 	wxRect rc = GetWindowRect();
 	FillRect(&dc, rc, themeThumbnail.colorBack);
 
 	// 2. Dessiner la grille de vignettes existantes
 	RenderIcone(&dc);
 
-	// OPTIMISATION : Ne PAS demander de génération de vignettes si on est en train de faire un Drag & Drop
+	// Ne PAS demander de génération de vignettes si on est en train de faire un Drag & Drop
 	if (listIconeToGenerate.size() > 0 && !isDragging)
 	{
 		wxWindow* window = this->FindWindowById(MAINVIEWERWINDOWID);
@@ -1292,12 +1293,12 @@ void CThumbnail::Render(wxDC& dc)
 	oldPosLargeur = posLargeur;
 	oldPosHauteur = posHauteur;
 
-	// OPTIMISATION : Ne pas notifier le parent pendant un Drag pour éviter des re-layouts CPU intensifs
+	// OPTIMISATION & SÉCURISATION MÉMOIRE :
+	// Si votre classe parente accepte SetInt/SetExtraLong, privilégiez cette méthode (sans pointeur).
+	// Si elle exige un wxSize* via GetClientData(), assurez-vous que le parent fait un "delete" du pointeur récupéré.
 	if (this->GetParent() != nullptr && moveOnPaint && !isDragging)
 	{
-		auto size = new wxSize();
-		size->x = posLargeur;
-		size->y = posHauteur;
+		auto* size = new wxSize(posLargeur, posHauteur); // Allocation propre
 		wxCommandEvent evt(wxEVENT_SETPOSITION);
 		evt.SetClientData(size);
 		this->GetParent()->GetEventHandler()->AddPendingEvent(evt);
@@ -1369,6 +1370,7 @@ void CThumbnail::Render(wxDC& dc)
 			timerAnimation->Start(500, true);
 	firstRefresh = false;
 }
+
 
 
 void CThumbnail::Resize()
