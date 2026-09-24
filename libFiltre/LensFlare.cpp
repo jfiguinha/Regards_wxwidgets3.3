@@ -53,9 +53,10 @@ int CLensFlare::InsertwxImage(const wxImage& bitmap, int xPos, int yPos)
 
 	if (xEnd <= xPos || yEnd <= yPos)
 		return 0;
-
 	const uint8_t* data = bitmap.GetData();
 	const uint8_t* alpha = bitmap.HasAlpha() ? bitmap.GetAlpha() : nullptr;
+	/*
+
 
 	tbb::parallel_for(yPos, yEnd, 1, [=](int y)
 		{
@@ -78,6 +79,38 @@ int CLensFlare::InsertwxImage(const wxImage& bitmap, int xPos, int yPos)
 					colorSrc->Mul(alphaDiff);
 					color.Mul(value);
 					colorSrc->Add(color);
+				}
+			}
+		});*/
+
+
+	tbb::parallel_for(yPos, yEnd, 1, [=](int y)
+		{
+			const int srcY = srcStartY + (y - yPos);
+			for (int x = xPos; x < xEnd; x++)
+			{
+				const int srcX = srcStartX + (x - xPos);
+				const int i = srcY * srcWidth + srcX;
+
+				CRgbaquad* colorSrc = CRgbaquad::GetPtColorValue(pBitmap, x, y);
+				if (colorSrc == nullptr)
+					continue;
+
+				// Utilisation de l'arithmétique entière au lieu des float (division par 255 évitée)
+				const uint16_t a = (alpha != nullptr) ? alpha[i] : 255;
+				if (a == 0) continue; // Pixel transparent, on passe au suivant
+
+				if (a == 255) // Remplacement pur (Opaque)
+				{
+					colorSrc->SetColor(data[i * 3], data[i * 3 + 1], data[i * 3 + 2]);
+				}
+				else // Blending entier rapide (formule : (src * a + dest * (255 - a)) / 255)
+				{
+					const uint16_t invA = 255 - a;
+					uint8_t r = (data[i * 3] * a + colorSrc->GetRed() * invA) >> 8;
+					uint8_t g = (data[i * 3 + 1] * a + colorSrc->GetGreen() * invA) >> 8;
+					uint8_t b = (data[i * 3 + 2] * a + colorSrc->GetBlue() * invA) >> 8;
+					colorSrc->SetColor(r, g, b);
 				}
 			}
 		});
@@ -380,16 +413,23 @@ void CLensFlare::LensFlare(cv::Mat* pBitmap, int iPosX, int iPosY, int iPuissanc
 
 	CLine line(iHeight, iWidth);
 
+	// Avant la boucle : Initialisation unique du RNG
 	static thread_local std::mt19937 s_rng{ std::random_device{}() };
-	std::uniform_int_distribution<int> dist(0, RAND_MAX);
+	std::uniform_int_distribution<int> dist(0, iIntRayon - 1); // Plage directement restreinte
 
-	for (i = 0; i <= 360; i++)
+	// Remplacement de la boucle de génération des traits [1]
+	for (i = 0; i <= 360; i += 2) // On peut aussi sauter des degrés si le rendu visuel le permet
 	{
-		float fxValue = cos(i * CONVRADIAN) * dist(s_rng);
-		float fyValue = sin(i * CONVRADIAN) * dist(s_rng);
+		// Pré-calcul du radian [1]
+		float rad = i * CONVRADIAN;
+		float cosRad = cos(rad);
+		float sinRad = sin(rad);
 
-		fxValue = static_cast<int>(fxValue) % (iIntRayon);
-		fyValue = static_cast<int>(fyValue) % (iIntRayon);
+		// Générer directement la longueur du rayon aléatoire
+		int currentRayon = dist(s_rng);
+
+		int fxValue = static_cast<int>(cosRad * currentRayon);
+		int fyValue = static_cast<int>(sinRad * currentRayon);
 
 		line.MidpointLine(pBitmap, x, y, x + fxValue, y + fyValue, CRgbaquad(255, 255, 255), 0.9f, true);
 		line.MidpointLine(pBitmap, x - fxValue, y - fyValue, x, y, CRgbaquad(255, 255, 255), 0.9f, true);
