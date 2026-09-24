@@ -500,7 +500,7 @@
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
       <OptimizeForWindowsApplication>true</OptimizeForWindowsApplication>
       <OpenMP>GenerateParallelCode</OpenMP>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -800,7 +800,7 @@ COPY "$(SolutionDir)$(Platform)\$(Configuration)\iconv-2.dll" "$(SolutionDir)$(P
       <FloatingPointExpressionEvaluation>Double</FloatingPointExpressionEvaluation>
       <DisableFunctionSplitting>false</DisableFunctionSplitting>
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <ConformanceMode>false</ConformanceMode>
       <Optimization>Full</Optimization>

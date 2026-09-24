@@ -290,7 +290,7 @@
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
       <OpenMP>GenerateParallelCode</OpenMP>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <StringPooling>true</StringPooling>
       <StructMemberAlignment>16Bytes</StructMemberAlignment>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -442,7 +442,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <OpenMPSupport>true</OpenMPSupport>
       <ConformanceMode>false</ConformanceMode>

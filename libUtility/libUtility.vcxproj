@@ -393,7 +393,7 @@
       <AdditionalIncludeDirectories>.;../include</AdditionalIncludeDirectories>
       <OpenMP>GenerateParallelCode</OpenMP>
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -553,7 +553,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <UseProcessorExtensions>None</UseProcessorExtensions>
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <ConformanceMode>false</ConformanceMode>
       <Optimization>Full</Optimization>
@@ -783,6 +783,7 @@
     <ClInclude Include="ConvertUtility.h" />
     <ClInclude Include="FileUtility.h" />
     <ClInclude Include="picture_utility.h" />
+    <ClInclude Include="ThreadPool.h" />
     <ClInclude Include="utility.h" />
   </ItemGroup>
   <ItemGroup>

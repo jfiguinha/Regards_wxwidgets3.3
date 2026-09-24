@@ -389,7 +389,7 @@
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>../libUtility;../include;../libResource;../libPicture</AdditionalIncludeDirectories>
       <OpenMP>GenerateParallelCode</OpenMP>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <StringPooling>true</StringPooling>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <FloatingPointModel>Fast</FloatingPointModel>
@@ -586,7 +586,7 @@
       <AdditionalIncludeDirectories>../libUtility;../include;../libResource;../libPicture</AdditionalIncludeDirectories>
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
       <ExceptionHandling>Sync</ExceptionHandling>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <PrecompiledHeaderOutputFile>$(IntDir)$(TargetName).pch</PrecompiledHeaderOutputFile>
       <OpenMPSupport>true</OpenMPSupport>
       <ConformanceMode>false</ConformanceMode>

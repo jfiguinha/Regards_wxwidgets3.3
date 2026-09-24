@@ -488,7 +488,7 @@
       <PrecompiledHeaderFile>header.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)libUtility;$(SolutionDir)include;include;include/wx</AdditionalIncludeDirectories>
       <OpenMP>GenerateParallelCode</OpenMP>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -675,7 +675,7 @@
       <WholeProgramOptimization>false</WholeProgramOptimization>
       <InterproceduralOptimization>NoIPO</InterproceduralOptimization>
       <OpenMP>GenerateParallelCode</OpenMP>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>

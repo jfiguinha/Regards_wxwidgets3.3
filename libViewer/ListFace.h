@@ -1,11 +1,8 @@
 #pragma once
 #ifndef __NOFACE_DETECTION__
-/*
-#include <ScrollbarWnd.h>
-#include "ThumbnailFace.h"
-#include "ThumbnailFaceToolBar.h"
-#include "ThumbnailFacePertinenceToolBar.h"
-*/
+
+#include <deque>
+#include <vector>
 #include <TitleBarInterface.h>
 #include <WindowMain.h>
 using namespace Regards::Window;
@@ -33,26 +30,54 @@ namespace Regards
 		public:
 			CListFace(wxWindow* parent, wxWindowID idCTreeWithScrollbar);
 			~CListFace() override;
+
+			// --- Interface CWindowMain / CTitleBarInterface
 			void UpdateScreenRatio() override;
-			void SetActifItem(const int& numItem, const bool& move);
-			void SetActifItem(const wxString &filename, const bool& move);
-			int GetThumbnailHeight();
 			void Resize() override;
 			void ClosePane() override;
 			void RefreshPane() override;
-			void FacialRecognitionReload();
+
+			// --- Navigation / sélection
+			void SetActifItem(const int& numItem, const bool& move);
+			void SetActifItem(const wxString& filename, const bool& move);
 			int ImageSuivante();
-			wxString GetFilename(const int& numItem);
 			int ImagePrecedente();
 			int GetNumItem();
-			vector<int> GetFaceSelectID();
-			CThumbnailFace* GetThumbnailFace();
 			wxString GetActifItem();
+			wxString GetFilename(const int& numItem);
+			std::vector<int> GetFaceSelectID();
+			CThumbnailFace* GetThumbnailFace();
+			int GetThumbnailHeight();
+
+			// --- Reconnaissance faciale
+			void FacialRecognitionReload();
 
 		private:
+			// --- Traitements exécutés dans des threads de travail
 			static void FacialDetectionRecognition(void* param);
+			static void FacialRecognition(void* param);
+			static void LoadResource(void* param);
 
+			// --- Traitement idle
 			void IdleFunction() override;
+			void ProcessIdle() override;
+			bool GetProcessEnd() override;
+
+			// --- Construction
+			void CreateThumbnailPane(bool checkValidity, int positionTab);
+			void CreateZoomToolbar(int positionTab);
+			void CreatePertinenceToolbar();
+			void ConnectEvents();
+
+			// --- Threads et notifications
+			void StartWorker(void (*worker)(void*), const wxString& filename = wxString());
+			void NotifyCriteriaChange();
+			void RequestThumbnailRefresh();
+			void SendStatusBarMessage(int typeMessage, int nbPhoto, int position, int nbElement);
+			void UpdateModificationState(bool enable);
+			void InitializeListFace();
+
+			// --- Handlers d'événements
 			void ThumbnailDatabaseRefresh(wxCommandEvent& event);
 			void ThumbnailFolderAdd(wxCommandEvent& event);
 			void OnRefreshFolder(wxCommandEvent& event);
@@ -62,32 +87,28 @@ namespace Regards
 			void ThumbnailRefresh(wxCommandEvent& event);
 			void ThumbnailMove(wxCommandEvent& event);
 			void OnFacePhotoAdd(wxCommandEvent& event);
-			void OnResourceLoad(wxCommandEvent& event);
-			void ProcessIdle() override;
-			bool GetProcessEnd() override;
-			static void FindFaceCompatible(const vector<int>& listFace);
-			static void FacialRecognition(void* param);
-			static void LoadResource(void* param);
 			void OnFaceVideoAdd(wxCommandEvent& event);
-			void IntializeListFace();
-			
+			void OnResourceLoad(wxCommandEvent& event);
 
-			CWindowManager * windowManager = nullptr;
-			CScrollbarWnd * thumbscrollbar = nullptr;
-			CThumbnailFaceToolBar * thumbFaceToolbar = nullptr;
-			CThumbnailFacePertinenceToolBar * thumbFacePertinenceToolbar = nullptr;
-			CThumbnailFace * thumbnailFace = nullptr;
+			// --- Fenêtres (propriété : wxWidgets, via le parent)
+			CWindowManager* windowManager = nullptr;
+			CScrollbarWnd* thumbscrollbar = nullptr;
+			CThumbnailFaceToolBar* thumbFaceToolbar = nullptr;
+			CThumbnailFacePertinenceToolBar* thumbFacePertinenceToolbar = nullptr;
+			CThumbnailFace* thumbnailFace = nullptr;
+
+			// --- État des traitements
 			int nbProcessFacePhoto = 0;
-			bool isLoadingResource;
 			int nbProcessFaceRecognition = 0;
+			bool isLoadingResource = false;
 			bool resourceLoaded = false;
 			bool cleanDatabase = false;
-			vector<wxString> listPhoto;
-
-			int nbNbFace;
-			int nbTotalFace = 0;
-			int nbTotalFaceToRecognize = 0;	
 			bool isEnable = true;
+
+			// --- Files de travail et compteurs
+			std::deque<wxString> listPhoto;
+			int nbNbFace = 0;
+			int nbTotalFace = 0;
 			int posImageRecognize = 0;
 			int posFaceRecognize = 0;
 		};
