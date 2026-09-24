@@ -28,6 +28,8 @@ CThumbnailProcess::CThumbnailProcess(CMainWindow* parent, int maxConcurrent)
     {
         m_maxConcurrent = maxConcurrent;
     }
+
+    m_threadPool = std::make_unique<ThreadPool>(static_cast<size_t>(m_maxConcurrent));
 }
 
 void CThumbnailProcess::ProcessThumbnail(wxString filename, int type, long longWindow, int& nbProcess)
@@ -44,7 +46,10 @@ void CThumbnailProcess::ProcessThumbnail(wxString filename, int type, long longW
     pLoadBitmap->window = parent;
     pLoadBitmap->longWindow = longWindow;
     pLoadBitmap->type = type;
-    pLoadBitmap->_thread = std::make_unique<std::thread>(LoadPicture, pLoadBitmap);
+    m_threadPool->Enqueue([pLoadBitmap]()
+    {
+        LoadPicture(pLoadBitmap);
+    });
 
     nbProcess++;
 }

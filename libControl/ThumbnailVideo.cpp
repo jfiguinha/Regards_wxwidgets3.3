@@ -21,18 +21,11 @@ using namespace Regards::Picture;
 extern AppContext application_context;
 
 
-struct ThumbnailVideoThread
-{
-	CThumbnailVideo* window;
-	wxString filename;
-	thread* threadVideo;
-};
-
-
 CThumbnailVideo::CThumbnailVideo(wxWindow* parent, const wxWindowID id, const CThemeThumbnail& themeThumbnail,
                                  const bool& testValidity)
 	: CThumbnailHorizontal(parent, id, themeThumbnail, testValidity)
 {
+	threadPool = std::make_unique<ThreadPool>(1);
 	numItemSelected = -1;
 	process_end = true;
 	nbProcess = 0;
@@ -205,7 +198,10 @@ void CThumbnailVideo::GenerateThumbnail(const wxString& szFileName)
 		auto pLoadBitmap = new CThreadLoadingBitmap();
 		pLoadBitmap->filename = szFileName;
 		pLoadBitmap->window = this;
-		pLoadBitmap->_thread = std::make_unique<std::thread>(LoadVideoThumbnail, pLoadBitmap);
+		threadPool->Enqueue([pLoadBitmap]()
+		{
+			LoadVideoThumbnail(pLoadBitmap);
+		});
 
 		process_end = false;
 

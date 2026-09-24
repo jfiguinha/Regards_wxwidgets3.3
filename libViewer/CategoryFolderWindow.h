@@ -1,5 +1,6 @@
 #pragma once
 #include <theme.h>
+#include <ThreadPool.h>
 #include <TreeWithScrollbar.h>
 using namespace Regards::Window;
 
@@ -38,7 +39,7 @@ namespace Regards::Viewer
 		void ProcessPhotoQueue();
 		void ProcessGpsQueue();
 		void CleanupOldCatalogs();
-		void SendStatusMessage(CThumbnailMessage* thumbnailMessage);
+		void SendStatusMessage(int typeMessage, int nbPhoto, int position, int nbElement);
 		static void FindPhotoCriteria(CFindPhotoCriteria* findPhotoCriteria);
 		static void FindGPSPhotoCriteria(CFindPhotoCriteria* findPhotoCriteria);
 		void RefreshThreadFolder(CFolderCatalog* folder);
@@ -50,7 +51,8 @@ namespace Regards::Viewer
 		int nbGpsFileByMinute = 60;
 		int nbPhotoToProcess = 0;
 		int nbPhotoGpsToProcess = 0;
-        std::unique_ptr<CCategoryFolderWindowPimpl> pimpl;
+		std::unique_ptr<CCategoryFolderWindowPimpl> pimpl;
+		std::unique_ptr<ThreadPool> threadPool;
     
 	};
 }

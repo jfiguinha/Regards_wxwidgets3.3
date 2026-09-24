@@ -1,6 +1,7 @@
 #pragma once
 #include <MainWindow.h>
 #include <ThreadLoadingBitmap.h>
+#include <ThreadPool.h>
 namespace Regards::Viewer
 {
 
@@ -18,6 +19,7 @@ namespace Regards::Viewer
         static void LoadPicture(void* param);
         CMainWindow* parent = nullptr;
         int                           m_maxConcurrent;
+        std::unique_ptr<ThreadPool>    m_threadPool;
     };
 
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <ThreadPool.h>
 #include "ThumbnailHorizontal.h"
 
 namespace Regards::Control
@@ -32,5 +33,6 @@ namespace Regards::Control
 		int64_t oldvideoPos = 0;
 		int iFormat = 0;
 		int nbProcess = 0;
+		std::unique_ptr<ThreadPool> threadPool;
 	};
 }

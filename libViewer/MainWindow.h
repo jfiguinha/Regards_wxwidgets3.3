@@ -4,7 +4,9 @@
 #include "ThumbnailScheduler.h"
 #include "FolderRefreshService.h"
 #include "MainViewerController.h"
+#include <ThreadPool.h>
 #include <memory>
+#include <future>
 #include <thread>
 class IStatusBarInterface;
 
@@ -128,6 +130,9 @@ namespace Regards::Viewer
         // ── Processus de fond ─────────────────────────────────────────
         std::unique_ptr<CFolderProcess>   folderProcess;
         std::unique_ptr<CThumbnailProcess> thumbnailProcess;
+        std::unique_ptr<ThreadPool>       threadPool;
+        std::future<void>                 processThumbnailTask;
+        std::future<void>                 checkFolderTask;
         std::thread versionUpdate;
 
         // ── État général ──────────────────────────────────────────────
@@ -156,8 +161,6 @@ namespace Regards::Viewer
         wxString    tempAudioVideoFile;
         wxRect      posWindow;
         std::chrono::steady_clock::time_point  lastClickTime[6];
-		std::thread checkFolderThread;
-		std::thread* processThumbnailThread = nullptr;
 		bool isProcessThumbnailRunning = false;
 		
         std::atomic<bool> stopProcessThumbnail = false;

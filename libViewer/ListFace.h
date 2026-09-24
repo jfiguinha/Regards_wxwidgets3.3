@@ -5,6 +5,8 @@
 #include <vector>
 #include <TitleBarInterface.h>
 #include <WindowMain.h>
+#include <ThreadPool.h>
+#include <memory>
 using namespace Regards::Window;
 using namespace std;
 
@@ -104,13 +106,15 @@ namespace Regards
 			bool resourceLoaded = false;
 			bool cleanDatabase = false;
 			bool isEnable = true;
+			std::unique_ptr<ThreadPool> threadPool;
 
 			// --- Files de travail et compteurs
 			std::deque<wxString> listPhoto;
 			int nbNbFace = 0;
+			int nbTotalImage = 0;
+			int nbImageAnalyzed = 0;
 			int nbTotalFace = 0;
-			int posImageRecognize = 0;
-			int posFaceRecognize = 0;
+			int nbFaceRecognized = 0;
 		};
 	}
 }

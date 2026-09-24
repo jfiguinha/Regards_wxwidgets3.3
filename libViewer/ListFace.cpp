@@ -58,32 +58,26 @@ namespace
 
 	// Données échangées entre le thread UI et un thread de travail.
 	// Créée par CListFace::StartWorker, libérée par le handler d'événement final
-	// (OnResourceLoad / OnFacePhotoAdd). Le destructeur garantit le join du thread.
+	// (OnResourceLoad / OnFacePhotoAdd).
 	struct CThreadFace
 	{
 		CThreadFace() = default;
 		CThreadFace(const CThreadFace&) = delete;
 		CThreadFace& operator=(const CThreadFace&) = delete;
 
-		~CThreadFace()
-		{
-			if (thread.joinable())
-				thread.join();
-		}
-
 		wxString filename;
-		std::thread thread;
+		std::future<void> task;
 		wxWindow* mainWindow = nullptr;
 		int nbFace = 0;
 		int type = 0; // 0 : détection sur photo/vidéo, 1 : reconnaissance
 	};
 
-	// Reprend la propriété des données transmises par un événement et attend la fin du thread.
+	// Reprend la propriété des données transmises par un événement et attend la fin de la tâche.
 	std::unique_ptr<CThreadFace> TakeThreadData(wxCommandEvent& event)
 	{
 		std::unique_ptr<CThreadFace> data(static_cast<CThreadFace*>(event.GetClientData()));
-		if (data && data->thread.joinable())
-			data->thread.join();
+		if (data && data->task.valid())
+			data->task.get();
 		return data;
 	}
 
@@ -161,6 +155,8 @@ namespace
 CListFace::CListFace(wxWindow* parent, wxWindowID id)
 	: CWindowMain("CListFace", parent, id)
 {
+	threadPool = std::make_unique<ThreadPool>();
+
 	CMainParam* config = CMainParamInit::getInstance();
 	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
 
@@ -187,12 +183,14 @@ CListFace::CListFace(wxWindow* parent, wxWindowID id)
 
 CListFace::~CListFace()
 {
-	if (thumbnailFace == nullptr)
-		return;
+	if (thumbnailFace != nullptr)
+	{
+		CMainParam* config = CMainParamInit::getInstance();
+		if (config != nullptr)
+			config->SetSlideFacePos(thumbnailFace->GetTabValue());
+	}
 
-	CMainParam* config = CMainParamInit::getInstance();
-	if (config != nullptr)
-		config->SetSlideFacePos(thumbnailFace->GetTabValue());
+	threadPool.reset();
 }
 
 //---------------------------------------------------------------------------------------
@@ -398,7 +396,11 @@ void CListFace::StartWorker(void (*worker)(void*), const wxString& filename)
 	auto data = std::make_unique<CThreadFace>();
 	data->mainWindow = this;
 	data->filename = filename;
-	data->thread = std::thread(worker, static_cast<void*>(data.get()));
+	CThreadFace* workerData = data.get();
+	data->task = threadPool->Enqueue([worker, workerData]()
+	{
+		worker(workerData);
+	});
 
 	// La propriété passe au handler d'événement qui recevra le résultat du thread.
 	data.release();
@@ -452,13 +454,14 @@ void CListFace::InitializeListFace()
 	CSqlFacePhoto facePhoto;
 	const auto photos = facePhoto.GetPhotoListTreatment();
 	listPhoto.assign(photos.begin(), photos.end());
-	nbTotalFace = static_cast<int>(listPhoto.size());
+	nbTotalImage = static_cast<int>(listPhoto.size());
+	nbImageAnalyzed = 0;
 
 	CSqlFindFacePhoto faceRecognition;
 	nbNbFace = faceRecognition.GetNbListFaceToRecognize();
+	nbTotalFace = nbNbFace;
 
-	posImageRecognize = 0;
-	posFaceRecognize = 0;
+	nbFaceRecognized = 0;
 }
 
 //---------------------------------------------------------------------------------------
@@ -504,12 +507,17 @@ void CListFace::OnFacePhotoAdd(wxCommandEvent& event)
 	if (type == 0)
 	{
 		nbProcessFacePhoto--;
+		nbImageAnalyzed++;
 		nbNbFace += nbFace;
+		nbTotalFace += nbFace;
+		SendStatusBarMessage(4, nbTotalImage - nbImageAnalyzed, nbImageAnalyzed, nbTotalImage);
 	}
 	else
 	{
 		nbProcessFaceRecognition--;
 		nbNbFace--;
+		nbFaceRecognized++;
+		SendStatusBarMessage(5, nbNbFace, nbFaceRecognized, nbTotalFace);
 	}
 
 	if (nbFace > 0)
@@ -684,9 +692,9 @@ void CListFace::FacialRecognitionReload()
 	int i = 0;
 	for (int numFace : listFace)
 	{
-		const wxString text = wxString::Format("Face number : %d", i);
+		const wxString text = wxString::Format("Face number : %d", i + 1);
 		CDeepLearning::FindFaceCompatible(numFace, fastDetection);
-		if (!dialog.Update(i++, text))
+		if (!dialog.Update(++i, text))
 			break;
 	}
 
@@ -766,7 +774,6 @@ void CListFace::ProcessIdle()
 
 		StartWorker(FacialRecognition, filename);
 		nbProcessFacePhoto++;
-		posImageRecognize++;
 		photoLaunched = true;
 
 		listPhoto.pop_front();
@@ -775,7 +782,7 @@ void CListFace::ProcessIdle()
 	}
 
 	if (photoLaunched)
-		SendStatusBarMessage(4, nbTotalFace - posImageRecognize, posImageRecognize, nbTotalFace);
+		SendStatusBarMessage(4, nbTotalImage - nbImageAnalyzed, nbImageAnalyzed, nbTotalImage);
 
 	// Reconnaissance des visages : une face par passage
 	const int nbFaceLocal = nbNbFace;
@@ -784,7 +791,6 @@ void CListFace::ProcessIdle()
 	{
 		StartWorker(FacialDetectionRecognition);
 		nbProcessFaceRecognition++;
-		posFaceRecognize++;
 
 		if (cleanDatabase)
 		{
@@ -792,7 +798,7 @@ void CListFace::ProcessIdle()
 			cleanDatabase = false;
 		}
 
-		SendStatusBarMessage(5, nbTotalFace - posFaceRecognize, posFaceRecognize, nbTotalFace);
+		SendStatusBarMessage(5, nbNbFace, nbFaceRecognized, nbTotalFace);
 	}
 
 	// Fin de traitement ?
@@ -800,7 +806,7 @@ void CListFace::ProcessIdle()
 	if (allDone)
 	{
 		processIdle = false;
-		SendStatusBarMessage(5, nbTotalFace, posFaceRecognize, nbTotalFace);
+		SendStatusBarMessage(5, nbNbFace, nbFaceRecognized, nbTotalFace);
 	}
 
 	isEnable = allDone;

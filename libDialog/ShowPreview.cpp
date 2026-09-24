@@ -70,6 +70,7 @@ CShowPreview::CShowPreview(wxWindow* parent, wxWindowID id, CThemeParam* config,
     compressIsOK(true),
     key(""),
     orientation(0) {
+    threadPool = std::make_unique<ThreadPool>(1);
     CThemeBitmapWindow themeBitmap;
     CThemeScrollBar themeScroll;
     CThemeToolbar themeToolbar;
@@ -293,9 +294,8 @@ void CShowPreview::UpdateBitmap(const wxString& newExtension,
     sliderVideo->Start();
 
     /*
-     * The existing class owns a single worker thread. We must join it before
-     * replacing it. This preserves the current header/API while avoiding
-     * detached threads and dangling CRenderPreview pointers.
+     * The class owns a single worker task. We must wait for it before
+     * replacing it to avoid dangling CRenderPreview pointers.
      *
      * Important: this still blocks the GUI while the previous EncodeFrame()
      * finishes. A fully asynchronous/cancellable implementation requires a
@@ -313,7 +313,10 @@ void CShowPreview::UpdateBitmap(const wxString& newExtension,
     renderPreview->compressIsOK = false;
     renderPreview->ret = -1;
 
-    threadStart = std::make_unique<std::thread>(ThreadLoading, renderPreview);
+    loadingTask = threadPool->Enqueue([renderPreview]()
+    {
+        ThreadLoading(renderPreview);
+    });
 }
 
 void CShowPreview::ThreadLoading(void* data) {
@@ -442,11 +445,10 @@ void CShowPreview::OnMoveBottom(wxCommandEvent& event) {
 }
 
 void CShowPreview::StopThread() {
-    if (!threadStart) return;
+    if (!loadingTask.valid()) return;
 
-    if (threadStart->joinable()) threadStart->join();
-
-    threadStart.reset();
+    loadingTask.wait();
+    loadingTask = std::future<void>();
 }
 
 CShowPreview::~CShowPreview() { StopThread(); }

@@ -63,11 +63,10 @@ CMainWindow::CMainWindow(wxWindow* parent,
     InitConfig(fileToOpen);
     InitBackgroundTasks();
 
-
+    threadPool = std::make_unique<ThreadPool>();
     isProcessThumbnailRunning = true;
-    processThumbnailThread = new std::thread(ProcessThumbnail, this);
-
-	checkFolderThread = std::thread(CheckFolder,this);
+    processThumbnailTask = threadPool->Enqueue(ProcessThumbnail, this);
+    checkFolderTask = threadPool->Enqueue(CheckFolder, this);
 
     bool startTimer = false;
 
@@ -96,6 +95,9 @@ CMainWindow::~CMainWindow()
 {
     if (loadPictureStartTimer->IsRunning())
         loadPictureStartTimer->Stop();
+
+    stopProcessThumbnail = true;
+    threadPool.reset();
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -125,8 +127,8 @@ void CMainWindow::OnFolderCheck(wxCommandEvent& event)
 		processIdle = true;
     }
 
-    if (checkFolderThread.joinable())
-        checkFolderThread.detach();
+    if (checkFolderTask.valid())
+        checkFolderTask.get();
 
 }
 
@@ -339,9 +341,8 @@ void CMainWindow::ProcessThumbnail(void* data)
 void CMainWindow::OnProcessThumbnailEnd(wxCommandEvent& event)
 {
     isProcessThumbnailRunning = false;
-    processThumbnailThread->join();
-    delete processThumbnailThread;
-    processThumbnailThread = nullptr;
+    if (processThumbnailTask.valid())
+        processThumbnailTask.get();
 }
 
 // ═════════════════════════════════════════════════════════════════════════════
@@ -405,7 +406,8 @@ void CMainWindow::ProcessIdle()
     if (stopProcessThumbnail)
     {
         stopProcessThumbnail = false;
-        processThumbnailThread = new std::thread(ProcessThumbnail, this);
+        isProcessThumbnailRunning = true;
+        processThumbnailTask = threadPool->Enqueue(ProcessThumbnail, this);
     }
 
 
@@ -421,7 +423,7 @@ bool CMainWindow::GetProcessEnd()
 {
     stopProcessThumbnail = true;
 
-    if (scheduler->GetNbProcess() > 0 || isProcessThumbnailRunning  || isCheckingFile || checkFolderThread.joinable())
+    if (scheduler->GetNbProcess() > 0 || isProcessThumbnailRunning  || isCheckingFile || checkFolderTask.valid())
         return false;
     return true;
 }

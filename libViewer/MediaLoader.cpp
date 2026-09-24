@@ -45,6 +45,7 @@ CMediaLoader::CMediaLoader(wxWindow*                parent,
     , musicController(musicController)
 {
     animationTimer = std::make_unique<wxTimer>(parent, wxTIMER_ANIMATION);
+    threadPool = std::make_unique<ThreadPool>();
 }
 
 CMediaLoader::~CMediaLoader()
@@ -52,6 +53,7 @@ CMediaLoader::~CMediaLoader()
     if (animationTimer->IsRunning())
         animationTimer->Stop();
 
+    threadPool.reset();
     videoThumbnail.clear();
 }
 
@@ -255,8 +257,7 @@ int CMediaLoader::LoadPicture(const wxString& newFilename, const bool& refresh)
                 pictureData->picture    = pictureToLoad;
                 pictureData->isVisible  = true;
                 pictureData->isDiaporama = isDiaporama;
-                auto* threadLoad        = new std::thread(LoadingNewPicture, pictureData);
-                pictureData->myThread   = threadLoad;
+                threadPool->Enqueue(LoadingNewPicture, pictureData);
                 processLoadPicture      = true;
                 StartLoadingPicture();
             }
@@ -562,4 +563,6 @@ void CMediaLoader::LoadingNewPicture(CThreadPictureData* pictureData)
     event->SetInt(0);
     event->SetExtraLong(0);
     wxQueueEvent(pictureData->mainWindow, event);
+
+    delete pictureData;
 }

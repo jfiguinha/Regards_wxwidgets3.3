@@ -116,7 +116,6 @@ public:
 	bool fromGps = false;
 	int numCriteria = 0;
 	wxString photoPath;
-	std::unique_ptr<thread> phthread;
 	bool isOk = true;
 };
 
@@ -124,7 +123,6 @@ CFindPhotoCriteria::CFindPhotoCriteria()
 {
 	mainWindow = nullptr;
 	criteriaNew = false;
-	phthread = nullptr;
 }
 
 CCategoryFolderWindow::CCategoryFolderWindow(wxWindow* parent, const wxWindowID idCTreeWithScrollbarViewer, const CThemeScrollBar& themeScroll,
@@ -168,6 +166,8 @@ CCategoryFolderWindow::CCategoryFolderWindow(wxWindow* parent, const wxWindowID 
 	
 	if (param != nullptr)
 		nbGpsFileByMinute = param->GetNbGpsIterationByMinute();
+
+	threadPool = std::make_unique<ThreadPool>(static_cast<size_t>(std::max(1, pimpl->nbProcesseur)));
 
 	init();
 
@@ -304,21 +304,20 @@ void CCategoryFolderWindow::ProcessPhotoQueue()
 		findPhotoCriteria->mainWindow = this;
 		//findPhotoCriteria->numFolder = photo.GetFolderId();
 
-		findPhotoCriteria->phthread = std::make_unique<thread>(FindPhotoCriteria, findPhotoCriteria);
+		threadPool->Enqueue([findPhotoCriteria]()
+		{
+			CCategoryFolderWindow::FindPhotoCriteria(findPhotoCriteria);
+		});
 		pimpl->numProcess++;
 		CSqlInsertFile sql_insert_file;
 		sql_insert_file.UpdatePhotoProcess(photo.GetId());
 		pimpl->traitementEnd = false;
 		pimpl->m_photosVector.erase(pimpl->m_photosVector.begin());
 
-		{
-			auto thumbnailMessage = new CThumbnailMessage();
-			thumbnailMessage->thumbnailPos = nbPhotoToProcess - pimpl->m_photosVector.size();
-			thumbnailMessage->nbElement = nbPhotoToProcess;
-			thumbnailMessage->nbPhoto = pimpl->m_photosVector.size();
-			thumbnailMessage->typeMessage = 0;
-			SendStatusMessage(thumbnailMessage);
-		}
+		SendStatusMessage(0,
+			static_cast<int>(pimpl->m_photosVector.size()),
+			nbPhotoToProcess - static_cast<int>(pimpl->m_photosVector.size()),
+			nbPhotoToProcess);
 	}
 }
 
@@ -329,7 +328,10 @@ void CCategoryFolderWindow::ProcessGpsQueue()
 	findPhotoCriteria->apiKey = pimpl->apiKey;
 	findPhotoCriteria->mainWindow = this;
 	findPhotoCriteria->numCriteria = pimpl->listCriteriaToGeolocalize[0];
-	findPhotoCriteria->phthread = std::make_unique<thread>(FindGPSPhotoCriteria, findPhotoCriteria);
+	threadPool->Enqueue([findPhotoCriteria]()
+	{
+		CCategoryFolderWindow::FindGPSPhotoCriteria(findPhotoCriteria);
+	});
 
 	pimpl->listCriteriaToGeolocalize.pop_front();
 	pimpl->numProcessGps++;
@@ -337,28 +339,25 @@ void CCategoryFolderWindow::ProcessGpsQueue()
 	processIdle = true;
 	time(&start);
 
-	{
-		auto thumbnailMessage = new CThumbnailMessage();
-		thumbnailMessage->thumbnailPos = 1;
-		thumbnailMessage->nbPhoto = nbPhotoGpsToProcess;
-		thumbnailMessage->nbElement = nbPhotoGpsToProcess;
-		thumbnailMessage->typeMessage = 6;
-		SendStatusMessage(thumbnailMessage);
-
-	}
+	SendStatusMessage(6, nbPhotoGpsToProcess, 1, nbPhotoGpsToProcess);
 }
 
-void CCategoryFolderWindow::SendStatusMessage(CThumbnailMessage * thumbnailMessage)
+void CCategoryFolderWindow::SendStatusMessage(const int typeMessage, const int nbPhoto,
+	const int position, const int nbElement)
 {
 	wxWindow* mainWnd = this->FindWindowById(MAINVIEWERWINDOWID);
 	if (mainWnd != nullptr)
 	{
+		auto thumbnailMessage = new CThumbnailMessage();
+		thumbnailMessage->nbPhoto = nbPhoto;
+		thumbnailMessage->thumbnailPos = position;
+		thumbnailMessage->nbElement = nbElement;
+		thumbnailMessage->typeMessage = typeMessage;
+
 		wxCommandEvent eventChange(wxEVENT_UPDATESTATUSBARMESSAGE);
 		eventChange.SetClientData(thumbnailMessage);
 		mainWnd->GetEventHandler()->AddPendingEvent(eventChange);
 	}
-	else
-		delete thumbnailMessage;
 }
 
 
@@ -621,9 +620,6 @@ void CCategoryFolderWindow::CriteriaPhotoUpdate(wxCommandEvent& event)
 			UpdateCriteria(true);
 		}
 	}
-
-	if (findPhotoCriteria->phthread != nullptr)
-		findPhotoCriteria->phthread->join();
 
 	if (findPhotoCriteria->fromGps)
 	{

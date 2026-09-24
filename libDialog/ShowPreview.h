@@ -9,7 +9,7 @@
 #include <atomic>
 #include <cstdint>
 #include <memory>
-#include <thread>
+#include <ThreadPool.h>
 
 class CFFmpegDecodeFrameFilter;
 class CFFmpegTranscoding;
@@ -165,7 +165,8 @@ namespace Regards
             bool showOriginal = false;
             bool isFirstPicture = true;
 
-            std::unique_ptr<std::thread> threadStart;
+            std::unique_ptr<ThreadPool> threadPool;
+            std::future<void> loadingTask;
 
             bool moveSlider = false;
             bool oldShowOriginal = false;

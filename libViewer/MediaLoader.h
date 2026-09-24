@@ -1,4 +1,7 @@
 #pragma once
+#include <ThreadPool.h>
+#include <memory>
+
 class CImageLoadingFormat;
 class CImageVideoThumbnail;
 
@@ -15,7 +18,7 @@ namespace Regards::Viewer
     {
     public:
         CThreadPictureData()
-            : mainWindow(nullptr), isVisible(false), myThread(nullptr)
+            : mainWindow(nullptr), isVisible(false)
             , isThumbnail(false), isDiaporama(false)
         {}
         wxWindow*            mainWindow;
@@ -24,7 +27,6 @@ namespace Regards::Viewer
         bool                 isThumbnail;
         bool                 isDiaporama;
         std::atomic<bool>    processLoadPicture{false};
-        std::thread*         myThread;
     };
 
     // ── MediaLoader ──────────────────────────────────────────────────
@@ -110,6 +112,7 @@ namespace Regards::Viewer
         CThumbnailViewerPicture* thumbnailPicture = nullptr;
         CThumbnailViewerVideo*   thumbnailVideo   = nullptr;
         CMusicController*        musicController  = nullptr;
+        std::unique_ptr<ThreadPool> threadPool;
 
         // Animation state
         std::unique_ptr<wxTimer>           animationTimer       = nullptr;
