@@ -599,6 +599,8 @@ wxBitmap CIcone::GetCopyIcone() const
 void CIcone::RefreshIcone()
 {
 	photoDefault = false;
+	if (sourceImageCache.IsOk())
+		sourceImageCache.Destroy(); // Force l'extraction de la nouvelle image au prochain rendu
 	Invalidate();
 }
 
@@ -613,22 +615,16 @@ void CIcone::GetBitmapIcone(
 	if (forceRedraw)
 		Invalidate();
 
-	// -------------------------------------------------------------------------
-	// Impossible de construire l'ic�ne sans ThumbnailData.
-	// -------------------------------------------------------------------------
+	// 1. REVENIR À VOTRE LOGIQUE INITIALE SÉCURISÉE POUR OPENCV
 	if (pThumbnailData == nullptr)
 	{
 		returnValue = 1;
 		return;
 	}
 
-	// -------------------------------------------------------------------------
-	// R�cup�ration de l'image.
-	// IMPORTANT : on conserve exactement la s�mantique actuelle de
-	// photoDefault avec GetImage().
-	// -------------------------------------------------------------------------
 	wxImage image(20, 20);
 
+	// On laisse GetImage modifier photoDefault par référence exactement comme avant
 	cv::Mat mat = pThumbnailData->GetImage(photoDefault);
 	image = CLibPicture::ConvertRegardsBitmapToWXImage(mat);
 
@@ -644,13 +640,9 @@ void CIcone::GetBitmapIcone(
 		returnValue = 1;
 	}
 
-	// -------------------------------------------------------------------------
-	// Si aucune image n'est disponible, utiliser l'image par d�faut.
-	// -------------------------------------------------------------------------
 	if (!image.IsOk())
 	{
-		if (pThumbnailData->IsVideo() ||
-			pThumbnailData->IsAnimation())
+		if (pThumbnailData->IsVideo() || pThumbnailData->IsAnimation())
 		{
 			image = application_context.GetWxDefaultVideoThumbnail();
 		}
@@ -663,30 +655,22 @@ void CIcone::GetBitmapIcone(
 		returnValue = 1;
 	}
 
-	// -------------------------------------------------------------------------
-	// V�rification du cache du bitmap final.
-	// -------------------------------------------------------------------------
+	// 2. VÉRIFICATION DU CACHE DU BITMAP FINAL
 	const bool bitmapSizeChanged = localmemBitmap_backup.IsOk() ? (
 		localmemBitmap_backup.GetWidth() != themeIcone.GetWidth() ||
 		localmemBitmap_backup.GetHeight() != themeIcone.GetHeight()) : true;
 
-	if (!redraw && !bitmapSizeChanged)
+	// Si l'état n'a pas changé (pas de survol, pas de changement de sélection)
+	// et que la taille est identique, on réutilise le rendu précédent immédiatement.
+	if (!redraw && !bitmapSizeChanged && localmemBitmap_backup.IsOk())
 		return;
 
-	wxBitmap localmemBitmap(
-		themeIcone.GetWidth(),
-		themeIcone.GetHeight());
-
+	wxBitmap localmemBitmap(themeIcone.GetWidth(), themeIcone.GetHeight());
 	wxMemoryDC memDC;
 	memDC.SelectObject(localmemBitmap);
 
 	try
 	{
-		
-
-		// ---------------------------------------------------------------------
-		// Calcul des dimensions d'affichage.
-		// ---------------------------------------------------------------------
 		int tailleAffichageBitmapWidth = 0;
 		int tailleAffichageBitmapHeight = 0;
 		float ratio = 0.0f;
@@ -698,10 +682,8 @@ void CIcone::GetBitmapIcone(
 			tailleAffichageBitmapHeight,
 			ratio);
 
-		// ---------------------------------------------------------------------
-		// Le cache de l'image redimensionn�e peut �tre r�utilis� uniquement
-		// si ses dimensions correspondent.
-		// ---------------------------------------------------------------------
+		// OPTIMISATION : On ne reconstruit le scale que si les dimensions cibles ont changé
+		// ou si scaleBackup a été détruit. Cela évite le ResampleBicubic CPU-vore à chaque frame.
 		const bool rebuildScale =
 			!scaleBackup.IsOk() ||
 			!photoDefault ||
@@ -710,27 +692,17 @@ void CIcone::GetBitmapIcone(
 
 		if (rebuildScale)
 		{
-			// -----------------------------------------------------------------
-			// On conserve la logique originale.
-			// -----------------------------------------------------------------
 			if (pThumbnailData != nullptr)
 			{
 				if (!image.IsOk())
 				{
-					image = wxImage(
-						themeIcone.GetWidth(),
-						themeIcone.GetHeight());
+					image = wxImage(themeIcone.GetWidth(), themeIcone.GetHeight());
 				}
 				else
 				{
 					photoDefault = true;
 				}
 
-				// -------------------------------------------------------------
-				// IMPORTANT :
-				// Mirror() retourne une nouvelle wxImage.
-				// Pas de std::move.
-				// -------------------------------------------------------------
 				if (flipHorizontal)
 					image = image.Mirror(true);
 
@@ -738,30 +710,22 @@ void CIcone::GetBitmapIcone(
 					image = image.Mirror(false);
 			}
 
-			// -----------------------------------------------------------------
-			// Redimensionnement.
-			// -----------------------------------------------------------------
 			wxImage scale;
 
 			if (image.IsOk())
 			{
 				if (config->GetThumbnailQuality() == 0)
 				{
-					scale = image.Scale(
-						tailleAffichageBitmapWidth,
-						tailleAffichageBitmapHeight);
+					scale = image.Scale(tailleAffichageBitmapWidth, tailleAffichageBitmapHeight);
 				}
 				else if (photoDefault)
 				{
-					scale = image.ResampleBicubic(
-						tailleAffichageBitmapWidth,
-						tailleAffichageBitmapHeight);
+					// Exécuté uniquement pour l'icône par défaut
+					scale = image.ResampleBicubic(tailleAffichageBitmapWidth, tailleAffichageBitmapHeight);
 				}
 				else
 				{
-					// ---------------------------------------------------------
-					// Image temporaire.
-					// ---------------------------------------------------------
+					// Image temporaire SVG
 					if (!photoTemp.IsOk() ||
 						photoTemp.GetWidth() != tailleAffichageBitmapWidth ||
 						photoTemp.GetHeight() != tailleAffichageBitmapHeight)
@@ -777,12 +741,8 @@ void CIcone::GetBitmapIcone(
 						if (photoTemp.IsOk())
 						{
 							photoTemp.Replace(
-								colorToReplace.Red(),
-								colorToReplace.Green(),
-								colorToReplace.Blue(),
-								colorActifReplacement.Red(),
-								colorActifReplacement.Green(),
-								colorActifReplacement.Blue());
+								colorToReplace.Red(), colorToReplace.Green(), colorToReplace.Blue(),
+								colorActifReplacement.Red(), colorActifReplacement.Green(), colorActifReplacement.Blue());
 						}
 					}
 
@@ -790,40 +750,21 @@ void CIcone::GetBitmapIcone(
 				}
 			}
 
-			// -----------------------------------------------------------------
-			// IMPORTANT :
-			// On fait volontairement une copie.
-			//
-			// scaleBackup est le cache permanent.
-			// Ne pas utiliser std::move ici.
-			// -----------------------------------------------------------------
 			scaleBackup = scale;
 			scale.Destroy();
 		}
 
-		// ---------------------------------------------------------------------
-		// Rendu � partir du cache.
-		// ---------------------------------------------------------------------
-		RenderBitmap(
-			&memDC,
-			scaleBackup,
-			state);
+		// 3. RENDU DE L'ICÔNE (Boutons, sélections, textes)
+		RenderBitmap(&memDC, scaleBackup, state);
 
 		memDC.SelectObject(wxNullBitmap);
-
-		// ---------------------------------------------------------------------
-		// Mise � jour du bitmap final.
-		// ---------------------------------------------------------------------
 		localmemBitmap_backup = localmemBitmap;
-
 		redraw = false;
 	}
 	catch (...)
 	{
-		// Toujours d�s�lectionner le bitmap de la wxMemoryDC.
 		memDC.SelectObject(wxNullBitmap);
 	}
-
 }
 
 //----------------------------------------------------------------------------------

@@ -68,25 +68,24 @@ void CInfosSeparationBarExplorer::CreateIcone(wxImage & bitmap, const wxString &
 		bitmap = bitmap.ConvertToDisabled();
 	}
 }
-
 void CInfosSeparationBarExplorer::RenderIcone(wxDC* deviceContext, const int& posLargeur, const int& posHauteur)
 {
 	RenderTitle(deviceContext);
 	int x = 0;
 	int y = 0;
 
-	CreateIcone(bitmapCheckOn, "IDB_CHECKBOX_ON");
-	CreateIcone(bitmapCheckOff, "IDB_CHECKBOX_OFF");
-	CreateIcone(bitmapFolderExpand, "IDB_EXPANDFOLDER");
-	CreateIcone(bitmapFolderContract, "IDB_RETRACTFOLDER");
+	// OPTIMISATION : Les icônes ne sont créées QUE si elles ne sont pas déjà valides en mémoire cache.
+	// On évite ainsi de ré-analyser les fichiers SVG à chaque Paint.
+	if (!bitmapCheckOn.IsOk())        CreateIcone(bitmapCheckOn, "IDB_CHECKBOX_ON");
+	if (!bitmapCheckOff.IsOk())       CreateIcone(bitmapCheckOff, "IDB_CHECKBOX_OFF");
+	if (!bitmapFolderExpand.IsOk())   CreateIcone(bitmapFolderExpand, "IDB_EXPANDFOLDER");
+	if (!bitmapFolderContract.IsOk()) CreateIcone(bitmapFolderContract, "IDB_RETRACTFOLDER");
 
 	int xPos = x;
 	int yPos = y + (theme.GetHeight() - bitmapCheckOn.GetHeight());
 
-	
 	if (showExpandIcon)
 	{
-
 		rcSelect.x = _xPos + xPos + bitmapCheckOn.GetWidth() + 10 + posLargeur;
 		rcSelect.y = _yPos + yPos + posHauteur;
 		rcSelect.width = bitmapCheckOn.GetWidth();
@@ -128,11 +127,7 @@ void CInfosSeparationBarExplorer::RenderIcone(wxDC* deviceContext, const int& po
 
 		xPos = xPos + 10 + bitmapCheckOn.GetWidth();
 		yPos = y + (theme.GetHeight() - size.y) - (bitmapCheckOn.GetHeight() - size.y) / 2;
-
-		
 	}
 
-
 	CWindowMain::DrawTexte(deviceContext, libelleSelectAll, xPos, yPos, theme.themeFont);
-
 }

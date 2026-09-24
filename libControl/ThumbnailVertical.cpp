@@ -95,80 +95,93 @@ void CThumbnailVertical::SetNoVScroll(const bool& noVscroll)
 	this->noVscroll = noVscroll;
 	needToRefresh = true;
 }
-
 void CThumbnailVertical::RenderIconeWithVScroll(wxDC* deviceContext)
 {
-	int x = -posLargeur;
-	int y = -posHauteur;
+	if (nbElementInIconeList == 0)
+		return;
 
-	int nbElementX = 0;
-	int nbElementY = 0;
+	int iconeWidth = themeThumbnail.themeIcone.GetWidth();
+	int iconeHeight = themeThumbnail.themeIcone.GetHeight();
+	int windowWidth = GetWindowWidth();
+	int windowHeight = GetWindowHeight();
 
-	int nbElementByRow = (GetWindowWidth()) / themeThumbnail.themeIcone.GetWidth();
-	if ((nbElementByRow * themeThumbnail.themeIcone.GetWidth()) < (GetWindowWidth()))
+	// Nombre de colonnes par ligne
+	int nbElementByRow = windowWidth / iconeWidth;
+	if ((nbElementByRow * iconeWidth) < windowWidth)
 		nbElementByRow++;
 
-	for (int i = 0; i < nbElementInIconeList; i++)
+	if (nbElementByRow <= 0) return;
+
+	// 1. Calcul mathématique O(1) des lignes visibles
+	int firstVisibleRow = posHauteur / iconeHeight;
+	int lastVisibleRow = (posHauteur + windowHeight) / iconeHeight;
+
+	// Convertir les lignes en index d'éléments de la liste
+	int firstVisibleIdx = firstVisibleRow * nbElementByRow;
+	int lastVisibleIdx = ((lastVisibleRow + 1) * nbElementByRow) - 1;
+
+	// Sécurisation des index
+	if (firstVisibleIdx < 0) firstVisibleIdx = 0;
+	if (lastVisibleIdx >= nbElementInIconeList) lastVisibleIdx = nbElementInIconeList - 1;
+
+	// Éviter de réallouer les variables de dimension dans la boucle
+	int realWidth = themeThumbnail.themeIcone.GetRealWidth();
+	int realHeight = themeThumbnail.themeIcone.GetRealHeight();
+
+	// 2. La boucle n'évalue QUE les vignettes présentes dans le rectangle de l'écran
+	for (int i = firstVisibleIdx; i <= lastVisibleIdx; i++)
 	{
-		CIcone * pBitmapIcone = iconeList->GetElement(i);
+		CIcone* pBitmapIcone = iconeList->GetElement(i);
 		if (pBitmapIcone != nullptr)
 		{
+			// Calcul de la position absolue de l'icône sur la toile virtuelle
+			int row = i / nbElementByRow;
+			int col = i % nbElementByRow;
+			int absX = col * iconeWidth;
+			int absY = row * iconeHeight;
+
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-			pBitmapIcone->SetWindowPos(x, y);
-			pBitmapIcone->SetSizeIcone(themeThumbnail.themeIcone.GetRealWidth(),
-			                           themeThumbnail.themeIcone.GetRealHeight());
+			pBitmapIcone->SetPos(absX, absY);
+			pBitmapIcone->SetWindowPos(-posLargeur, -posHauteur);
+			pBitmapIcone->SetSizeIcone(realWidth, realHeight);
+			pBitmapIcone->SetVisibility(true);
 
-			//if visible
-			int left = x;
-			int right = x + themeThumbnail.themeIcone.GetWidth();
-			int top = y;
-			int bottom = y + themeThumbnail.themeIcone.GetHeight();
-
-			if ((right > 0 && left < GetWindowWidth()) && (top < GetWindowHeight() && bottom > 0))
+			if (numActifPhotoId != -1 && pBitmapIcone->GetNumElement() == 0)
 			{
-				if (numActifPhotoId != -1 && pBitmapIcone->GetNumElement() == 0)
-				{
-					numActifPhotoId = iconeList->GetPhotoId(i);
-					pBitmapIcone->SetActive(true);
-				}
-				RenderBitmap(deviceContext, pBitmapIcone, 0, 0);
+				numActifPhotoId = iconeList->GetPhotoId(i);
+				pBitmapIcone->SetActive(true);
 			}
 
-			x += themeThumbnail.themeIcone.GetWidth();
-			nbElementX++;
-			if (nbElementX == nbElementByRow)
-			{
-				nbElementX = 0;
-				x = -posLargeur;
-				nbElementY++;
-				y += themeThumbnail.themeIcone.GetHeight();
-			}
+			RenderBitmap(deviceContext, pBitmapIcone, 0, 0);
 		}
 	}
 }
 
 void CThumbnailVertical::RenderIconeWithoutVScroll(wxDC* deviceContext)
 {
-	int x = -posLargeur;
-	int y = 0;
+	if (nbElementInIconeList == 0)
+		return;
 
-	for (int i = 0; i < nbElementInIconeList; i++)
+	int iconeWidth = themeThumbnail.themeIcone.GetWidth();
+	int windowWidth = GetWindowWidth();
+
+	int firstVisibleIdx = posLargeur / iconeWidth;
+	int lastVisibleIdx = (posLargeur + windowWidth) / iconeWidth;
+
+	if (firstVisibleIdx < 0) firstVisibleIdx = 0;
+	if (lastVisibleIdx >= nbElementInIconeList) lastVisibleIdx = nbElementInIconeList - 1;
+
+	for (int i = firstVisibleIdx; i <= lastVisibleIdx; i++)
 	{
-		CIcone * pBitmapIcone = iconeList->GetElement(i);
+		CIcone* pBitmapIcone = iconeList->GetElement(i);
 		if (pBitmapIcone != nullptr)
 		{
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-			pBitmapIcone->SetWindowPos(x, y);
-			//if visible
-			int left = x;
-			int right = x + themeThumbnail.themeIcone.GetWidth();
-			int top = y;
-			int bottom = y + themeThumbnail.themeIcone.GetHeight();
+			pBitmapIcone->SetPos(i * iconeWidth, 0);
+			pBitmapIcone->SetWindowPos(-posLargeur, 0);
+			pBitmapIcone->SetVisibility(true);
 
-			if ((right > 0 && left < GetWindowWidth()) && (top < GetWindowHeight() && bottom > 0))
-				RenderBitmap(deviceContext, pBitmapIcone, 0, 0);
-
-			x += themeThumbnail.themeIcone.GetWidth();
+			RenderBitmap(deviceContext, pBitmapIcone, 0, 0);
 		}
 	}
 }

@@ -130,8 +130,6 @@ void CInfosSeparationBarFace::OnClick(const int& x, const int& y)
 void CInfosSeparationBarFace::RenderTitle(wxDC* dc)
 {
 	wxRect rc;
-	int x = 0;
-	int y = 0;
 	rc.x = 0;
 	rc.y = 0;
 	rc.width = width;
@@ -139,21 +137,22 @@ void CInfosSeparationBarFace::RenderTitle(wxDC* dc)
 	CWindowMain::FillRect(dc, rc, theme.colorBack);
 
 	int posY = 0;
-	//int i = 0;
-
 	vector<wxString> listOfTexte = CConvertUtility::split(title, '@');
-	if (listOfTexte.size() > 0)
-	{
-		int sizeOfY = GetHeight() / listOfTexte.size();
 
-		for (wxString title : listOfTexte)
+	if (!listOfTexte.empty())
+	{
+		// Mettre en cache la hauteur calculée pour éviter d'appeler GetHeight() en boucle
+		int sizeOfY = rc.height / listOfTexte.size();
+
+		for (const wxString& currentTitle : listOfTexte)
 		{
-			if (title != L"")
+			if (!currentTitle.IsEmpty())
 			{
-				wxSize size = CWindowMain::GetSizeTexte(dc, title, theme.themeFont);
-				int localy = 0;
-				int localx = x + (width - size.x) / 2;
-				CWindowMain::DrawTexte(dc, title, localx, localy, theme.themeFont);
+				wxSize size = CWindowMain::GetSizeTexte(dc, currentTitle, theme.themeFont);
+				int localy = posY; // Utilisation de posY au lieu de forcer 0
+				int localx = (width - size.x) / 2;
+
+				CWindowMain::DrawTexte(dc, currentTitle, localx, localy, theme.themeFont);
 				posY += sizeOfY;
 
 				titleRectPos.x = localx;
@@ -165,8 +164,6 @@ void CInfosSeparationBarFace::RenderTitle(wxDC* dc)
 	}
 }
 
-
-
 void CInfosSeparationBarFace::RenderIcone(wxDC* deviceContext, const int& posLargeur, const int& posHauteur)
 {
 	RenderTitle(deviceContext);
@@ -175,34 +172,29 @@ void CInfosSeparationBarFace::RenderIcone(wxDC* deviceContext, const int& posLar
 	int marge_text = 5;
 	int marge_sepa = 20;
 
-	if (!bitmapCheckOn.IsOk() || (bitmapCheckOn.GetHeight() != theme.GetCheckboxHeight() || bitmapCheckOn.GetWidth() !=
-		theme.GetCheckboxWidth()))
+	// OPTIMISATION CRITIQUE : Chargement paresseux (Lazy Loading) des ressources vectorielles SVG.
+	// On n'exécute le décodage et la désactivation de l'image qu'UNE seule fois par session de barre.
+	if (!bitmapCheckOn.IsOk())
 	{
-		bitmapCheckOn = CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_ON", theme.GetCheckboxWidth(),
-		                                                   theme.GetCheckboxHeight());
+		bitmapCheckOn = CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_ON", theme.GetCheckboxWidth(), theme.GetCheckboxHeight());
 		bitmapCheckOn = bitmapCheckOn.ConvertToDisabled();
 	}
 
-	if (!bitmapCheckOff.IsOk() || (bitmapCheckOff.GetHeight() != theme.GetCheckboxHeight() || bitmapCheckOff.GetWidth()
-		!= theme.GetCheckboxWidth()))
+	if (!bitmapCheckOff.IsOk())
 	{
-		bitmapCheckOff = CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_OFF", theme.GetCheckboxWidth(),
-		                                                    theme.GetCheckboxHeight());
+		bitmapCheckOff = CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_OFF", theme.GetCheckboxWidth(), theme.GetCheckboxHeight());
 		bitmapCheckOff = bitmapCheckOff.ConvertToDisabled();
 	}
 
-	if (!bitmapDelete.IsOk() || (bitmapDelete.GetHeight() != theme.GetCheckboxHeight() || bitmapDelete.
-		GetWidth() != theme.GetCheckboxWidth()))
+	if (!bitmapDelete.IsOk())
 	{
-		bitmapDelete = CLibResource::CreatePictureFromSVG("IDB_DELETE", theme.GetCheckboxWidth(),
-		                                                  theme.GetCheckboxHeight());
+		bitmapDelete = CLibResource::CreatePictureFromSVG("IDB_DELETE", theme.GetCheckboxWidth(), theme.GetCheckboxHeight());
 		bitmapDelete = bitmapDelete.ConvertToDisabled();
 	}
 
 	if (!bitmapEdit.IsOk())
 	{
-		bitmapEdit = CLibResource::CreatePictureFromSVG("IDB_EDIT_LABEL", theme.GetCheckboxWidth(),
-		                                                theme.GetCheckboxHeight());
+		bitmapEdit = CLibResource::CreatePictureFromSVG("IDB_EDIT_LABEL", theme.GetCheckboxWidth(), theme.GetCheckboxHeight());
 		bitmapEdit = bitmapEdit.ConvertToDisabled();
 	}
 
@@ -225,6 +217,7 @@ void CInfosSeparationBarFace::RenderIcone(wxDC* deviceContext, const int& posLar
 	else if (bitmapCheckOff.IsOk())
 		deviceContext->DrawBitmap(bitmapCheckOff, xPos, yPos);
 
+	// Calculer la taille du texte une première fois
 	wxSize size = CWindowMain::GetSizeTexte(deviceContext, libelleSelectAll, theme.themeFont);
 
 	xPos = xPos + marge_text + bitmapCheckOn.GetWidth();
@@ -245,14 +238,15 @@ void CInfosSeparationBarFace::RenderIcone(wxDC* deviceContext, const int& posLar
 	rcSelectIcone.width = bitmapCheckOn.GetWidth();
 	rcSelectIcone.height = bitmapCheckOn.GetHeight();
 
-	size = CWindowMain::GetSizeTexte(deviceContext, libelleSelectAll, theme.themeFont);
-
+	// OPTIMISATION : Suppression du second GetSizeTexte redondant pour libelleSelectAll car 'size' possède déjà les bonnes valeurs
 	xPos = xPos + marge_text + bitmapCheckOn.GetWidth();
 	yPos = y + (theme.GetHeight() - size.y) - (bitmapCheckOn.GetHeight() - size.y) / 2;
 
 	CWindowMain::DrawTexte(deviceContext, libelleSelectIcone, xPos, yPos, theme.themeFont);
 
-	xPos += size.x + marge_sepa;
+	// Mesurer la taille pour libelleSelectIcone qui est différent afin de décaler correctement le bouton delete
+	wxSize sizeIcone = CWindowMain::GetSizeTexte(deviceContext, libelleSelectIcone, theme.themeFont);
+	xPos += sizeIcone.x + marge_sepa;
 	yPos = y + (theme.GetHeight() - bitmapDelete.GetHeight());
 
 	if (bitmapDelete.IsOk())

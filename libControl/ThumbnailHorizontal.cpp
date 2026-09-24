@@ -31,32 +31,43 @@ void CThumbnailHorizontal::InitPosition()
 	posLargeur = 0;
 }
 
-
 void CThumbnailHorizontal::RenderIcone(wxDC* deviceContext)
 {
-	int x = -posLargeur;
-	int y = 0;
+	if (nbElementInIconeList == 0)
+		return;
 
-	for (int i = 0; i < nbElementInIconeList; i++)
+	int iconeWidth = themeThumbnail.themeIcone.GetWidth();
+	int windowWidth = GetWindowWidth();
+
+	// 1. Calcul mathématique O(1) de l'intervalle des icônes visibles à l'écran
+	int firstVisibleIdx = posLargeur / iconeWidth;
+	int lastVisibleIdx = (posLargeur + windowWidth) / iconeWidth;
+
+	// Sécurisation des index pour ne pas déborder du tableau
+	if (firstVisibleIdx < 0) firstVisibleIdx = 0;
+	if (lastVisibleIdx >= nbElementInIconeList) lastVisibleIdx = nbElementInIconeList - 1;
+
+	// 2. La boucle s'exécute UNIQUEMENT sur les éléments visibles
+	for (int i = firstVisibleIdx; i <= lastVisibleIdx; i++)
 	{
-		CIcone * pBitmapIcone = iconeList->GetElement(i);
+		CIcone* pBitmapIcone = iconeList->GetElement(i);
 		if (pBitmapIcone != nullptr)
 		{
-			int left = x;
-			int right = x + themeThumbnail.themeIcone.GetWidth();
-			int top = y;
-			int bottom = y + themeThumbnail.themeIcone.GetHeight();
-			pBitmapIcone->SetWindowPos(x, y);
-			if ((right > 0 && left < GetWindowWidth()) && (top < GetWindowHeight() && bottom > 0))
-			{
-				pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-				RenderBitmap(deviceContext, pBitmapIcone, 0, 0);
-			}
+			// Position absolue sur la toile virtuelle
+			int absX = i * iconeWidth;
+			int absY = 0;
 
-			x += themeThumbnail.themeIcone.GetWidth();
+			// Coordonnées relatives à l'écran (pour RenderIcone interne)
+			pBitmapIcone->SetWindowPos(-posLargeur, 0);
+			pBitmapIcone->SetPos(absX, absY);
+			pBitmapIcone->SetVisibility(true);
+			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+
+			RenderBitmap(deviceContext, pBitmapIcone, 0, 0);
 		}
 	}
 }
+
 
 
 void CThumbnailHorizontal::UpdateScroll()

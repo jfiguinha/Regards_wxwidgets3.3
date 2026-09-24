@@ -166,6 +166,8 @@ namespace Regards::Window
 		wxBitmap localmemBitmap_backup;
 		bool redraw = true;
 		bool visible = true;
+
+		wxImage sourceImageCache;
 	};
 
 	using IconeVector = tbb::concurrent_vector<CIcone*>;
