@@ -52,6 +52,90 @@ void CCircle::CleanCircle() {
     listOfCircle.clear();
 }
 
+#include <wx/dcmemory.h>
+#include <wx/graphics.h>
+
+wxImage CCircle::GetCircle(const int& rayon) {
+    if (rayon <= 0) return {};
+
+    {
+        std::lock_guard<std::mutex> lock(circleMutex);
+
+        const auto it = listOfCircle.find(rayon);
+
+        if (it != listOfCircle.end()) return it->second.Copy();
+    }
+
+    // 1. Création d'un bitmap RGB 24 bits aux dimensions exactes
+    wxBitmap bitmap(rayon, rayon, 24);
+    wxMemoryDC memDC(bitmap);
+
+    // 2. Utilisation directe de wxGraphicsContext (natif et ultra-précis en 3.3)
+    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(memDC));
+
+    if (gc) {
+        // Activation explicite de l'anti-aliasing de haute qualité
+        gc->SetAntialiasMode(wxAntialiasMode::wxANTIALIAS_DEFAULT);
+
+        // Remplissage du fond en BLANC pur (zone transparente)
+        gc->SetBrush(*wxWHITE_BRUSH);
+        gc->DrawRectangle(0, 0, rayon, rayon);
+
+        // Dessin du disque en NOIR pur (zone active pour vos filtres)
+        gc->SetBrush(*wxBLACK_BRUSH);
+        gc->SetPen(*wxTRANSPARENT_PEN);
+
+        // DrawEllipse prend les coordonnées de la boîte englobante (0, 0, largeur, hauteur)
+        gc->DrawEllipse(0, 0, rayon, rayon);
+    }
+
+    // Libération du contexte graphique et détachement du bitmap
+    gc.reset();
+    memDC.SelectObject(wxNullBitmap);
+
+    // 3. Conversion en wxImage et initialisation de la couche Alpha
+    wxImage image = bitmap.ConvertToImage();
+    image.InitAlpha();
+
+    uint8_t* data = image.GetData();
+    uint8_t* alpha = image.GetAlpha();
+    int totalPixels = rayon * rayon;
+
+    // 4. Traitement parallèle pour générer l'Alpha et nettoyer les couleurs
+    tbb::parallel_for(0, totalPixels, 1, [=](int i) {
+        int idx = i * 3;
+        uint8_t r = data[idx];
+        uint8_t g = data[idx + 1];
+        uint8_t b = data[idx + 2];
+
+        // Si le pixel est blanc pur -> Extérieur (transparent)
+        if (r == 255 && g == 255 && b == 255) {
+            alpha[i] = 0;
+        }
+        else {
+            // Conversion basée sur la luminance pour conserver le lissage parfait des bords
+            float luminance = (r + g + b) / 3.0f;
+            alpha[i] = static_cast<uint8_t>(255.0f - luminance);
+
+            // Remise à zéro des couleurs (Noir pur) pour valider vos conditions 'if (data[pixel] == 0)'
+            data[idx] = 0;
+            data[idx + 1] = 0;
+            data[idx + 2] = 0;
+        }
+        });
+
+    {
+        std::lock_guard<std::mutex> lock(circleMutex);
+
+        const auto [it, inserted] = listOfCircle.emplace(rayon, image);
+
+        if (!inserted) return it->second.Copy();
+    }
+
+    return image.Copy();
+}
+
+/*
 wxImage CCircle::GetCircle(const int& rayon) {
     if (rayon <= 0) return {};
 
@@ -80,6 +164,7 @@ wxImage CCircle::GetCircle(const int& rayon) {
 
     return image.Copy();
 }
+*/
 
 wxImage CCircle::GenerateCircle(const CRgbaquad& color, const int& taille,
     const float& alphaValue) {

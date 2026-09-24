@@ -1,9 +1,7 @@
 #include <header.h>
-
 #include <algorithm>
 #include <array>
 #include <cmath>
-
 #include "Crop.h"
 
 using namespace Regards::FiltreEffet;
@@ -77,26 +75,26 @@ void CCrop::Dessiner(wxDC* deviceContext, const long& m_lHScroll,
         break;
     }
 
-    const int centerX = rect.x + rect.width / 2;
+    // Pré-calcul de la position des poignées (évite les divisions répétées)
+    const int xLeft = rect.x;
+    const int xCenter = rect.x + (rect.width >> 1);
+    const int xRight = rect.x + rect.width;
 
-    const int centerY = rect.y + rect.height / 2;
+    const int yTop = rect.y;
+    const int yCenter = rect.y + (rect.height >> 1);
+    const int yBottom = rect.y + rect.height;
 
-    DrawHandle(deviceContext, rect, rect.x, rect.y, rgb);
+    // Dessin des 4 coins
+    DrawHandle(deviceContext, rect, xLeft, yTop, rgb);
+    DrawHandle(deviceContext, rect, xRight, yTop, rgb);
+    DrawHandle(deviceContext, rect, xRight, yBottom, rgb);
+    DrawHandle(deviceContext, rect, xLeft, yBottom, rgb);
 
-    DrawHandle(deviceContext, rect, rect.x + rect.width, rect.y, rgb);
-
-    DrawHandle(deviceContext, rect, rect.x + rect.width, rect.y + rect.height,
-        rgb);
-
-    DrawHandle(deviceContext, rect, rect.x, rect.y + rect.height, rgb);
-
-    DrawHandle(deviceContext, rect, centerX, rect.y, rgb);
-
-    DrawHandle(deviceContext, rect, centerX, rect.y + rect.height, rgb);
-
-    DrawHandle(deviceContext, rect, rect.x, centerY, rgb);
-
-    DrawHandle(deviceContext, rect, rect.x + rect.width, centerY, rgb);
+    // Dessin des 4 milieux de segment
+    DrawHandle(deviceContext, rect, xCenter, yTop, rgb);
+    DrawHandle(deviceContext, rect, xCenter, yBottom, rgb);
+    DrawHandle(deviceContext, rect, xLeft, yCenter, rgb);
+    DrawHandle(deviceContext, rect, xRight, yCenter, rgb);
 }
 
 void CCrop::Selection(const int32_t& xNewSize, const int32_t& yNewSize,
@@ -112,41 +110,35 @@ void CCrop::Selection(const int32_t& xNewSize, const int32_t& yNewSize,
     }
 
     const int x = XRealPosition(xNewSize, m_lHScroll, ratio);
-
     const int y = YRealPosition(yNewSize, m_lVScroll, ratio);
 
     const auto& topLeft = ptSelection[POINT_NORTH_WEST];
-
-    const auto& topRight = ptSelection[POINT_NORTH_EAST];
-
     const auto& bottomRight = ptSelection[POINT_SOUTH_EAST];
 
-    const int margin = HANDLE_SIZE;
+    constexpr int margin = HANDLE_SIZE;
 
-    const bool left = x > topLeft.x - margin && x < topLeft.x + margin;
+    // Évaluation rapide et sélective des zones cliquées
+    const bool left = (x > topLeft.x - margin && x < topLeft.x + margin);
+    const bool right = (x > bottomRight.x - margin && x < bottomRight.x + margin);
+    const bool top = (y > topLeft.y - margin && y < topLeft.y + margin);
+    const bool bottom = (y > bottomRight.y - margin && y < bottomRight.y + margin);
 
-    const bool right = x > topRight.x - margin && x < topRight.x + margin;
-
-    const bool top = y > topLeft.y - margin && y < topLeft.y + margin;
-
-    const bool bottom = y > bottomRight.y - margin && y < bottomRight.y + margin;
-
-    if (left && top)
-        iSelect = SelectionType::TopLeft;
-    else if (right && top)
-        iSelect = SelectionType::TopRight;
-    else if (left && bottom)
-        iSelect = SelectionType::BottomLeft;
-    else if (right && bottom)
-        iSelect = SelectionType::BottomRight;
-    else if (left)
-        iSelect = SelectionType::Left;
-    else if (right)
-        iSelect = SelectionType::Right;
-    else if (top)
+    if (left) {
+        if (top)         iSelect = SelectionType::TopLeft;
+        else if (bottom) iSelect = SelectionType::BottomLeft;
+        else           iSelect = SelectionType::Left;
+    }
+    else if (right) {
+        if (top)       iSelect = SelectionType::TopRight;
+        else if (bottom) iSelect = SelectionType::BottomRight;
+        else           iSelect = SelectionType::Right;
+    }
+    else if (top) {
         iSelect = SelectionType::Top;
-    else if (bottom)
+    }
+    else if (bottom) {
         iSelect = SelectionType::Bottom;
+    }
 
     UpdateCursor();
 }
@@ -187,7 +179,6 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
     if (!VerifierValiditerPoint(point)) return;
 
     const float x = XRealPosition(xNewSize, m_lHScroll, ratio);
-
     const float y = YRealPosition(yNewSize, m_lVScroll, ratio);
 
     switch (iSelect) {
@@ -199,7 +190,6 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
         ptSelection[POINT_SOUTH_EAST].y = y;
 
         ptSelection[POINT_SOUTH_WEST].x = ptSelection[POINT_NORTH_WEST].x;
-
         ptSelection[POINT_SOUTH_WEST].y = y;
         break;
 
@@ -226,7 +216,6 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
     case SelectionType::TopLeft:
         ptSelection[POINT_NORTH_WEST].x = x;
         ptSelection[POINT_NORTH_WEST].y = y;
-
         ptSelection[POINT_NORTH_EAST].y = y;
         ptSelection[POINT_SOUTH_WEST].x = x;
         break;
@@ -234,7 +223,6 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
     case SelectionType::TopRight:
         ptSelection[POINT_NORTH_EAST].x = x;
         ptSelection[POINT_NORTH_EAST].y = y;
-
         ptSelection[POINT_NORTH_WEST].y = y;
         ptSelection[POINT_SOUTH_EAST].x = x;
         break;
@@ -242,7 +230,6 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
     case SelectionType::BottomLeft:
         ptSelection[POINT_SOUTH_WEST].x = x;
         ptSelection[POINT_SOUTH_WEST].y = y;
-
         ptSelection[POINT_NORTH_WEST].x = x;
         ptSelection[POINT_SOUTH_EAST].y = y;
         break;
@@ -250,7 +237,6 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
     case SelectionType::BottomRight:
         ptSelection[POINT_SOUTH_EAST].x = x;
         ptSelection[POINT_SOUTH_EAST].y = y;
-
         ptSelection[POINT_NORTH_EAST].x = x;
         ptSelection[POINT_SOUTH_WEST].y = y;
         break;
@@ -269,7 +255,6 @@ void CCrop::InitPoint(const long& m_lx, const long& m_ly,
     if (!VerifierValiditerPoint(point)) return;
 
     const float x = XRealPosition(m_lx, m_lHScroll, ratio);
-
     const float y = YRealPosition(m_ly, m_lVScroll, ratio);
 
     for (auto& selectionPoint : ptSelection) {
@@ -280,16 +265,12 @@ void CCrop::InitPoint(const long& m_lx, const long& m_ly,
 
 void CCrop::GetPos(wxRect& rc) {
     const int x1 = static_cast<int>(ptSelection[POINT_NORTH_WEST].x);
-
     const int y1 = static_cast<int>(ptSelection[POINT_NORTH_WEST].y);
-
     const int x2 = static_cast<int>(ptSelection[POINT_NORTH_EAST].x);
-
     const int y2 = static_cast<int>(ptSelection[POINT_SOUTH_WEST].y);
 
     rc.x = std::min(x1, x2);
     rc.y = std::min(y1, y2);
-
     rc.width = std::abs(x2 - x1);
     rc.height = std::abs(y2 - y1);
 }

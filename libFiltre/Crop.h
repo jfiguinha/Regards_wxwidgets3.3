@@ -1,10 +1,8 @@
 #pragma once
 
 #include <PenDrawInfo.h>
-
 #include <array>
 #include <cstdint>
-
 #include "Draw.h"
 
 namespace Regards::FiltreEffet {
@@ -13,6 +11,7 @@ namespace Regards::FiltreEffet {
         CCrop();
         ~CCrop() override = default;
 
+        // Signatures alignées sur CDraw pour valider l'héritage virtuel
         void GetPos(wxRect& rc) override;
 
         void InitPoint(const long& m_lx, const long& m_ly, const long& m_lHScroll,
