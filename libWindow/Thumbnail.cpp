@@ -814,17 +814,17 @@ bool CThumbnail::GetProcessEnd()
 {
 	return true;
 }
-
 void CThumbnail::OnMouseMove(wxMouseEvent& event)
 {
 	if (threadDataProcess == false)
 		return;
 
-	refreshMouseMove->Stop();
+	int xPos = event.GetX();
+	int yPos = event.GetY();
 
-	isMoving = true;
-	bool needtoRedraw = false;
-	isMovingScroll = true;
+	// ------------------------------------------------------------------
+	// CAS 1 : L'utilisateur est en train de faire un Drag & Drop
+	// ------------------------------------------------------------------
 	bool isChecked = false;
 	if (numActifPhotoId != -1)
 	{
@@ -836,72 +836,85 @@ void CThumbnail::OnMouseMove(wxMouseEvent& event)
 	if (mouseClickBlock && enableDragAndDrop && isChecked)
 	{
 		isDragAndDropUse = true;
-		int xPos = event.GetX();
-		int yPos = event.GetY();
-		if (numActifPhotoId != -1)
-		{
-			if (!mouseClickMove)
-				nbElementChecked = GetNbIconSelected();
-			mouseClickMove = true;
-			xPosDrag = xPos;
-			yPosDrag = yPos;
-		}
 
+		// CORRECTION : Calculer le nombre d'éléments AVANT de passer le flag à true
+		if (!mouseClickMove)
+		{
+			nbElementChecked = GetNbIconSelected();
+		}
+		mouseClickMove = true;
+
+		// Mettre à jour les coordonnées de l'icône virtuelle de drag
+		xPosDrag = xPos;
+		yPosDrag = yPos;
+
+		// Gestion du défilement automatique aux bordures
 		if (yPos < 100)
 			MoveTop();
 		else if (yPos > this->GetWindowHeight() - 100)
 			MoveBottom();
 		else
-			needtoRedraw = true;
-	}
-	else
-	{
-		int xPos = event.GetX();
-		int yPos = event.GetY();
-		int iconePhotoId = -1;
-		wxSetCursor(wxCursor(wxCURSOR_HAND));
-
-		CIcone* pBitmapIcone = FindElement(xPos, yPos);
-
-
-		if (pBitmapIcone != nullptr)
 		{
+			// Demande un rafraîchissement asynchrone pour dessiner l'icône et son compteur à la nouvelle position
+			this->Refresh(false);
+		}
+		return;
+	}
 
-			if (pBitmapIcone->GetPtData() != nullptr)
-				iconePhotoId = pBitmapIcone->GetPtData()->GetNumPhotoId();
 
-			if (numActifPhotoId != -1)
+	// ------------------------------------------------------------------
+	// CAS 2 : Mouvement de souris standard (Survol des vignettes)
+	// ------------------------------------------------------------------
+
+	// Limiter la fréquence d'exécution du survol (Throttling avec votre timer existant)
+	if (isMoving && refreshMouseMove->IsRunning())
+	{
+		return; // On ignore les pixels intermédiaires pour soulager le CPU
+	}
+
+	isMoving = true;
+	isMovingScroll = true;
+	bool needtoRedraw = false;
+	int iconePhotoId = -1;
+
+	wxSetCursor(wxCursor(wxCURSOR_HAND));
+
+	// Recherche de l'élément sous la souris
+	CIcone* pBitmapIcone = FindElement(xPos, yPos);
+
+	if (pBitmapIcone != nullptr)
+	{
+		if (pBitmapIcone->GetPtData() != nullptr)
+			iconePhotoId = pBitmapIcone->GetPtData()->GetNumPhotoId();
+
+		if (numActifPhotoId != -1 && iconePhotoId != numActifPhotoId)
+		{
+			CIcone* numActif = GetIconeById(numActifPhotoId);
+			if (numActif != nullptr)
 			{
-				if (iconePhotoId != numActifPhotoId)
-				{
-					if (numActifPhotoId != -1)
-					{
-						CIcone* numActif = GetIconeById(numActifPhotoId);
-
-						if (numActif != nullptr)
-						{
-							numActif->SetActive(false);
-						}
-					}
-					needtoRedraw = true;
-				}
+				numActif->SetActive(false);
 			}
-
-			if (pBitmapIcone->GetState() != ACTIFICONE)
-			{
-				numActifPhotoId = iconePhotoId;
-				if (pBitmapIcone != nullptr)
-					pBitmapIcone->SetActive(true);
-			}
+			needtoRedraw = true;
 		}
 
-
-		if (needtoRedraw)
-			needToRefresh = true;
-
-		refreshMouseMove->Start(1000, true);
+		if (pBitmapIcone->GetState() != ACTIFICONE)
+		{
+			numActifPhotoId = iconePhotoId;
+			pBitmapIcone->SetActive(true);
+			needtoRedraw = true; // Forcer le redraw de la surbrillance active
+		}
 	}
+
+	if (needtoRedraw)
+	{
+		needToRefresh = true;
+		this->Refresh(false); // Demande un repaint asynchrone propre à l'OS
+	}
+
+	// Relancer le timer pour débloquer le prochain calcul de survol dans 30ms (environ 30 FPS)
+	refreshMouseMove->Start(30, true);
 }
+
 
 void CThumbnail::RefreshThumbnail(wxCommandEvent& event)
 {
@@ -1201,7 +1214,6 @@ void CThumbnail::on_paint(wxPaintEvent& event)
 
 void CThumbnail::Render(wxDC& dc)
 {
-
 	int width = GetWindowWidth();
 	int height = GetWindowHeight();
 
@@ -1210,9 +1222,7 @@ void CThumbnail::Render(wxDC& dc)
 
 	if (threadDataProcess == false)
 	{
-
 		wxRect rc = GetWindowRect();
-		//UpdateScroll();
 		FillRect(&dc, rc, themeThumbnail.colorBack);
 		if (!animationStart)
 		{
@@ -1221,11 +1231,11 @@ void CThumbnail::Render(wxDC& dc)
 			animationStart = true;
 			timerAnimation->Start(100, TIMER_TIME_REFRESH);
 		}
-
 		m_waitingAnimation->SetSize(wxSize(width, height));
 		m_waitingAnimation->SetBackgroundColour(themeThumbnail.colorBack);
 		return;
 	}
+
 	if (animationStart)
 	{
 		timerAnimation->Stop();
@@ -1234,7 +1244,10 @@ void CThumbnail::Render(wxDC& dc)
 		animationStart = false;
 	}
 
-	if (numSelectPhotoId != -1 && !isMovingScroll && moveOnPaint)
+	// Mode Drag & Drop actif
+	bool isDragging = (mouseClickBlock && mouseClickMove && enableDragAndDrop);
+
+	if (numSelectPhotoId != -1 && !isMovingScroll && moveOnPaint && !isDragging)
 	{
 		CIcone* numSelect = GetIconeById(numSelectPhotoId);
 		if (numSelect != nullptr)
@@ -1251,14 +1264,17 @@ void CThumbnail::Render(wxDC& dc)
 	TestMaxY();
 
 	render = true;
-
 	listIconeToGenerate.clear();
 
+	// 1. Dessiner le fond (Déjà masqué par le double-buffer de wxBufferedPaintDC)
 	wxRect rc = GetWindowRect();
 	FillRect(&dc, rc, themeThumbnail.colorBack);
 
+	// 2. Dessiner la grille de vignettes existantes
 	RenderIcone(&dc);
-	if (listIconeToGenerate.size() > 0)
+
+	// OPTIMISATION : Ne PAS demander de génération de vignettes si on est en train de faire un Drag & Drop
+	if (listIconeToGenerate.size() > 0 && !isDragging)
 	{
 		wxWindow* window = this->FindWindowById(MAINVIEWERWINDOWID);
 		if (window != nullptr)
@@ -1273,25 +1289,23 @@ void CThumbnail::Render(wxDC& dc)
 	}
 
 	render = false;
-
 	oldPosLargeur = posLargeur;
 	oldPosHauteur = posHauteur;
 
-
-	if (this->GetParent() != nullptr && moveOnPaint)
+	// OPTIMISATION : Ne pas notifier le parent pendant un Drag pour éviter des re-layouts CPU intensifs
+	if (this->GetParent() != nullptr && moveOnPaint && !isDragging)
 	{
 		auto size = new wxSize();
-		wxCommandEvent evt(wxEVENT_SETPOSITION);
 		size->x = posLargeur;
 		size->y = posHauteur;
+		wxCommandEvent evt(wxEVENT_SETPOSITION);
 		evt.SetClientData(size);
 		this->GetParent()->GetEventHandler()->AddPendingEvent(evt);
 	}
 
-
-	if (mouseClickBlock && mouseClickMove && enableDragAndDrop)
+	// 3. Dessiner l'image de Drag & Drop (Code optimisé mis en cache)
+	if (isDragging)
 	{
-		// 1. Dessiner d'abord l'icône semi-transparente de drag standard
 		dc.DrawBitmap(bitmapIconDrag, xPosDrag - (bitmapIconDrag.GetWidth() / 2),
 			yPosDrag - (bitmapIconDrag.GetHeight() / 2));
 
@@ -1305,19 +1319,15 @@ void CThumbnail::Render(wxDC& dc)
 				CThemeFont themeFont = themeIcone.font;
 				themeFont.SetFontSize(18);
 
-				// S'assurer que le buffer est initialisé ou recalculer si le texte change
 				if (oldLibelle != libelle || bitmapIconDragChange || !bufferBitmap.IsOk())
 				{
-					// Utilisation de VOTRE fonction native pour mesurer le texte
 					wxSize textSize = GetSizeTexte(&dc, libelle, themeFont);
 
-					// Marges intérieures du badge (padding)
 					int paddingX = 16;
 					int paddingY = 8;
 					int badgeWidth = textSize.x + paddingX;
 					int badgeHeight = textSize.y + paddingY;
 
-					// Redimensionner le buffer uniquement à la taille exacte du badge
 					if (!bufferBitmap.IsOk() || bufferBitmap.GetWidth() != badgeWidth || bufferBitmap.GetHeight() != badgeHeight)
 					{
 						bufferBitmap = wxBitmap(badgeWidth, badgeHeight);
@@ -1326,34 +1336,26 @@ void CThumbnail::Render(wxDC& dc)
 					wxMemoryDC memDC;
 					memDC.SelectObject(bufferBitmap);
 
-					// Effacer le fond avec la couleur du composant pour éviter les résidus
 					memDC.SetBackground(wxBrush(themeThumbnail.colorBack));
 					memDC.Clear();
 
-					// Dessiner le fond arrondi du badge (sans bordure)
 					memDC.SetBrush(wxBrush(themeIcone.colorSelectTop));
 					memDC.SetPen(*wxTRANSPARENT_PEN);
 					memDC.DrawRoundedRectangle(0, 0, badgeWidth, badgeHeight, 4.0);
 					memDC.SetBrush(wxNullBrush);
 
-					// Utilisation de VOTRE fonction native pour dessiner le texte au centre du buffer
-					// Note : Si DrawTexte gère sa propre couleur, assurez-vous que themeFont soit configuré en blanc,
-					// sinon memDC.SetTextForeground(*wxWHITE) reste utilisable selon l'implémentation de votre fonction.
 					memDC.SetTextForeground(*wxWHITE);
 					DrawTexte(&memDC, libelle, paddingX / 2, paddingY / 2, themeFont);
 
-					// Libérer le bitmap avant utilisation
 					memDC.SelectObject(wxNullBitmap);
 
 					oldLibelle = libelle;
 					bitmapIconDragChange = false;
 				}
 
-				// Positionner le badge au centre inférieur de l'icône de Drag
 				int badgeX = xPosDrag - (bufferBitmap.GetWidth() / 2);
 				int badgeY = yPosDrag + (bitmapIconDrag.GetHeight() / 4);
 
-				// Copie mémoire ultra-rapide (Blit) du badge pré-calculé sur l'écran principal
 				wxMemoryDC renderDC;
 				renderDC.SelectObject(bufferBitmap);
 				dc.Blit(badgeX, badgeY, bufferBitmap.GetWidth(), bufferBitmap.GetHeight(), &renderDC, 0, 0);
@@ -1362,12 +1364,12 @@ void CThumbnail::Render(wxDC& dc)
 		}
 	}
 
-
 	if (firstRefresh)
 		if (!timerAnimation->IsRunning())
 			timerAnimation->Start(500, true);
 	firstRefresh = false;
 }
+
 
 void CThumbnail::Resize()
 {
