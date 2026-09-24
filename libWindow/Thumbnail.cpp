@@ -1121,6 +1121,10 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 		memset(alphaData, 128, image.GetWidth() * image.GetHeight());
 		image.SetAlpha(alphaData);
 		bitmapIconDrag = image;
+
+		// AJOUT : Force la réinitialisation du texte et du buffer
+		bitmapIconDragChange = true;
+		oldLibelle = "";
 	}
 	needToRefresh = true;
 }
@@ -1287,38 +1291,77 @@ void CThumbnail::Render(wxDC& dc)
 
 	if (mouseClickBlock && mouseClickMove && enableDragAndDrop)
 	{
+		// 1. Dessiner d'abord l'icône semi-transparente de drag standard
 		dc.DrawBitmap(bitmapIconDrag, xPosDrag - (bitmapIconDrag.GetWidth() / 2),
 			yPosDrag - (bitmapIconDrag.GetHeight() / 2));
 
 		if (nbElementChecked > 1)
 		{
-			wxString libelle = L"";
+			wxString libelle = to_string(nbElementChecked);
 
-			libelle = to_string(nbElementChecked);
-
-			if (libelle != L"")
+			if (!libelle.IsEmpty())
 			{
 				CThemeIcone themeIcone;
 				CThemeFont themeFont = themeIcone.font;
 				themeFont.SetFontSize(18);
-				wxSize size = GetSizeTexte(&dc, libelle, themeFont);
-				int localx = xPosDrag - (bitmapIconDrag.GetWidth() / 2);
-				int localy = yPosDrag - (bitmapIconDrag.GetHeight() / 2);
 
-				int xPos = xPosDrag - size.x / 2;
-				int yPos = yPosDrag - size.y / 2;
+				// S'assurer que le buffer est initialisé ou recalculer si le texte change
+				if (oldLibelle != libelle || bitmapIconDragChange || !bufferBitmap.IsOk())
+				{
+					// Utilisation de VOTRE fonction native pour mesurer le texte
+					wxSize textSize = GetSizeTexte(&dc, libelle, themeFont);
 
-				dc.SetBrush(wxBrush(themeIcone.colorSelectTop));
-				dc.DrawRoundedRectangle(localx + bitmapIconDrag.GetWidth() / 4, localy + bitmapIconDrag.GetHeight() / 4,
-					bitmapIconDrag.GetWidth() / 2, bitmapIconDrag.GetHeight() / 2, -0.25);
-				dc.SetBrush(wxNullBrush);
+					// Marges intérieures du badge (padding)
+					int paddingX = 16;
+					int paddingY = 8;
+					int badgeWidth = textSize.x + paddingX;
+					int badgeHeight = textSize.y + paddingY;
 
-				dc.SetBrush(wxBrush(*wxWHITE));
-				DrawTexte(&dc, libelle, xPos, yPos, themeFont);
-				dc.SetBrush(wxNullBrush);
+					// Redimensionner le buffer uniquement à la taille exacte du badge
+					if (!bufferBitmap.IsOk() || bufferBitmap.GetWidth() != badgeWidth || bufferBitmap.GetHeight() != badgeHeight)
+					{
+						bufferBitmap = wxBitmap(badgeWidth, badgeHeight);
+					}
+
+					wxMemoryDC memDC;
+					memDC.SelectObject(bufferBitmap);
+
+					// Effacer le fond avec la couleur du composant pour éviter les résidus
+					memDC.SetBackground(wxBrush(themeThumbnail.colorBack));
+					memDC.Clear();
+
+					// Dessiner le fond arrondi du badge (sans bordure)
+					memDC.SetBrush(wxBrush(themeIcone.colorSelectTop));
+					memDC.SetPen(*wxTRANSPARENT_PEN);
+					memDC.DrawRoundedRectangle(0, 0, badgeWidth, badgeHeight, 4.0);
+					memDC.SetBrush(wxNullBrush);
+
+					// Utilisation de VOTRE fonction native pour dessiner le texte au centre du buffer
+					// Note : Si DrawTexte gère sa propre couleur, assurez-vous que themeFont soit configuré en blanc,
+					// sinon memDC.SetTextForeground(*wxWHITE) reste utilisable selon l'implémentation de votre fonction.
+					memDC.SetTextForeground(*wxWHITE);
+					DrawTexte(&memDC, libelle, paddingX / 2, paddingY / 2, themeFont);
+
+					// Libérer le bitmap avant utilisation
+					memDC.SelectObject(wxNullBitmap);
+
+					oldLibelle = libelle;
+					bitmapIconDragChange = false;
+				}
+
+				// Positionner le badge au centre inférieur de l'icône de Drag
+				int badgeX = xPosDrag - (bufferBitmap.GetWidth() / 2);
+				int badgeY = yPosDrag + (bitmapIconDrag.GetHeight() / 4);
+
+				// Copie mémoire ultra-rapide (Blit) du badge pré-calculé sur l'écran principal
+				wxMemoryDC renderDC;
+				renderDC.SelectObject(bufferBitmap);
+				dc.Blit(badgeX, badgeY, bufferBitmap.GetWidth(), bufferBitmap.GetHeight(), &renderDC, 0, 0);
+				renderDC.SelectObject(wxNullBitmap);
 			}
 		}
 	}
+
 
 	if (firstRefresh)
 		if (!timerAnimation->IsRunning())

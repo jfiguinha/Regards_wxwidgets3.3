@@ -167,8 +167,9 @@ namespace Regards::Window
 		bool enableTimer = true;
 		int nbElement = 0;
 		int nbPhotoElement = 0;
-
-		
+		wxBitmap bufferBitmap;
+		wxString oldLibelle = "";
+		bool bitmapIconDragChange = true;
 
 		bool processThumbnailVideo = false;
 		wxString videoFilename = "";
