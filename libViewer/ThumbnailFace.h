@@ -49,6 +49,7 @@ namespace Regards::Viewer
 		vector<int> GetFaceSelectID();
 		void EnableModification(const bool& enable) override;
 		void EraseData();
+		void ReinitId();
 	protected:
 		void OnMouseRelease(const int& x, const int& y) override;
 		void MoveIcone(const int& numElement, const int& numFace);

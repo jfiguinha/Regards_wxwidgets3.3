@@ -225,6 +225,21 @@ void CThumbnailFace::InitListFace()
 	}
 }
 
+void CThumbnailFace::ReinitId()
+{
+	for (int i = 0; i < iconeList->GetNbElement(); ++i)
+	{
+		auto* icone = iconeList->GetElement(i);
+		if (icone == nullptr)
+			continue;
+
+		if (auto* data = static_cast<CThumbnailDataFace*>(icone->GetPtData()))
+		{
+			data->SetNumElement(i);
+		}
+	}
+}
+
 void CThumbnailFace::init()
 {
 	auto viewerParam = CMainParamInit::getInstance();
@@ -244,10 +259,13 @@ void CThumbnailFace::init()
 		if (icone == nullptr)
 			continue;
 
+		icone->SetNumElement(i);
 
 		if (auto* data =
 			static_cast<CThumbnailDataFace*>(icone->GetPtData()))
 		{
+			data->SetNumElement(i);
+
 			iconIndex.insert(
 				{
 					{ data->GetFilename(), data->GetNumFace() },

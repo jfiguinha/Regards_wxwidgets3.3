@@ -27,7 +27,7 @@ namespace Regards::Window
 		void RemoveElement(int numElement);
         void SortById();
         void SortByFilename();
-        
+		int GetNumElement(const wxString& filename);
 	private:
         
 		std::mutex mutexList;

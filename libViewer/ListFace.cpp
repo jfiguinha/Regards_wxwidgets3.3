@@ -680,11 +680,11 @@ void CListFace::ProcessIdle()
 				if (cleanDatabase)
 					CDeepLearning::CleanRecognition();
 				cleanDatabase = false;
-				int diff = (nbTotalFaceToRecognize - posFaceRecognize);
+				int diff = (nbTotalFace - posFaceRecognize);
 				auto thumbnailMessage = new CThumbnailMessage();
-				thumbnailMessage->nbPhoto = diff < 0 ? nbTotalFaceToRecognize  : diff;
+				thumbnailMessage->nbPhoto = diff;
 				thumbnailMessage->thumbnailPos = posFaceRecognize;
-				thumbnailMessage->nbElement = nbTotalFaceToRecognize;
+				thumbnailMessage->nbElement = nbTotalFace;
 				thumbnailMessage->typeMessage = 5;
 				wxWindow* mainWnd = this->FindWindowById(MAINVIEWERWINDOWID);
 				wxCommandEvent eventChange(wxEVENT_UPDATESTATUSBARMESSAGE);
@@ -706,6 +706,7 @@ void CListFace::ProcessIdle()
 		{
 			isEnable = true;
 		}
+		//thumbnailFace->ReinitId();
 	}
 	else
 	{

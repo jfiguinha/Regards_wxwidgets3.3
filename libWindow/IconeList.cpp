@@ -159,10 +159,28 @@ CIcone* CIconeList::FindElementByFilename(const wxString& filename)
 {
     auto it = pIconeByFilename.find(filename);
 
-    if (it != pIconeByFilename.end() && it->second != nullptr)
-        return it->second;
-
+	if (it != pIconeByFilename.end() && it->second != nullptr)
+	{
+		int numElement = GetNumElement(filename);
+		it->second->SetNumElement(numElement);
+		return it->second;
+	}
     return nullptr;
+}
+
+int CIconeList::GetNumElement(const wxString& filename)
+{
+	for (int i = 0; i < pIconeList.size(); i++)
+	{
+		if (CIcone* icone = pIconeList[i])
+		{
+			if (CThumbnailData* data = icone->GetPtData())
+			{
+				if (data->GetFilename() == filename)
+					return i;
+			}
+		}
+	}
 }
 
 
