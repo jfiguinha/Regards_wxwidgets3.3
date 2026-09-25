@@ -42,6 +42,8 @@ namespace Regards::Window
 		}
 
 	private:
+
+		void InitBitmaps();
 		void DrawBitmap(wxDC* deviceContext, const int& xPos, const int& yPos);
 		bool checked;
 

@@ -127,51 +127,55 @@ void CTreeElementListBox::ClickElement(wxWindow* window, const int& x, const int
 
 void CTreeElementListBox::GenerateBitmap(wxDC* deviceContext)
 {
-	bitmapBuffer = wxBitmap(themeTreeListBox.GetWidth(), themeTreeListBox.GetHeight());
+	if (!bitmapBuffer.IsOk() || bitmapBuffer.GetWidth() != themeTreeListBox.GetWidth() || bitmapBuffer.GetHeight() != themeTreeListBox.GetHeight())
+	{
+		bitmapBuffer = wxBitmap(themeTreeListBox.GetWidth(), themeTreeListBox.GetHeight());
+	}
+
 	wxMemoryDC memDC(bitmapBuffer);
 
-	wxRect rc;
-	rc.x = 0;
-	rc.width = themeTreeListBox.GetWidth();
-	rc.y = 0;
-	rc.height = themeTreeListBox.GetHeight();
+	wxRect rc(0, 0, themeTreeListBox.GetWidth(), themeTreeListBox.GetHeight());
 	CWindowMain::FillRect(&memDC, rc, themeTreeListBox.color);
 
 	wxSize renderElement = CWindowMain::GetSizeTexte(deviceContext, GetPositionValue(), themeTreeListBox.font);
-
 	int yMedium = (themeTreeListBox.GetHeight() - renderElement.y) / 2;
 	CWindowMain::DrawTexte(&memDC, GetPositionValue(), 0, yMedium, themeTreeListBox.font);
-	if (!buttonMoins.IsOk() || (buttonMoins.GetWidth() != themeTreeListBox.GetButtonWidth() || buttonMoins.GetHeight()
-		!= themeTreeListBox.GetButtonHeight()))
+
+	int btnW = themeTreeListBox.GetButtonWidth();
+	int btnH = themeTreeListBox.GetButtonHeight();
+
+	// OPTIMISATION : Chargement unique du SVG ET conversion asynchrone unique en version désactivée
+	if (!buttonMoins.IsOk() || buttonMoins.GetWidth() != btnW)
 	{
-		buttonMoins = CLibResource::CreatePictureFromSVG("IDB_MINUS", themeTreeListBox.GetButtonWidth(),
-			themeTreeListBox.GetButtonHeight());
+		wxImage imgMoins = CLibResource::CreatePictureFromSVG("IDB_MINUS", btnW, btnH);
+		wxImage imgPlus = CLibResource::CreatePictureFromSVG("IDB_PLUS", btnW, btnH);
+
+		buttonMoins = wxBitmap(imgMoins);
+		buttonPlus = wxBitmap(imgPlus);
+
+		// Conversion et mise en cache immédiate
+		buttonMoinsDisabled = wxBitmap(imgMoins.ConvertToDisabled());
+		buttonPlusDisabled = wxBitmap(imgPlus.ConvertToDisabled());
 	}
 
+	moinsPos.x = themeTreeListBox.GetWidth() - (buttonMoins.GetWidth() + themeTreeListBox.GetMarge() + buttonPlus.GetWidth() + themeTreeListBox.GetMarge());
+	moinsPos.y = (themeTreeListBox.GetHeight() - btnH) / 2;
+	moinsPos.width = btnW;
+	moinsPos.height = btnH;
 
-	if (!buttonPlus.IsOk() || (buttonPlus.GetWidth() != themeTreeListBox.GetButtonWidth() || buttonPlus.GetHeight() !=
-		themeTreeListBox.GetButtonHeight()))
-	{
-		buttonPlus = CLibResource::CreatePictureFromSVG("IDB_PLUS", themeTreeListBox.GetButtonWidth(),
-			themeTreeListBox.GetButtonHeight());
-	}
-
-	moinsPos.x = themeTreeListBox.GetWidth() - (buttonMoins.GetWidth() + themeTreeListBox.GetMarge() + buttonPlus.
-		GetWidth() + themeTreeListBox.GetMarge());
-	moinsPos.y = (themeTreeListBox.GetHeight() - themeTreeListBox.GetButtonHeight()) / 2;
-	moinsPos.width = themeTreeListBox.GetButtonWidth();
-	moinsPos.height = themeTreeListBox.GetButtonHeight();
-	memDC.DrawBitmap(buttonMoins.ConvertToDisabled(), moinsPos.x, moinsPos.y);
+	// ACCÈS DIRECT : Plus aucune allocation ni conversion pixel par pixel ici
+	memDC.DrawBitmap(buttonMoinsDisabled, moinsPos.x, moinsPos.y);
 
 	plusPos.x = moinsPos.x + buttonMoins.GetWidth() + 2 * themeTreeListBox.GetMarge();
-	plusPos.y = (themeTreeListBox.GetHeight() - themeTreeListBox.GetButtonHeight()) / 2;
-	plusPos.width = themeTreeListBox.GetButtonWidth();
-	plusPos.height = themeTreeListBox.GetButtonHeight();
-	memDC.DrawBitmap(buttonPlus.ConvertToDisabled(), plusPos.x, plusPos.y);
+	plusPos.y = moinsPos.y;
+	plusPos.width = btnW;
+	plusPos.height = btnH;
+	memDC.DrawBitmap(buttonPlusDisabled, plusPos.x, plusPos.y);
 
 	memDC.SelectObject(wxNullBitmap);
-	
 }
+
+
 
 
 void CTreeElementListBox::DrawElement(wxDC* deviceContext, const int& x, const int& y)

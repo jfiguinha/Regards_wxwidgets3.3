@@ -21,19 +21,25 @@ CTreeElementDelete& CTreeElementDelete::operator=(const CTreeElementDelete& othe
 
 void CTreeElementDelete::GenerateCrossBitmap()
 {
-	wxRect rcBitmap;
-	rcBitmap.x = 0;
-	rcBitmap.y = 0;
-	rcBitmap.width = themeTreeDelete.GetCroixWidth();
-	rcBitmap.height = themeTreeDelete.GetCroixHeight();
+	int w = themeTreeDelete.GetCroixWidth();
+	int h = themeTreeDelete.GetCroixHeight();
 
-	m_croixOff = wxBitmap(themeTreeDelete.GetCroixWidth(), themeTreeDelete.GetCroixHeight(), 32);
+	if (w <= 0 || h <= 0)
+		return;
+
+	wxRect rcBitmap(0, 0, w, h);
+
+	m_croixOff = wxBitmap(w, h, 32);
 	wxMemoryDC memorydc(m_croixOff);
-	wxPen pen(themeTreeDelete.crossColor, 2);
+
+	// Utilisation directe de la brosse transparente et d'un pen optimisé
 	CWindowMain::FillRect(&memorydc, rcBitmap, themeTreeDelete.color);
-	memorydc.SetPen(pen);
-	memorydc.DrawLine(3, 3, themeTreeDelete.GetCroixWidth() - 4, themeTreeDelete.GetCroixHeight() - 4);
-	memorydc.DrawLine(themeTreeDelete.GetCroixWidth() - 4, 3, 3, themeTreeDelete.GetCroixHeight() - 4);
+
+	memorydc.SetPen(wxPen(themeTreeDelete.crossColor, 2));
+	memorydc.DrawLine(3, 3, w - 4, h - 4);
+	memorydc.DrawLine(w - 4, 3, 3, h - 4);
+
+	memorydc.SetPen(wxNullPen);
 	memorydc.SelectObject(wxNullBitmap);
 }
 

@@ -60,8 +60,10 @@ namespace Regards::Window
 		CTreeElementSlideInterface* eventInterface;
 		vector<CMetadata> tabValue;
 		wxString exifKey;
-		wxImage buttonPlus;
-		wxImage buttonMoins;
+		wxBitmap buttonPlus;
+		wxBitmap buttonMoins;
+		wxBitmap buttonPlusDisabled;
+		wxBitmap buttonMoinsDisabled;
 		wxRect plusPos;
 		wxRect moinsPos;
 		int position;

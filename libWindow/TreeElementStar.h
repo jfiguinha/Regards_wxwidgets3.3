@@ -39,8 +39,8 @@ namespace Regards::Window
 
 		int value;
 		CThemeTreeTriangle themeTriangle;
-		wxImage starEmpty;
-		wxImage starYellow;
+		wxBitmap starEmpty;
+		wxBitmap starYellow;
 		int localx;
 		int localy;
 		int numPhotoId;

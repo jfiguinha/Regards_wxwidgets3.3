@@ -46,12 +46,28 @@ void CTreeElementCheckBox::SetCheckState(const bool& check)
 	checked = check;
 }
 
-void CTreeElementCheckBox::DrawBitmap(wxDC* deviceContext, const int& xPos, const int& yPos)
+void CTreeElementCheckBox::InitBitmaps()
 {
 	int checkWidth = themeTreeCheckBox.GetCheckBoxWidth();
 	int checkHeight = themeTreeCheckBox.GetCheckBoxHeight();
-	wxImage imageScale = CLibResource::CreatePictureFromSVG(checked ? "IDB_CHECKBOX_ON" : "IDB_CHECKBOX_OFF", checkWidth, checkHeight);
-	int y = yPos + (themeTreeCheckBox.GetHeight() - imageScale.GetHeight()) / 2;
-	int x = xPos + (themeTreeCheckBox.GetWidth() - imageScale.GetWidth()) / 2;
-	deviceContext->DrawBitmap(imageScale, x, y);
+
+	// On ne charge les ressources SVG QUE si elles ne sont pas encore prêtes
+	if (!checkOn.IsOk() || checkOn.GetWidth() != checkWidth)
+	{
+		checkOn = wxBitmap(CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_ON", checkWidth, checkHeight));
+		checkOff = wxBitmap(CLibResource::CreatePictureFromSVG("IDB_CHECKBOX_OFF", checkWidth, checkHeight));
+	}
+}
+
+void CTreeElementCheckBox::DrawBitmap(wxDC* deviceContext, const int& xPos, const int& yPos)
+{
+	InitBitmaps(); // Chargement unique au premier affichage
+
+	const wxBitmap& bitmapToDraw = checked ? checkOn : checkOff;
+
+	int y = yPos + (themeTreeCheckBox.GetHeight() - bitmapToDraw.GetHeight()) / 2;
+	int x = xPos + (themeTreeCheckBox.GetWidth() - bitmapToDraw.GetWidth()) / 2;
+
+	// Utilisation directe d'une wxBitmap (Ultra rapide)
+	deviceContext->DrawBitmap(bitmapToDraw, x, y);
 }

@@ -1,15 +1,15 @@
-#include "header.h"
+﻿#include "header.h"
 #include "TreeElementTexte.h"
 #include <WindowUtility.h>
+#include <wx/dcmemory.h> // Assurez-vous d'inclure ce header
 using namespace Regards::Window;
-
-
 
 CTreeElementTexte::CTreeElementTexte()
 {
 	canUpdate = false;
 	isClick = false;
 	position = RENDERFONT_LEFT;
+	textSize = wxSize(0, 0);
 }
 
 CTreeElementTexte& CTreeElementTexte::operator=(const CTreeElementTexte& other)
@@ -24,13 +24,14 @@ CTreeElementTexte& CTreeElementTexte::operator=(const CTreeElementTexte& other)
 	isClick = other.isClick;
 	libelle = other.libelle;
 	position = other.position;
+	textSize = other.textSize; // On copie la taille textuelle stockée
 	return *this;
 }
 
 void CTreeElementTexte::SetTheme(CThemeTreeTexte* theme)
 {
 	themeTexte = *theme;
-	textSize = GetSizeText();
+	textSize = GetSizeText(); // Recalcul immédiat et unique lors du changement de thème
 }
 
 void CTreeElementTexte::MouseOver(wxDC* deviceContext, const int& x, const int& y, bool& update)
@@ -47,7 +48,9 @@ void CTreeElementTexte::SetLibelle(const wxString& libelle)
 {
 	this->libelle = libelle;
 
+	// OPTIMISATION : On calcule la taille UNE SEULE FOIS ici, pas pendant le dessin
 	textSize = GetSizeText();
+
 	if (themeTexte.GetWidth() < textSize.x)
 		themeTexte.SetWidth(textSize.x);
 
@@ -57,14 +60,18 @@ void CTreeElementTexte::SetLibelle(const wxString& libelle)
 
 wxSize CTreeElementTexte::GetSizeText()
 {
-	wxSize size;
-	wxBitmap bitmap(250, 250);
-	wxMemoryDC dc(bitmap);
-	size = CWindowUtility::GetSizeTexte(&dc, libelle, themeTexte.font);
-	dc.SelectObject(wxNullBitmap);
-	return size;
-}
+	if (libelle.IsEmpty())
+		return wxSize(0, 0);
 
+	// SOLUTION POUR LA TAILLE CORRECTE :
+	// Au lieu de recréer une bitmap de 250x250 à chaque appel (ce qui consommait de la mémoire),
+	// on utilise une bitmap factice de 1x1 pixel. Pour mesurer du texte, la taille de la bitmap n'importe pas,
+	// seul le fait d'avoir un contexte de mémoire valide avec la bonne police compte.
+	static wxBitmap dummyBitmap(1, 1);
+	wxMemoryDC dc(dummyBitmap);
+
+	return CWindowUtility::GetSizeTexte(&dc, libelle, themeTexte.font);
+}
 
 void CTreeElementTexte::SetPosition(const int& position)
 {
@@ -73,8 +80,11 @@ void CTreeElementTexte::SetPosition(const int& position)
 
 void CTreeElementTexte::DrawElement(wxDC* deviceContext, const int& x, const int& y)
 {
-	//wxSize size = GetSizeText();
-	if(textSize.IsEmpty())
+	if (deviceContext == nullptr)
+		return;
+
+	// Sécurité si la taille n'a pas encore été initialisée
+	if (textSize.x <= 0 || textSize.y <= 0)
 		textSize = GetSizeText();
 
 	int xPos = 0;
@@ -92,9 +102,8 @@ void CTreeElementTexte::DrawElement(wxDC* deviceContext, const int& x, const int
 	case RENDERFONT_RIGHT:
 		xPos = x + themeTexte.GetWidth() - textSize.x;
 		break;
-	default: ;
+	default:;
 	}
-
 
 	CWindowUtility::DrawTexte(deviceContext, libelle, xPos, yPos, themeTexte.font);
 }

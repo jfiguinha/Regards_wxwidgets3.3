@@ -10,25 +10,23 @@ using namespace Regards::Window;
 CTreeElementStar::CTreeElementStar()
 {
 	value = 0;
-	CreateStar();
 }
 
 void CTreeElementStar::CreateStar()
 {
-	starEmpty = CLibResource::CreatePictureFromSVG(L"IDB_STAREMPTY", themeTriangle.GetWidth() * 2,
-	                                               themeTriangle.GetHeight() * 2);
-	starYellow = CLibResource::CreatePictureFromSVG(L"IDB_STARYELLOW", themeTriangle.GetWidth() * 2,
-	                                                themeTriangle.GetHeight() * 2);
-}
+	int targetWidth = themeTriangle.GetWidth() * 2;
+	int targetHeight = themeTriangle.GetHeight() * 2;
 
+	// On ne régénère que si la taille a changé
+	if (!starEmpty.IsOk() || starEmpty.GetWidth() != targetWidth)
+	{
+		starEmpty = wxBitmap(CLibResource::CreatePictureFromSVG(L"IDB_STAREMPTY", targetWidth, targetHeight));
+		starYellow = wxBitmap(CLibResource::CreatePictureFromSVG(L"IDB_STARYELLOW", targetWidth, targetHeight));
+	}
+}
 void CTreeElementStar::SetNumPhoto(const int& numPhotoId)
 {
 	this->numPhotoId = numPhotoId;
-}
-
-void CTreeElementStar::SetTheme(CThemeTreeTriangle* theme)
-{
-	themeTriangle = *theme;
 }
 
 void CTreeElementStar::SetValue(const int& value)
@@ -48,18 +46,31 @@ void CTreeElementStar::DrawElement(wxDC* deviceContext, const int& x, const int&
 	DrawStar(deviceContext, x, y);
 }
 
+
+void CTreeElementStar::SetTheme(CThemeTreeTriangle* theme)
+{
+	themeTriangle = *theme;
+	CreateStar(); // On génère les icônes ici, car les dimensions valides sont connues !
+}
+
+
 void CTreeElementStar::DrawStar(wxDC* dc, const int& x, const int& y)
 {
 	int xPos = x;
+	int starW = starEmpty.GetWidth();
+
 	for (int i = 0; i < 5; i++)
 	{
+		// Dessin instantané grâce aux structures native VRAM (wxBitmap)
 		if (value > i)
 			dc->DrawBitmap(starYellow, xPos, y);
 		else
 			dc->DrawBitmap(starEmpty, xPos, y);
-		xPos += starEmpty.GetWidth();
+
+		xPos += starW;
 	}
 }
+
 
 void CTreeElementStar::ClickElement(wxWindow* window, const int& x, const int& y)
 {

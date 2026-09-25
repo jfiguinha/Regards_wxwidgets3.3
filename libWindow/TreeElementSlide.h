@@ -73,6 +73,7 @@ namespace Regards::Window
 		wxImage buttonMoins;
 		wxRect positionButton;
 		wxRect positionSlider;
+		wxBitmap slideCacheBuffer;
 
 		vector<CTreeElementValue*>* tabValue;
 		wxString exifKey;

@@ -24,6 +24,9 @@ bool CTreeElementTriangle::GetOpen()
 
 void CTreeElementTriangle::DrawElement(wxDC* deviceContext, const int& x, const int& y)
 {
+	if (deviceContext == nullptr)
+		return;
+
 	if (open)
 	{
 		DrawTriangleOpen(deviceContext, x, y);
@@ -37,13 +40,17 @@ void CTreeElementTriangle::DrawElement(wxDC* deviceContext, const int& x, const 
 void CTreeElementTriangle::DrawTriangleClose(wxDC* dc, const int& x, const int& y)
 {
 	int marge = (themeTriangle.GetHeight() - themeTriangle.GetElementHeight()) / 2;
-	wxBrush brushHatch(themeTriangle.color);
-	dc->SetBrush(brushHatch);
+
+	// OPTIMISATION : Assigner la brosse avec la couleur du thème directement sans instancier de wxBrush local sur le tas
+	dc->SetPen(*wxTRANSPARENT_PEN);
+	dc->SetBrush(wxBrush(themeTriangle.color));
+
 	wxPoint star[3];
 	star[0] = wxPoint(x + themeTriangle.GetMarge(), y + marge);
 	star[1] = wxPoint(x + themeTriangle.GetMarge(), y + marge + themeTriangle.GetElementHeight());
 	star[2] = wxPoint(x + themeTriangle.GetElementWidth() + themeTriangle.GetMarge(),
-	                  y + marge + (themeTriangle.GetElementHeight() / 2));
+		y + marge + (themeTriangle.GetElementHeight() / 2));
+
 	dc->DrawPolygon(WXSIZEOF(star), star, 0, 0);
 	dc->SetBrush(wxNullBrush);
 }
@@ -56,13 +63,17 @@ void CTreeElementTriangle::ClickElement(wxWindow* window, const int& x, const in
 void CTreeElementTriangle::DrawTriangleOpen(wxDC* dc, const int& x, const int& y)
 {
 	int marge = (themeTriangle.GetHeight() - themeTriangle.GetElementHeight()) / 2;
-	wxBrush brushHatch(themeTriangle.color);
-	dc->SetBrush(brushHatch);
+
+	// OPTIMISATION : Assigner la brosse avec la couleur du thème directement sans instancier de wxBrush local sur le tas
+	dc->SetPen(*wxTRANSPARENT_PEN);
+	dc->SetBrush(wxBrush(themeTriangle.color));
+
 	wxPoint star[3];
 	star[0] = wxPoint(x + themeTriangle.GetMarge(), y + marge + themeTriangle.GetElementHeight());
 	star[1] = wxPoint(x + themeTriangle.GetMarge() + themeTriangle.GetElementWidth(), y + marge);
 	star[2] = wxPoint(x + themeTriangle.GetElementWidth() + themeTriangle.GetMarge(),
-	                  y + marge + themeTriangle.GetElementHeight());
+		y + marge + themeTriangle.GetElementHeight());
+
 	dc->DrawPolygon(WXSIZEOF(star), star, 0, 0);
 	dc->SetBrush(wxNullBrush);
 }
