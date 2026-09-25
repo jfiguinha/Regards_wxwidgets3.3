@@ -39,8 +39,7 @@ CToolbarWindow::CToolbarWindow(wxWindow* parent, wxWindowID id, const CThemeTool
 
 
 void CToolbarWindow::OnMouseCaptureLost(wxMouseEvent& event)
-{
-}
+{}
 
 
 int CToolbarWindow::GetHeight()
@@ -172,7 +171,27 @@ void CToolbarWindow::RedrawElement(wxDC* dc, CToolbarElement* nav)
 
 void CToolbarWindow::DrawButton(wxDC* dc, CToolbarElement* nav)
 {
-	nav->DrawButton(dc, nav->GetXPos(), nav->GetYPos());
+	//nav->DrawButton(dc, nav->GetXPos(), nav->GetYPos());
+
+	
+	if (!pictureBuffer.IsOk() || pictureBuffer.GetWidth() != nav->GetWidth() || pictureBuffer.GetHeight() != nav->GetHeight())
+		pictureBuffer.Create(nav->GetWidth(), nav->GetHeight());
+
+	wxMemoryDC memDC(pictureBuffer);
+
+	wxRect rc;
+	rc.x = 0;
+	rc.y = 0;
+	rc.width = nav->GetWidth();
+	rc.height = nav->GetHeight();
+	DrawBackground(&memDC, rc);
+	nav->DrawButton(&memDC, 0, 0);
+	memDC.SelectObject(wxNullBitmap);
+
+	if (pictureBuffer.IsOk())
+	{
+		dc->DrawBitmap(pictureBuffer, nav->GetXPos(), nav->GetYPos());
+	}
 }
 
 void CToolbarWindow::OnLButtonDown(wxMouseEvent& event)
@@ -269,7 +288,7 @@ std::unique_ptr<CToolbarButton> CToolbarWindow::CreateButton(
 	auto btn = std::make_unique<CToolbarButton>(themeToolbar.button);
 	const wxString libelle = CLibResource::LoadStringFromResource(label, 1);
 	btn->SetButtonResourceId(icon);
-	if(showLibelle)
+	if (showLibelle)
 		btn->SetLibelle(libelle);
 	btn->SetCommandId(commandId);
 	btn->SetLibelleTooltip(libelle);
@@ -347,6 +366,7 @@ void CToolbarWindow::DrawBackground(wxDC* dc)
 		memDC.SelectObject(wxNullBitmap);
 	}
 
+	backPicture = background.ConvertToImage();
 	dc->DrawBitmap(background, 0, 0);
 }
 
