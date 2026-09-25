@@ -178,6 +178,10 @@ void CThumbnailFace::EraseData()
 
 void CThumbnailFace::InitListFace()
 {	
+	iconeList->EraseThumbnailListWithIcon();
+
+	return;
+
 	auto viewerParam = CMainParamInit::getInstance();
 	double pertinence = 0.0;
     int nbElement = 0;
@@ -198,7 +202,7 @@ void CThumbnailFace::InitListFace()
 			});
 	}
 
-	iconeList->EraseThumbnailListWithIcon();
+	
 
 	for (int i = 0; i < iconeList->GetNbElement(); ++i)
 	{
@@ -259,7 +263,8 @@ void CThumbnailFace::init()
 	InitListFace();
 
 	std::unordered_map<FaceKey, CIcone*, FaceKeyHash> iconIndex;
-
+	
+	/*
 	for (int i = 0; i < iconeList->GetNbElement(); ++i)
 	{
 		auto* icone = iconeList->GetElement(i);
@@ -280,6 +285,7 @@ void CThumbnailFace::init()
 				});
 		}
 	}
+	*/
 
 
 	listSeparator.clear();
@@ -307,6 +313,10 @@ void CThumbnailFace::init()
 	widthThumbnail = 0;
 	heightThumbnail = 0;
 	ResizeThumbnail();
+
+	CIcone* actif = iconeList->FindElementByPhotoId(numSelectPhotoId);
+	if (actif)
+		actif->SetSelected(true);
 
 	needToRefresh = true;
 }
