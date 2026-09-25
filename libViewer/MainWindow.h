@@ -92,6 +92,7 @@ namespace Regards::Viewer
         void CriteriaChange(wxCommandEvent& event);
         void OnPrint(wxCommandEvent& event);
         void OnPictureClick(wxCommandEvent& event);
+        void OnPictureClickByFilename(wxCommandEvent& event);
         void PrintPreview(wxCommandEvent& event);
         void OnRemoveFileFromCheckIn(wxCommandEvent& event);
         void OnCheckInUpdateStatus(wxCommandEvent& event);

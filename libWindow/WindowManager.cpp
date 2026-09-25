@@ -1346,7 +1346,7 @@ void CWindowManager::DrawSeparationBar(const int& x, const int& y, const int& wi
 
 	wxRect rc(x, y, width, height);
 
-	// ✅ OPTIMISATION GRAPHIQUE : Si le dégradé est uni, utiliser un pinceau solide (100x plus rapide)
+	// OPTIMISATION GRAPHIQUE : Si le dégradé est uni, utiliser un pinceau solide (100x plus rapide)
 	if (themeSplitter.themeSeparation.secondColor == themeSplitter.themeSeparation.firstColor)
 	{
 		dc.SetPen(*wxTRANSPARENT_PEN);
@@ -1511,7 +1511,7 @@ void CWindowManager::Resize()
 						windowToAdd->rect.width, windowToAdd->rect.height,
 						wxSIZE_ALLOW_MINUS_ONE);
 
-					// ✅ RAFRAÎCHISSEMENT SÉCURISÉ OPENGL : Si c'est la fenêtre OpenGL qui a bougé, 
+					// RAFRAÎCHISSEMENT SÉCURISÉ OPENGL : Si c'est la fenêtre OpenGL qui a bougé, 
 					// on force son recalcul de viewport immédiatement de manière fluide.
 					if (windowToAdd->position == Pos::wxCENTRAL)
 					{

@@ -229,6 +229,7 @@ void CMainWindow::BindEvents()
     Connect(wxEVENT_ENDCHECKFILE,         wxCommandEventHandler(CMainWindow::OnEndCheckFile));
     Connect(wxEVENT_UPDATEFOLDER,         wxCommandEventHandler(CMainWindow::OnUpdateFolder));
     Connect(wxEVENT_ONPICTURECLICK,       wxCommandEventHandler(CMainWindow::OnPictureClick));
+    Connect(wxEVENT_ONPICTURECLICKBYFILENAME, wxCommandEventHandler(CMainWindow::OnPictureClickByFilename));
     Connect(wxEVT_CRITERIACHANGE,         wxCommandEventHandler(CMainWindow::CriteriaChange));
     Connect(wxEVENT_PICTUREVIDEOCLICK,    wxCommandEventHandler(CMainWindow::PictureVideoClick));
     Connect(wxEVENT_REFRESHFOLDER,        wxCommandEventHandler(CMainWindow::InitPictures));
@@ -787,6 +788,14 @@ void CMainWindow::CriteriaChange(wxCommandEvent& /*event*/)
 void CMainWindow::PictureVideoClick(wxCommandEvent& event)
 {
     viewerCtrl->SetPosition(event.GetExtraLong());
+}
+
+
+void CMainWindow::OnPictureClickByFilename(wxCommandEvent& event)
+{
+    wxString * filename = (wxString *)event.GetClientData();
+    viewerCtrl->LoadPicture(*filename);
+    delete filename;
 }
 
 void CMainWindow::OnPictureClick(wxCommandEvent& event)

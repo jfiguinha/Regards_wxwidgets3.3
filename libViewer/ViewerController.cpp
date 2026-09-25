@@ -146,7 +146,8 @@ void CViewerController::SetActif(const wxString& filename)
         thumbnailPicture->SetActifItem(filename, false);
         listPicture->SetActifItem(filename, false);
     }
-
+    else
+        listFace->SetActifItem(filename, false);
 }
 
 void CViewerController::LoadFaceActifItem()

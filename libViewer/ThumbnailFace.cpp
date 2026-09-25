@@ -37,13 +37,18 @@ CThumbnailFace::~CThumbnailFace(void)
 
 void CThumbnailFace::OnPictureClick(const int& numPhotoId)
 {
-
+	wxString iconeFilename = "";
+	CIcone* numSelect = GetIconeById(numPhotoId);
+	if (numSelect)
+		if (numSelect->GetPtData())
+			iconeFilename = numSelect->GetPtData()->GetFilename();
 
 	auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));
 	if (mainWindow != nullptr)
 	{
-		wxCommandEvent evt(wxEVENT_ONPICTURECLICK);
-		evt.SetExtraLong(numPhotoId);
+		wxString* filename = new wxString(iconeFilename);
+		wxCommandEvent evt(wxEVENT_ONPICTURECLICKBYFILENAME);
+		evt.SetClientData(filename);
 		mainWindow->GetEventHandler()->AddPendingEvent(evt);
 	}
 }

@@ -1068,7 +1068,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 	int xPos = event.GetX();
 	int yPos = event.GetY();
 
-	
+	wxString filename = "";
 	bool isIconeSelected = false;
 	int iconePhotoId = -1;
 	CIcone* pBitmapIcone = FindElement(xPos, yPos);
@@ -1076,6 +1076,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 		if (pBitmapIcone->GetPtData() != nullptr)
 		{
 			iconePhotoId = pBitmapIcone->GetPtData()->GetNumPhotoId();
+			filename = pBitmapIcone->GetPtData()->GetFilename();
 			isIconeSelected = pBitmapIcone->IsChecked();
 		}
 
