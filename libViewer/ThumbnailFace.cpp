@@ -321,6 +321,265 @@ void CThumbnailFace::init()
 	needToRefresh = true;
 }
 
+void CThumbnailFace::SyncWithDatabase()
+{
+	auto viewerParam = CMainParamInit::getInstance();
+	double pertinence = 0.0;
+	if (viewerParam != nullptr)
+		pertinence = viewerParam->GetPertinenceValue();
+
+	CSqlFindFacePhoto sqlFindFacePhoto;
+	std::vector<CFaceName> listFaceDB = sqlFindFacePhoto.GetListFaceName();
+
+	// Bloquer temporairement le rafraîchissement UI pendant la synchronisation
+	threadDataProcess = false;
+
+	// -------------------------------------------------------------------------
+	// ÉTAPE 1 : Extraire et conserver TOUTES les icônes valides actuellement en mémoire
+	// -------------------------------------------------------------------------
+	// On crée une map pour pouvoir récupérer instantanément une icône existante (avec son image chargée)
+	// à partir de sa clé unique {filepath, numFace}.
+	std::unordered_map<FaceKey, CIcone*, FaceKeyHash> memoryIconMap;
+
+	for (int i = 0; i < iconeList->GetNbElement(); ++i)
+	{
+		CIcone* icone = iconeList->GetElement(i);
+		if (icone == nullptr) continue;
+
+		auto* data = static_cast<CThumbnailDataFace*>(icone->GetPtData());
+		if (data != nullptr)
+		{
+			FaceKey key{ data->GetFilename(), data->GetNumFace() };
+			memoryIconMap[key] = icone;
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// ÉTAPE 2 : Préparer les nouveaux conteneurs propres
+	// -------------------------------------------------------------------------
+	// On détache les icônes de la liste actuelle SANS détruire les objets CIcone sous-jacents
+	iconeList->EraseThumbnailList();
+	listSeparator.clear();
+
+	CLibPicture libPicture;
+	CSqlFacePhoto facePhoto;
+	int globalElementIndex = 0; // Compteur unique et séquentiel global pour la grille
+
+	// -------------------------------------------------------------------------
+	// ÉTAPE 3 : Reconstruction synchronisée (Séparateurs + Icônes dans le MÊME ordre)
+	// -------------------------------------------------------------------------
+	for (int i = 0; i < listFaceDB.size(); i++)
+	{
+		const auto& currentFace = listFaceDB.at(i);
+		std::vector<CFaceFilePath> photosInDB = sqlFindFacePhoto.GetListPhotoFace(currentFace.numFace, pertinence);
+
+		if (photosInDB.empty()) continue;
+
+		// Création du bloc de séparation (En-tête du groupe de visage)
+		auto infosSeparationBar = std::make_unique<CInfosSeparationBarFace>(themeThumbnail.themeSeparation);
+		infosSeparationBar->SetTitle(currentFace.faceName);
+		infosSeparationBar->SetParentWindow(this);
+		infosSeparationBar->SetWidth(GetWindowWidth());
+		infosSeparationBar->SetNumFace(currentFace);
+		infosSeparationBar->EnableModification(this->enableModification);
+
+		for (const auto& photo : photosInDB)
+		{
+			FaceKey key{ photo.faceFilePath, photo.numFace };
+			auto it = memoryIconMap.find(key);
+
+			CIcone* pBitmapIcone = nullptr;
+
+			if (it != memoryIconMap.end())
+			{
+				// CAS 1 : L'image existait déjà en mémoire. On la RÉUTILISE (Pas de clignotement / rechargement)
+				pBitmapIcone = it->second;
+
+				// On met à jour ses index internes pour correspondre à sa nouvelle position ordonnée
+				pBitmapIcone->SetNumElement(globalElementIndex);
+				if (auto* data = static_cast<CThumbnailDataFace*>(pBitmapIcone->GetPtData()))
+				{
+					data->SetNumElement(globalElementIndex);
+				}
+
+				// On la retire de la map temporaire pour marquer qu'elle est réutilisée
+				memoryIconMap.erase(it);
+			}
+			else
+			{
+				// CAS 2 : C'est un NOUVEAU visage détecté -> instanciation de l'icône
+				auto* thumbnailData = new CThumbnailDataFace(photo.faceFilePath, photo.numFace);
+				thumbnailData->SetNumPhotoId(photo.numPhoto);
+				thumbnailData->SetNumElement(globalElementIndex);
+
+				if (libPicture.TestIsVideo(thumbnailData->GetFilename()))
+				{
+					thumbnailData->SetNumFrame(facePhoto.GetVideoFacePosition(photo.numFace));
+				}
+
+				pBitmapIcone = new CIcone(thumbnailData);
+				pBitmapIcone->ShowSelectButton(this->check);
+				pBitmapIcone->SetNumElement(globalElementIndex);
+				pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+				pBitmapIcone->SetShowDelete(true);
+				pBitmapIcone->SetFilename(photo.faceFilePath);
+			}
+
+			// On insère l'icône dans la liste globale à sa position exacte de tri
+			iconeList->AddElement(pBitmapIcone);
+
+			// On lie cette icône au bloc séparateur visuel actuel
+			infosSeparationBar->listElement.push_back(globalElementIndex);
+
+			globalElementIndex++;
+		}
+
+		if (!infosSeparationBar->listElement.empty())
+		{
+			listSeparator.push_back(std::move(infosSeparationBar));
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// ÉTAPE 4 : Nettoyage de la mémoire obsolète
+	// -------------------------------------------------------------------------
+	// Toutes les icônes restant dans la map n'existent plus du tout dans la base de données.
+	// On doit explicitement détruire ces objets pour éviter les fuites de mémoire.
+	for (auto& pair : memoryIconMap)
+	{
+		if (pair.second != nullptr)
+		{
+			delete pair.second; // Suppression propre de l'objet CIcone obsolète
+		}
+	}
+
+	// -------------------------------------------------------------------------
+	// ÉTAPE 5 : Finalisation de l'affichage
+	// -------------------------------------------------------------------------
+	nbElement = globalElementIndex;
+	nbElementInIconeList = iconeList->GetNbElement();
+
+	AfterSetList();
+
+	widthThumbnail = 0;
+	heightThumbnail = 0;
+	ResizeThumbnail();
+
+	threadDataProcess = true;
+	needToRefresh = true;
+}
+
+
+
+void CThumbnailFace::UpdateNewFacesFromDatabase()
+{
+	auto viewerParam = CMainParamInit::getInstance();
+	double pertinence = 0.0;
+	if (viewerParam != nullptr)
+		pertinence = viewerParam->GetPertinenceValue();
+
+	CSqlFindFacePhoto sqlFindFacePhoto;
+	std::vector<CFaceName> listFace = sqlFindFacePhoto.GetListFaceName();
+
+	// Bloquer temporairement les événements de dessin pendant la mise à jour
+	threadDataProcess = false;
+
+	bool elementsAdded = false;
+
+	for (int i = 0; i < listFace.size(); i++)
+	{
+		std::vector<CFaceFilePath> listPhotoFace = sqlFindFacePhoto.GetListPhotoFace(listFace.at(i).numFace, pertinence);
+		if (listPhotoFace.empty())
+			continue;
+
+		// 1. Rechercher si le séparateur (la catégorie de visage) existe déjà
+		CInfosSeparationBarFace* existingSeparator = nullptr;
+		for (auto& separatorBar : listSeparator)
+		{
+			auto* faceBar = static_cast<CInfosSeparationBarFace*>(separatorBar.get());
+			if (faceBar != nullptr && faceBar->GetNumFace() == listFace.at(i).numFace)
+			{
+				existingSeparator = faceBar;
+				break;
+			}
+		}
+
+		// 2. Filtrer uniquement les photos de ce visage qui ne sont pas encore affichées
+		std::vector<CFaceFilePath> newPhotosForThisFace;
+		for (const auto& photo : listPhotoFace)
+		{
+			// Utilise votre méthode native FindFaceElement pour vérifier la présence
+			if (FindFaceElement(photo.faceFilePath, photo.numFace) == nullptr)
+			{
+				newPhotosForThisFace.push_back(photo);
+			}
+		}
+
+		// 3. S'il y a des nouveautés, on les injecte de manière incrémentale
+		if (!newPhotosForThisFace.empty())
+		{
+			elementsAdded = true;
+
+			// Si la catégorie n'existait pas du tout, on utilise votre méthode standard
+			if (existingSeparator == nullptr)
+			{
+				std::unordered_map<FaceKey, CIcone*, FaceKeyHash> emptyIndex;
+				AddSeparatorBar(iconeList.get(), listFace.at(i).faceName, listFace.at(i), newPhotosForThisFace, nbElement, emptyIndex);
+			}
+			else
+			{
+				// Si elle existe, on ajoute les icônes à la fin d'iconeList globale, 
+				// et on lie leurs nouveaux index à ce séparateur précis
+				CLibPicture libPicture;
+				CSqlFacePhoto facePhoto;
+
+				for (const auto& photo : newPhotosForThisFace)
+				{
+					// Calcul du nouvel index dans le tableau global d'icones
+					int elementIndex = iconeList->GetNbElement();
+
+					auto* thumbnailData = new CThumbnailDataFace(photo.faceFilePath, photo.numFace);
+					thumbnailData->SetNumPhotoId(photo.numPhoto);
+					thumbnailData->SetNumElement(elementIndex);
+
+					if (libPicture.TestIsVideo(thumbnailData->GetFilename()))
+					{
+						thumbnailData->SetNumFrame(facePhoto.GetVideoFacePosition(photo.numFace));
+					}
+
+					auto* pBitmapIcone = new CIcone(thumbnailData);
+					pBitmapIcone->ShowSelectButton(this->check);
+					pBitmapIcone->SetNumElement(elementIndex);
+					pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+					pBitmapIcone->SetShowDelete(true);
+					pBitmapIcone->SetFilename(photo.faceFilePath);
+
+					// Insertion physique dans la grille globale sans rien détruire
+					iconeList->AddElement(pBitmapIcone);
+
+					// Liaison de l'index de l'icône au séparateur graphique concerné
+					existingSeparator->listElement.push_back(elementIndex);
+					nbElement++;
+				}
+			}
+		}
+	}
+
+	if (elementsAdded)
+	{
+		nbElementInIconeList = iconeList->GetNbElement();
+
+		// Recalculer les dimensions de la grille de vignettes sans tout réinitialiser
+		widthThumbnail = 0;
+		heightThumbnail = 0;
+		ResizeThumbnail();
+	}
+
+	threadDataProcess = true;
+	needToRefresh = true;
+}
+
+
 bool CThumbnailFace::ItemCompFonctWithVScroll(int x, int y, CIcone* icone, CWindowMain* parent)
 /* Définit une fonction. */
 {
@@ -593,7 +852,8 @@ void CThumbnailFace::FindOtherElement(wxDC* dc, const int& x, const int& y)
 
 void CThumbnailFace::OnSelectIcon(wxCommandEvent& event)
 {
-
+	if (!TestIfEnable())
+		return;
 	auto faceSeparator = static_cast<CInfosSeparationBarFace*>(event.GetClientData());
 	if (faceSeparator != nullptr)
 	{
@@ -612,9 +872,22 @@ void CThumbnailFace::OnSelectIcon(wxCommandEvent& event)
 }
 
 
+bool CThumbnailFace::TestIfEnable()
+{
+	if (!enableModification)
+	{
+		wxMessageBox("Face detection is working. Please wait", "Informations");
+		return false;
+	}
+	return true;
+}
+
 
 void CThumbnailFace::DeleteIcone(CIcone* numSelect)
 {
+	if (!TestIfEnable())
+		return;
+
 	auto face_thumbnail = static_cast<CThumbnailDataFace*>(numSelect->GetPtData());
 	if (face_thumbnail != nullptr)
 	{

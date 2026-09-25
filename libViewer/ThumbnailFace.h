@@ -50,12 +50,14 @@ namespace Regards::Viewer
 		void EnableModification(const bool& enable) override;
 		void EraseData();
 		void ReinitId();
+		void UpdateNewFacesFromDatabase();
+		void SyncWithDatabase();
 	protected:
 		void OnMouseRelease(const int& x, const int& y) override;
 		void MoveIcone(const int& numElement, const int& numFace);
 
 	private:
-
+		bool TestIfEnable();
 		void InitListFace();
 		void OnSelectIcon(wxCommandEvent& event);
 		void DeleteEmptyFace();

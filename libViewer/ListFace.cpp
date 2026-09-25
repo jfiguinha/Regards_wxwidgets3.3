@@ -540,9 +540,14 @@ void CListFace::ThumbnailRefresh(wxCommandEvent& /*event*/)
 {
 	cleanDatabase = true;
 	if (thumbnailFace != nullptr)
-		thumbnailFace->init();
+	{
+		// AU LIEU DE : thumbnailFace->init();
+		// ON FAIT :
+		thumbnailFace->SyncWithDatabase();
+	}
 	processIdle = true;
 }
+
 
 void CListFace::ThumbnailDatabaseRefresh(wxCommandEvent& /*event*/)
 {
@@ -808,8 +813,10 @@ void CListFace::ProcessIdle()
 		processIdle = false;
 		SendStatusBarMessage(5, nbNbFace, nbFaceRecognized, nbTotalFace);
 
-		//Regenerer le thumbnail
-		thumbnailFace->init();
+		// AU LIEU DE : thumbnailFace->init();
+		// ON FAIT :
+		if (thumbnailFace != nullptr)
+			thumbnailFace->SyncWithDatabase();
 	}
 
 	isEnable = allDone;
