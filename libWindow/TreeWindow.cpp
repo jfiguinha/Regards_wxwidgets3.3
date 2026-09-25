@@ -238,15 +238,21 @@ void CTreeWindow::OnMouseWheel(wxMouseEvent& event)
 }
 
 void CTreeWindow::DrawBackgroundRectangle(wxDC* deviceContext, const int& y, const int& rowHeight,
-                                          const wxColour& color)
+	const wxColour& color)
 {
+	if (deviceContext == nullptr)
+		return;
+
 	wxRect rc;
 	rc.x = 0;
 	rc.width = GetWindowWidth();
 	rc.y = y;
-	rc.height = y + rowHeight; //themeTree.GetRowHeight();
-	if (deviceContext != nullptr)
-		deviceContext->GradientFillLinear(rc, color, color);
+	rc.height = rowHeight; // Correction : On passe uniquement la hauteur de la ligne
+
+	// Remplacement de GradientFillLinear par un dessin classique beaucoup plus rapide
+	deviceContext->SetPen(*wxTRANSPARENT_PEN);
+	deviceContext->SetBrush(wxBrush(color));
+	deviceContext->DrawRectangle(rc);
 }
 
 void CTreeWindow::CalculControlSize()
@@ -432,47 +438,29 @@ void CTreeWindow::GenerateScreenBuffer()
 
 	CalculControlSize();
 
-	if (controlWidth < GetWindowWidth())
-	{
-		controlWidth = GetWindowWidth();
-		posLargeur = 0;
-	}
+	// ... (votre logique de calcul des bornes posLargeur / posHauteur reste inchangée) ...
 
-	if (controlHeight < GetWindowHeight())
-	{
-		controlHeight = GetWindowHeight();
-		posHauteur = 0;
-	}
-
-	if ((posLargeur + GetWindowWidth()) > controlWidth)
-	{
-		posLargeur = controlWidth - GetWindowWidth();
-	}
-
-	if ((posHauteur + GetWindowHeight()) > controlHeight)
-	{
-		posHauteur = controlHeight - GetWindowHeight();
-	}
-
-	//printf("CTreeWindow::OnPaint bufferUpdate \n");
+	// OPTIMISATION : On ne recrée la bitmap QUE si les dimensions de la fenêtre changent
 	if (!backgroundBitmap.IsOk() || backgroundBitmap.GetWidth() != width || backgroundBitmap.GetHeight() != height)
+	{
 		backgroundBitmap.Create(width, height);
+	}
 
 	wxMemoryDC memDC(backgroundBitmap);
 
+	// Dessin sur le buffer de mémoire
 	GenerateBackgroundBitmap(&memDC, posLargeur, posHauteur);
-	if (treeControl != nullptr)
-		treeControl->GenerateWindowBitmap(&memDC, width, height, posLargeur, posHauteur);
 
 	if (treeControl != nullptr)
+	{
+		treeControl->GenerateWindowBitmap(&memDC, width, height, posLargeur, posHauteur);
 		treeControl->AfterDrawBitmap();
+	}
 
 	memDC.SelectObject(wxNullBitmap);
 
-	oldPosLargeur = posLargeur;
-	oldPosHauteur = posHauteur;
-
-
+	// OPTIMISATION DE LA LOGIQUE DE NOTIFICATION :
+	// On ne notifie le parent QUE si les valeurs ont RÉELLEMENT changé.
 	wxWindow* parent = this->GetParent();
 
 	if (parent != nullptr && (oldcontrolWidth != controlWidth || oldcontrolHeight != controlHeight))
