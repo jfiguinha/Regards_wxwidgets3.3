@@ -20,18 +20,18 @@ int CSqlFaceRecognition::GetCompatibleFace(const int& numFace)
 	return faceCompatible;
 }
 
-bool CSqlFaceRecognition::MoveFaceRecognition(int numFace, int NewnumFaceCompatible)
+bool CSqlFaceRecognition::MoveFaceRecognition(int numFace, int numFaceCompatible)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(NewnumFaceCompatible));
+	parameter.push_back(std::make_unique<CSqlInt>(numFaceCompatible));
 	parameter.push_back(std::make_unique<CSqlInt>(numFace));
 	return ExecuteSqlWithStatementNoResult("Update FACE_RECOGNITION Set NumFaceCompatible = ? WHERE NumFace = ?", parameter);
 }
 
-bool CSqlFaceRecognition::UpdateFaceRecognition(int OldnumFaceCompatible, int NewnumFaceCompatible)
+bool CSqlFaceRecognition::UpdateFaceRecognition(int OldnumFaceCompatible, int numFaceCompatible)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(NewnumFaceCompatible));
+	parameter.push_back(std::make_unique<CSqlInt>(numFaceCompatible));
 	parameter.push_back(std::make_unique<CSqlInt>(OldnumFaceCompatible));
 	return ExecuteSqlWithStatementNoResult("Update FACE_RECOGNITION Set NumFaceCompatible = ? WHERE NumFaceCompatible = ?", parameter);
 }

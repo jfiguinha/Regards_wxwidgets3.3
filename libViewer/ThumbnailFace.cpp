@@ -198,6 +198,8 @@ void CThumbnailFace::InitListFace()
 			});
 	}
 
+	iconeList->EraseThumbnailListWithIcon();
+
 	for (int i = 0; i < iconeList->GetNbElement(); ++i)
 	{
 		auto* icone = iconeList->GetElement(i);
@@ -526,8 +528,8 @@ void CThumbnailFace::OnMouseRelease(const int& x, const int& y)
 						if (icone->IsChecked())
 						{
 							auto thumbnailData = static_cast<CThumbnailDataFace*>(icone->GetPtData());
-							//int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
-							//if (numFaceCompatible != numFace)
+							int numFaceCompatible = faceRecognition.GetCompatibleFace(thumbnailData->GetNumFace());
+							if (numFaceCompatible != numFace)
 							{
 								faceMove = true;
 								needToMove = true;

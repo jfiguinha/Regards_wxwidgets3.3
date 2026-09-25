@@ -807,6 +807,9 @@ void CListFace::ProcessIdle()
 	{
 		processIdle = false;
 		SendStatusBarMessage(5, nbNbFace, nbFaceRecognized, nbTotalFace);
+
+		//Regenerer le thumbnail
+		thumbnailFace->init();
 	}
 
 	isEnable = allDone;
