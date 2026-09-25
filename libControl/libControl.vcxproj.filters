@@ -150,9 +150,6 @@
     <ClInclude Include="InfosSeparationBarEffect.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="SplitterWithPanel.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\header.h">
       <Filter>header</Filter>
     </ClInclude>

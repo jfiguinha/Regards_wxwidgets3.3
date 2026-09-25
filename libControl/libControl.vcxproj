@@ -891,7 +891,6 @@
     <ClInclude Include="ShowElement.h" />
     <ClInclude Include="SliderVideo.h" />
     <ClInclude Include="SlideToolbar.h" />
-    <ClInclude Include="SplitterWithPanel.h" />
     <ClInclude Include="ThumbnailEffect.h" />
     <ClInclude Include="ThumbnailHorizontal.h" />
     <ClInclude Include="ThumbnailVertical.h" />
