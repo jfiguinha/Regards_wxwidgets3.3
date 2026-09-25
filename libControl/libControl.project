@@ -145,7 +145,6 @@
   <VirtualDirectory Name="src">
     <File Name="PhotoCriteriaUtility.cpp"/>
     <File Name="InfosSeparationBarEffect.cpp"/>
-    <File Name="SplitterWithPanel.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <File Name="PhotoCriteriaUtility.h"/>
