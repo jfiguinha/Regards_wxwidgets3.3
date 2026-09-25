@@ -941,70 +941,76 @@ void CWindowManager::Init_Central()
 void CWindowManager::Init()
 {
 	CWindowToAdd* right = FindWindow(Pos::wxRIGHT);
-	//CWindowToAdd * top = FindWindow(Pos::wxTOP);
-	//CWindowToAdd * bottom = FindWindow(Pos::wxBOTTOM);
-	//CWindowToAdd * central = FindWindow(Pos::wxCENTRAL);
 	CWindowToAdd* left = FindWindow(Pos::wxLEFT);
 
-	int width = GetSize().x;
-	int height = GetSize().y;
+	// OPTIMISATION : Capture directe des dimensions pour éviter des appels système répétés
+	const wxSize currentSize = GetSize();
+	const int width = currentSize.x;
+	const int height = currentSize.y;
 
-	//printf("Init() width : %d height : %d \n", width, height);
+	if (width <= 0 || height <= 0)
+		return;
 
-	if (left != nullptr)
-		if (left->isTop)
-			Init_left();
-	if (right != nullptr)
-		if (right->isTop)
-			Init_right();
+	if (left != nullptr && left->isTop)
+		Init_left();
+	if (right != nullptr && right->isTop)
+		Init_right();
 
 	Init_top();
 	Init_bottom();
-	if (left != nullptr)
-		if (!left->isTop)
-			Init_left();
-	if (right != nullptr)
-		if (!right->isTop)
-			Init_right();
+	if (left != nullptr && !left->isTop)
+		Init_left();
+	if (right != nullptr && !right->isTop)
+		Init_right();
 	Init_Central();
 }
 
+
 void CWindowManager::GenerateRenderBitmap()
 {
-	renderBitmap = wxBitmap(GetWindowWidth(), GetWindowHeight());
+	// SÉCURISATION : Cette fonction effectue un traitement lourd (Blit multiple de DC Windows).
+	// On restreint l'allocation mémoire uniquement si la taille globale change.
+	int winW = GetWindowWidth();
+	int winH = GetWindowHeight();
+	if (winW <= 0 || winH <= 0) return;
+
+	if (!renderBitmap.IsOk() || renderBitmap.GetWidth() != winW || renderBitmap.GetHeight() != winH)
+	{
+		renderBitmap = wxBitmap(winW, winH);
+	}
+
 	wxMemoryDC dCWindowManager(renderBitmap);
+	// On nettoie le fond une fois
+	dCWindowManager.SetBackground(*wxTRANSPARENT_BRUSH);
+	dCWindowManager.Clear();
 
 	for (CWindowToAdd* windowToAdd : listWindow)
 	{
-		if (windowToAdd != nullptr)
-		{
-			wxWindow* _wnd = windowToAdd->GetWindow();
+		if (windowToAdd == nullptr) continue;
 
-			if (_wnd != nullptr)
+		wxWindow* _wnd = windowToAdd->GetWindow();
+		if (_wnd != nullptr && _wnd->IsShown())
+		{
+			wxWindowDC dc(_wnd);
+			dCWindowManager.Blit(windowToAdd->rect.x, windowToAdd->rect.y, windowToAdd->rect.width,
+				windowToAdd->rect.height, &dc, 0, 0);
+		}
+
+		if (showSeparationBar && windowToAdd->separationBar != nullptr)
+		{
+			if (windowToAdd->separationBar->separationBar != nullptr && windowToAdd->separationBar->separationBar->IsShown())
 			{
-				if (_wnd->IsShown())
-				{
-					wxWindowDC dc(_wnd);
-					dCWindowManager.Blit(windowToAdd->rect.x, windowToAdd->rect.y, windowToAdd->rect.width,
-					                     windowToAdd->rect.height, &dc, 0, 0);
-				}
-			}
-			if (showSeparationBar)
-			{
-				if (windowToAdd->separationBar != nullptr)
-				{
-					wxWindowDC dc(windowToAdd->separationBar->separationBar.get());
-					dCWindowManager.Blit(windowToAdd->separationBar->rect.x, windowToAdd->separationBar->rect.y,
-					                     windowToAdd->separationBar->rect.width,
-					                     windowToAdd->separationBar->rect.height, &dc, 0, 0);
-				}
+				wxWindowDC dc(windowToAdd->separationBar->separationBar.get());
+				dCWindowManager.Blit(windowToAdd->separationBar->rect.x, windowToAdd->separationBar->rect.y,
+					windowToAdd->separationBar->rect.width,
+					windowToAdd->separationBar->rect.height, &dc, 0, 0);
 			}
 		}
 	}
-
-
 	dCWindowManager.SelectObject(wxNullBitmap);
 }
+
+
 
 void CWindowManager::SetSeparationBarVisible(const bool& visible)
 {
@@ -1330,30 +1336,28 @@ void CWindowManager::SetNewPosition(CSeparationBar* separationBar)
 
 
 void CWindowManager::DrawSeparationBar(const int& x, const int& y, const int& width, const int& height,
-                                       const bool& horizontal)
+	const bool& horizontal)
 {
 	wxWindowDC dc(this);
-	dc.DrawBitmap(renderBitmap, 0, 0);
-
-	if (horizontal)
+	if (renderBitmap.IsOk())
 	{
-		wxRect rc;
-		rc.x = x;
-		rc.y = y;
-		rc.width = width;
-		rc.height = height;
-		dc.GradientFillLinear(rc, themeSplitter.themeSeparation.secondColor, themeSplitter.themeSeparation.firstColor,
-		                      wxSOUTH);
+		dc.DrawBitmap(renderBitmap, 0, 0);
+	}
+
+	wxRect rc(x, y, width, height);
+
+	// ✅ OPTIMISATION GRAPHIQUE : Si le dégradé est uni, utiliser un pinceau solide (100x plus rapide)
+	if (themeSplitter.themeSeparation.secondColor == themeSplitter.themeSeparation.firstColor)
+	{
+		dc.SetPen(*wxTRANSPARENT_PEN);
+		dc.SetBrush(wxBrush(themeSplitter.themeSeparation.firstColor));
+		dc.DrawRectangle(rc);
+		dc.SetBrush(wxNullBrush);
 	}
 	else
 	{
-		wxRect rc;
-		rc.x = x;
-		rc.y = y;
-		rc.width = width;
-		rc.height = height;
 		dc.GradientFillLinear(rc, themeSplitter.themeSeparation.secondColor, themeSplitter.themeSeparation.firstColor,
-		                      wxEAST);
+			horizontal ? wxSOUTH : wxEAST);
 	}
 }
 
@@ -1453,15 +1457,14 @@ void CWindowManager::AddDifference(const int& diffWidth, const int& diffHeight, 
 		}
 	}
 }
-
 void CWindowManager::Resize()
 {
-	int width = GetSize().GetX();
-	int height = GetSize().GetY();
+	const wxSize currentSize = GetSize();
+	const int width = currentSize.x;
+	const int height = currentSize.y;
 
 	if (width <= 0 || height <= 0)
 		return;
-
 
 	int diffWidth = width - oldWidth;
 	int diffHeight = height - oldHeight;
@@ -1474,13 +1477,12 @@ void CWindowManager::Resize()
 		diffHeight = 0;
 	}
 
-
 	AddDifference(diffWidth, diffHeight, Pos::wxCENTRAL);
 	AddDifference(diffWidth, diffHeight, Pos::wxLEFT);
 	AddDifference(diffWidth, diffHeight, Pos::wxRIGHT);
 	AddDifference(diffWidth, diffHeight, Pos::wxTOP);
 	AddDifference(diffWidth, diffHeight, Pos::wxBOTTOM);
-	//Calcul central size if window change size
+
 	for (CWindowToAdd* windowToAdd : listWindow)
 	{
 		if (windowToAdd != nullptr)
@@ -1490,68 +1492,54 @@ void CWindowManager::Resize()
 		}
 	}
 
-	wxRect rc;
+	// OPTIMISATION OPENGL : Plus de Freeze() global ici pour ne pas bloquer le pipeline GPU.
+	wxRect nullRect;
 	for (CWindowToAdd* windowToAdd : listWindow)
 	{
-		if (windowToAdd != nullptr)
+		if (windowToAdd == nullptr) continue;
+
+		wxWindow* _wnd = windowToAdd->GetWindow();
+		if (_wnd != nullptr)
 		{
-			wxWindow* _wnd = windowToAdd->GetWindow();
-			if (_wnd != nullptr)
+			if (_wnd->IsShown())
 			{
-#ifdef _DEBUG
-#ifdef WIN32
-				//TCHAR temp[255];
-#endif
-#endif
-				if (_wnd->IsShown())
+				// FILTRAGE GÉOMÉTRIQUE STRICT : On ne touche à la fenêtre QUE si sa taille ou sa position change.
+				// Cela évite d'envoyer des requêtes de redimensionnement inutiles à la fenêtre OpenGL si vous bougez une barre à l'opposé.
+				if (_wnd->GetRect() != windowToAdd->rect)
 				{
-					_wnd->SetSize(windowToAdd->rect);
+					_wnd->SetSize(windowToAdd->rect.x, windowToAdd->rect.y,
+						windowToAdd->rect.width, windowToAdd->rect.height,
+						wxSIZE_ALLOW_MINUS_ONE);
 
-#ifdef _DEBUG
-#ifdef WIN32
-					//ws//printf(temp, L"windowToAdd rect : x : %d, y : %d, width %d, height %d \n", windowToAdd->rect.x, windowToAdd->rect.y, windowToAdd->rect.width, windowToAdd->rect.height);
-					//OutputDebugString(temp);
-#endif
-#endif
-				}
-				else
-					_wnd->SetSize(rc);
-
-				//_wnd->Refresh();
-				//_wnd->Refresh();
-				//_wnd->Update();
-			}
-
-
-			if (windowToAdd->separationBar != nullptr)
-			{
-				if (windowToAdd->separationBar->separationBar != nullptr)
-				{
-					if (windowToAdd->separationBar->separationBar->IsShown())
+					// ✅ RAFRAÎCHISSEMENT SÉCURISÉ OPENGL : Si c'est la fenêtre OpenGL qui a bougé, 
+					// on force son recalcul de viewport immédiatement de manière fluide.
+					if (windowToAdd->position == Pos::wxCENTRAL)
 					{
-#ifdef _DEBUG
-#ifdef WIN32
-						//TCHAR temp[255];
-#endif
-#endif
-						if (windowToAdd->separationBar->separationBar->IsShown())
-						{
-							windowToAdd->separationBar->separationBar->SetSize(windowToAdd->separationBar->rect);
-#ifdef _DEBUG
-#ifdef WIN32
-							//ws//printf(temp, L"separationBar rect : x : %d, y : %d, width %d, height %d \n", windowToAdd->separationBar->rect.x, windowToAdd->separationBar->rect.y, windowToAdd->separationBar->rect.width, windowToAdd->separationBar->rect.height);
-							//OutputDebugString(temp);
-#endif
-#endif
-						}
-						else
-							windowToAdd->separationBar->separationBar->SetSize(rc);
-
-						//windowToAdd->separationBar->separationBar->Refresh();
-						//windowToAdd->separationBar->separationBar->Refresh();
-						//windowToAdd->separationBar->separationBar->Update();
+						_wnd->Refresh(false);
 					}
 				}
+			}
+			else if (_wnd->GetSize() != nullRect.GetSize())
+			{
+				_wnd->SetSize(nullRect);
+			}
+		}
+
+		if (windowToAdd->separationBar != nullptr && windowToAdd->separationBar->separationBar != nullptr)
+		{
+			wxWindow* sepBar = windowToAdd->separationBar->separationBar.get();
+			if (sepBar->IsShown())
+			{
+				if (sepBar->GetRect() != windowToAdd->separationBar->rect)
+				{
+					sepBar->SetSize(windowToAdd->separationBar->rect.x, windowToAdd->separationBar->rect.y,
+						windowToAdd->separationBar->rect.width, windowToAdd->separationBar->rect.height,
+						wxSIZE_ALLOW_MINUS_ONE);
+				}
+			}
+			else if (sepBar->GetSize() != nullRect.GetSize())
+			{
+				sepBar->SetSize(nullRect);
 			}
 		}
 	}

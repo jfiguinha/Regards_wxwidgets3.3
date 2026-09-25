@@ -103,6 +103,10 @@ namespace Regards
 			Connect(wxEVENT_RESIZE, wxCommandEventHandler(CWindowMain::OnResize));
 			Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(CWindowMain::OnEraseBackground));
 			Connect(wxEVT_IDLE, wxIdleEventHandler(CWindowMain::OnIdle));
+
+			this->SetExtraStyle(wxWS_EX_PROCESS_UI_UPDATES | wxWS_EX_VALIDATE_RECURSIVELY);
+			this->SetBackgroundStyle(wxBG_STYLE_PAINT);
+
 		}
 
 		using WindowMainVector = std::map<int, CWindowMain*>;
