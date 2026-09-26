@@ -76,7 +76,7 @@ void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* hi
 		CImageLoadingFormat* imageLoad = filtreEffectOld->ApplyEffect();
 		if (imageLoad != nullptr)
 		{
-			historyEffectWnd->AddModification(imageLoad, CFiltreData::GetFilterLabel(numFiltre));
+			historyEffectWnd->AddModification(numFiltre, filtreEffectOld->GetEffectParameter(), CFiltreData::GetFilterLabel(numFiltre));
 		}
 
 		if (imageLoad != nullptr)
@@ -202,7 +202,9 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 					{
 						CImageLoadingFormat* imageLoad = CFilterWindowParam::RenderEffect(
 							effectParameter, bitmapViewer, numItem);
-						historyEffectWnd->AddModification(imageLoad, CFiltreData::GetFilterLabel(numItem));
+
+						historyEffectWnd->AddModification(numItem, effectParameter, CFiltreData::GetFilterLabel(numItem));
+
 						if (imageLoad != nullptr)
 							SetBitmapToViewer(imageLoad);
 					}

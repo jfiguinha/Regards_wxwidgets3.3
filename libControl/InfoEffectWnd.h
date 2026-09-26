@@ -22,7 +22,7 @@ namespace Regards::Control
 		               const CThemeTree& themeTree, int bitmap_window_id);
 		~CInfoEffectWnd(void) = default;
 
-		void AddModification(CImageLoadingFormat* bitmap, const wxString& libelle);
+		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle);
 		void HistoryUpdate(CImageLoadingFormat* bitmap, const wxString& filename, const wxString& historyLibelle,
 		                   CModificationManager* modificationManager);
 

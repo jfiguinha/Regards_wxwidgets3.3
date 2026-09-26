@@ -37,6 +37,7 @@ public:
 	static wxString GetFilterLabel(const int& numFilter);
 	static CEffectParameter* GetDefaultEffectParameter(const int& numFilter);
 	static CEffectParameter* GetEffectParameter(const int& numFilter);
+	static int GetNumFilterFromLabel(const wxString& libelle);
 
 private:
 	// Retourne le filtre correspondant à numFilter, ou nullptr si absent.

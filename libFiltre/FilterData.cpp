@@ -249,3 +249,29 @@ wxString CFiltreData::GetFilterLabel(const int& numFilter)
 		return filterEffect->GetFilterLabel();
 	return "";
 }
+
+int CFiltreData::GetNumFilterFromLabel(const wxString& libelle)
+{
+	// On passe le libellé recherché en minuscules pour une comparaison insensible à la casse
+	wxString searchLabel = libelle;
+	searchLabel.MakeLower();
+
+	// Parcours de la liste de tous les filtres instanciés
+	for (const auto& pair : filterList)
+	{
+		if (pair.second != nullptr)
+		{
+			wxString filterLabel = pair.second->GetFilterLabel();
+			filterLabel.MakeLower();
+
+			// Si le libellé correspond, on retourne l'ID du filtre (la clé du map)
+			if (filterLabel == searchLabel)
+			{
+				return pair.first;
+			}
+		}
+	}
+
+	// Retourne -1 si aucun filtre correspondant n'a été trouvé
+	return -1;
+}

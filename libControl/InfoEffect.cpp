@@ -18,7 +18,7 @@ using namespace Regards::Control;
 using namespace Regards::Picture;
 
 CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModificationManager* modificationManager,
-                         int bitmapWindowId): numEvent(0), yPos(0), index(0)
+	int bitmapWindowId) : numEvent(0), yPos(0), index(0), baseBitmap(nullptr)
 {
 	this->bitmapWindowId = bitmapWindowId;
 	widthPosition = 0;
@@ -38,14 +38,19 @@ CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModifi
 	rowWidth.push_back(0);
 }
 
+void CInfoEffect::Init(CImageLoadingFormat* bitmap, const wxString& libelle, const wxString& key)
+{
+	this->baseBitmap = bitmap; // On stocke la référence de l'image source non-modifiée
+	modificationManager->Init(bitmap);
+	InitTree(libelle, key);
+}
 
-//////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////
-void CInfoEffect::AddModification(CImageLoadingFormat* bitmap, const wxString& libelle)
+void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle)
 {
 	const int numModification = modificationManager->GetNumModification();
 	const int nbModification = modificationManager->GetNbModification();
 
+	// Si l'utilisateur était revenu en arrière (Undo), on nettoie l'arbre graphique
 	if (numModification < nbModification)
 	{
 		ClearData();
@@ -63,24 +68,61 @@ void CInfoEffect::AddModification(CImageLoadingFormat* bitmap, const wxString& l
 
 	wxString localLibelle = libelle;
 	localLibelle.Replace(".", "@99");
-	modificationManager->AddModification(bitmap, libelle);
-	AddEvent("Effect." + localLibelle, GetNumModification());
+
+	// Appel de la nouvelle méthode non-destructive sur le gestionnaire
+	modificationManager->AddModification(numEffect, effectParameter, libelle);
+
+	// Récupération du nouvel index généré par le manager
+	wxString currentModifKey = GetNumModification();
+
+	AddEvent("Effect." + localLibelle, currentModifKey);
 	index++;
-	SetActifElement(GetNumModification());
+	SetActifElement(currentModifKey);
 }
+
+
+void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
+	const int& posLargeur, const int& posHauteur)
+{
+	CTreeElement* treeElement = element->GetTreeElement();
+	auto treeData = element->GetTreeData();
+	if (element->GetType() == ELEMENT_TEXTE)
+	{
+		wxString key = treeData->GetExifKey();
+		if (key != "History")
+		{
+			const int modif = CConvertUtility::StringToInt(key);
+			// Utilisation de la nouvelle fonction non-destructive basée sur l'image source originale
+			SetBitmapToViewer(modificationManager->GetModification(modif));
+		}
+		else
+		{
+			CLibPicture libPicture;
+			CImageLoadingFormat* bitmap = libPicture.LoadPicture(treeData->GetKey());
+			SetBitmapToViewer(bitmap);
+		}
+		SetActifElement(key);
+	}
+	else if (element->GetType() == ELEMENT_TRIANGLE)
+	{
+		auto treeElementTriangle = dynamic_cast<CTreeElementTriangle*>(treeElement);
+		treeElementTriangle->ClickElement(window, (x + posLargeur) - element->GetX(),
+			(y + posHauteur) - element->GetY());
+		CreateElement(RenderMode::Update);
+		eventControl->UpdateTreeControl();
+	}
+}
+
+// Les fonctions suivantes restent inchangées, conservées pour l'intégrité du fichier compilable :
 
 void CInfoEffect::InitTree(const wxString& libelle, const wxString& key)
 {
 	filename = libelle;
 	numEvent = 1;
 	index = 0;
-	//Récupération des catégories principales
-
-	//child = childStart;
 	wxString localLibelle = libelle;
 	localLibelle.Replace(".", "@99");
 	AddEvent("Source." + localLibelle, key);
-	//childStart = child;
 	index++;
 	CreateElement(RenderMode::Create);
 }
@@ -92,46 +134,14 @@ wxString CInfoEffect::GetNumModification()
 
 void CInfoEffect::SetBitmapToViewer(CImageLoadingFormat* bitmap)
 {
-	auto bitmapWindow =wxWindow::FindWindowById(bitmapWindowId);
+	auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);
 	auto event = new wxCommandEvent(wxEVENT_SETBITMAP);
 	event->SetClientData(bitmap);
 	wxQueueEvent(bitmapWindow, event);
 }
 
-void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-                                 const int& posLargeur, const int& posHauteur)
-{
-	CTreeElement* treeElement = element->GetTreeElement();
-	auto treeData = element->GetTreeData();
-	if (element->GetType() == ELEMENT_TEXTE)
-	{
-		wxString key = treeData->GetExifKey();
-		if (key != "History")
-		{
-			const int modif = CConvertUtility::StringToInt(key);
-			SetBitmapToViewer(modificationManager->GetModification(modif));
-		}
-		else
-		{
-			CLibPicture libPicture;
-			CImageLoadingFormat* bitmap = libPicture.LoadPicture(treeData->GetKey());
-			SetBitmapToViewer(bitmap);
-
-		}
-		SetActifElement(key);
-	}
-	else if (element->GetType() == ELEMENT_TRIANGLE)
-	{
-		auto treeElementTriangle = dynamic_cast<CTreeElementTriangle*>(treeElement);
-		treeElementTriangle->ClickElement(window, (x + posLargeur) - element->GetX(),
-		                                  (y + posHauteur) - element->GetY());
-		CreateElement(RenderMode::Update);
-		eventControl->UpdateTreeControl();
-	}
-}
-
 void CInfoEffect::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
-                            const int& posLargeur, const int& posHauteur, bool& update)
+	const int& posLargeur, const int& posHauteur, bool& update)
 {
 	int xPos = 0;
 	if (element->GetRow() > 0)
@@ -143,12 +153,6 @@ void CInfoEffect::MouseOver(wxDC* deviceContext, CPositionElement* element, cons
 wxString CInfoEffect::GetFilename()
 {
 	return filename;
-}
-
-void CInfoEffect::Init(CImageLoadingFormat* bitmap, const wxString& libelle, const wxString& key)
-{
-	modificationManager->Init(bitmap);
-	InitTree(libelle, key);
 }
 
 void CInfoEffect::SetActifElement(const wxString& key)
@@ -166,41 +170,35 @@ void CInfoEffect::SetActifElement(const wxString& key)
 	}
 	eventControl->UpdateTreeControl();
 }
+
 void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 {
 	numEvent += 2;
-
 	wxString localLibelle = libelle;
 	localLibelle.Replace("@99", ".");
-
 	int level = 0;
-
 	wxStringTokenizer tokenizer(libelle, ".");
 
 	while (tokenizer.HasMoreTokens())
 	{
 		wxString value = tokenizer.GetNextToken();
 		value.Replace("@99", ".");
-
 		const bool hasChildren = tokenizer.HasMoreTokens();
-
 		auto* treeData = new CTreeData();
 		treeData->SetKey(value);
 
 		if (hasChildren)
 		{
 			treeData->SetIsParent(true);
-
 			if (index > 0)
 			{
 				tree<CTreeData*>::iterator it;
-
 				if (level == 0)
 					it = FindKey(treeData->GetKey());
 				else
 					it = FindKey(treeData->GetKey(), child);
 
-				if (it != nullptr) // maybe tr.end()
+				if (it != nullptr)
 				{
 					child = it;
 					++level;
@@ -210,9 +208,7 @@ void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 			}
 
 			if (level > 0)
-			{
 				child = tr.append_child(child, treeData);
-			}
 			else
 			{
 				treeData->SetExifKey("-1");
@@ -224,13 +220,10 @@ void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 			treeData->SetIsParent(false);
 			treeData->SetValue(localLibelle);
 			treeData->SetExifKey(key);
-
 			tr.append_child(child, treeData);
 		}
-
 		++level;
 	}
-
 	CreateElement(RenderMode::Update);
 	eventControl->UpdateTreeControl();
 }
@@ -272,21 +265,12 @@ void CInfoEffect::CreateElement(RenderMode mode)
 			CTreeElementTriangle* tree_element_triangle = nullptr;
 			CPositionElement* posElement = nullptr;
 
-			posElement = RenderTriangle(data,
-				xPos,
-				yPos,
-				isVisible,
-				RenderMode::Create);
-
+			posElement = RenderTriangle(data, xPos, yPos, isVisible, RenderMode::Create);
 			xPos += posElement->GetWidth() + themeTree.GetMargeX();
 			widthPosition = posElement->GetWidth() + themeTree.GetMargeX();
 			tree_element_triangle = dynamic_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
 
-			posElement = RenderText(data,
-				xPos,
-				yPos,
-				isVisible,
-				RenderMode::Create);
+			posElement = RenderText(data, xPos, yPos, isVisible, RenderMode::Create);
 			widthElement += xPos + posElement->GetWidth() + themeTree.GetMargeX();
 			yPos += themeTree.GetRowHeight();
 			nbRow++;
@@ -295,7 +279,6 @@ void CInfoEffect::CreateElement(RenderMode mode)
 
 			if (mode == RenderMode::Update)
 			{
-				 
 				bool isOpen = false;
 				if (tree_element_triangle != nullptr)
 					isOpen = tree_element_triangle->GetOpen();
@@ -303,12 +286,10 @@ void CInfoEffect::CreateElement(RenderMode mode)
 				if (isOpen)
 					UpdateChildTree(it);
 			}
-
 		}
 		++it;
 	}
 }
-
 
 void CInfoEffect::UpdateScreenRatio()
 {
@@ -326,12 +307,7 @@ void CInfoEffect::UpdateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 		CTreeData* data = *it;
 		int xPos = widthPosition * (profondeur);
 
-		CPositionElement*  posElement = RenderText(data,
-			xPos,
-			yPos,
-			isVisible,
-			RenderMode::Update, true);
-
+		CPositionElement* posElement = RenderText(data, xPos, yPos, isVisible, RenderMode::Update, true);
 		const int widthElement = xPos + posElement->GetWidth() + themeTree.GetMargeX();
 		yPos += themeTree.GetRowHeight();
 

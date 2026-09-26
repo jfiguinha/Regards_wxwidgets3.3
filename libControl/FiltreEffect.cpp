@@ -93,6 +93,10 @@ void CFiltreEffect::Init(CEffectParameter* effectParameter, cv::Mat source, cons
 	RenderElement(RenderMode::Create);
 }
 
+CEffectParameter* CFiltreEffect::GetEffectParameter()
+{
+	return effectParameter;
+}
 
 void CFiltreEffect::UpdateScreenRatio()
 {

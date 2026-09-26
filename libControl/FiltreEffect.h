@@ -27,6 +27,7 @@ namespace Regards::Window
 		void SlidePosChange(CTreeElement* treeElement, const int& position, CTreeElementValue* value,
 		                    const wxString& key) override;
 		virtual CImageLoadingFormat* ApplyEffect();
+		CEffectParameter* GetEffectParameter();
 		void UpdateScreenRatio() override;
 		void UpdateMousePosition();
 		void AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value,

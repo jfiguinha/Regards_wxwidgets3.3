@@ -22,10 +22,10 @@ CInfoEffectWnd::CInfoEffectWnd(wxWindow* parent, const wxWindowID id, const CThe
 	historyEffectOld = nullptr;
 }
 
-void CInfoEffectWnd::AddModification(CImageLoadingFormat* bitmap, const wxString& libelle)
+void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle)
 {
 	if (historyEffectOld != nullptr)
-		historyEffectOld->AddModification(bitmap, libelle);
+		historyEffectOld->AddModification(numEffect, effectParameter, libelle);
 }
 
 void CInfoEffectWnd::HistoryUpdate(CImageLoadingFormat* bitmap, const wxString& filename,
