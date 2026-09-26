@@ -1,5 +1,6 @@
 #include <header.h>
 #include "ThumbnailEffect.h"
+
 #include <FilterData.h>
 #include <FiltreEffet.h>
 #include <ImageLoadingFormat.h>
@@ -16,7 +17,6 @@
 
 #include "InfosSeparationBarEffect.h"
 #include "ScrollbarWnd.h"
-
 #include "wx/stdpaths.h"
 
 using namespace Regards::Window;
@@ -295,8 +295,7 @@ void CThumbnailEffect::LoadPicture(void* param) {
 
         auto filtre = std::make_unique<CFiltreEffet>(color_quad, nullptr, picture);
 
-        switch (threadLoadingBitmap->photoId)
-        {
+        switch (threadLoadingBitmap->photoId) {
         case IDM_WAVE_EFFECT:
             filtre->WaveFilter(20, 20, picture->GetHeight() / 2, 2, 20);
             break;
@@ -305,14 +304,13 @@ void CThumbnailEffect::LoadPicture(void* param) {
             filtre->LensFlare(20, 20, 20, 1, 20, 45, 20);
             break;
 
-        default:
-        {
+        default: {
             std::unique_ptr<CEffectParameter> effect;
-            effect.reset(CFiltreData::GetDefaultEffectParameter(threadLoadingBitmap->thumbnailData->GetNumPhotoId()));
-            filtre->RenderEffect(threadLoadingBitmap->thumbnailData->GetNumPhotoId(), effect.get());
-        }
-        break;
-
+            effect.reset(CFiltreData::GetDefaultEffectParameter(
+                threadLoadingBitmap->thumbnailData->GetNumPhotoId()));
+            filtre->RenderEffect(
+                threadLoadingBitmap->thumbnailData->GetNumPhotoId(), effect.get());
+        } break;
         }
         threadLoadingBitmap->picture = filtre->GetBitmap(true);
     }

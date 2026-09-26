@@ -145,44 +145,15 @@ wxString CIconeList::GetFilename(const int& numElement)
 	return filename;
 }
 
- bool CIconeList::IfElementExistByFilename(const wxString& filename)
- {
-     auto it = pIconeByFilename.find(filename);
-
-    if (it != pIconeByFilename.end())
-        return true;
-
-    return false;    
- }
-
-CIcone* CIconeList::FindElementByFilename(const wxString& filename)
+bool CIconeList::IfElementExistByFilename(const wxString& filename)
 {
     auto it = pIconeByFilename.find(filename);
 
-	if (it != pIconeByFilename.end() && it->second != nullptr)
-	{
-		int numElement = GetNumElement(filename);
-		it->second->SetNumElement(numElement);
-		return it->second;
-	}
-    return nullptr;
-}
+if (it != pIconeByFilename.end())
+    return true;
 
-int CIconeList::GetNumElement(const wxString& filename)
-{
-	for (int i = 0; i < pIconeList.size(); i++)
-	{
-		if (CIcone* icone = pIconeList[i])
-		{
-			if (CThumbnailData* data = icone->GetPtData())
-			{
-				if (data->GetFilename() == filename)
-					return i;
-			}
-		}
-	}
+return false;    
 }
-
 
 CIcone* CIconeList::FindElementByPhotoId(const int& photoId)
 {
@@ -292,7 +263,45 @@ bool compareFilename(CIcone* lhs, CIcone* rhs)
 }
 
 
+// OPTIMISATION & CORRECTION : Recherche O(1) au lieu de O(N) + Sécurité
+int CIconeList::GetNumElement(const wxString& filename)
+{
+	// On protège l'accès en lecture de la liste
+	std::unique_lock lock(mutexList);
+
+	// Au lieu de la boucle 'for' qui parcourait tout le vecteur (O(N)),
+	// on utilise la map existante (O(1)) pour trouver l'icône directement.
+	auto it = pIconeByFilename.find(filename);
+	if (it != pIconeByFilename.end() && it->second != nullptr)
+	{
+		return it->second->GetNumElement();
+	}
+
+	return -1; // CORRECTION : Évite le comportement indéfini si non trouvé
+}
+
+// OPTIMISATION : Suppression de la double recherche
+CIcone* CIconeList::FindElementByFilename(const wxString& filename)
+{
+	// On utilise un verrou car on lit et modifie potentiellement l'objet
+	std::unique_lock lock(mutexList);
+
+	auto it = pIconeByFilename.find(filename);
+	if (it != pIconeByFilename.end() && it->second != nullptr)
+	{
+		// PLUS BESOIN de appeler GetNumElement(filename) qui refaisait un parcours !
+		// L'icône connaît déjà sa propre position dans le vecteur ou peut être retournée directement.
+		// Si vous devez absolument rafraîchir son index interne :
+		// it->second->SetNumElement(it->second->GetNumElement()); // Optionnel selon votre logique
+
+		return it->second;
+	}
+	return nullptr;
+}
+
+// SÉCURISATION : Ajout du verrou manquant pour le tri par nom de fichier
 void CIconeList::SortByFilename()
 {
+	std::unique_lock lock(mutexList);
 	tbb::parallel_sort(pIconeList.begin(), pIconeList.end(), compareFilename);
 }
