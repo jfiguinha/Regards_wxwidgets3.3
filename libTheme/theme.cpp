@@ -273,6 +273,16 @@ void CThemeFont::LoadXML(xml_node<>* root_node)
 			bold = CConvertUtility::StringToInt(value);
 		}
 
+		child_node = node->first_node("italic");
+		if (child_node != nullptr)
+		{
+			value = child_node->value();
+			nodeName = child_node->name();
+			italic = CConvertUtility::StringToInt(value);
+		}
+		else
+			italic = 0;
+
 		child_node = node->first_node("positionFont");
 		if (child_node != nullptr)
 		{
@@ -330,6 +340,7 @@ void CThemeFont::SaveXML(xml_document<>& doc, xml_node<>* sectionPosition)
 	section->append_node(node(doc, "colorBack",
 	                          CConvertUtility::ConvertToStdString(colorBack.GetAsString(wxC2S_CSS_SYNTAX))));
 	section->append_node(node(doc, "bold", to_string(bold)));
+	section->append_node(node(doc, "italic", to_string(italic)));
 	section->append_node(node(doc, "positionFont", to_string(positionFont)));
 	section->append_node(node(doc, "colorFont",
 	                          CConvertUtility::ConvertToStdString(colorFont.GetAsString(wxC2S_CSS_SYNTAX))));

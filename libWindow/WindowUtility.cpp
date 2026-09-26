@@ -1,12 +1,41 @@
 #include <header.h>
 #include "WindowUtility.h"
+#include <wx/fontenum.h>
+
 using namespace Regards::Window;
+
+// Méthode d'aide privée/interne pour factoriser la création de la police
+wxFont CWindowUtility::CreateFont(CThemeFont& font)
+{
+	int fontSize = font.GetFontSize();
+	bool isBold = font.GetBold();
+	bool isItalic = (font.GetItalic() == 1);
+	wxString fontName = font.GetFontName();
+
+	wxFontWeight weight = isBold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL;
+	wxFontStyle style = isItalic ? wxFONTSTYLE_ITALIC : wxFONTSTYLE_NORMAL;
+
+	// Vérification de l'existence de la police sur le système
+	if (wxFontEnumerator::IsValidFacename(fontName))
+	{
+		return wxFont(fontSize, wxFONTFAMILY_DEFAULT, style, weight, false, fontName);
+	}
+	else
+	{
+		return wxFont(fontSize, wxFONTFAMILY_SWISS, style, weight, false, wxEmptyString);
+	}
+}
+
+bool CWindowUtility::FontExists(const wxString& fontName)
+{
+	return wxFontEnumerator::IsValidFacename(fontName);
+}
 
 void CWindowUtility::FillRect(wxDC* dc, const wxRect& rc, const wxColour& color)
 {
 	wxBrush brush(color, wxBRUSHSTYLE_SOLID);
 	dc->SetBrush(brush);
-	dc->SetPen(wxPen(color, 1)); // 10-pixels-thick pink outline
+	dc->SetPen(wxPen(color, 1));
 	dc->DrawRectangle(rc);
 	dc->SetPen(wxNullPen);
 	dc->SetBrush(wxNullBrush);
@@ -14,15 +43,8 @@ void CWindowUtility::FillRect(wxDC* dc, const wxRect& rc, const wxColour& color)
 
 void CWindowUtility::DrawTexte(wxDC* dc, const wxString& libelle, const int& xPos, const int& yPos, CThemeFont font)
 {
-	int fontSize = font.GetFontSize();
 	wxColour color = font.GetColorFont();
-	bool isBold = font.GetBold();
-
-	// Utilisation d'une condition ternaire pour choisir wxFONTWEIGHT_BOLD ou wxFONTWEIGHT_NORMAL
-	wxFontWeight weight = isBold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL;
-
-	// Application du poids (weight) à la police de caractères
-	wxFont _font(fontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, weight);
+	wxFont _font = CreateFont(font); // Utilisation de la méthode factorisée
 
 	dc->SetFont(_font);
 	dc->SetTextForeground(color);
@@ -30,14 +52,14 @@ void CWindowUtility::DrawTexte(wxDC* dc, const wxString& libelle, const int& xPo
 	dc->SetFont(wxNullFont);
 }
 
-
 wxSize CWindowUtility::GetSizeTexte(wxDC* dc, const wxString& libelle, CThemeFont font)
 {
 	wxSize size;
 	wxMemoryDC temp_dc(dc);
- 	wxFont _font(font.GetFontSize(), wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+	wxFont _font = CreateFont(font); // Utilisation de la méthode factorisée
+
 	temp_dc.SetFont(_font);
 	size = temp_dc.GetTextExtent(libelle);
 	temp_dc.SetFont(wxNullFont);
 	return size;
-};
+}

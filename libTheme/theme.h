@@ -106,6 +106,17 @@ public:
 		return bold;
 	}
 
+	int GetItalic()
+	{
+		return italic;
+	}
+
+	void SetItalic(const int& italic)
+	{
+		this->italic = italic;
+	}
+
+
 	void SetBold(const int& bold)
 	{
 		this->bold = bold;
@@ -178,6 +189,7 @@ public:
 
 private:
 	int bold;
+	int italic;
 	int positionFont;
 	wxColour colorFont;
 	wxString fontName;
