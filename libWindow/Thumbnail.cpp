@@ -453,7 +453,7 @@ CThumbnail::CThumbnail(wxWindow* parent, wxWindowID id, const CThemeThumbnail& t
 	Connect(TIMER_MOVE, wxEVT_TIMER, wxTimerEventHandler(CThumbnail::OnTimerMove), nullptr, this);
 
 	if(!m_animation)
-		m_animation = std::make_unique<wxAnimation>(CFileUtility::GetResourcesFolderPathWithExt("loading.gif"));
+		m_animation = std::make_unique<wxAnimation>(CFileUtility::GetResourcesFolderPathWithExt("loading_circle_gradient.webp"));
 
 	Connect(wxEVENT_ONSTARTLOADINGPICTURE, wxCommandEventHandler(CThumbnail::StartLoadingPicture));
 	Connect(wxEVENT_ONSTOPLOADINGPICTURE, wxCommandEventHandler(CThumbnail::StopLoadingPicture));
