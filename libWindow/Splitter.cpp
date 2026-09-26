@@ -8,88 +8,20 @@ using namespace Regards::Window;
 
 CSplitter::CSplitter(wxWindow* parent, wxWindowID id, const CThemeSplitter& theme, const bool& horizontal)
 	: CWindowMain("CSplitter", parent, id),
-	  m_impl(std::make_unique<CSplitterImpl>(theme))
+	m_impl(std::make_unique<CSplitterImpl>(theme))
 {
 	m_impl->horizontal = horizontal;
 	m_impl->windowMinimalSize = DEFAULT_MINIMAL_WINDOW_SIZE;
 	m_impl->separationBar = std::make_unique<CSeparationBar>(this, this, wxID_ANY, m_impl->themeSplitter.themeSeparation);
+
+	// On désactive le mode de rendu synchrone CPU obsolète pour OpenGL
+	m_impl->fastRender = false;
 }
 
-
-void CSplitter::GenerateHorizontalRenderBitmap()
-{
-	if (m_impl->window1 == nullptr && m_impl->window2 == nullptr)
-		return;
-
-	int posY = 0;
-	m_impl->renderBitmap = wxBitmap(GetWindowWidth(), GetWindowHeight());
-	wxMemoryDC dcSplitter(m_impl->renderBitmap);
-
-	if (m_impl->window1->IsShown())
-	{
-		wxWindowDC dc(m_impl->window1);
-		dcSplitter.Blit(0, 0, GetWindowWidth(), GetWindowHeight(), &dc, 0, 0);
-		posY += dc.GetSize().GetHeight();
-	}
-
-	if (m_impl->separationBar->IsShown())
-	{
-		wxWindowDC dc(m_impl->separationBar.get());
-		dcSplitter.Blit(0, posY, GetWindowWidth(), GetWindowHeight(), &dc, 0, 0);
-		posY += dc.GetSize().GetHeight();
-	}
-	if (m_impl->window2->IsShown())
-	{
-		wxWindowDC dc(m_impl->window2);
-		dcSplitter.Blit(0, posY, GetWindowWidth(), GetWindowHeight(), &dc, 0, 0);
-	}
-	dcSplitter.SelectObject(wxNullBitmap);
-}
-
-/*
-void CSplitter::OnPaint(wxPaintEvent& event)
-{
-    int width = GetWindowWidth();
-    int height = GetWindowHeight();
-    if(width == 0 || height == 0)
-        return;
-
-    
-	//wxPaintDC dc(this);
-	wxRect rc = GetWindowRect();
-	FillRect(&dc, rc, themeSplitter.colorBack);
-}
-*/
-void CSplitter::GenerateVerticalRenderBitmap()
-{
-	if (m_impl->window1 == nullptr && m_impl->window2 == nullptr)
-		return;
-
-	int posX = 0;
-	m_impl->renderBitmap = wxBitmap(GetWindowWidth(), GetWindowHeight());
-	wxMemoryDC dcSplitter(m_impl->renderBitmap);
-
-	if (m_impl->window1->IsShown())
-	{
-		wxWindowDC dc(m_impl->window1);
-		dcSplitter.Blit(0, 0, GetWindowWidth(), GetWindowHeight(), &dc, 0, 0);
-		posX += dc.GetSize().GetWidth();
-	}
-
-	if (m_impl->separationBar->IsShown())
-	{
-		wxWindowDC dc(m_impl->separationBar.get());
-		dcSplitter.Blit(posX, 0, GetWindowWidth(), GetWindowHeight(), &dc, 0, 0);
-		posX += dc.GetSize().GetWidth();
-	}
-
-	if (m_impl->window2->IsShown())
-	{
-		wxWindowDC dc(m_impl->window2);
-		dcSplitter.Blit(posX, 0, GetWindowWidth(), GetWindowHeight(), &dc, 0, 0);
-	}
-	dcSplitter.SelectObject(wxNullBitmap);
-}
+// Ces fonctions CPU basées sur le Blit sont supprimées car incompatibles avec OpenGL
+void CSplitter::GenerateHorizontalRenderBitmap() {}
+void CSplitter::GenerateVerticalRenderBitmap() {}
+void CSplitter::DrawSeparationBar(const int& x, const int& y, const int& width, const int& height) {}
 
 void CSplitter::SetWindow(wxWindow* window1, wxWindow* window2)
 {
@@ -119,41 +51,22 @@ int CSplitter::GetPosition() const
 	return m_impl->posBar;
 }
 
-
 bool CSplitter::OnLButtonDown()
 {
 	m_impl->moving = true;
-	if (m_impl->fastRender)
-	{
-		wxRect rc = m_impl->window1->GetRect();
-		if (m_impl->horizontal)
-		{
-			GenerateHorizontalRenderBitmap();
-			m_impl->posWindow = rc.GetBottom() + m_impl->themeSplitter.themeSeparation.size;
-		}
-		else
-		{
-			GenerateVerticalRenderBitmap();
-			m_impl->posWindow = rc.GetRight() + m_impl->themeSplitter.themeSeparation.size;
-		}
-		return true;
-	}
 	return true;
 }
 
 void CSplitter::OnLButtonUp()
 {
 	m_impl->moving = false;
-	if (m_impl->fastRender)
-	{
-		Resize(this);
-	}
+	// Le layout est déjà mis à jour en temps réel via SetNewPosition
 }
 
 void CSplitter::SetFixPosition(const bool& value)
 {
 	m_impl->fixPosition = value;
-	if (m_impl->fixPosition == false)
+	if (!m_impl->fixPosition)
 	{
 		m_impl->fixWindow1Size = false;
 		m_impl->fixWindow2Size = false;
@@ -186,6 +99,8 @@ void CSplitter::SetNewPosition(CSeparationBar* separationBar)
 		{
 			m_impl->posBar = position.x;
 		}
+
+		// Redimensionnement immédiat pendant le déplacement de la souris
 		Resize(this);
 	}
 }
@@ -202,36 +117,8 @@ void CSplitter::SetWindow2FixPosition(const bool& fixPosition, const int& window
 	m_impl->fixWindow2Size = fixPosition;
 }
 
-void CSplitter::DrawSeparationBar(const int& x, const int& y, const int& width, const int& height)
-{
-	wxWindowDC dc(this);
-	dc.DrawBitmap(m_impl->renderBitmap, 0, 0);
-
-	if (m_impl->horizontal)
-	{
-		wxRect rc;
-		rc.x = x;
-		rc.y = y;
-		rc.width = width;
-		rc.height = height;
-		dc.GradientFillLinear(rc, m_impl->themeSplitter.themeSeparation.secondColor, m_impl->themeSplitter.themeSeparation.firstColor,
-							  wxSOUTH);
-	}
-	else
-	{
-		wxRect rc;
-		rc.x = x;
-		rc.y = y;
-		rc.width = width;
-		rc.height = height;
-		dc.GradientFillLinear(rc, m_impl->themeSplitter.themeSeparation.secondColor, m_impl->themeSplitter.themeSeparation.firstColor,
-							  wxEAST);
-	}
-}
-
 void CSplitter::ResizeEvent()
-{
-}
+{}
 
 void CSplitter::Resize()
 {
@@ -248,24 +135,7 @@ void CSplitter::Resize()
 
 void CSplitter::ResizeVertical()
 {
-	const int width = GetSize().GetX();
-	const int height = GetSize().GetY();
-
-	wxLogDebug("ResizeVertical: width=%d, height=%d", width, height);
-
-	if (m_impl->window1 != nullptr)
-	{
-		const int window1Width = m_impl->window1->GetSize().GetWidth();
-		const int window2Height = m_impl->window1->GetSize().GetHeight();
-		wxLogDebug("ResizeVertical: window1Width=%d, window1Height=%d", window1Width, window2Height);
-	}
-
-	if (m_impl->fastRender && m_impl->moving)
-	{
-		int x = m_impl->posBar;
-		DrawSeparationBar(x, 0, m_impl->themeSplitter.themeFast.size, GetWindowHeight());
-	}
-	else if (GetWindowWidth() > 0)
+	if (GetWindowWidth() > 0)
 	{
 		if (m_impl->fixWindow1Size)
 		{
@@ -288,7 +158,6 @@ void CSplitter::ResizeVertical()
 				else if (m_impl->posBar < m_impl->windowMinimalSize)
 					m_impl->posBar = m_impl->windowMinimalSize;
 
-				// Calculate new posBar based on percentage
 				const float percent = static_cast<float>(m_impl->posBar) / static_cast<float>(m_impl->oldWidth);
 				m_impl->posBar = static_cast<int>(percent * GetWindowWidth());
 			}
@@ -313,21 +182,19 @@ void CSplitter::ResizeVertical()
 			}
 		}
 
+		// Envoi direct des tailles aux fenêtres enfants (OpenGL interceptera l'event Size nativement)
 		m_impl->window2->SetSize(m_impl->posWindow, 0, m_impl->diff, GetWindowHeight());
+
 		if (!m_impl->fixWindow1Size && !m_impl->fixWindow2Size)
 			m_impl->separationBar->SetSize(m_impl->taille, 0, m_impl->themeSplitter.themeSeparation.size, GetWindowHeight());
+
 		m_impl->window1->SetSize(0, 0, m_impl->taille, GetWindowHeight());
 	}
 }
 
 void CSplitter::ResizeHorizontal()
 {
-	if (m_impl->fastRender && m_impl->moving)
-	{
-		int y = m_impl->posBar + m_impl->themeSplitter.themeSeparation.size / 2 + m_impl->themeSplitter.themeFast.size;
-		DrawSeparationBar(0, y, GetWindowWidth(), m_impl->themeSplitter.themeFast.size);
-	}
-	else if (GetWindowHeight() > 0)
+	if (GetWindowHeight() > 0)
 	{
 		if (m_impl->fixWindow1Size)
 		{
@@ -348,7 +215,6 @@ void CSplitter::ResizeHorizontal()
 				else if (m_impl->posBar < m_impl->windowMinimalSize)
 					m_impl->posBar = m_impl->windowMinimalSize;
 
-				// Calculate new posBar based on percentage
 				const float percent = static_cast<float>(m_impl->posBar) / static_cast<float>(m_impl->oldHeight);
 				m_impl->posBar = static_cast<int>(percent * GetWindowHeight());
 			}
@@ -375,8 +241,10 @@ void CSplitter::ResizeHorizontal()
 
 		m_impl->window1->SetSize(0, 0, GetWindowWidth(), m_impl->taille);
 		m_impl->window1->PostSizeEvent();
+
 		if (!m_impl->fixWindow1Size && !m_impl->fixWindow2Size)
 			m_impl->separationBar->SetSize(0, m_impl->taille, GetWindowWidth(), m_impl->themeSplitter.themeSeparation.size);
+
 		m_impl->window2->SetSize(0, m_impl->posWindow, GetWindowWidth(), m_impl->diff);
 		m_impl->window2->PostSizeEvent();
 	}
@@ -401,37 +269,28 @@ void CSplitter::Resize(wxWindow* window)
 			else
 				ResizeVertical();
 
-			if (m_impl->window1 != nullptr)
-			{
-				m_impl->window1->Refresh();
-			}
+			if (m_impl->window1 != nullptr)	m_impl->window1->Refresh();
+			if (m_impl->window2 != nullptr)	m_impl->window2->Refresh();
 
-			if (m_impl->window2 != nullptr)
-			{
-				m_impl->window2->Refresh();
-			}
 			m_impl->separationBar->Refresh();
 			return;
 		}
 	}
 
-	if (m_impl->separationBar)
+	if (m_impl->separationBar && m_impl->separationBar->IsShown())
 	{
-		if (m_impl->separationBar->IsShown())
-			m_impl->separationBar->Show(false);
+		m_impl->separationBar->Show(false);
 	}
 
-	if (m_impl->window1 != nullptr)
-		if (m_impl->window1->IsShown())
-		{
-			m_impl->window1->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
-			m_impl->window1->Refresh();
-		}
+	if (m_impl->window1 != nullptr && m_impl->window1->IsShown())
+	{
+		m_impl->window1->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
+		m_impl->window1->Refresh();
+	}
 
-	if (m_impl->window2 != nullptr)
-		if (m_impl->window2->IsShown())
-		{
-			m_impl->window2->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
-			m_impl->window2->Refresh();
-		}
+	if (m_impl->window2 != nullptr && m_impl->window2->IsShown())
+	{
+		m_impl->window2->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
+		m_impl->window2->Refresh();
+	}
 }

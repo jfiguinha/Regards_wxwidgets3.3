@@ -1,25 +1,23 @@
-// ReSharper disable All
 #include <header.h>
 #include "ThumbnailVertical.h"
 #include "ScrollbarWnd.h"
 #include "ThumbnailBuffer.h"
 #include <RegardsConfigParam.h>
 #include <wx/progdlg.h>
+#include <algorithm> // Pour std::max
+
 using namespace Regards::Control;
 
-CThumbnailVertical::CThumbnailVertical(wxWindow* parent, const wxWindowID id, const CThemeThumbnail& themeThumbnail,
-                                       const bool& testValidity)
+CThumbnailVertical::CThumbnailVertical(wxWindow* parent, const wxWindowID id, const CThemeThumbnail& themeThumbnail, const bool& testValidity)
 	: CThumbnail(parent, id, themeThumbnail, testValidity), test_validity_(testValidity),
-	  theme_thumbnail_(themeThumbnail), id_(id)
+	theme_thumbnail_(themeThumbnail), id_(id)
 {
 	noVscroll = false;
 }
 
+CThumbnailVertical::~CThumbnailVertical(void) = default;
 
-CThumbnailVertical::~CThumbnailVertical(void)
-= default;
-
-void CThumbnailVertical::GenerateList(CIconeList* & newIconeList)
+void CThumbnailVertical::GenerateList(CIconeList*& newIconeList)
 {
 	int size = iconeList->GetNbElement();
 
@@ -33,9 +31,12 @@ void CThumbnailVertical::GenerateList(CIconeList* & newIconeList)
 			{
 				iconeList->RemoveElement(i);
 				--i;
+				size--; // Ajustement dynamique pour éviter les débordements
 			}
 			else
+			{
 				newIconeList->AddElement(ico);
+			}
 		}
 	}
 }
@@ -52,37 +53,44 @@ void CThumbnailVertical::OnScrollBarH(wxCommandEvent& event)
 	ResizeThumbnail();
 }
 
-CIcone * CThumbnailVertical::FindElementWithVScroll(const int& xPos, const int& yPos)
+CIcone* CThumbnailVertical::FindElementWithVScroll(const int& xPos, const int& yPos)
 {
 	int x = posLargeur + xPos;
 	int y = posHauteur + yPos;
 
-	int nbElementByX = thumbnailSizeX / themeThumbnail.themeIcone.GetWidth();
-	int numY = y / themeThumbnail.themeIcone.GetHeight();
-	int numX = x / themeThumbnail.themeIcone.GetWidth();
+	// Sécurisation stricte contre la division par zéro
+	int iconeWidth = std::max(1, themeThumbnail.themeIcone.GetWidth());
+	int iconeHeight = std::max(1, themeThumbnail.themeIcone.GetHeight());
+
+	int nbElementByX = thumbnailSizeX / iconeWidth;
+	if (nbElementByX <= 0) return nullptr;
+
+	int numY = y / iconeHeight;
+	int numX = x / iconeWidth;
 	int numElement = numY * nbElementByX + numX;
 
-	if (numElement >= nbElementInIconeList)
+	if (numElement >= nbElementInIconeList || numElement < 0)
 		return nullptr;
 
 	return iconeList->GetElement(numElement);
 }
 
-CIcone * CThumbnailVertical::FindElementWithoutVScroll(const int& xPos, const int& yPos)
+CIcone* CThumbnailVertical::FindElementWithoutVScroll(const int& xPos, const int& yPos)
 {
 	int x = posLargeur + xPos;
 	if (x > thumbnailSizeX)
 		return nullptr;
 
-	int numElement = x / themeThumbnail.themeIcone.GetWidth();
+	int iconeWidth = std::max(1, themeThumbnail.themeIcone.GetWidth());
+	int numElement = x / iconeWidth;
 
-	if (numElement >= nbElementInIconeList)
+	if (numElement >= nbElementInIconeList || numElement < 0)
 		return nullptr;
 
 	return iconeList->GetElement(numElement);
 }
 
-CIcone * CThumbnailVertical::FindElement(const int& xPos, const int& yPos)
+CIcone* CThumbnailVertical::FindElement(const int& xPos, const int& yPos)
 {
 	if (noVscroll)
 		return FindElementWithoutVScroll(xPos, yPos);
@@ -95,46 +103,42 @@ void CThumbnailVertical::SetNoVScroll(const bool& noVscroll)
 	this->noVscroll = noVscroll;
 	needToRefresh = true;
 }
+
 void CThumbnailVertical::RenderIconeWithVScroll(wxDC* deviceContext)
 {
 	if (nbElementInIconeList == 0)
 		return;
 
-	int iconeWidth = themeThumbnail.themeIcone.GetWidth();
-	int iconeHeight = themeThumbnail.themeIcone.GetHeight();
+	// Sécurisation des dimensions géométriques fondamentales
+	int iconeWidth = std::max(1, themeThumbnail.themeIcone.GetWidth());
+	int iconeHeight = std::max(1, themeThumbnail.themeIcone.GetHeight());
 	int windowWidth = GetWindowWidth();
 	int windowHeight = GetWindowHeight();
 
-	// Nombre de colonnes par ligne
 	int nbElementByRow = windowWidth / iconeWidth;
 	if ((nbElementByRow * iconeWidth) < windowWidth)
 		nbElementByRow++;
 
-	if (nbElementByRow <= 0) return;
+	if (nbElementByRow <= 0)
+		return;
 
-	// 1. Calcul mathématique O(1) des lignes visibles
 	int firstVisibleRow = posHauteur / iconeHeight;
 	int lastVisibleRow = (posHauteur + windowHeight) / iconeHeight;
 
-	// Convertir les lignes en index d'éléments de la liste
 	int firstVisibleIdx = firstVisibleRow * nbElementByRow;
 	int lastVisibleIdx = ((lastVisibleRow + 1) * nbElementByRow) - 1;
 
-	// Sécurisation des index
 	if (firstVisibleIdx < 0) firstVisibleIdx = 0;
 	if (lastVisibleIdx >= nbElementInIconeList) lastVisibleIdx = nbElementInIconeList - 1;
 
-	// Éviter de réallouer les variables de dimension dans la boucle
 	int realWidth = themeThumbnail.themeIcone.GetRealWidth();
 	int realHeight = themeThumbnail.themeIcone.GetRealHeight();
 
-	// 2. La boucle n'évalue QUE les vignettes présentes dans le rectangle de l'écran
 	for (int i = firstVisibleIdx; i <= lastVisibleIdx; i++)
 	{
 		CIcone* pBitmapIcone = iconeList->GetElement(i);
 		if (pBitmapIcone != nullptr)
 		{
-			// Calcul de la position absolue de l'icône sur la toile virtuelle
 			int row = i / nbElementByRow;
 			int col = i % nbElementByRow;
 			int absX = col * iconeWidth;
@@ -162,7 +166,7 @@ void CThumbnailVertical::RenderIconeWithoutVScroll(wxDC* deviceContext)
 	if (nbElementInIconeList == 0)
 		return;
 
-	int iconeWidth = themeThumbnail.themeIcone.GetWidth();
+	int iconeWidth = std::max(1, themeThumbnail.themeIcone.GetWidth());
 	int windowWidth = GetWindowWidth();
 
 	int firstVisibleIdx = posLargeur / iconeWidth;
@@ -188,13 +192,10 @@ void CThumbnailVertical::RenderIconeWithoutVScroll(wxDC* deviceContext)
 
 void CThumbnailVertical::RenderIcone(wxDC* deviceContext)
 {
-	//ResizeThumbnail();
 	if (noVscroll)
 		RenderIconeWithoutVScroll(deviceContext);
 	else
 		RenderIconeWithVScroll(deviceContext);
-
-	//scrollbar->Refresh();
 }
 
 void CThumbnailVertical::UpdateScrollWithVScroll()
@@ -205,37 +206,34 @@ void CThumbnailVertical::UpdateScrollWithVScroll()
 	thumbnailSizeX = 0;
 	thumbnailSizeY = 0;
 
-	//bool update = false;
 	int nbElement = nbElementInIconeList;
+	int iconeWidth = std::max(1, themeThumbnail.themeIcone.GetWidth());
+	int iconeHeight = std::max(1, themeThumbnail.themeIcone.GetHeight());
 
 	if (nbElement > 0)
 	{
-		int nbElementByRow = (GetWindowWidth()) / themeThumbnail.themeIcone.GetWidth();
-		if ((nbElementByRow * themeThumbnail.themeIcone.GetWidth()) < (GetWindowWidth()))
+		int nbElementByRow = (GetWindowWidth()) / iconeWidth;
+		if ((nbElementByRow * iconeWidth) < (GetWindowWidth()))
 			nbElementByRow++;
 
-		int nbElementEnY = nbElementInIconeList / nbElementByRow;
-		if (nbElementEnY * nbElementByRow < nbElementInIconeList)
-			nbElementEnY++;
+		if (nbElementByRow > 0)
+		{
+			int nbElementEnY = nbElementInIconeList / nbElementByRow;
+			if (nbElementEnY * nbElementByRow < nbElementInIconeList)
+				nbElementEnY++;
 
-		if (nbElement < nbElementByRow)
-			nbElementByRow = nbElement;
+			if (nbElement < nbElementByRow)
+				nbElementByRow = nbElement;
 
-		thumbnailSizeX = nbElementByRow * themeThumbnail.themeIcone.GetWidth();
-		thumbnailSizeY = nbElementEnY * themeThumbnail.themeIcone.GetHeight();
+			thumbnailSizeX = nbElementByRow * iconeWidth;
+			thumbnailSizeY = nbElementEnY * iconeHeight;
+		}
 	}
 
-	//printf("CThumbnailVertical::UpdateScrollWithVScroll old %d %d \n", oldthumbnailSizeX, oldthumbnailSizeY);
-	//printf("CThumbnailVertical::UpdateScrollWithVScroll new %d %d \n", thumbnailSizeX, thumbnailSizeY);
-
-	//bool refresh = false;
 	if (nbElementInIconeList >= 0)
 	{
-		//int oldLargeur = posLargeur;
-		//int oldHauteur = posHauteur;
-
-		float xRatio = 1.0;
-		float yRatio = 1.0;
+		float xRatio = 1.0f;
+		float yRatio = 1.0f;
 
 		if (oldthumbnailSizeX != 0)
 			xRatio = static_cast<float>(thumbnailSizeX) / static_cast<float>(oldthumbnailSizeX);
@@ -247,25 +245,21 @@ void CThumbnailVertical::UpdateScrollWithVScroll()
 		float posY = static_cast<float>(posHauteur) * yRatio;
 
 		wxWindow* parent = this->GetParent();
-
 		if (parent != nullptr)
 		{
-			auto controlSize = new CControlSize();
-			wxCommandEvent evt(wxEVENT_SETCONTROLSIZE);
+			// Utilisation de std::unique_ptr en garde locale pour éviter la fuite en cas d'interruption
+			auto controlSize = std::make_unique<CControlSize>();
 			controlSize->controlWidth = thumbnailSizeX;
 			controlSize->controlHeight = thumbnailSizeY;
-			evt.SetClientData(controlSize);
-			parent->GetEventHandler()->AddPendingEvent(evt);
-		}
 
-		if (parent != nullptr)
-		{
-			auto size = new wxSize();
-			wxCommandEvent evt(wxEVENT_SETPOSITION);
-			size->x = static_cast<int>(posX);
-			size->y = static_cast<int>(posY);
-			evt.SetClientData(size);
+			wxCommandEvent evt(wxEVENT_SETCONTROLSIZE);
+			evt.SetClientData(controlSize.release()); // Le destinataire prend la responsabilité mémoire
 			parent->GetEventHandler()->AddPendingEvent(evt);
+
+			auto size = std::make_unique<wxSize>(static_cast<int>(posX), static_cast<int>(posY));
+			wxCommandEvent evtPos(wxEVENT_SETPOSITION);
+			evtPos.SetClientData(size.release());
+			parent->GetEventHandler()->AddPendingEvent(evtPos);
 		}
 
 		posLargeur = posX;
@@ -276,36 +270,32 @@ void CThumbnailVertical::UpdateScrollWithVScroll()
 void CThumbnailVertical::UpdateScrollWithoutVScroll()
 {
 	int nbElement = nbElementInIconeList;
+	int iconeWidth = std::max(1, themeThumbnail.themeIcone.GetWidth());
+	int iconeHeight = std::max(1, themeThumbnail.themeIcone.GetHeight());
+
 	if (nbElement > 0)
 	{
 		nbLigneY = 1;
 		nbLigneX = nbElement;
-		thumbnailSizeX = nbLigneX * themeThumbnail.themeIcone.GetWidth();
-		thumbnailSizeY = themeThumbnail.themeIcone.GetHeight();
+		thumbnailSizeX = nbLigneX * iconeWidth;
+		thumbnailSizeY = iconeHeight;
 
 		wxWindow* parent = this->GetParent();
-
 		if (parent != nullptr)
 		{
-			auto controlSize = new CControlSize();
-			wxCommandEvent evt(wxEVENT_SETCONTROLSIZE);
+			auto controlSize = std::make_unique<CControlSize>();
 			controlSize->controlWidth = thumbnailSizeX;
 			controlSize->controlHeight = thumbnailSizeY;
-			evt.SetClientData(controlSize);
-			parent->GetEventHandler()->AddPendingEvent(evt);
-		}
 
-		if (parent != nullptr)
-		{
-			auto size = new wxSize();
-			wxCommandEvent evt(wxEVENT_SETPOSITION);
-			size->x = posLargeur;
-			size->y = posHauteur;
-			evt.SetClientData(size);
+			wxCommandEvent evt(wxEVENT_SETCONTROLSIZE);
+			evt.SetClientData(controlSize.release());
 			parent->GetEventHandler()->AddPendingEvent(evt);
-		}
 
-		//UpdateScrollBar(update);
+			auto size = std::make_unique<wxSize>(posLargeur, posHauteur);
+			wxCommandEvent evtPos(wxEVENT_SETPOSITION);
+			evtPos.SetClientData(size.release());
+			parent->GetEventHandler()->AddPendingEvent(evtPos);
+		}
 	}
 }
 
@@ -314,13 +304,8 @@ void CThumbnailVertical::UpdateScroll()
 	if (GetWindowWidth() <= 0)
 		return;
 
-	//printf("CThumbnailVertical::UpdateScroll \n");
 	if (noVscroll)
-	{
 		UpdateScrollWithoutVScroll();
-	}
 	else
-	{
 		UpdateScrollWithVScroll();
-	}
 }

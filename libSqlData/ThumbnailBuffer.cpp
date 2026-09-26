@@ -13,32 +13,24 @@ CThumbnailBuffer::VectorStore CThumbnailBuffer::s_store;
 
 cv::Mat CThumbnailBuffer::LruCache::get(const wxString& key)
 {
-    // Lecture optimiste en shared
-    {
-        std::shared_lock read(mutex);
-        auto it = map.find(key);
-        if (it == map.end())
-            return {};
-        // CORRECTION CRITIQUE : On retourne une copie de l'en-tête (incrémente le compteur de réf OpenCV)
-        // pour figer les données et empêcher l'éviction LRU de détruire le buffer sous nos pieds.
-        return it->second.first;
-    }
+    std::unique_lock lock(mutex); // Utilisation d'un lock unique pour la mise à jour sûre du LRU
 
-    // Promotion LRU (exclusif)
-    std::unique_lock write(mutex);
     auto it = map.find(key);
     if (it == map.end())
         return {};
 
+    // Promotion LRU : Déplacement en queue de liste (élément le plus récent)
     order.erase(it->second.second);
     order.push_back(key);
     it->second.second = std::prev(order.end());
+
+    // Retourne une copie de la matrice (Partage le compteur de référence de la texture OpenCV de manière thread-safe)
     return it->second.first;
 }
 
 void CThumbnailBuffer::LruCache::put(const wxString& key, cv::Mat data)
 {
-    std::unique_lock write(mutex);
+    std::unique_lock lock(mutex);
 
     auto it = map.find(key);
     if (it != map.end())
@@ -49,6 +41,7 @@ void CThumbnailBuffer::LruCache::put(const wxString& key, cv::Mat data)
         return;
     }
 
+    // Éviction de l'élément le plus ancien si le cache est saturé
     if (static_cast<int>(map.size()) >= maxSize)
     {
         auto oldest = order.front();
@@ -62,7 +55,7 @@ void CThumbnailBuffer::LruCache::put(const wxString& key, cv::Mat data)
 
 void CThumbnailBuffer::LruCache::remove(const wxString& key)
 {
-    std::unique_lock write(mutex);
+    std::unique_lock lock(mutex);
     auto it = map.find(key);
     if (it == map.end()) return;
 
@@ -83,38 +76,44 @@ cv::Mat CThumbnailBuffer::GetPicture(const wxString& filename)
 
     s_cache.maxSize = sizeBuffer;
 
-    // 1. Cherche dans le cache (Retourne un objet Mat incrémenté de manière atomique)
-    cv::Mat raw = s_cache.get(filename);
-
-    if (raw.empty())
+    // 1. Recherche de la matrice déjà décodée en mémoire cache O(1)
+    cv::Mat cachedMat = s_cache.get(filename);
+    if (!cachedMat.empty())
     {
-        cv::Mat loaded;
-        if (wxFile::Exists(filename))
-        {
-            wxFile file(filename);
-            if (file.IsOpened())
-            {
-                size_t fileSize = file.Length();
-                loaded = cv::Mat(1, static_cast<int>(fileSize), CV_8UC1);
-                file.Read(loaded.data, fileSize);
-                file.Close();
-            }
-        }
+        return cachedMat;
+    }
 
-        if (!loaded.empty())
+    // 2. Si absent du cache : Chargement et décodage complet depuis le disque
+    cv::Mat decoded;
+    if (wxFile::Exists(filename))
+    {
+        wxFile file(filename);
+        if (file.IsOpened())
         {
-            s_cache.put(filename, loaded);
-            raw = loaded;
+            size_t fileSize = file.Length();
+            cv::Mat rawBuffer(1, static_cast<int>(fileSize), CV_8UC1);
+            file.Read(rawBuffer.data, fileSize);
+            file.Close();
+
+            if (!rawBuffer.empty())
+            {
+                // Décodage immédiat en mémoire
+                decoded = cv::imdecode(rawBuffer, cv::IMREAD_COLOR);
+            }
         }
     }
 
-    if (raw.empty())
-        return cv::imread(CConvertUtility::ConvertToStdString(filename).c_str(), cv::IMREAD_COLOR);
-
-    // Décodage 100% sécurisé (Même si l'entrée est évincée du cache, notre instance locale 'raw' possède son propre verrou)
-    cv::Mat decoded = cv::imdecode(raw, cv::IMREAD_COLOR);
+    // Fallback de sécurité si la lecture par buffer échoue
     if (decoded.empty())
-        return cv::imread(CConvertUtility::ConvertToStdString(filename).c_str(), cv::IMREAD_COLOR);
+    {
+        decoded = cv::imread(CConvertUtility::ConvertToStdString(filename).c_str(), cv::IMREAD_COLOR);
+    }
+
+    // 3. Stockage de l'image décodée dans le cache LRU pour les prochains affichages
+    if (!decoded.empty())
+    {
+        s_cache.put(filename, decoded);
+    }
 
     return decoded;
 }
@@ -130,13 +129,21 @@ void CThumbnailBuffer::InitVectorList(PhotosVector* newVector)
     std::unique_lock write(s_store.mutex);
 
     std::unordered_set<wxString> newIndex;
+    std::unordered_map<int, wxString> newIdIndex; // Double indexation pour optimiser FindPhotoById
+
     newIndex.reserve(incoming->size());
+    newIdIndex.reserve(incoming->size());
+
     for (CPhotos& photo : *incoming)
+    {
         newIndex.insert(photo.GetPath());
+        newIdIndex[photo.GetId()] = photo.GetPath();
+    }
 
     s_store.data = std::move(incoming);
     s_store.size = static_cast<int>(s_store.data->size());
     s_store.pathIndex = std::move(newIndex);
+    s_store.idIndex = std::move(newIdIndex); // Stockage de l'index d'identifiants
 }
 
 std::shared_ptr<const PhotosVector> CThumbnailBuffer::GetVectorList()
@@ -177,8 +184,7 @@ wxString CThumbnailBuffer::FindPhotoById(int id)
     std::shared_lock read(s_store.mutex);
     if (!s_store.data) return {};
 
-    auto it = std::find_if(s_store.data->begin(), s_store.data->end(),
-        [id](CPhotos& p) { return p.GetId() == id; });
-
-    return (it != s_store.data->end()) ? it->GetPath() : wxString{};
+    // Optimisation : Recherche instantanée O(1) au lieu du parcours de tableau de recherche O(N)
+    auto it = s_store.idIndex.find(id);
+    return (it != s_store.idIndex.end()) ? it->second : wxString{};
 }

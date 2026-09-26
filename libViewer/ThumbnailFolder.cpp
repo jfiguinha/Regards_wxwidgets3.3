@@ -47,79 +47,97 @@ std::unique_ptr<CInfosSeparationBarExplorer> CThumbnailFolder::AddSeparatorBar(P
 	infosSeparationBar->SetTitle(libelle);
 	infosSeparationBar->SetWidth(GetWindowWidth());
 	infosSeparationBar->ShowExpandIcon(true);
-	int local_nbElement = nbElement;// iconeListLocal->GetNbElement();
 
+	int local_nbElement = nbElement;
 	int size = _pictures->size();
 
 	if (needFindNewItem)
 	{
+		// Tableau temporaire pour collecter les nouveaux éléments créés en parallèle
+		std::vector<CIcone*> tempNewIcones(size, nullptr);
 
-		tbb::parallel_for(0, size, 1, [=](int i)
-			//for (int i = 0; i < size; i++)
+		// 1. Passe Parallèle : Traitement lourd (SQL, allocations) sans toucher aux index globaux
+		tbb::parallel_for(0, size, 1, [=, &tempNewIcones](int i)
 			{
 				auto& photo = _pictures->at(i);
-				wxString filename = photo.GetPath();
 				bool find = iconeList->IfElementExistByFilename(photo.GetPath());
+
 				if (!find)
 				{
 					auto thumbnailData = new CThumbnailDataSQL(photo.GetPath(), testValidity, false);
 					thumbnailData->SetNumPhotoId(photo.GetId());
-					thumbnailData->SetNumElement(local_nbElement + i);
 
 					auto pBitmapIcone = new CIcone(thumbnailData);
 					pBitmapIcone->ShowSelectButton(true);
-					pBitmapIcone->SetNumElement(local_nbElement + i);
 					pBitmapIcone->SetFilename(photo.GetPath());
 					pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-					iconeListLocal->AddElement(pBitmapIcone);
-				}
-				else
-				{
-					CIcone* icone = iconeList->FindElementByFilename(photo.GetPath());
-					if (icone != nullptr)
-					{
-						icone->SetNumElement(local_nbElement + i);
-						auto data = static_cast<CThumbnailDataSQL*>(icone->GetPtData());
-						if (data != nullptr)
-						{
-							data->SetNumElement(local_nbElement + i);
-							icone->SetNumElement(data->GetNumElement());
-						}
 
-					}
+					tempNewIcones[i] = pBitmapIcone; // Stockage temporaire sécurisé par thread
 				}
-				//}
 			});
-	}
-	else
-	{
-		tbb::parallel_for(0, size, 1, [=](int i)
+
+		// 2. Passe Séquentielle : Indexation stricte et continue (sans "trous")
+		for (int i = 0; i < size; i++)
+		{
+			auto& photo = _pictures->at(i);
+
+			if (tempNewIcones[i] != nullptr)
 			{
-				auto& photo = _pictures->at(i);
+				// Attribution d'un index incrémental strict
+				tempNewIcones[i]->SetNumElement(local_nbElement);
+				auto data = static_cast<CThumbnailDataSQL*>(tempNewIcones[i]->GetPtData());
+				if (data != nullptr)
+				{
+					data->SetNumElement(local_nbElement);
+				}
+
+				iconeListLocal->AddElement(tempNewIcones[i]);
+				infosSeparationBar->listElement.push_back(local_nbElement);
+				local_nbElement++;
+			}
+			else
+			{
+				// L'élément existait déjà, on met à jour son index pour qu'il suive la continuité du flux
 				CIcone* icone = iconeList->FindElementByFilename(photo.GetPath());
 				if (icone != nullptr)
 				{
-					icone->SetNumElement(local_nbElement + i);
+					icone->SetNumElement(local_nbElement);
 					auto data = static_cast<CThumbnailDataSQL*>(icone->GetPtData());
 					if (data != nullptr)
 					{
-						data->SetNumElement(local_nbElement + i);
-						icone->SetNumElement(data->GetNumElement());
+						data->SetNumElement(local_nbElement);
 					}
-
+					infosSeparationBar->listElement.push_back(local_nbElement);
+					local_nbElement++;
 				}
-			});
+			}
+		}
 	}
-
+	else
+	{
+		// Mode sans recherche : Indexation séquentielle pure pour garantir la continuité
+		for (int i = 0; i < size; i++)
+		{
+			auto& photo = _pictures->at(i);
+			CIcone* icone = iconeList->FindElementByFilename(photo.GetPath());
+			if (icone != nullptr)
+			{
+				icone->SetNumElement(local_nbElement);
+				auto data = static_cast<CThumbnailDataSQL*>(icone->GetPtData());
+				if (data != nullptr)
+				{
+					data->SetNumElement(local_nbElement);
+				}
+				infosSeparationBar->listElement.push_back(local_nbElement);
+				local_nbElement++;
+			}
+		}
+	}
 
 	iconeListLocal->SortById();
 
-	for (auto i = 0; i < size; i++)
-	{
-		infosSeparationBar->listElement.push_back(local_nbElement + i);
-	}
-
-	nbElement += size;
+	// On met à jour la référence d'origine avec le compteur exact mis à jour
+	nbElement = local_nbElement;
 
 	return infosSeparationBar;
 }

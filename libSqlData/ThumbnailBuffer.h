@@ -1,7 +1,11 @@
 #pragma once
 #include "Photos.h"
+#include <mutex>
 #include <shared_mutex>
 #include <unordered_set>
+#include <unordered_map>
+#include <list>
+#include <atomic>
 
 class CThumbnailBuffer
 {
@@ -25,11 +29,14 @@ private:
         using ListIt = std::list<wxString>::iterator;
 
         std::unordered_map<wxString, std::pair<cv::Mat, ListIt>> map;
-        std::list<wxString>                                       order;
-        mutable std::shared_mutex                                 mutex;
-        int                                                       maxSize = 100;
+        std::list<wxString>                                      order;
 
-        // Retourne l'image encodée (raw) si présente, sinon Mat vide
+        // CORRECTION : Utilisation d'un std::mutex standard. L'écriture LRU ayant lieu
+        // à CHAQUE lecture (get), le verrou partagé (shared_mutex) provoquait un interblocage.
+        mutable std::mutex                                       mutex;
+        int                                                      maxSize = 100;
+
+        // Retourne l'image décodée si présente, sinon Mat vide
         // Promotionne l'entrée en "most recently used"
         cv::Mat get(const wxString& key);
 
@@ -42,10 +49,11 @@ private:
     // ── PhotosVector ───────────────────────────────────────────────────────
     struct VectorStore
     {
-        std::shared_ptr<PhotosVector> data;
-        mutable std::shared_mutex     mutex;
-        std::atomic<int>              size{ 0 };
-        std::unordered_set<wxString> pathIndex; // nouveau : lookup O(1)
+        std::shared_ptr<PhotosVector>    data;
+        mutable std::shared_mutex        mutex;
+        std::atomic<int>                 size{ 0 };
+        std::unordered_set<wxString>     pathIndex; // Lookup par chemin en O(1)
+        std::unordered_map<int, wxString> idIndex;  // NOUVEAU : Lookup par ID en O(1) pour accélérer FindPhotoById
     };
 
     static LruCache    s_cache;
