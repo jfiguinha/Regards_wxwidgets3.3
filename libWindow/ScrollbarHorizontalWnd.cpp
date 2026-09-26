@@ -592,6 +592,8 @@ void CScrollbarHorizontalWnd::OnLButtonUp(wxMouseEvent& event)
 
 	if (pageRight->IsRunning())
 		pageRight->Stop();
+
+	this->Refresh();
 }
 
 void CScrollbarHorizontalWnd::OnTimerTriangleLeft(wxTimerEvent& event)

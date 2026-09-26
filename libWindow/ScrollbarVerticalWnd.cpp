@@ -753,6 +753,8 @@ void CScrollbarVerticalWnd::OnLButtonUp(wxMouseEvent& event)
 		pageBottom->Stop();
 
 	captureBar = false;
+
+	this->Refresh();
 }
 
 void CScrollbarVerticalWnd::PaintNow()
