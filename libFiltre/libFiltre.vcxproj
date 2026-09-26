@@ -823,6 +823,7 @@
     <ClInclude Include="Color.h" />
     <ClInclude Include="ColorBalanceFilter.h" />
     <ClInclude Include="Crop.h" />
+    <ClInclude Include="CropEffectParameter.h" />
     <ClInclude Include="CropFilter.h" />
     <ClInclude Include="DecodeRaw.h" />
     <ClInclude Include="DecodeRawParameter.h" />

@@ -360,6 +360,9 @@
     <ClInclude Include="avir_float8_avx.h">
       <Filter>Filter\Interpolation\AVIR</Filter>
     </ClInclude>
+    <ClInclude Include="CropEffectParameter.h">
+      <Filter>window\datastructure</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">

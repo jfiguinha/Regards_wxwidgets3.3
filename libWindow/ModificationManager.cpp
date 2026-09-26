@@ -33,7 +33,7 @@
 #include <VignetteEffectParameter.h>
 #include <WaveEffectParameter.h>
 #include <effect_id.h>
-
+#include <CropEffectParameter.h>
 using namespace Regards::Picture;
 
 
@@ -92,7 +92,8 @@ static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffe
 		return std::make_unique<CVignetteEffectParameter>(*static_cast<CVignetteEffectParameter*>(effectParameter));
 	case IDM_WAVE_EFFECT:
 		return std::make_unique<CWaveEffectParameter>(*static_cast<CWaveEffectParameter*>(effectParameter));
-
+	case IDM_CROP:
+		return std::make_unique<CCropEffectParameter>(*static_cast<CCropEffectParameter*>(effectParameter));
 		// Ajoutez ici d'autres cas si le paramètre rgbEffectParameter correspond à d'autres filtres (ex: IDM_COLOR_BALANCE)
 		// case IDM_COLOR_BALANCE:
 		//     return std::make_unique<CRgbEffectParameter>(*static_cast<CRgbEffectParameter*>(effectParameter));

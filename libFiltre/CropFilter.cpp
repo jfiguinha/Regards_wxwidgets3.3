@@ -7,6 +7,7 @@
 #include <ImageLoadingFormat.h>
 #include <BitmapDisplay.h>
 #include <Crop.h>
+#include "CropEffectParameter.h"
 #include <effect_id.h>
 using namespace Regards::Filter;
 
@@ -76,12 +77,24 @@ void CCropFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElem
 {
 }
 
+CEffectParameter* CCropFilter::GetEffectPointer()
+{
+	return new CCropEffectParameter();
+}
+
+CEffectParameter* CCropFilter::GetDefaultEffectParameter()
+{
+	return new CCropEffectParameter();
+}
+
 CImageLoadingFormat* CCropFilter::ApplyEffect(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer)
 {
 	cv::Mat out;
 	CImageLoadingFormat* imageLoad = nullptr;
-	wxRect rcZoom;
-	bitmapViewer->GetDessinPt()->GetPos(rcZoom);
+
+	auto cropEffectParameter = static_cast<CCropEffectParameter*>(effectParameter);
+
+	bitmapViewer->GetDessinPt()->GetPos(cropEffectParameter->rcZoom);
 	if (!source.empty())
 	{
 		imageLoad = new CImageLoadingFormat();
@@ -93,10 +106,10 @@ CImageLoadingFormat* CCropFilter::ApplyEffect(CEffectParameter* effectParameter,
 		{
 			cv::Mat& matrix = imageLoad->GetMatImage();
 			cv::Rect rect;
-			rect.x = rcZoom.x;
-			rect.y = rcZoom.y;
-			rect.width = rcZoom.width;
-			rect.height = rcZoom.height;
+			rect.x = cropEffectParameter->rcZoom.x;
+			rect.y = cropEffectParameter->rcZoom.y;
+			rect.width = cropEffectParameter->rcZoom.width;
+			rect.height = cropEffectParameter->rcZoom.height;
 			out = matrix(rect);
 		}
 		catch (cv::Exception& e)
@@ -106,7 +119,7 @@ CImageLoadingFormat* CCropFilter::ApplyEffect(CEffectParameter* effectParameter,
 			std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
 		}
 
-
+		cropEffectParameter->cropApply = true;
 		imageLoad->SetPicture(out);
 		//imageLoad->Flip();
 	}
@@ -138,6 +151,39 @@ void CCropFilter::ApplyPreviewEffect(CEffectParameter* effectParameter, IBitmapD
 
 void CCropFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter, const bool& preview)
 {
+	cv::Mat out;
+	CImageLoadingFormat* imageLoad = nullptr;
+
+	auto cropEffectParameter = static_cast<CCropEffectParameter*>(effectParameter);
+
+	if (cropEffectParameter->cropApply)
+	{
+		imageLoad = new CImageLoadingFormat();
+		imageLoad->SetPicture(filtreEffet->GetBitmap(true));
+		//imageLoad->Flip();
+		imageLoad->RotateExif(orientation);
+
+		try
+		{
+			cv::Mat& matrix = imageLoad->GetMatImage();
+			cv::Rect rect;
+			rect.x = cropEffectParameter->rcZoom.x;
+			rect.y = cropEffectParameter->rcZoom.y;
+			rect.width = cropEffectParameter->rcZoom.width;
+			rect.height = cropEffectParameter->rcZoom.height;
+			out = matrix(rect);
+		}
+		catch (cv::Exception& e)
+		{
+			const char* err_msg = e.what();
+			std::cout << "exception caught: " << err_msg << std::endl;
+			std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
+		}
+
+		imageLoad->SetPicture(out);
+		filtreEffet->SetBitmap(imageLoad);
+		//imageLoad->Flip();
+	}
 }
 
 bool CCropFilter::NeedToUpdateSource()

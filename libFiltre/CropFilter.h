@@ -42,6 +42,9 @@ namespace Regards::Filter
 		bool SupportMouseClick() override;
 		bool NeedToUpdateSource() override;
 
+		CEffectParameter* GetEffectPointer() override;
+		CEffectParameter* GetDefaultEffectParameter() override;
+
 	private:
 		void Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
 		void ApplyPreviewEffect(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
