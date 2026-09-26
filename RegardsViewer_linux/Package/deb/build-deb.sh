@@ -1,7 +1,7 @@
 #!/bin/bash
 
-PACKAGE_DIR="RegardsViewer_3.13.0.0-linux-x86_64"
-PACKAGE_NAME="RegardsViewer_3.13.0.0-linux-x86_64.deb"
+PACKAGE_DIR="RegardsViewer_3.15.0.0-linux-x86_64"
+PACKAGE_NAME="RegardsViewer_3.15.0.0-linux-x86_64.deb"
 
 rm -f "$PACKAGE_NAME"
 
