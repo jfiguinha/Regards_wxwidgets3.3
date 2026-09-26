@@ -16,12 +16,20 @@ void CWindowUtility::DrawTexte(wxDC* dc, const wxString& libelle, const int& xPo
 {
 	int fontSize = font.GetFontSize();
 	wxColour color = font.GetColorFont();
-	wxFont _font(fontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+	bool isBold = font.GetBold();
+
+	// Utilisation d'une condition ternaire pour choisir wxFONTWEIGHT_BOLD ou wxFONTWEIGHT_NORMAL
+	wxFontWeight weight = isBold ? wxFONTWEIGHT_BOLD : wxFONTWEIGHT_NORMAL;
+
+	// Application du poids (weight) à la police de caractères
+	wxFont _font(fontSize, wxFONTFAMILY_SWISS, wxFONTSTYLE_NORMAL, weight);
+
 	dc->SetFont(_font);
 	dc->SetTextForeground(color);
 	dc->DrawText(libelle, xPos, yPos);
 	dc->SetFont(wxNullFont);
 }
+
 
 wxSize CWindowUtility::GetSizeTexte(wxDC* dc, const wxString& libelle, CThemeFont font)
 {

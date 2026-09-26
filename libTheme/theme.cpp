@@ -1906,6 +1906,7 @@ CThemeInfosSeparationBar::CThemeInfosSeparationBar()
 	themeFont.SetColorFont(wxColour(255, 255, 255));
 	themeFont.SetFontName("Verdana");
 	themeFont.SetFontSize(10);
+	themeFont.SetBold(true);
 	themeFont.SetFontQuality(ANTIALIASED_QUALITY);
 	height = 40;
 	calculHeight = 0;

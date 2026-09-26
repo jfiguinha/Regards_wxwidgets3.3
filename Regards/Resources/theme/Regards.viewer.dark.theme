@@ -672,11 +672,11 @@
 				<ThemeInfosSeparationBar>
 					<ThemeFont>
 						<colorBack>rgb(128, 128, 128)</colorBack>
-						<bold>0</bold>
+						<bold>1</bold>
 						<positionFont>2</positionFont>
 						<colorFont>rgb(255, 255, 255)</colorFont>
 						<fontName>Verdana</fontName>
-						<fontSize>10</fontSize>
+						<fontSize>11</fontSize>
 						<marge>5</marge>
 						<fontQuality>1</fontQuality>
 					</ThemeFont>

@@ -93,7 +93,6 @@ CInfosSeparationBar::~CInfosSeparationBar(void)
 	listElement.clear();
 	listElement.reserve(0);
 }
-
 void CInfosSeparationBar::RenderTitle(wxDC* dc)
 {
 	wxRect rc;
@@ -105,29 +104,53 @@ void CInfosSeparationBar::RenderTitle(wxDC* dc)
 	rc.height = GetHeight();
 	CWindowMain::FillRect(dc, rc, theme.colorBack);
 
-	int posY = 0;
-	//int i = 0;
+	int posY = 0; // Va cumuler la hauteur au fur et à mesure
+	int spacingBetweenLines = 2; // Petit espace en pixels entre les lignes (optionnel)
 
-	vector<wxString> listOfTexte = CConvertUtility::split(title, '@');
-	if (listOfTexte.size() > 0)
+	vector<wxString> listOfTexte = CConvertUtility::split(this->title, '@');
+
+	if (!listOfTexte.empty())
 	{
-		int sizeOfY = GetHeight() / listOfTexte.size();
+		int minX = width;
+		int minY = GetHeight();
+		int maxX = 0;
+		int maxY = 0;
+		bool hasDrawnAnything = false;
 
-		for (wxString title : listOfTexte)
+		for (const wxString& textLine : listOfTexte)
 		{
-			if (title != L"")
+			if (!textLine.IsEmpty())
 			{
-				wxSize size = CWindowMain::GetSizeTexte(dc, title, theme.themeFont);
-				int localy = y + posY + (sizeOfY - size.y) / 2;
-				int localx = x + (width - size.x) / 2;
-				CWindowMain::DrawTexte(dc, title, localx, localy, theme.themeFont);
-				posY += sizeOfY;
+				wxSize size = CWindowMain::GetSizeTexte(dc, textLine, theme.themeFont);
 
-				titleRectPos.x = localx;
-				titleRectPos.y = localy;
-				titleRectPos.width = size.x;
-				titleRectPos.height = size.y;
+				// Aligné tout en haut : posY commence à 0 et augmente de la hauteur du texte écrit
+				int localy = y + posY;
+				int localx = x + (width - size.x) / 2; // Reste centré horizontalement
+
+				CWindowMain::DrawTexte(dc, textLine, localx, localy, theme.themeFont);
+
+				// Mise à jour des bornes pour titleRectPos
+				if (localx < minX) minX = localx;
+				if (localy < minY) minY = localy;
+				if (localx + size.x > maxX) maxX = localx + size.x;
+				if (localy + size.y > maxY) maxY = localy + size.y;
+				hasDrawnAnything = true;
+
+				// On avance posY de la hauteur exacte de la ligne de texte + l'espacement
+				posY += size.y + spacingBetweenLines;
 			}
+		}
+
+		if (hasDrawnAnything)
+		{
+			titleRectPos.x = minX;
+			titleRectPos.y = minY;
+			titleRectPos.width = maxX - minX;
+			titleRectPos.height = maxY - minY;
+		}
+		else
+		{
+			titleRectPos = wxRect(0, 0, 0, 0);
 		}
 	}
 }
