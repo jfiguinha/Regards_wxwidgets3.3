@@ -570,7 +570,7 @@ void CListFace::ThumbnailMove(wxCommandEvent& /*event*/)
 
 	if (thumbnailFace->GetFaceSelectID().empty())
 	{
-		wxMessageBox("No picture selected", "Informations");
+		wxMessageBox(CLibResource::LoadStringFromResource("LBLNOPICTURESELECTED", 1), CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1));
 		return;
 	}
 

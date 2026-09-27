@@ -108,7 +108,7 @@ bool CThumbnailFaceToolBar::TestIfEnable()
 {
 	if (!enableModification)
 	{
-		wxMessageBox("Face detection is working. Please wait", "Informations");
+		wxMessageBox(CLibResource::LoadStringFromResource("LBLFACEDETECTIONWORK", 1), CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1));
 		return false;
 	}
 	return true;
