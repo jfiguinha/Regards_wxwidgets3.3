@@ -595,7 +595,7 @@ namespace Regards::Filter
 
 		wxString GetFilterLabel() override
 		{
-			return "Extract Person";//CLibResource::LoadStringFromResource("LBLfilterSepia", 1);
+			return CLibResource::LoadStringFromResource("LBLEXTRACTPERSON", 1);
 		}
 
 		void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter,

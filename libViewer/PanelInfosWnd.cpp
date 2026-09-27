@@ -419,7 +419,9 @@ void CPanelInfosWnd::OnFiltreOk(const int& numFiltre)
 
 	if (bitmapViewer != nullptr)
 	{
-		wxBusyInfo wait("Please wait, working...");
+		
+		
+		wxBusyInfo wait(CLibResource::LoadStringFromResource("LBLSTOPWORKINGMSG", 1));
 		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
 		bitmapViewer->SetBitmapPreviewEffect(0);
 	}
