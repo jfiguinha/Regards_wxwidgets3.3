@@ -9,6 +9,7 @@
 #include "FiltreEffetCPU.h"
 #include <effect_id.h>
 #include "InpaintFilterParam.h"
+#include <wx/busyinfo.h>
 #include <Metadata.h>
 using namespace Regards::Filter;
 using namespace cv;
@@ -108,13 +109,64 @@ wxString CInpaintFilter::GetFilterLabel()
 	return CLibResource::LoadStringFromResource("LBLINPAINT", 1);
 }
 
+
+void CInpaintFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter, const bool& preview)
+{
+	const wxString libelle =
+		CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
+
+	wxBusyInfo wait(libelle, nullptr);
+
+	CImageLoadingFormat* imageLoad = nullptr;
+	auto videoEffectParameter = static_cast<CInpaintFilterParameter*>(effectParameter);
+
+	if (videoEffectParameter->cropApply)
+	{
+		imageLoad = new CImageLoadingFormat();
+		imageLoad->SetPicture(filtreEffet->GetBitmap(true));
+		//imageLoad->Flip();
+		imageLoad->RotateExif(orientation);
+
+		try
+		{
+			cv::Mat& matrix = imageLoad->GetMatImage();
+
+			cv::Rect rect;
+			rect.x = videoEffectParameter->rcZoom.x;
+			rect.y = videoEffectParameter->rcZoom.y;
+			rect.width = videoEffectParameter->rcZoom.width;
+			rect.height = videoEffectParameter->rcZoom.height;
+
+
+			cv::Mat mask = GenerateMaskFromZone(rect, matrix);
+			filtreEffet->Inpaint(mask, videoEffectParameter->algo);
+
+			imageLoad = new CImageLoadingFormat();
+			cv::Mat bitmapOut = filtreEffet->GetBitmap(true);
+			imageLoad->SetPicture(bitmapOut);
+			filtreEffet->SetBitmap(imageLoad);
+
+		}
+		catch (cv::Exception& e)
+		{
+			const char* err_msg = e.what();
+			std::cout << "exception caught: " << err_msg << std::endl;
+			std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
+		}
+	}
+}
+
 CImageLoadingFormat* CInpaintFilter::ApplyEffect(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer)
 {
-	cv::Mat out;
+	const wxString libelle =
+		CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
+
+	wxBusyInfo wait(libelle, nullptr);
+
 	CImageLoadingFormat* imageLoad = nullptr;
-	wxRect rcZoom;
+
 	auto videoEffectParameter = static_cast<CInpaintFilterParameter*>(effectParameter);
-	bitmapViewer->GetDessinPt()->GetPos(rcZoom);
+	bitmapViewer->GetDessinPt()->GetPos(videoEffectParameter->rcZoom);
 	if (!source.empty())
 	{
 		CImageLoadingFormat image;
@@ -127,24 +179,18 @@ CImageLoadingFormat* CInpaintFilter::ApplyEffect(CEffectParameter* effectParamet
 		try
 		{
 			cv::Rect rect;
-			rect.x = rcZoom.x;
-			rect.y = rcZoom.y;
-			rect.width = rcZoom.width;
-			rect.height = rcZoom.height;
-
-			out = source(rect);
+			rect.x = videoEffectParameter->rcZoom.x;
+			rect.y = videoEffectParameter->rcZoom.y;
+			rect.width = videoEffectParameter->rcZoom.width;
+			rect.height = videoEffectParameter->rcZoom.height;
            
-            cv::Mat mask = GenerateMaskFromZone(rect, source);
-           // cv::imwrite("d:\\mask.png", mask);
-
-			//cv::cvtColor(mask, mask, cv::COLOR_GRAY2BGR);
-            
+            cv::Mat mask = GenerateMaskFromZone(rect, source);          
 			filtreCPU.Inpaint(mask, videoEffectParameter->algo);
             
 			imageLoad = new CImageLoadingFormat();
 			cv::Mat bitmapOut = filtreCPU.GetBitmap(true);
 			imageLoad->SetPicture(bitmapOut);
-
+			videoEffectParameter->cropApply = true;
             
 		}
 		catch (cv::Exception& e)
@@ -181,62 +227,7 @@ CImageLoadingFormat* CInpaintFilter::ApplyEffect(CEffectParameter* effectParamet
 		out.copyTo(mask(rect));
 	}
 
-	/*
-	{
-		cv::Mat out = src(rect);
-		cvtColor(out, out, cv::COLOR_BGR2GRAY);
-		cv::threshold(out, out, 127, 255, 0);
-		
-		int thresh = 100;
-		Mat canny_output;
-		Canny(out, canny_output, thresh, thresh * 2);
-		vector<vector<Point> > contours;
-		vector<Vec4i> hierarchy;
-		findContours(canny_output, contours, hierarchy, RETR_TREE, CHAIN_APPROX_SIMPLE);
-		Mat drawing = Mat::zeros(canny_output.size(), CV_8UC3);
-		Scalar color = Scalar(255, 255, 255);
-		fillPoly(drawing, contours, color);
-
-		for (size_t i = 0; i < contours.size(); i++)
-		{
-			Scalar color = Scalar(255, 255, 255);
-			drawContours(drawing, contours, (int)i, color, 2, LINE_8, hierarchy, 0);
-		}
-		drawing.copyTo(mask(rect));
-		out.copyTo(mask(rect));
-		cvtColor(mask, mask, cv::COLOR_BGR2GRAY);
-	}
-	*/
-
-	/*
-	{
-		cv::Mat out = src(rect);
-		cvtColor(out, out, cv::COLOR_BGR2GRAY);
-		//cv::threshold(out, out, 127, 255, 0);
-		// Threshold.
- // Set values equal to or above 220 to 0.
- // Set values below 220 to 255.
-		Mat im_th;
-		threshold(out, im_th, 127, 255, THRESH_BINARY_INV);
-
-		// Floodfill from point (0, 0)
-		Mat im_floodfill = im_th.clone();
-		floodFill(im_floodfill, cv::Point(0, 0), Scalar(255));
-
-		// Invert floodfilled image
-		Mat im_floodfill_inv;
-		bitwise_not(im_floodfill, im_floodfill_inv);
-
-		cvtColor(im_floodfill_inv, im_floodfill_inv, COLOR_GRAY2BGR);
-		im_floodfill_inv.copyTo(mask(rect));
-	}
-	*/
-
-	
-    //cv::drawContours(mask,contours,0,cv::Scalar(255),-1);
 	cv::bitwise_not(mask, mask);
 
-
-	//imwrite("d:\\mask.png" , mask);
     return mask;
  }

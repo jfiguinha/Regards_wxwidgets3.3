@@ -23,7 +23,7 @@
 #include <RegardsConfigParam.h>
 #include <ConvertUtility.h>
 #include <opencv2/xphoto/inpainting.hpp>
-
+#include <ExtractPerson.h>
 #include "InterpolationFilters.h"
 #include <wx/filename.h>
 #include <effect_id.h>
@@ -302,6 +302,26 @@ int CFiltreEffetCPU::Inpaint(const cv::Mat &mask, int algorithm)
 
     return 0;
 }
+
+
+int CFiltreEffetCPU::ExtractPersonFromPhoto()
+{
+	ExecuteSafe([&](cv::Mat& image)
+		{
+
+		if (image.empty()) {
+			std::cerr << "Impossible de charger l'image !" << std::endl;
+			return -1;
+		}
+
+		CExtractPerson extractPerson;
+		cv::Mat dest = extractPerson.extractPerson(image);
+		dest.copyTo(image);
+		});
+
+	return 0;
+}
+
 
 bool CFiltreEffetCPU::StabilizeVideo(Regards::OpenCV::COpenCVStabilization* openCVStabilization)
 {

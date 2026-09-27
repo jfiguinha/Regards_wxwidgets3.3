@@ -2,7 +2,8 @@
 #include "FilterWindowParam.h"
 #include "LibResource.h"
 #include <effect_id.h>
-
+#include <ImageLoadingFormat.h>
+#include <RGBAQuad.h>
 namespace Regards::Filter
 {
 	class CDefaultFilter : public CFilterWindowParam
@@ -571,6 +572,50 @@ namespace Regards::Filter
 			if (filtreEffet != nullptr)
 				filtreEffet->NiveauDeGris();
 		};
+	};
+
+	class CExtractFilterPerson : public CDefaultFilter
+	{
+	public:
+		CExtractFilterPerson()
+		{};
+
+		~CExtractFilterPerson() override
+		{};
+
+		int GetNameFilter() override
+		{
+			return IDM_EXTRACTPERSON;
+		}
+
+		int GetTypeFilter() override
+		{
+			return SPECIAL_EFFECT;
+		};
+
+		wxString GetFilterLabel() override
+		{
+			return "Extract Person";//CLibResource::LoadStringFromResource("LBLfilterSepia", 1);
+		}
+
+		void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter,
+			const bool& preview) override
+		{
+			if (filtreEffet != nullptr)
+				if (filtreEffet->ExtractPersonFromPhoto() == -1)
+				{
+					CRgbaquad backcolor;
+					CImageLoadingFormat image;
+					image.SetPicture(filtreEffet->GetBitmap(true));
+					auto filtre = std::make_unique<CFiltreEffet>(backcolor, nullptr, &image);
+					filtre->ExtractPersonFromPhoto();
+					CImageLoadingFormat * imageLoad = new CImageLoadingFormat();
+					cv::Mat mat = filtre->GetBitmap(true);
+					imageLoad->SetPicture(mat);
+					filtreEffet->SetBitmap(imageLoad);
+				}
+		};
+
 	};
 
 	class CSepiaFilter : public CDefaultFilter

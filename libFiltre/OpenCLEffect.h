@@ -56,6 +56,7 @@ namespace Regards::FiltreEffet
 		                   int flipH, int flipV, int angle, int ratio, bool bgraOutput = false) override;
 		int CartoonifyImage(const int& mode) override { return -1; };
 		int NiveauDeGris() override;
+		int ExtractPersonFromPhoto() override { return -1; };
 		int RedEye() override { return -1; };
 		int HistogramNormalize() override { return -1; };
 		int HistogramEqualize() override { return -1; };

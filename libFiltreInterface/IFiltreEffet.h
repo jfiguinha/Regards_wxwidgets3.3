@@ -60,6 +60,7 @@ public:
 	virtual int HQDn3D(const double& LumSpac, const double& temporalLumaDefault, const double& temporalSpatialLumaDefault) = 0;
 	virtual int NoirEtBlanc() = 0;
 	virtual int Sepia() = 0;
+	virtual int ExtractPersonFromPhoto() = 0;
 	virtual int Soften() = 0;
 	virtual int Blur(const int& radius) = 0;
 	virtual int GaussianBlur(const int& radius, const int& boxsize) = 0;

@@ -110,6 +110,7 @@
     <ClCompile Include="DetectFace.cpp" />
     <ClCompile Include="DetectFacePCN.cpp" />
     <ClCompile Include="DetectRotation.cpp" />
+    <ClCompile Include="ExtractPerson.cpp" />
     <ClCompile Include="FaceDetector.cpp" />
     <ClCompile Include="gfpgan.cpp" />
     <ClCompile Include="realesrgan.cpp" />
@@ -121,6 +122,7 @@
     <ClInclude Include="DetectFace.h" />
     <ClInclude Include="DetectFacePCN.h" />
     <ClInclude Include="DetectRotation.h" />
+    <ClInclude Include="ExtractPerson.h" />
     <ClInclude Include="FaceDetector.h" />
     <ClInclude Include="FaceRect.h" />
     <ClInclude Include="gfpgan.h" />

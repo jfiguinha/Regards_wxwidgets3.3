@@ -28,6 +28,8 @@ namespace Regards::Filter
 		void FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData,
 			const wxString& key);
 		CEffectParameter* GetEffectPointer() override;
+		void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter,
+			const bool& preview) override;
 	private:
 		void AddMetadataElement(vector<CMetadata>& element, wxString value, int key);
         cv::Mat GenerateMaskFromZone(const cv::Rect & zone, const cv::Mat & src);

@@ -54,6 +54,7 @@ public:
 	int Noise();
 	int Dilate();
 	int Negatif();
+	int ExtractPersonFromPhoto();
 	int RedEye();
 	int FiltreEdge();
 	int FiltreMosaic(const int& size);

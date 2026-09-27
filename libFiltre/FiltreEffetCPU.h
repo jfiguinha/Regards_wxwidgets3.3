@@ -45,6 +45,7 @@ public:
 	int Emboss() override;
 	int SharpenStrong() override;
 	int Sharpen() override;
+	int ExtractPersonFromPhoto() override;
 	int Erode() override;
 	int Median() override;
 	int Noise() override;

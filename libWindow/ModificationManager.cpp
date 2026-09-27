@@ -31,6 +31,7 @@
 #include <StylizationParameter.h>
 #include <SwirlEffectParameter.h>
 #include <VignetteEffectParameter.h>
+#include <InpaintFilterParam.h>
 #include <WaveEffectParameter.h>
 #include <effect_id.h>
 #include <CropEffectParameter.h>
@@ -92,6 +93,8 @@ static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffe
 		return std::make_unique<CVignetteEffectParameter>(*static_cast<CVignetteEffectParameter*>(effectParameter));
 	case IDM_WAVE_EFFECT:
 		return std::make_unique<CWaveEffectParameter>(*static_cast<CWaveEffectParameter*>(effectParameter));
+	case IDM_INPAINT:
+		return std::make_unique<CInpaintFilterParameter>(*static_cast<CInpaintFilterParameter*>(effectParameter));
 	case IDM_CROP:
 		return std::make_unique<CCropEffectParameter>(*static_cast<CCropEffectParameter*>(effectParameter));
 		// Ajoutez ici d'autres cas si le paramètre rgbEffectParameter correspond à d'autres filtres (ex: IDM_COLOR_BALANCE)
@@ -110,7 +113,8 @@ CModificationManager::CModificationManager(const wxString& folder)
 	nbModification = 0;
 	numModification = 0;
 	this->folder = folder;
-	this->currentBitmap = nullptr;
+	this->baseBitmap = nullptr;    //
+	this->currentBitmap = nullptr; // 
 }
 
 void CModificationManager::Init(CImageLoadingFormat* bitmap)
@@ -118,6 +122,15 @@ void CModificationManager::Init(CImageLoadingFormat* bitmap)
 	EraseData();
 	filenameBitmap = bitmap->GetFilename();
 	orientation = bitmap->GetOrientation();
+
+	//On clone l'image de base en RAM pour ne plus JAMAIS faire de LoadPicture sur le disque
+	CLibPicture picture;
+	baseBitmap = picture.LoadPicture(filenameBitmap);
+
+	// L'image courante au départ est l'image de base
+	if (baseBitmap != nullptr) {
+		currentBitmap = new CImageLoadingFormat(*baseBitmap);
+	}
 
 	ModificationStep rootStep;
 	rootStep.filterId = -1;
@@ -130,6 +143,11 @@ void CModificationManager::Init(CImageLoadingFormat* bitmap)
 CModificationManager::~CModificationManager()
 {
 	EraseData();
+	if (baseBitmap != nullptr) // Clean de la base
+	{
+		delete baseBitmap;
+		baseBitmap = nullptr;
+	}
 	if (currentBitmap != nullptr)
 	{
 		delete currentBitmap;
@@ -142,6 +160,7 @@ void CModificationManager::EraseData()
 	nbModification = 0;
 	numModification = 0;
 	historySteps.clear();
+	// Note: Ne pas supprimer baseBitmap ici si EraseData est appelé dans Init avant l'affectation
 }
 
 unsigned int CModificationManager::GetNbModification()
@@ -166,29 +185,46 @@ wxString CModificationManager::GetModificationLibelle(const unsigned int& numMod
 	return "";
 }
 
-CImageLoadingFormat* CModificationManager::GetModification(const unsigned int& numModification)
+CImageLoadingFormat* CModificationManager::GetModification(const unsigned int& targetModification)
 {
-	if (numModification >= historySteps.size())
+	if (targetModification >= historySteps.size() || baseBitmap == nullptr)
 		return nullptr;
 
-	CLibPicture picture;
-
-	// Si on demande la source, on retourne l'image d'origine brute
-	if (numModification == 0)
+	// Cas 1 : On demande l'image d'origine
+	if (targetModification == 0)
 	{
-		return picture.LoadPicture(filenameBitmap);
+		this->numModification = 0;
+		return new CImageLoadingFormat(*baseBitmap);
 	}
 
-	// Correction logique indispensable : Pour rejouer séquentiellement les filtres 
-	// de manière propre, on repart à chaque fois d'une NOUVELLE instance de l'image de base.
-	CImageLoadingFormat* processBitmap = picture.LoadPicture(filenameBitmap);
-	if (processBitmap == nullptr)
-		return nullptr;
+	// Cas 2 : L'image demandée est EXACTEMENT l'image courante qu'on a déjà en RAM
+	if (targetModification == this->numModification && currentBitmap != nullptr)
+	{
+		return new CImageLoadingFormat(*currentBitmap);
+	}
+
+	CImageLoadingFormat* processBitmap = nullptr;
+	unsigned int startStep = 1;
+
+	// Cas 3 : Optimisation incrémentale (L'utilisateur avance d'étapes)
+	// Si on demande une étape future (ex: étape 4) et qu'on est à l'étape 3, 
+	// on repart de l'image de l'étape 3 au lieu de repartir de zéro !
+	if (targetModification > this->numModification && currentBitmap != nullptr)
+	{
+		processBitmap = new CImageLoadingFormat(*currentBitmap);
+		startStep = this->numModification + 1; // On ne rejoue que les filtres manquants
+	}
+	else
+	{
+		// Cas 4 : L'utilisateur revient en arrière, on est obligé de repartir de la base en RAM
+		processBitmap = new CImageLoadingFormat(*baseBitmap);
+		startStep = 1;
+	}
 
 	CFiltreEffet filtreEffet(color_quad, nullptr, processBitmap);
 
-	// Rejeu séquentiel de tous les filtres accumulés jusqu'à l'index demandé
-	for (unsigned int i = 1; i <= numModification; ++i)
+	// Rejeu séquentiel uniquement sur le différentiel nécessaire
+	for (unsigned int i = startStep; i <= targetModification; ++i)
 	{
 		const auto& step = historySteps.at(i);
 		if (step.filterId != -1)
@@ -197,21 +233,24 @@ CImageLoadingFormat* CModificationManager::GetModification(const unsigned int& n
 		}
 	}
 
-	// Récupération de la matrice finale calculée par OpenCV
 	cv::Mat output = filtreEffet.GetBitmap(false);
 
-	CImageLoadingFormat* outputBitmap = new CImageLoadingFormat();
-	outputBitmap->SetPicture(output);
+	// Mettre à jour le cache de l'étape courante pour les prochains appels
+	if (currentBitmap != nullptr) {
+		delete currentBitmap;
+	}
+	currentBitmap = new CImageLoadingFormat();
+	currentBitmap->SetPicture(output);
+	currentBitmap->SetOrientation(0);
+	currentBitmap->SetFilename(filenameBitmap);
 
-	// Restauration des métadonnées de l'image
-	outputBitmap->SetOrientation(0);
-	outputBitmap->SetFilename(filenameBitmap);
+	this->numModification = targetModification;
 
-	// Nettoyage de l'image temporaire de traitement
+	// Nettoyage
 	delete processBitmap;
 
-	this->numModification = numModification;
-	return outputBitmap;
+	// Renvoie une copie pour l'affichage/utilisation externe
+	return new CImageLoadingFormat(*currentBitmap);
 }
 
 void CModificationManager::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle)

@@ -232,6 +232,12 @@ int CFiltreEffet::LensFlare(const int& iPosX, const int& iPosY, const int& iPuis
 	return value;
 }
 
+int CFiltreEffet::ExtractPersonFromPhoto()
+{
+	int value = filtreEffet->ExtractPersonFromPhoto();
+	return value;
+}
+
 int CFiltreEffet::SharpenMasking(const float& sharpness)
 {
 	return filtreEffet->SharpenMasking(sharpness);

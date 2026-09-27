@@ -265,12 +265,12 @@ void CInfoEffect::CreateElement(RenderMode mode)
 			CTreeElementTriangle* tree_element_triangle = nullptr;
 			CPositionElement* posElement = nullptr;
 
-			posElement = RenderTriangle(data, xPos, yPos, isVisible, RenderMode::Create);
+			posElement = RenderTriangle(data, xPos, yPos, isVisible, mode);
 			xPos += posElement->GetWidth() + themeTree.GetMargeX();
 			widthPosition = posElement->GetWidth() + themeTree.GetMargeX();
 			tree_element_triangle = dynamic_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
 
-			posElement = RenderText(data, xPos, yPos, isVisible, RenderMode::Create);
+			posElement = RenderText(data, xPos, yPos, isVisible, mode);
 			widthElement += xPos + posElement->GetWidth() + themeTree.GetMargeX();
 			yPos += themeTree.GetRowHeight();
 			nbRow++;

@@ -25,13 +25,13 @@ public:
 	void Init(CImageLoadingFormat* bitmap);
 	wxString GetModificationLibelle(const unsigned int& numModification);
 
+	// Dans ModificationManager.h [2]
 private:
 	void EraseData();
 
-	// Structure représentant une action de l'historique
 	struct ModificationStep {
 		int filterId;
-		std::unique_ptr<CEffectParameter> parameter; // Allocation dynamique ou copie des paramètres
+		std::unique_ptr<CEffectParameter> parameter;
 		wxString libelle;
 	};
 
@@ -41,7 +41,10 @@ private:
 	wxString folder;
 	wxString filenameBitmap;
 	CRgbaquad color_quad;
-	CImageLoadingFormat* currentBitmap;
-	// Conteneur de l'historique des filtres appliqués
+
+	CImageLoadingFormat* baseBitmap;    // AJOUT : Stocke l'image originale décodée en RAM
+	CImageLoadingFormat* currentBitmap; // MODIFICATION : Stockera l'image à l'étape 'numModification' [1, 2]
+
 	std::vector<ModificationStep> historySteps;
+
 };
