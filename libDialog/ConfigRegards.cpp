@@ -401,7 +401,8 @@ void ConfigRegards::OnbtnOkClick(wxCommandEvent& event)
 		bool result = Regards::Internet::CGps::IsLocalisationAvailable(urlServer, apiKey);
 		if (!result)
 		{
-			wxMessageBox(_("Geolocalisation service is not available. Please check your geoplugin.net API key."));
+			
+			wxMessageBox(CLibResource::LoadStringFromResource(L"LBLGEOLOCNOTAVAILABLE",1));
 		}
 		else
 		{
