@@ -11,6 +11,7 @@
 #include "TreeElementColor.h"
 #include "TreeElementStar.h"
 #include "TreeDataStars.h"
+#include "TreeElementComboBox.h"
 #include "TreeDataLink.h"
 #include "TreeData.h"
 using namespace Regards::Window;
@@ -63,6 +64,21 @@ CTreeControl::CTreeControl(CThemeTree* theme, CTreeElementControlInterface* inte
 	themeTree.themeSlide.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
 	eventControl = interfaceControl;
+}
+
+CTreeElementComboBox* CTreeControl::CreateComboBoxElement(const int& width, const int& height,
+	const std::vector<wxString>& items,
+	const int& defaultSelection)
+{
+	auto treeElementComboBox = new CTreeElementComboBox();
+
+	// Configuration de la taille imposée par la cellule de l'arbre
+	treeElementComboBox->SetZoneSize(width, height);
+
+	// Injection des chaînes de caractères et de l'index sélectionné de départ
+	treeElementComboBox->SetItems(items, defaultSelection);
+
+	return treeElementComboBox;
 }
 
 /**
@@ -120,6 +136,9 @@ CPositionElement* CTreeControl::RenderColor(
 
 	return posElement;
 }
+
+
+
 
 
 CTreeControl& CTreeControl::operator=(const CTreeControl& other)

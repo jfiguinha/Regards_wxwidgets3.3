@@ -896,6 +896,7 @@
     <ClInclude Include="TreeDataStars.h" />
     <ClInclude Include="TreeElement.h" />
     <ClInclude Include="TreeElementCheckBox.h" />
+    <ClInclude Include="TreeElementComboBox.h" />
     <ClInclude Include="TreeElementControlInterface.h" />
     <ClInclude Include="TreeElementDelete.h" />
     <ClInclude Include="TreeElementListBox.h" />
@@ -975,6 +976,7 @@
     <ClCompile Include="TreeElement.cpp" />
     <ClCompile Include="TreeElementCheckBox.cpp" />
     <ClCompile Include="TreeElementColor.cpp" />
+    <ClCompile Include="TreeElementComboBox.cpp" />
     <ClCompile Include="TreeElementDelete.cpp" />
     <ClCompile Include="TreeElementListBox.cpp" />
     <ClCompile Include="TreeElementSlide.cpp" />

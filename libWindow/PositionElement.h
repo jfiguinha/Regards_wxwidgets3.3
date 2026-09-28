@@ -16,6 +16,7 @@ namespace Regards::Window
 #define ELEMENT_LISTBOX 9
 #define ELEMENT_STAR 10
 #define ELEMENT_COLOR 11
+#define ELEMENT_COMBOBOX 12
 
 	class CPositionElement
 	{

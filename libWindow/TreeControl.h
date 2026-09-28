@@ -22,6 +22,7 @@ namespace Regards::Window
 	class CTreeElementCheckBox;
 	class CTreeElementStar;
 	class CTreeElementColor;
+	class CTreeElementComboBox;
 
 	class CTreeControl : public CTreeElementSlideInterface
 	{
@@ -210,6 +211,10 @@ namespace Regards::Window
 			bool visible,
 			RenderMode mode);
 
+
+
+
+
 		wxColour GetBackgroundColour(const int& yPos);
 
 		//Tree Window
@@ -240,6 +245,11 @@ namespace Regards::Window
 
 		// --- À ajouter dans la section public: de la classe CTreeControl ---
 		CTreeElementColor* CreateColorElement(const int& width, const int& height, const wxColour& initialColor);
+		// --- À ajouter dans la section protected: de la classe CTreeControl ---
+		CTreeElementComboBox* CreateComboBoxElement(const int& width, const int& height,
+			const std::vector<wxString>& items,
+			const int& defaultSelection = 0);
+
 
 		//Element de rendu pour l'arbre
 		tree<CTreeData*> tr;

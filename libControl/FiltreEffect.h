@@ -73,6 +73,13 @@ namespace Regards::Window
 			bool visible,
 			RenderMode mode);
 
+		CPositionElement* RenderComboBox(
+			CTreeData* data,
+			int& xPos,
+			int& yPos,
+			bool visible,
+			RenderMode mode);
+
 		int filtre;
 
 		int yPos;
