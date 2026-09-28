@@ -1,11 +1,13 @@
 #include "header.h"
 #include "TreeElementComboBox.h"
-
+#include "TreeControl.h"
+#include <TreeElementValue.h>
 using namespace Regards::Window;
 
-CTreeElementComboBox::CTreeElementComboBox()
-	: m_selectionIndex(0), m_pComboBoxNative(nullptr), m_pParentWindow(nullptr)
+CTreeElementComboBox::CTreeElementComboBox(CTreeControl* parent, wxString exifKey)
+	: m_selectionIndex(0), m_pComboBoxNative(nullptr), m_pParentWindow(nullptr), m_pParentControl(parent)
 {
+	this->exifKey = exifKey;
 	m_width = DEFAULT_WIDTH;
 	m_height = DEFAULT_HEIGHT;
 	m_items.clear();
@@ -22,8 +24,17 @@ CTreeElementComboBox::~CTreeElementComboBox()
 
 void CTreeElementComboBox::SetZoneSize(const int& width, const int& height)
 {
-	m_width = width;
+	if (width > DEFAULT_WIDTH)
+		m_width = width;
+	else
+		m_width = DEFAULT_WIDTH;
+
 	m_height = height;
+
+	if (m_pComboBoxNative != nullptr)
+	{
+		m_pComboBoxNative->SetSize(m_width - 4, m_height);
+	}
 }
 
 int CTreeElementComboBox::GetWidth()
@@ -65,29 +76,30 @@ void CTreeElementComboBox::ClickElement(wxWindow* window, const int& x, const in
 	if (window == nullptr || m_items.empty()) return;
 	m_pParentWindow = window;
 
-	// Si une combobox est déjà affichée, on ne fait rien
-	if (m_pComboBoxNative != nullptr) return;
-
-	// On prépare la liste pour l'objet natif wxWidgets
 	wxArrayString choices;
 	for (const auto& item : m_items)
 	{
 		choices.Add(item);
 	}
 
-	// Calcul de la position absolue de l'élément par rapport au panel parent de l'arbre
-	// xPos et yPos proviennent de la classe de base CTreeElement
-	wxPoint comboPos(xPos, yPos);
+	wxPoint comboPos(x, y);
 	wxSize comboSize(m_width - 4, m_height);
 
-	// Instanciation de la ComboBox native wxWidgets en mode lecture seule (dropdown non éditable)
-	m_pComboBoxNative = new wxComboBox(window, wxID_ANY, choices[m_selectionIndex],
-		comboPos, comboSize, choices, wxCB_READONLY);
+	// Si le contrôle n'existe pas encore, on le crée
+	if (m_pComboBoxNative == nullptr)
+	{
+		m_pComboBoxNative = new wxComboBox(window, wxID_ANY, choices[m_selectionIndex],
+			comboPos, comboSize, choices, wxCB_READONLY);
 
-	// Liaison de l'événement de sélection
-	m_pComboBoxNative->Bind(wxEVT_COMBOBOX, &CTreeElementComboBox::OnComboSelection, this);
+		m_pComboBoxNative->Bind(wxEVT_COMBOBOX, &CTreeElementComboBox::OnComboSelection, this);
+	}
+	else
+	{
+		// S'il existe déjà, on le repositionne et on le réaffiche
+		m_pComboBoxNative->SetSize(comboPos.x, comboPos.y, comboSize.x, comboSize.y);
+	}
 
-	// Déclenchement automatique de l'ouverture du menu déroulant
+	m_pComboBoxNative->Show(true);
 	m_pComboBoxNative->Popup();
 	m_pComboBoxNative->SetFocus();
 }
@@ -96,26 +108,57 @@ void CTreeElementComboBox::OnComboSelection(wxCommandEvent& event)
 {
 	if (m_pComboBoxNative == nullptr) return;
 
-	// Enregistrement du nouvel index sélectionné
+	// 1. Enregistrement du nouvel index sélectionné
 	m_selectionIndex = m_pComboBoxNative->GetSelection();
 
-	// Simulation d'une perte de focus ou fin d'édition : on détruit le contrôle éphémère
-	m_pComboBoxNative->Destroy();
-	m_pComboBoxNative = nullptr;
+	// 2. On masque le widget natif
+	m_pComboBoxNative->Show(false);
 
 	if (m_pParentWindow != nullptr)
 	{
-		// Force le rafraîchissement global de l'arbre pour afficher le nouveau texte
-		m_pParentWindow->Refresh();
+		m_pParentWindow->CallAfter([this]() {
+			if (m_pParentControl != nullptr)
+			{
+				CTreeElementValueInt valueInt(m_selectionIndex);
 
-		// Optionnel : Vous pouvez poster ici un événement personnalisé pour notifier 
-		// l'arbre parent (CFiltreEffect) du changement de paramètre.
+
+				// Notification synchrone vers le filtre OpenCV
+				m_pParentControl->SlidePosChange(this, m_selectionIndex, &valueInt, exifKey);
+			}
+
+			// --- LA CORRECTION EST ICI ---
+			// Il faut forcer l'arbre de contrôle principal à recalculer l'affichage (RenderMode::Update)
+			// En appelant l'interface de contrôle liée à votre fenêtre Regards
+			// Si la classe Regards possède une méthode sur son interface, on l'appelle :
+			// (Par exemple, si eventControl est accessible ou via une méthode virtuelle de CTreeControl)
+
+			if (m_pParentWindow != nullptr)
+			{
+				// Demande à l'OS de relancer le cycle complet de peinture, ce qui va forcer l'exécution de DrawElement !
+				m_pParentWindow->Refresh();
+				m_pParentWindow->Update();
+			}
+			});
 	}
+
+
+
+
 }
+
 
 void CTreeElementComboBox::DrawElement(wxDC* deviceContext, const int& x, const int& y)
 {
 	if (deviceContext == nullptr) return;
+
+	xPos = x;
+	yPos = y;
+
+	// Si le contrôle natif est actuellement ouvert et visible, on le laisse s'afficher par-dessus
+	if (m_pComboBoxNative != nullptr && m_pComboBoxNative->IsShown())
+	{
+		return;
+	}
 
 	// 1. Dessin du fond de ligne standard
 	if (backcolor.IsOk())
@@ -127,53 +170,58 @@ void CTreeElementComboBox::DrawElement(wxDC* deviceContext, const int& x, const 
 		deviceContext->DrawRectangle(x, y, m_width, m_height);
 	}
 
-	// Si le contrôle natif est visible au-dessus, c'est l'OS qui le dessine.
-	// Sinon (au repos), on simule l'affichage graphique d'un champ de sélection :
-	if (m_pComboBoxNative == nullptr)
+	// 2. Mode au repos : Rendu graphique simulé (Ultra stable, ne bloque pas l'affichage de l'arbre)
+	int marginX = 2;
+	int marginY = 1;
+	int boxWidth = m_width - (marginX * 2);
+	int boxHeight = m_height - (marginY * 2);
+
+	// Dessin du champ blanc
+	deviceContext->SetPen(wxPen(wxColour(180, 180, 180), 1, wxPENSTYLE_SOLID));
+	deviceContext->SetBrush(*wxWHITE_BRUSH);
+	deviceContext->DrawRectangle(x + marginX, y + marginY, boxWidth, boxHeight);
+
+	// Dessin du bouton flèche gris à droite
+	int arrowBoxWidth = 16;
+	int arrowX = x + marginX + boxWidth - arrowBoxWidth;
+	deviceContext->SetPen(wxPen(wxColour(180, 180, 180), 1, wxPENSTYLE_SOLID));
+	deviceContext->SetBrush(wxBrush(wxColour(240, 240, 240), wxBRUSHSTYLE_SOLID));
+	deviceContext->DrawRectangle(arrowX, y + marginY, arrowBoxWidth, boxHeight);
+
+	// Dessin de la petite flèche noire
+	deviceContext->SetPen(wxPen(wxColour(0, 0, 0), 1, wxPENSTYLE_SOLID));
+	deviceContext->SetBrush(wxBrush(wxColour(0, 0, 0), wxBRUSHSTYLE_SOLID));
+	wxPoint arrowPoints[3];
+	arrowPoints[0] = wxPoint(arrowX + 4, y + (boxHeight / 2) - 1);
+	arrowPoints[1] = wxPoint(arrowX + 12, y + (boxHeight / 2) - 1);
+	arrowPoints[2] = wxPoint(arrowX + 8, y + (boxHeight / 2) + 3);
+	deviceContext->DrawPolygon(3, arrowPoints);
+
+	// Rendu du texte de l'option courante sélectionnée
+	wxString currentText = GetSelectionString();
+	if (!currentText.IsEmpty())
 	{
-		int marginX = 2;
-		int marginY = 1;
-		int boxWidth = m_width - (marginX * 2);
-		int boxHeight = m_height - (marginY * 2);
+		deviceContext->SetTextForeground(wxColour(0, 0, 0));
 
-		// Dessin du rectangle de contour (Style champ de texte)
-		deviceContext->SetPen(wxPen(wxColour(180, 180, 180), 1, wxPENSTYLE_SOLID));
-		deviceContext->SetBrush(*wxWHITE_BRUSH);
-		deviceContext->DrawRectangle(x + marginX, y + marginY, boxWidth, boxHeight);
+		wxCoord textW, textH;
+		deviceContext->GetTextExtent(currentText, &textW, &textH);
+		int textY = y + (m_height - textH) / 2;
+		int maxTextWidth = boxWidth - arrowBoxWidth - 6;
 
-		// Dessin de la flèche ComboBox sur la droite de la cellule
-		int arrowBoxWidth = 16;
-		int arrowX = x + marginX + boxWidth - arrowBoxWidth;
-		deviceContext->SetPen(wxPen(wxColour(180, 180, 180), 1, wxPENSTYLE_SOLID));
-		deviceContext->SetBrush(wxBrush(wxColour(240, 240, 240), wxBRUSHSTYLE_SOLID));
-		deviceContext->DrawRectangle(arrowX, y + marginY, arrowBoxWidth, boxHeight);
-
-		// Petite flèche noire vers le bas
-		deviceContext->SetPen(wxPen(wxColour(0, 0, 0), 1, wxPENSTYLE_SOLID));
-		deviceContext->SetBrush(wxBrush(wxColour(0, 0, 0), wxBRUSHSTYLE_SOLID));
-		wxPoint arrowPoints[3];
-		arrowPoints[0] = wxPoint(arrowX + 4, y + (boxHeight / 2) - 1);
-		arrowPoints[1] = wxPoint(arrowX + 12, y + (boxHeight / 2) - 1);
-		arrowPoints[2] = wxPoint(arrowX + 8, y + (boxHeight / 2) + 3);
-		deviceContext->DrawPolygon(3, arrowPoints);
-
-		// Rendu textuel de l'option courante sélectionnée
-		wxString currentText = GetSelectionString();
-		if (!currentText.IsEmpty())
+		wxString textToDraw = currentText;
+		if (textW > maxTextWidth && textToDraw.Length() > 0)
 		{
-			deviceContext->SetFont(deviceContext->GetFont()); // Utilise la police par défaut du DC
-			deviceContext->SetTextForeground(wxColour(0, 0, 0));
-
-			// On tronque le texte s'il dépasse de la zone de la ComboBox
-			wxCoord textW, textH;
-			deviceContext->GetTextExtent(currentText, &textW, &textH);
-			int textY = y + (m_height - textH) / 2;
-
-			deviceContext->DrawText(currentText, x + marginX + 4, textY);
+			while (textW > maxTextWidth && textToDraw.Length() > 0)
+			{
+				textToDraw.RemoveLast();
+				deviceContext->GetTextExtent(textToDraw + "...", &textW, &textH);
+			}
+			textToDraw += "...";
 		}
+
+		deviceContext->DrawText(textToDraw, x + marginX + 4, textY);
 	}
 
-	// Nettoyage standard du DC
 	deviceContext->SetBrush(wxNullBrush);
 	deviceContext->SetPen(wxNullPen);
 }

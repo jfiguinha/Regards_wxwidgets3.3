@@ -23,6 +23,7 @@ CPenFilter::CPenFilter()
 {
 	libellePenSize = "Effect.Pen Size";
 	libelleColor = "Effect.Color";
+	libelleTypeBrush = "Effect.Brush";
 }
 
 CPenFilter::~CPenFilter()
@@ -71,68 +72,6 @@ CDraw* CPenFilter::GetDrawingPt()
 	return new Regards::FiltreEffet::CPenDraw();
 }
 
-void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, FiltreEffet::CDraw* m_cDessin)
-{
-	if (m_cDessin != nullptr && dc != nullptr && bitmapViewer != nullptr)
-	{
-		int hpos = bitmapViewer->GetHPos();
-		int vpos = bitmapViewer->GetVPos();
-		float ratio = bitmapViewer->GetRatio();
-
-		// 1. Récupération des paramètres du filtre
-		auto penParameter = static_cast<CPenFilterParameter*>(bitmapViewer->GetEffectPointer());
-
-		wxColour wxColor(255, 0, 0); // Couleur par défaut
-		int activePenSize = 4;       // Taille par défaut
-
-		if (penParameter != nullptr)
-		{
-			// Extraction BGR (OpenCV) vers RGB (wxWidgets) pour l'affichage courant
-			int r = static_cast<int>(penParameter->color[2]); // R est à l'indice 2 en BGR
-			int g = static_cast<int>(penParameter->color[1]); // G est à l'indice 1
-			int b = static_cast<int>(penParameter->color[0]); // B est à l'indice 0
-			int a = static_cast<int>(penParameter->color[3]);
-
-			wxColor.Set(r, g, b, a > 0 ? a : 255);
-			activePenSize = penParameter->penSize;
-		}
-
-		// 2. On demande à CPenDraw d'exécuter son rendu à l'écran
-		m_cDessin->Dessiner(dc, hpos, vpos, ratio, wxColor, wxColor, wxColor, activePenSize);
-
-		// 3. SAUVEGARDE : Synchronisation des données de l'écran vers le penParameter
-		auto penDraw = static_cast<Regards::FiltreEffet::CPenDraw*>(m_cDessin);
-		if (penParameter != nullptr && penDraw != nullptr)
-		{
-			// On vide l'ancien historique du paramètre pour y copier la version fraîche à jour
-			penParameter->listLines.clear();
-
-			// Récupération des tracés depuis la classe de dessin
-			const auto& tracesEcran = penDraw->GetTousLesTraces();
-
-			for (const auto& traceEcran : tracesEcran)
-			{
-				SLineTrace ligneOpenCV;
-				ligneOpenCV.points = traceEcran.points; // Copie du vecteur de wxPoint
-				ligneOpenCV.penSize = traceEcran.penSize;
-
-				// Conversion inverse : wxColour (RGB) vers cv::Scalar (BGR)
-				ligneOpenCV.color = cv::Scalar(
-					traceEcran.color.Blue(),
-					traceEcran.color.Green(),
-					traceEcran.color.Red(),
-					traceEcran.color.Alpha()
-				);
-
-				// Sauvegarde définitive dans les paramètres du filtre
-				penParameter->listLines.push_back(ligneOpenCV);
-			}
-		}
-	}
-}
-
-
-
 void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, const wxString& filename,
 	IFiltreEffectInterface* filtreInterface)
 {
@@ -144,10 +83,20 @@ void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 	for (auto i = 0; i < 50; i++)
 		elementSize.push_back(i);
 
+	// 3. CONFIGURATION ET AJOUT DE LA COMBOBOX POUR LE TYPE DE PINCEAU
+	vector<CMetadata> brushOptions;
+	AddMetadataElement(brushOptions, "Standard (Rond)", 0);
+	AddMetadataElement(brushOptions, "Carré", 1);
+	AddMetadataElement(brushOptions, "Pointillés", 2);
+
+
 	filtreInterface->AddTreeInfos(libellePenSize,
 		new CTreeElementValueInt(inpaintParam->penSize), &elementSize);
 	filtreInterface->AddTreeInfos(libelleColor,
 		new CTreeElementValueColor(ConvertScalarToWxColour(inpaintParam->color)), &elementSize, TYPE_COLOR, TYPE_COLOR);
+	// Appel de AddTreeInfos en spécifiant TYPE_COMBOBOX (type = 4) pour l'affichage d'une liste déroulante
+	filtreInterface->AddTreeInfos(libelleTypeBrush, new CTreeElementValueInt(inpaintParam->typeBrush), &brushOptions, 3, TYPE_COMBOBOX);
+
 }
 
 void CPenFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData,
@@ -155,45 +104,22 @@ void CPenFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeEleme
 {
 	auto penParameter = static_cast<CPenFilterParameter*>(effectParameter);
 
-	float value = 0.0;
-	switch (valueData->GetType())
-	{
-	case TYPE_ELEMENT_INT:
+	if (key == libellePenSize && valueData->GetType() == TYPE_ELEMENT_INT)
 	{
 		auto intValue = static_cast<CTreeElementValueInt*>(valueData);
-		value = intValue->GetValue();
+		penParameter->penSize = intValue->GetValue();
 	}
-	break;
-	case TYPE_ELEMENT_FLOAT:
-	{
-		auto intValue = static_cast<CTreeElementValueFloat*>(valueData);
-		value = intValue->GetValue();
-	}
-	break;
-	case TYPE_ELEMENT_BOOL:
-	{
-		auto intValue = static_cast<CTreeElementValueBool*>(valueData);
-		value = intValue->GetValue();
-	}
-	break;
-	case TYPE_ELEMENT_COLOR:
-	{
-		auto colorValue = static_cast<CTreeElementValueColor*>(valueData);
-		wxColour c = colorValue->GetValue();
-	}
-	break;
-	default:;
-	}
-
-	if (key == libellePenSize)
-	{
-		penParameter->penSize = static_cast<int>(value);
-	}
-	else if (key == libelleColor)
+	else if (key == libelleColor && valueData->GetType() == 4) // TYPE_ELEMENT_COLOR
 	{
 		auto colorValue = static_cast<CTreeElementValueColor*>(valueData);
 		wxColour c = colorValue->GetValue();
 		penParameter->color = cv::Scalar(c.Blue(), c.Green(), c.Red(), c.Alpha());
+	}
+	// --- INTERCEPTION DU CHANGEMENT DE LA COMBOBOX ---
+	else if (key == libelleTypeBrush && valueData->GetType() == TYPE_ELEMENT_INT)
+	{
+		auto intValue = static_cast<CTreeElementValueInt*>(valueData);
+		penParameter->typeBrush = intValue->GetValue(); // Sauvegarde de l'index de forme choisi (0, 1 ou 2)
 	}
 }
 
@@ -214,8 +140,8 @@ wxString CPenFilter::GetFilterLabel()
 
 void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter, const bool& preview)
 {
-	const wxString libelle = CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
-	wxBusyInfo wait(libelle, nullptr);
+	//const wxString libelle = CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
+	//wxBusyInfo wait(libelle, nullptr);
 
 	CImageLoadingFormat* imageLoad = nullptr;
 	auto penParameter = static_cast<CPenFilterParameter*>(effectParameter);
@@ -226,32 +152,54 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 		imageLoad->SetPicture(filtreEffet->GetBitmap(true));
 		imageLoad->RotateExif(orientation);
 
-		// Remplacer les boucles de traitement dans RenderEffect et ApplyEffect :
 		try
 		{
 			cv::Mat& matrix = imageLoad->GetMatImage();
 
-			// On boucle sur nos objets structures contenant l'historique complet
 			for (const auto& ligne : penParameter->listLines)
 			{
 				if (ligne.points.empty()) continue;
 
 				if (ligne.points.size() == 1)
 				{
-					// Utilisation de la taille et de la couleur propres à ce tracé précis
 					cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
 				}
 				else if (ligne.points.size() > 1)
 				{
 					for (size_t i = 1; i < ligne.points.size(); ++i)
 					{
-						cv::line(matrix,
-							cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-							cv::Point(ligne.points[i].x, ligne.points[i].y),
-							ligne.color,            // Sa propre couleur
-							ligne.penSize * 2,      // Sa propre épaisseur
-							cv::LINE_AA
-						);
+						// APPLICATION DE LA LOGIQUE OPENCV SELON LE PINCEAU SÉLECTIONNÉ
+						if (ligne.typeBrush == 1)
+						{
+							// --- Pinceau de forme Carrée ---
+							// On simule une ligne carrée en dessinant un rectangle OpenCV orienté ou une boîte
+							cv::line(matrix,
+								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y),
+								ligne.color, ligne.penSize * 2, cv::LINE_8
+							);
+						}
+						else if (ligne.typeBrush == 2)
+						{
+							// --- Pinceau à effet Pointillés ---
+							// On ne dessine qu'un segment sur deux pour créer une discontinuité
+							if (i % 2 == 0) {
+								cv::line(matrix,
+									cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+									cv::Point(ligne.points[i].x, ligne.points[i].y),
+									ligne.color, ligne.penSize * 2, cv::LINE_AA
+								);
+							}
+						}
+						else
+						{
+							// --- Pinceau Standard (Rond continu) ---
+							cv::line(matrix,
+								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y),
+								ligne.color, ligne.penSize * 2, cv::LINE_AA
+							);
+						}
 					}
 				}
 			}
@@ -271,18 +219,12 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 	CImageLoadingFormat* imageLoad = nullptr;
 	auto penParameter = static_cast<CPenFilterParameter*>(effectParameter);
 
-	// Si l'utilisateur clique pour la première fois, on initialise le premier conteneur
 	if (penParameter->listLines.empty()) {
 		SLineTrace premierTrace;
 		premierTrace.color = penParameter->color;
 		premierTrace.penSize = penParameter->penSize;
+		premierTrace.typeBrush = penParameter->typeBrush; // <--- AJOUT CRUCIAL : On applique le type de brush courant
 		penParameter->listLines.push_back(premierTrace);
-	}
-
-	// Si le dessin à l'écran (CPenDraw) a créé une nouvelle ligne vide suite à un MouseDown,
-	// on synchronise en ajoutant un calque de tracé correspondant avec les styles actuels du filtre
-	if (bitmapViewer->GetDessinPt() != nullptr && penParameter->listLines.size() < 2) {
-		// (Optionnel selon l'état de votre gestionnaire d'événements externe)
 	}
 
 
@@ -292,32 +234,48 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 		imageLoad->SetPicture(source);
 		imageLoad->RotateExif(orientation);
 
-		// Remplacer les boucles de traitement dans RenderEffect et ApplyEffect :
 		try
 		{
 			cv::Mat& matrix = imageLoad->GetMatImage();
 
-			// On boucle sur nos objets structures contenant l'historique complet
 			for (const auto& ligne : penParameter->listLines)
 			{
 				if (ligne.points.empty()) continue;
 
 				if (ligne.points.size() == 1)
 				{
-					// Utilisation de la taille et de la couleur propres à ce tracé précis
 					cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
 				}
 				else if (ligne.points.size() > 1)
 				{
 					for (size_t i = 1; i < ligne.points.size(); ++i)
 					{
-						cv::line(matrix,
-							cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-							cv::Point(ligne.points[i].x, ligne.points[i].y),
-							ligne.color,            // Sa propre couleur
-							ligne.penSize * 2,      // Sa propre épaisseur
-							cv::LINE_AA
-						);
+						if (ligne.typeBrush == 1) // Carré
+						{
+							cv::line(matrix,
+								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y),
+								ligne.color, ligne.penSize * 2, cv::LINE_8
+							);
+						}
+						else if (ligne.typeBrush == 2) // Pointillés
+						{
+							if (i % 2 == 0) {
+								cv::line(matrix,
+									cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+									cv::Point(ligne.points[i].x, ligne.points[i].y),
+									ligne.color, ligne.penSize * 2, cv::LINE_AA
+								);
+							}
+						}
+						else // Rond standard
+						{
+							cv::line(matrix,
+								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y),
+								ligne.color, ligne.penSize * 2, cv::LINE_AA
+							);
+						}
 					}
 				}
 			}
@@ -332,4 +290,59 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 	}
 
 	return imageLoad;
+}
+void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
+{
+	if (m_cDessin != nullptr && dc != nullptr && bitmapViewer != nullptr)
+	{
+		int hpos = bitmapViewer->GetHPos();
+		int vpos = bitmapViewer->GetVPos();
+		float ratio = bitmapViewer->GetRatio();
+
+		auto penParameter = static_cast<CPenFilterParameter*>(bitmapViewer->GetEffectPointer());
+
+		wxColour wxColor(255, 0, 0);
+		int activePenSize = 4;
+		int activeBrushType = 0; // Par défaut : rond
+
+		if (penParameter != nullptr)
+		{
+			wxColor = ConvertScalarToWxColour(penParameter->color);
+			activePenSize = penParameter->penSize;
+			activeBrushType = penParameter->typeBrush; // Récupération du choix de la ComboBox
+		}
+
+		auto penDraw = static_cast<Regards::FiltreEffet::CPenDraw*>(m_cDessin);
+		if (penDraw != nullptr)
+		{
+			// Transmet de force le type de brush sélectionné à la classe de dessin avant le tracé
+			// Ajoutez cette variable membre 'm_currentBrush' ou une méthode publique SetCurrentBrush(int) dans CPenDraw
+			penDraw->SetCurrentBrushType(activeBrushType);
+		}
+
+		// Rendu de l'affichage temporaire à l'écran
+		m_cDessin->Dessiner(dc, hpos, vpos, ratio, wxColor, wxColor, wxColor, activePenSize);
+
+		// Synchronisation inverse lors de la sauvegarde (on propage aussi le type de brush)
+		if (penParameter != nullptr && penDraw != nullptr)
+		{
+			penParameter->listLines.clear();
+			const auto& tracesEcran = penDraw->GetTousLesTraces();
+
+			for (const auto& traceEcran : tracesEcran)
+			{
+				SLineTrace ligneOpenCV;
+				ligneOpenCV.points = traceEcran.points;
+				ligneOpenCV.penSize = traceEcran.penSize;
+				ligneOpenCV.typeBrush = traceEcran.typeBrush; // On conserve le type historique du trait
+				ligneOpenCV.color = cv::Scalar(
+					traceEcran.color.Blue(),
+					traceEcran.color.Green(),
+					traceEcran.color.Red(),
+					traceEcran.color.Alpha()
+				);
+				penParameter->listLines.push_back(ligneOpenCV);
+			}
+		}
+	}
 }

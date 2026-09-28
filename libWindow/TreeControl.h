@@ -247,7 +247,7 @@ namespace Regards::Window
 		CTreeElementColor* CreateColorElement(const int& width, const int& height, const wxColour& initialColor);
 		// --- À ajouter dans la section protected: de la classe CTreeControl ---
 		CTreeElementComboBox* CreateComboBoxElement(const int& width, const int& height,
-			const std::vector<wxString>& items,
+			const std::vector<wxString>& items, wxString exifKey,
 			const int& defaultSelection = 0);
 
 

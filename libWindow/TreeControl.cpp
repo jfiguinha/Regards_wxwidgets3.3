@@ -67,10 +67,10 @@ CTreeControl::CTreeControl(CThemeTree* theme, CTreeElementControlInterface* inte
 }
 
 CTreeElementComboBox* CTreeControl::CreateComboBoxElement(const int& width, const int& height,
-	const std::vector<wxString>& items,
+	const std::vector<wxString>& items, wxString exifKey,
 	const int& defaultSelection)
 {
-	auto treeElementComboBox = new CTreeElementComboBox();
+	auto treeElementComboBox = new CTreeElementComboBox(this, exifKey);
 
 	// Configuration de la taille imposée par la cellule de l'arbre
 	treeElementComboBox->SetZoneSize(width, height);

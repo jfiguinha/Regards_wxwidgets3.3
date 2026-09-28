@@ -93,6 +93,7 @@ CInfosSeparationBar::~CInfosSeparationBar(void)
 	listElement.clear();
 	listElement.reserve(0);
 }
+
 void CInfosSeparationBar::RenderTitle(wxDC* dc)
 {
 	wxRect rc;

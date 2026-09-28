@@ -100,6 +100,7 @@ void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, co
 			CLibPicture libPicture;
 			CImageLoadingFormat* bitmap = libPicture.LoadPicture(treeData->GetKey());
 			SetBitmapToViewer(bitmap);
+			modificationManager->SetNumModification(0);
 		}
 		SetActifElement(key);
 	}

@@ -4,10 +4,13 @@
 
 namespace Regards::Window
 {
+	class CTreeControl;
+
 	class CTreeElementComboBox : public CTreeElement
 	{
 	public:
-		CTreeElementComboBox();
+		//CTreeElementComboBox();
+		CTreeElementComboBox(CTreeControl* parent, wxString exifKey);
 		virtual ~CTreeElementComboBox();
 
 		// Surcharges obligatoires de CTreeElement
@@ -32,11 +35,12 @@ namespace Regards::Window
 		int m_selectionIndex;
 		int m_width;
 		int m_height;
+		wxString exifKey = "";
 
 		// Pointeur vers le contrôle natif éphémère
 		wxComboBox* m_pComboBoxNative;
 		wxWindow* m_pParentWindow;
-
+		CTreeControl* m_pParentControl;
 		static constexpr int DEFAULT_WIDTH = 120;
 		static constexpr int DEFAULT_HEIGHT = 20;
 	};

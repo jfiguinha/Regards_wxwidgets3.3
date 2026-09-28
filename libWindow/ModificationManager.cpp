@@ -35,6 +35,7 @@
 #include <WaveEffectParameter.h>
 #include <effect_id.h>
 #include <CropEffectParameter.h>
+#include <PenEffectParameter.h>
 using namespace Regards::Picture;
 
 
@@ -95,6 +96,8 @@ static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffe
 		return std::make_unique<CWaveEffectParameter>(*static_cast<CWaveEffectParameter*>(effectParameter));
 	case IDM_INPAINT:
 		return std::make_unique<CInpaintFilterParameter>(*static_cast<CInpaintFilterParameter*>(effectParameter));
+	case IDM_PENFILTER:
+		return std::make_unique<CPenFilterParameter>(*static_cast<CPenFilterParameter*>(effectParameter));
 	case IDM_CROP:
 		return std::make_unique<CCropEffectParameter>(*static_cast<CCropEffectParameter*>(effectParameter));
 		// Ajoutez ici d'autres cas si le paramètre rgbEffectParameter correspond à d'autres filtres (ex: IDM_COLOR_BALANCE)

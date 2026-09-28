@@ -206,7 +206,7 @@ CImageLoadingFormat* CFiltreEffect::ApplyEffect()
 }
 
 void CFiltreEffect::SlidePosChange(CTreeElement* treeElement, const int& position, CTreeElementValue* value,
-                                   const wxString& key)
+	const wxString& key)
 {
 	if (filterEffect != nullptr)
 		filterEffect->FilterChangeParam(effectParameter, value, key);
@@ -215,8 +215,19 @@ void CFiltreEffect::SlidePosChange(CTreeElement* treeElement, const int& positio
 	{
 		bitmapViewer->UpdateFiltre(effectParameter);
 	}
-	//eventControl->UpdateElement(treeElement);
+
+	// --- AJOUT REQUIS POUR LA COMBOBOX ET LE SLIDER ---
+	// Force l'arbre entier à recalculer l'agencement et la visibilité des lignes au repos
+	this->RenderElement(RenderMode::Update);
+
+	// Demande au conteneur de fenêtre global de rafraîchir le contrôle de l'arbre
+	if (eventControl != nullptr)
+	{
+		eventControl->UpdateTreeControl();
+	}
 }
+
+
 void CFiltreEffect::AddTreeInfos(const wxString& exifKey,
 	CTreeElementValue* position,
 	void* value,
@@ -390,7 +401,7 @@ CPositionElement* CFiltreEffect::RenderComboBox(
 
 		// 3. Création de l'élément graphique via la méthode héritée
 		CTreeElementComboBox* treeElementComboBox = CreateComboBoxElement(
-			themeTree.GetRowWidth(), themeTree.GetRowHeight(), items, defaultSelection);
+			themeTree.GetRowWidth(), themeTree.GetRowHeight(), items, dataEffect->GetExifKey(), defaultSelection);
 
 		treeElementComboBox->SetVisible(visible);
 
@@ -565,6 +576,23 @@ void CFiltreEffect::RenderElement(RenderMode mode)
 		}
 	}
 
+	// --- À insérer au tout début de votre méthode CFiltreEffect::RenderElement ---
+	for (CPositionElement* value : vectorPosElement)
+	{
+		if (value != nullptr && value->GetType() == ELEMENT_COMBOBOX)
+		{
+			CTreeElement* treeElement = value->GetTreeElement();
+			if (treeElement != nullptr)
+			{
+				// On va forcer l'effacement visuel du widget natif associé
+				// Pour cela, nous pouvons ajouter une petite méthode de commodité dans TreeElementComboBox
+				// ou appeler une surcharge. Le plus simple est de mettre à jour le flag à false :
+				treeElement->SetVisible(false);
+			}
+		}
+	}
+
+
 	while (it != itend)
 	{
 		CTreeData* data = *it;
@@ -713,31 +741,15 @@ void CFiltreEffect::ClickOnElement(CPositionElement* element, wxWindow* window, 
 		if (treeElementComboBox->GetRow() > 0)
 			xPos = GetWidthRow(treeElementComboBox->GetRow() - 1);
 
-		// 1. Déclenche l'ouverture de la ComboBox native et capture la sélection de l'utilisateur
-		treeElementComboBox->ClickElement(window, (x + posLargeur) - (element->GetX() + xPos),
-			(y + posHauteur) - element->GetY());
+		// CORRECTION : On passe l'emplacement absolu exact calculé sur le canvas pour le composant wxWidgets
+		int comboAbsoluteX = (element->GetX() + xPos) - posLargeur;
+		int comboAbsoluteY = element->GetY() - posHauteur;
 
-		// 2. Propagation de la nouvelle valeur vers les filtres OpenCV
-		if (filterEffect != nullptr)
-		{
-			auto data = static_cast<CTreeDataEffect*>(element->GetTreeData());
+		// Déclenche l'ouverture au pixel près avec la bonne largeur m_width préservée
+		treeElementComboBox->ClickElement(window, comboAbsoluteX, comboAbsoluteY);
 
-			// On extrait l'index entier choisi dans la ComboBox
-			int selectedIndex = treeElementComboBox->GetSelectionIndex();
-
-			// On encapsule l'index dans le Value Object entier existant
-			CTreeElementValueInt tree_element_value_int(selectedIndex);
-
-			// Envoi de la notification de changement vers FilterChangeParam
-			filterEffect->FilterChangeParam(effectParameter, &tree_element_value_int, data->GetExifKey());
-		}
-
-		update = true;
-
-		// 3. Signal de rafraîchissement à l'afficheur graphique d'images
-		if (bitmapViewer != nullptr)
-			bitmapViewer->UpdateFiltre(effectParameter);
 	}
+
 
 	if (update)
 	{

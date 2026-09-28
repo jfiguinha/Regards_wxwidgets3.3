@@ -37,5 +37,6 @@ namespace Regards::Filter
 		void AddMetadataElement(vector<CMetadata>& element, wxString value, int key);
 		wxString libellePenSize;
 		wxString libelleColor;
+		wxString libelleTypeBrush;
 	};
 }
