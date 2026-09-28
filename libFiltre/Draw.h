@@ -4,6 +4,8 @@
 
 #pragma once
 
+class CEffectParameter;
+
 namespace Regards::FiltreEffet
 {
 	class CDraw
@@ -59,7 +61,7 @@ namespace Regards::FiltreEffet
 		{
 		};
 
-		virtual void InitPoint(const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll,
+		virtual void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll,
 		                       const float& ratio)
 		{
 		};
@@ -70,10 +72,20 @@ namespace Regards::FiltreEffet
 		};
 
 
+		virtual void SetTransparenceValue(wxImage& drawingImage)
+		{
+
+		};
+
+		virtual void  DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio)
+		{
+
+		};
+
 		virtual void MouseUp()
 		{};
 
-		virtual void MouseDown()
+		virtual void MouseDown(CEffectParameter* effect)
 		{};
 
 		virtual void GetPos(wxRect& rc)
@@ -101,15 +113,17 @@ namespace Regards::FiltreEffet
 			return factor;
 		}
 
+		float XDrawingPosition(const float& m_lx, const long& m_lHScroll, const float& ratio);
+		float YDrawingPosition(const float& m_ly, const long& m_lVScroll, const float& ratio);
+		float XRealPosition(const float& m_lx, const long& m_lHScroll, const float& ratio);
+		float YRealPosition(const float& m_ly, const long& m_lVScroll, const float& ratio);
+
 	protected:
 		wxRect m_rcAffichage;
 		float m_fRatioValue;
 		wxPoint pt;
 		double factor = 1.0;
 		bool VerifierValiditerPoint(const wxPoint& pt);
-		float XDrawingPosition(const float& m_lx, const long& m_lHScroll, const float& ratio);
-		float YDrawingPosition(const float& m_ly, const long& m_lVScroll, const float& ratio);
-		float XRealPosition(const float& m_lx, const long& m_lHScroll, const float& ratio);
-		float YRealPosition(const float& m_ly, const long& m_lVScroll, const float& ratio);
+
 	};
 }

@@ -79,7 +79,7 @@ void CSelection::MouseMove(const long& xNewSize, const long& yNewSize, const lon
 	}
 }
 
-void CSelection::InitPoint(const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll,
+void CSelection::InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll,
                            const float& ratio)
 {
 	float x, y;

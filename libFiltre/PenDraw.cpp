@@ -1,7 +1,7 @@
 #include <header.h>
 #include "PenDraw.h"
 #include <algorithm>
-
+#include "PenEffectParameter.h"
 
 using namespace Regards::FiltreEffet;
 
@@ -15,14 +15,17 @@ void CPenDraw::Reset() {
 }
 
 
-void CPenDraw::MouseDown() {
+void CPenDraw::MouseDown(CEffectParameter* effect) {
     m_isDrawing = true;
 
+
+    CPenFilterParameter* penEffect = (CPenFilterParameter*)effect;
+
     SLineStyleDraw nouvelleLigne;
-    nouvelleLigne.color = m_currentColor;
-    nouvelleLigne.penSize = m_currentSize;
-    nouvelleLigne.typeBrush = m_currentBrush;
-    nouvelleLigne.opacity = m_currentOpacity; // <-- On fige l'opacité pour ce trait
+    nouvelleLigne.color = penEffect->ConvertScalarToWxColour();
+    nouvelleLigne.penSize = penEffect->penSize;
+    nouvelleLigne.typeBrush = penEffect->typeBrush;
+    nouvelleLigne.opacity = penEffect->opacity; // <-- On fige l'opacité pour ce trait
     nouvelleLigne.points.clear();
 
     m_tousLesTraces.push_back(nouvelleLigne);
@@ -42,14 +45,14 @@ void CPenDraw::GetPoint(wxPoint& pt) {
     }
 }
 
-void CPenDraw::InitPoint(const long& m_lx, const long& m_ly,
+void CPenDraw::InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly,
     const long& m_lHScroll, const long& m_lVScroll, const float& ratio) {
 
     const wxPoint point(static_cast<int>(m_lx), static_cast<int>(m_ly));
     if (!VerifierValiditerPoint(point)) return;
 
     if (m_tousLesTraces.empty() || !m_isDrawing) {
-        MouseDown();
+        MouseDown(effect);
     }
 
     float realX = XRealPosition(static_cast<float>(m_lx), m_lHScroll, ratio);
@@ -72,6 +75,145 @@ void CPenDraw::MouseMove(const long& xNewSize, const long& yNewSize,
     m_tousLesTraces.back().points.push_back(wxPoint(static_cast<int>(realX), static_cast<int>(realY)));
 }
 
+
+void CPenDraw::SetTransparenceValue(wxImage& drawingImage)
+{
+
+    // 5. Fusion par balayage de pixels (ignorer le Magenta)
+    unsigned char* baseData = drawingImage.GetData();
+
+    unsigned char* alphaData = drawingImage.GetAlpha();
+
+    int width = drawingImage.GetWidth();
+    int height = drawingImage.GetHeight();
+
+    if (baseData && alphaData && m_currentOpacity != 0)
+    {
+        for (int i = 0; i < width * height; ++i)
+        {
+            int idx = i * 3;
+
+            unsigned char r = baseData[idx];
+            unsigned char g = baseData[idx + 1];
+            unsigned char b = baseData[idx + 2];
+
+            // Détection du fond : Si le pixel N'EST PAS le magenta pur (255, 0, 255)
+            if (!(r == 255 && g == 0 && b == 255) && alphaData[i] == 0)
+            {
+                alphaData[i] = m_currentOpacity;
+            }
+        }
+    }
+}
+
+wxColour WithOpacity(const wxColour& colour, unsigned char opacity)
+{
+    return wxColour(
+        colour.Red(),
+        colour.Green(),
+        colour.Blue(),
+        opacity);
+}
+
+cv::Scalar CPenDraw::ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha)
+{
+    // Extraction des canaux OpenCV (Indices standard : 0 = Blue, 1 = Green, 2 = Red, 3 = Alpha)
+    int blue = static_cast<int>(scalar_color[0]);
+    int green = static_cast<int>(scalar_color[1]);
+    int red = static_cast<int>(scalar_color[2]);
+
+    return cv::Scalar(red, green, blue, alpha);
+}
+
+cv::Scalar GetColorWithTransparancy(wxColour color, int opacity)
+{
+    // OpenCV utilise le format BGR(A) : 
+    // color[0] = Blue, color[1] = Green, color[2] = Red
+    // On écrase le 4ème canal (indice 3) avec la valeur d'opacité courante du trait
+    return cv::Scalar(color.Red(), color.Green(), color.Blue(), static_cast<double>(opacity));
+}
+
+void CPenDraw::DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio)
+{
+    if (matrix.empty()) return;
+
+    // 1. Récupération des paramètres de défilement (Scroll) et de zoom (Ratio) depuis le viewer
+    int hpos = hScroll;
+    int vpos = vScroll;
+
+    // 2. Sécurité : S'assurer que la matrice de rendu est au format 4 canaux (BGRA)
+    if (matrix.channels() == 3)
+        cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
+
+
+    try
+    {
+        // 4. Parcours de l'ensemble des tracés (issus de l'image réelle)
+        for (const auto& ligne : m_tousLesTraces)
+        {
+            if (ligne.points.empty()) continue;
+
+            // Calcul de l'épaisseur du trait corrigée avec le ratio d'affichage (Similaire à CPenDraw)
+            int epaisseurAffichage = std::max<int>(1, static_cast<int>(ligne.penSize * 2 * ratio));
+            int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
+
+            // Si le tracé est visible
+            if (ligne.opacity > 0)
+            {
+                // Pour gérer l'alpha blending (transparence), on utilise un overlay de la taille de la matrice d'affichage
+                cv::Mat overlay = matrix.clone();
+
+                if (ligne.points.size() == 1)
+                {
+                    // Conversion des coordonnées du point unique avec les fonctions de m_cDessin
+                    int screenX = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[0].x), hpos, ratio));
+                    int screenY = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[0].y), vpos, ratio));
+
+                    int rayon = std::max(1, epaisseurAffichage / 2);
+                    cv::circle(overlay, cv::Point(screenX, screenY), rayon, GetColorWithTransparancy(ligne.color, ligne.opacity), -1, lineStyle);
+                }
+                else
+                {
+                    for (size_t i = 1; i < ligne.points.size(); ++i)
+                    {
+                        if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
+
+                        // Conversion des coordonnées des points (i-1) et (i)
+                        int xPrecedent = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[i - 1].x), hpos, ratio));
+                        int yPrecedent = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[i - 1].y), vpos, ratio));
+
+                        int xActuel = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[i].x), hpos, ratio));
+                        int yActuel = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[i].y), vpos, ratio));
+
+                        cv::line(overlay, cv::Point(xPrecedent, yPrecedent), cv::Point(xActuel, yActuel), GetColorWithTransparancy(ligne.color, ligne.opacity), epaisseurAffichage, lineStyle);
+                    }
+                }
+
+                // Application de la transparence (Alpha Blending)
+                if (ligne.opacity >= 255)
+                {
+                    // Si opaque à 100%, on copie directement l'overlay modifié sur la matrice
+                    overlay.copyTo(matrix);
+                }
+                else
+                {
+                    // Sinon, fusion mathématique de l'overlay transparent par-dessus la matrice d'affichage d'origine
+                    double alpha = ligne.opacity / 255.0;
+                    double beta = 1.0 - alpha;
+                    cv::addWeighted(overlay, alpha, matrix, beta, 0, matrix);
+                }
+            }
+        }
+    }
+    catch (cv::Exception& e)
+    {
+        const char* err_msg = e.what();
+        std::cout << "CPenFilter::Drawing - exception caught: " << err_msg << std::endl;
+    }
+
+}
+
+
 void CPenDraw::Dessiner(wxDC* deviceContext, const long& hScroll,
     const long& vScroll, const float& ratio,
     const wxColour& rgb, const wxColour& rgbFirst,
@@ -79,60 +221,44 @@ void CPenDraw::Dessiner(wxDC* deviceContext, const long& hScroll,
 
     if (deviceContext == nullptr) return;
 
-    // Enregistrement continu des valeurs en provenance de l'interface
     m_currentColor = rgbFirst;
     m_currentSize = style;
 
-    // Le paramètre rgbSecond n'étant pas utilisé, ou via une autre variable, 
-    // le plus propre est de détourner temporairement 'rgbSecond' pour faire passer le type de brush, 
-    // ou de laisser le CPenFilter::Drawing injecter la valeur directement.
-    // Pour l'instant, m_currentBrush est mis à jour par le filtre juste avant (voir étape 2).
-
     if (m_tousLesTraces.empty()) return;
 
-    // Parcours de l'ensemble des tracés enregistrés de manière indépendante
+    // Rendu classique standard et robuste via le wxDC de base
     for (const auto& ligne : m_tousLesTraces) {
         if (ligne.points.empty()) continue;
 
-
-
-        // Calcul du diamètre d'affichage à l'écran (proportions conservées selon le zoom/ratio)
         int epaisseurAffichage = std::max(1, static_cast<int>(ligne.penSize * 2 * ratio));
 
         wxPenStyle penStylewx = wxPENSTYLE_SOLID;
         if (ligne.typeBrush == 2) {
-            penStylewx = wxPENSTYLE_SHORT_DASH; // Style de trait en pointillés
+            penStylewx = wxPENSTYLE_SHORT_DASH;
         }
 
-        // Instanciation du crayon avec sa couleur et son épaisseur historique
-        wxPen pen(ligne.color, epaisseurAffichage, penStylewx);
+        // IMPORTANT : On ignore l'alpha ici, on dessine la couleur pure opaque
+        wxPen pen(WithOpacity(ligne.color, ligne.opacity), epaisseurAffichage, penStylewx);
 
-        // 2. Gestion de la géométrie des extrémités et des jointures selon le type de Brush
         if (ligne.typeBrush == 1) {
-            // Pinceau de forme Carrée
             pen.SetCap(wxCAP_PROJECTING);
             pen.SetJoin(wxJOIN_MITER);
         }
         else {
-            // Pinceau Standard de forme Ronde
             pen.SetCap(wxCAP_ROUND);
             pen.SetJoin(wxJOIN_ROUND);
         }
 
-        // Application du crayon sur le contexte graphique de périphérique
         deviceContext->SetPen(pen);
-        deviceContext->SetBrush(*wxTRANSPARENT_BRUSH); // Remplissage transparent pour le tracé de lignes
+        deviceContext->SetBrush(*wxTRANSPARENT_BRUSH);
 
-        // 3. Rendu vectoriel du tracé à l'écran
         if (ligne.points.size() == 1) {
-            // S'il n'y a qu'un seul point isolé (clic fixe sans mouvement)
             int screenX = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[0].x), hScroll, ratio));
             int screenY = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[0].y), vScroll, ratio));
 
             deviceContext->DrawLine(screenX, screenY, screenX, screenY);
         }
         else {
-            // S'il y a plusieurs coordonnées successives, on trace des segments continus
             for (size_t i = 1; i < ligne.points.size(); ++i) {
                 int xPrecedent = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[i - 1].x), hScroll, ratio));
                 int yPrecedent = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[i - 1].y), vScroll, ratio));
@@ -145,7 +271,6 @@ void CPenDraw::Dessiner(wxDC* deviceContext, const long& hScroll,
         }
     }
 
-    // 4. Restauration et nettoyage standard des outils graphiques GDI de wxWidgets
     deviceContext->SetBrush(wxNullBrush);
     deviceContext->SetPen(wxNullPen);
 }

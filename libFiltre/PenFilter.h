@@ -31,9 +31,10 @@ namespace Regards::Filter
 		void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter,
 			const bool& preview) override;
 		void Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
+		void Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
 		CDraw* GetDrawingPt() override;
 	private:
-		wxColour ConvertScalarToWxColour(const cv::Scalar& scalar_color);
+		wxColour ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha);
 		void AddMetadataElement(vector<CMetadata>& element, wxString value, int key);
 		wxString libellePenSize;
 		wxString libelleColor;

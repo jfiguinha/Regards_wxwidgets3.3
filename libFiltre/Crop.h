@@ -14,7 +14,7 @@ namespace Regards::FiltreEffet {
         // Signatures alignées sur CDraw pour valider l'héritage virtuel
         void GetPos(wxRect& rc) override;
 
-        void InitPoint(const long& m_lx, const long& m_ly, const long& m_lHScroll,
+        void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll,
             const long& m_lVScroll, const float& ratio) override;
 
         void MouseMove(const long& xNewSize, const long& yNewSize,

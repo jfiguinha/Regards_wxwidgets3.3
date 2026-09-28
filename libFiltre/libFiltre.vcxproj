@@ -950,7 +950,10 @@
     <ClCompile Include="panorama.cpp" />
     <ClCompile Include="PencilSketch.cpp" />
     <ClCompile Include="PenDraw.cpp" />
-    <ClCompile Include="PenDraw.h" />
+    <ClInclude Include="PenDraw.h">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</ExcludedFromBuild>
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</DeploymentContent>
+    </ClInclude>
     <ClCompile Include="PenFilter.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="PhotoFiltreFilter.cpp" />

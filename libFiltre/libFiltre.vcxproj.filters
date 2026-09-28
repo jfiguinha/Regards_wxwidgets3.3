@@ -369,6 +369,9 @@
     <ClInclude Include="PenEffectParameter.h">
       <Filter>window\Drawing</Filter>
     </ClInclude>
+    <ClInclude Include="PenDraw.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">
@@ -535,9 +538,6 @@
     </ClCompile>
     <ClCompile Include="PenFilter.cpp">
       <Filter>window\Drawing</Filter>
-    </ClCompile>
-    <ClCompile Include="PenDraw.h">
-      <Filter>Filter\include</Filter>
     </ClCompile>
     <ClCompile Include="PenDraw.cpp">
       <Filter>Filter\source</Filter>

@@ -31,25 +31,49 @@ void CFilterWindowParam::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, C
 	m_cDessin->Dessiner(dc, 0, 0, 1, wxColour(30, 30, 30), wxColour(30, 30, 30), wxColour(255, 255, 255), 2);
 }
 
-void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
-                                          CFiltreEffet* filtreEffet, CDraw* m_cDessin)
+void CFilterWindowParam::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
-	if (m_cDessin != nullptr)
-	{
-		wxImage image = filtreEffet->GetwxImage();
 
-		auto bitmap = wxBitmap(image);
-		wxMemoryDC dc;
-		dc.SelectObject(bitmap);
-		Drawing(&dc, bitmapViewer, m_cDessin);
-		dc.SelectObject(wxNullBitmap);
-		auto imageLoad = new CImageLoadingFormat();
-		auto local_image = new wxImage(bitmap.ConvertToImage());
-		imageLoad->SetPicture(*local_image);
-		filtreEffet->SetBitmap(imageLoad);
-		delete imageLoad;
+	int hpos = bitmapViewer->GetHPos();
+	int vpos = bitmapViewer->GetVPos();
+	float ratio = bitmapViewer->GetRatio();
+	m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
+}
+
+void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
+	CFiltreEffet* filtreEffet, CDraw* m_cDessin)
+{
+	if (m_cDessin != nullptr && effectParameter != nullptr)
+	{
+		if (effectParameter->IfNeedTransparence())
+		{
+			cv::Mat matBase = filtreEffet->GetBitmap(false);
+			Drawing(matBase, bitmapViewer, m_cDessin);
+
+			auto imageLoad = new CImageLoadingFormat();
+			imageLoad->SetPicture(matBase);
+			filtreEffet->SetBitmap(imageLoad);
+			delete imageLoad;
+		}
+		else if (m_cDessin != nullptr)
+		{
+			wxImage image = filtreEffet->GetwxImage();
+
+			auto bitmap = wxBitmap(image);
+			wxMemoryDC dc;
+			dc.SelectObject(bitmap);
+			Drawing(&dc, bitmapViewer, m_cDessin);
+			dc.SelectObject(wxNullBitmap);
+			auto imageLoad = new CImageLoadingFormat();
+			auto local_image = new wxImage(bitmap.ConvertToImage());
+			imageLoad->SetPicture(*local_image);
+			filtreEffet->SetBitmap(imageLoad);
+			delete imageLoad;
+		}
 	}
 }
+
+
 
 bool CFilterWindowParam::SupportMouseClick()
 {

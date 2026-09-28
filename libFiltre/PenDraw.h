@@ -20,7 +20,7 @@ namespace Regards::FiltreEffet {
         CPenDraw();
         ~CPenDraw() override = default;
 
-        void InitPoint(const long& m_lx, const long& m_ly, const long& m_lHScroll,
+        void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll,
             const long& m_lVScroll, const float& ratio) override;
 
         void MouseMove(const long& xNewSize, const long& yNewSize,
@@ -30,11 +30,15 @@ namespace Regards::FiltreEffet {
         void Dessiner(wxDC* deviceContext, const long& hScroll, const long& vScroll, const float& ratio,
             const wxColour& rgb, const wxColour& rgbFirst, const wxColour& rgbSecond, const int32_t& style) override;
 
-        void MouseDown() override;
+        void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio);
+
+        void MouseDown(CEffectParameter* effect) override;
         void MouseUp() override;
 
         void Reset();
         void GetPoint(wxPoint& pt) override;
+
+        void SetTransparenceValue(wxImage& drawingImage);
 
         const std::vector<SLineStyleDraw>& GetTousLesTraces() const {
             return m_tousLesTraces;
@@ -46,6 +50,8 @@ namespace Regards::FiltreEffet {
         void SetCurrentOpacity(int type) { m_currentOpacity = type; }
 
     private:
+
+        cv::Scalar ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha);
         std::vector<SLineStyleDraw> m_tousLesTraces;
         bool m_isDrawing = false;
         // Dans PenDraw.h, section private :

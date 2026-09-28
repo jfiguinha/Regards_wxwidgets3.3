@@ -15,7 +15,7 @@ namespace Regards::FiltreEffet
 		~CSelection() = default;
 		void GetPoint(wxPoint& pt) override;
 		void GetScreenPoint(wxPoint& pt) override;
-		void InitPoint(const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll,
+		void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll,
 		               const float& ratio) override;
 		void MouseMove(const long& xNewSize, const long& yNewSize, const long& m_lHScroll, const long& m_lVScroll,
 		               const float& ratio) override;

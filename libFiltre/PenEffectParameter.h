@@ -11,11 +11,45 @@ struct SLineTrace {
 	int penSize = 4;
 	int typeBrush = 0;
 	int opacity = 255; // <-- Ajout de l'opacité par trait (0 à 255)
+
+	cv::Scalar GetColorWithTransparancy()
+	{
+		// OpenCV utilise le format BGR(A) : 
+		// color[0] = Blue, color[1] = Green, color[2] = Red
+		// On écrase le 4ème canal (indice 3) avec la valeur d'opacité courante du trait
+		return cv::Scalar(color[0], color[1], color[2], static_cast<double>(opacity));
+	}
+
+	wxColour ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha)
+	{
+		// Extraction des canaux OpenCV (Indices standard : 0 = Blue, 1 = Green, 2 = Red, 3 = Alpha)
+		int blue = static_cast<int>(scalar_color[0]);
+		int green = static_cast<int>(scalar_color[1]);
+		int red = static_cast<int>(scalar_color[2]);
+
+		return wxColour(red, green, blue, alpha);
+	}
 };
 
 class CPenFilterParameter : public CEffectParameter
 {
 public:
+
+	wxColour ConvertScalarToWxColour()
+	{
+		// Extraction des canaux OpenCV (Indices standard : 0 = Blue, 1 = Green, 2 = Red, 3 = Alpha)
+		int blue = static_cast<int>(color[0]);
+		int green = static_cast<int>(color[1]);
+		int red = static_cast<int>(color[2]);
+
+		return wxColour(red, green, blue, opacity);
+	}
+
+	bool IfNeedTransparence() override
+	{
+		return true;
+	}
+
 	CPenFilterParameter() {};
 
 	bool apply = false;
@@ -23,5 +57,5 @@ public:
 	int penSize = 4;
 	cv::Scalar color;
 	int typeBrush = 0;
-	int opacity = 255;      // <-- Ajout de l'opacité globale courante (255 = 100% opaque)
+   // <-- Ajout de l'opacité globale courante (255 = 100% opaque)
 };

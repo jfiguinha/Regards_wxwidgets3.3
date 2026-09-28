@@ -245,7 +245,7 @@ void CCrop::MouseMove(const long& xNewSize, const long& yNewSize,
     UpdateCursor();
 }
 
-void CCrop::InitPoint(const long& m_lx, const long& m_ly,
+void CCrop::InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly,
     const long& m_lHScroll, const long& m_lVScroll,
     const float& ratio) {
     if (iSelect != SelectionType::Aucun) return;

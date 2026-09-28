@@ -30,28 +30,13 @@ CPenFilter::CPenFilter()
 CPenFilter::~CPenFilter()
 {}
 
-wxColour  CPenFilter::ConvertScalarToWxColour(const cv::Scalar& scalar_color)
+wxColour  CPenFilter::ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha)
 {
 	// Extraction des canaux OpenCV (Indices standard : 0 = Blue, 1 = Green, 2 = Red, 3 = Alpha)
 	int blue = static_cast<int>(scalar_color[0]);
 	int green = static_cast<int>(scalar_color[1]);
 	int red = static_cast<int>(scalar_color[2]);
-	int alpha = static_cast<int>(scalar_color[3]);
 
-	// Si le canal alpha est à 0 (et que les autres couleurs ne le sont pas forcément), 
-	// ou si OpenCV n'a pas initialisé le 4ème canal, on force l'opacité à 100% (255)
-	if (alpha == 0 && (blue > 0 || green > 0 || red > 0))
-	{
-		alpha = 255;
-	}
-	else if (alpha == 0 && blue == 0 && green == 0 && red == 0)
-	{
-		// Cas particulier : si c'est du noir pur, assurez-vous qu'il ne soit pas transparent par erreur
-		// (Sauf si vous gérez explicitement la transparence noire)
-		alpha = 255;
-	}
-
-	// Retourne la wxColour construite au format attendu (Red, Green, Blue, Alpha)
 	return wxColour(red, green, blue, alpha);
 }
 
@@ -94,7 +79,7 @@ void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 	filtreInterface->AddTreeInfos(libellePenSize,
 		new CTreeElementValueInt(penParam->penSize), &elementSize);
 	filtreInterface->AddTreeInfos(libelleColor,
-		new CTreeElementValueColor(ConvertScalarToWxColour(penParam->color)), &elementSize, TYPE_COLOR, TYPE_COLOR);
+		new CTreeElementValueColor(ConvertScalarToWxColour(penParam->color, effectParameter->opacity)), &elementSize, TYPE_COLOR, TYPE_COLOR);
 	// Appel de AddTreeInfos en spécifiant TYPE_COMBOBOX (type = 4) pour l'affichage d'une liste déroulante
 	filtreInterface->AddTreeInfos(libelleTypeBrush, new CTreeElementValueInt(penParam->typeBrush), &brushOptions, 3, TYPE_COMBOBOX);
 
@@ -123,7 +108,7 @@ void CPenFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeEleme
 	{
 		auto colorValue = static_cast<CTreeElementValueColor*>(valueData);
 		wxColour c = colorValue->GetValue();
-		penParameter->color = cv::Scalar(c.Blue(), c.Green(), c.Red(), c.Alpha());
+		penParameter->color = cv::Scalar(c.Blue(), c.Green(), c.Red(), effectParameter->opacity);
 	}
 	// --- INTERCEPTION DU CHANGEMENT DE LA COMBOBOX ---
 	else if (key == libelleTypeBrush && valueData->GetType() == TYPE_ELEMENT_INT)
@@ -320,6 +305,17 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 	return imageLoad;
 }
 
+void CPenFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
+{
+	if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
+
+	// 1. Récupération des paramètres de défilement (Scroll) et de zoom (Ratio) depuis le viewer
+	int hpos = bitmapViewer->GetHPos();
+	int vpos = bitmapViewer->GetVPos();
+	float ratio = bitmapViewer->GetRatio();
+	m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
+}
+
 
 void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
@@ -332,7 +328,7 @@ void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_
 		// 1. Récupération des paramètres actuels du filtre
 		auto penParameter = static_cast<CPenFilterParameter*>(bitmapViewer->GetEffectPointer());
 
-		wxColour wxColor(255, 0, 0); // Rouge par défaut
+		wxColour color(0, 0, 0, 0); // Rouge par défaut
 		int activePenSize = 4;
 		int activeBrushType = 0;
 		int activeOpacity = 255;
@@ -340,7 +336,7 @@ void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_
 		if (penParameter != nullptr)
 		{
 			// Utilisation de votre fonction de conversion Scalar (BGR) vers wxColour (RGB)
-			wxColor = ConvertScalarToWxColour(penParameter->color);
+			color = ConvertScalarToWxColour(penParameter->color, penParameter->opacity);
 			activePenSize = penParameter->penSize;
 			activeBrushType = penParameter->typeBrush;
 			activeOpacity = penParameter->opacity;
@@ -356,7 +352,7 @@ void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_
 
 		// 3. Rendu temporaire du tracé vectoriel à l'écran (wxWidgets)
 		// Le paramètre activePenSize est transmis via l'argument 'style' de Dessiner
-		m_cDessin->Dessiner(dc, hpos, vpos, ratio, wxColor, wxColor, wxColor, activePenSize);
+		m_cDessin->Dessiner(dc, hpos, vpos, ratio, color, color, color, activePenSize);
 
 		// 4. SAUVEGARDE ET SYNCHRONISATION INVERSE : Écran (wxWidgets) -> Paramètres (OpenCV)
 		if (penParameter != nullptr && penDraw != nullptr)
@@ -380,7 +376,7 @@ void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_
 					traceEcran.color.Blue(),
 					traceEcran.color.Green(),
 					traceEcran.color.Red(),
-					traceEcran.color.Alpha()
+					penParameter->opacity
 				);
 
 				// Stockage définitif pour le moteur OpenCV (RenderEffect / ApplyEffect)

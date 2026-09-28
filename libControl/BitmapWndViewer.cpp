@@ -643,7 +643,7 @@ void CBitmapWndViewer::MouseClick(const int& xPos, const int& yPos)
 		mouseBlock = true;
 		parentRender->CaptureMouse();
 		m_cDessin->MouseUp();
-		m_cDessin->InitPoint(x * scale_factor, y * scale_factor, hpos, vpos, GetRatio());
+		m_cDessin->InitPoint(effectParameter, x * scale_factor, y * scale_factor, hpos, vpos, GetRatio());
 	}
 	else if (fixArrow)
 	{
