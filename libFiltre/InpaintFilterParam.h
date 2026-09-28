@@ -1,6 +1,5 @@
 #pragma once
 
-#pragma once
 #include "EffectParameter.h"
 
 class CInpaintFilterParameter : public CEffectParameter

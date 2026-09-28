@@ -6,6 +6,9 @@
 #include "PositionElement.h"
 #include "TreeElementDelete.h"
 #include <wx/tokenzr.h>
+#include <treetypeid.h>
+
+
 namespace Regards::Window
 {
 	class CTreeData;
@@ -18,7 +21,7 @@ namespace Regards::Window
 	class CTreeElementSlide;
 	class CTreeElementCheckBox;
 	class CTreeElementStar;
-
+	class CTreeElementColor;
 
 	class CTreeControl : public CTreeElementSlideInterface
 	{
@@ -199,6 +202,14 @@ namespace Regards::Window
 			bool visible,
 			RenderMode mode);
 
+		CPositionElement* RenderColor(
+			CTreeData* data,
+			int& xPos,
+			int& yPos,
+			const wxColour& initialColor,
+			bool visible,
+			RenderMode mode);
+
 		wxColour GetBackgroundColour(const int& yPos);
 
 		//Tree Window
@@ -227,6 +238,8 @@ namespace Regards::Window
 		CTreeElementStar* CreateStarElement(const int& width, const int& height, const wxString& libelle,
 		                                    const wxString& value, const int& numPhotoId);
 
+		// --- À ajouter dans la section public: de la classe CTreeControl ---
+		CTreeElementColor* CreateColorElement(const int& width, const int& height, const wxColour& initialColor);
 
 		//Element de rendu pour l'arbre
 		tree<CTreeData*> tr;

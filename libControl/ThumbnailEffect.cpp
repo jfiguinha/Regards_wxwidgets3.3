@@ -70,7 +70,7 @@ CThumbnailEffect::CThumbnailEffect(wxWindow* parent, const wxWindowID id,
     blackRoomEffect = CLibResource::LoadStringFromResource("LBLBLACKROOM", 1);
     videoLabelEffect = CLibResource::LoadStringFromResource("LBLVIDEOEFFECT", 1);
     rotateEffect = CLibResource::LoadStringFromResource("LBLROTATEEFFECT", 1);
-
+    drawingEffect = CLibResource::LoadStringFromResource("LBLDRAWINGEFFECT", 1);
     Connect(EVENT_ICONEUPDATE,
         wxCommandEventHandler(CThumbnailEffect::UpdateRenderIcone));
 }
@@ -155,7 +155,8 @@ void CThumbnailEffect::SetFile(const wxString& filename,
             CreateNewSeparatorBar(histogramEffect);
         CInfosSeparationBarEffect* infosSeparationRotateEffect =
             CreateNewSeparatorBar(rotateEffect);
-
+        CInfosSeparationBarEffect* infosSeparationDrawingTools =
+            CreateNewSeparatorBar(drawingEffect);
         int i = 0;
         for (int numEffect = FILTER_START; numEffect < FILTER_END; numEffect++) {
             int numElement = iconeListLocal->GetNbElement();
@@ -199,6 +200,13 @@ void CThumbnailEffect::SetFile(const wxString& filename,
                 thumbnailData->SetBitmap(pBitmap);
                 break;
             }
+            case IDM_PENFILTER: {
+                cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_PEN");
+                thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
+                infosSeparationDrawingTools->AddPhotoToList(numElement);
+                thumbnailData->SetBitmap(pBitmap);
+                break;
+            }
             case IDM_WAVE_EFFECT:
                 thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
                 infosSeparationSpecialEffect->AddPhotoToList(numElement);
@@ -230,6 +238,8 @@ void CThumbnailEffect::SetFile(const wxString& filename,
                 case ROTATE_EFFECT:
                     infosSeparationRotateEffect->AddPhotoToList(numElement);
                     break;
+                case PENTOOLS_EFFECT:
+                    infosSeparationDrawingTools->AddPhotoToList(numElement);
                 default:
                     break;
                 }

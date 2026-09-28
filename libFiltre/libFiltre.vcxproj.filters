@@ -363,6 +363,12 @@
     <ClInclude Include="CropEffectParameter.h">
       <Filter>window\datastructure</Filter>
     </ClInclude>
+    <ClInclude Include="PenFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="PenEffectParameter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">
@@ -526,6 +532,15 @@
     </ClCompile>
     <ClCompile Include="2PassScale.cpp">
       <Filter>Filter\Interpolation</Filter>
+    </ClCompile>
+    <ClCompile Include="PenFilter.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="PenDraw.h">
+      <Filter>Filter\include</Filter>
+    </ClCompile>
+    <ClCompile Include="PenDraw.cpp">
+      <Filter>Filter\source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

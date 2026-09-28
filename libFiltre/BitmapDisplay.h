@@ -32,4 +32,5 @@ public:
 	virtual void StartTransitionEffect(CImageLoadingFormat* bmpSecond, const bool& setPicture) = 0;
 	virtual void StopTransitionEffect(CImageLoadingFormat* bmpSecond) = 0;
 	virtual void CalculCenterPositionPicture() = 0;
+	virtual CEffectParameter * GetEffectPointer() = 0;
 };

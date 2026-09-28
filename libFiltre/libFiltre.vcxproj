@@ -869,6 +869,8 @@
     <ClInclude Include="PencilSketch.h" />
     <ClInclude Include="PencilSketchParameter.h" />
     <ClInclude Include="PenDrawInfo.h" />
+    <ClInclude Include="PenEffectParameter.h" />
+    <ClInclude Include="PenFilter.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="PhotoFiltreEffectParameter.h" />
     <ClInclude Include="PhotoFiltreFilter.h" />
@@ -947,6 +949,9 @@
     <ClCompile Include="OpenCLEffect.cpp" />
     <ClCompile Include="panorama.cpp" />
     <ClCompile Include="PencilSketch.cpp" />
+    <ClCompile Include="PenDraw.cpp" />
+    <ClCompile Include="PenDraw.h" />
+    <ClCompile Include="PenFilter.cpp" />
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="PhotoFiltreFilter.cpp" />
     <ClCompile Include="PosterisationFilter.cpp" />

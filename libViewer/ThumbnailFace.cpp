@@ -11,6 +11,7 @@
 #include <SqlFaceLabel.h>
 #include <libPicture.h>
 #include <SqlFacePhoto.h>
+#include <LibResource.h>
 using namespace Regards::Viewer;
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;

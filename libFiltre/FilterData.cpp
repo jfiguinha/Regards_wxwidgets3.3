@@ -42,6 +42,7 @@
 #include "EdgePreservingFilter.h"
 #include "PencilSketch.h"
 #include "InpaintFilter.h"
+#include "PenFilter.h"
 #include "Stylization.h"
 #include <effect_id.h>
 using namespace Regards::Filter;
@@ -110,6 +111,7 @@ const std::unordered_map<int, CFiltreData::FilterFactory>& CFiltreData::GetFacto
 		FILTER_ENTRY(IDM_FILTRE_AUDIOVIDEO, CAudioVideoFilter),
 		FILTER_ENTRY(IDM_CROP, CCropFilter),
 		FILTER_ENTRY(IDM_INPAINT, CInpaintFilter),
+		FILTER_ENTRY(IDM_PENFILTER, CPenFilter),
 		FILTER_ENTRY(IDM_EXTRACTPERSON, CExtractFilterPerson)
 	};
 	return factoryMap;

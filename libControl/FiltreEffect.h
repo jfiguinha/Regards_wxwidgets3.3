@@ -6,11 +6,6 @@
 #include "FilterWindowParam.h"
 using namespace Regards::Window;
 
-;
-
-#define TYPE_SLIDE 1
-#define TYPE_CHECKBOX 2
-#define TYPE_LISTBOX 3
 
 namespace Regards::Window
 {
@@ -65,6 +60,13 @@ namespace Regards::Window
 			RenderMode mode);
 
 		CPositionElement* RenderList(
+			CTreeData* dataEffect,
+			int& xPos,
+			int& yPos,
+			bool visible,
+			RenderMode mode);
+
+		CPositionElement* RenderColor(
 			CTreeData* dataEffect,
 			int& xPos,
 			int& yPos,

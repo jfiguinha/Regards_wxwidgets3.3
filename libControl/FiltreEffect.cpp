@@ -12,6 +12,7 @@
 #include <TreeElementTriangle.h>
 #include <TreeElementCheckBox.h>
 #include <TreeElementListBox.h>
+#include <TreeElementColor.h>
 #include <PositionElement.h>
 #include <TreeElementControlInterface.h>
 #include <ImageLoadingFormat.h>
@@ -53,6 +54,54 @@ void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* pos
 {
 	AddTreeInfos(exifKey, position, value, typeValue, index++, top, child, type);
 }
+
+CPositionElement* CFiltreEffect::RenderColor(
+	CTreeData* dataEffect,
+	int& xPos,
+	int& yPos,
+	bool visible,
+	RenderMode mode)
+{
+	CPositionElement* posElement = nullptr;
+	auto data = static_cast<CTreeDataEffect*>(dataEffect);
+
+	// On vérifie si l'élément de positionnement existe déjà dans le vecteur dynamique
+	if (mode == RenderMode::Update)
+		posElement = GetElement(data, ELEMENT_COLOR);
+
+	if (posElement == nullptr)
+	{
+		// Premier affichage : extraction de la wxColour via l'objet initial Value
+		wxColour initialColor(255, 0, 0); // Couleur de repli
+		if (data->GetInitValue() != nullptr && data->GetInitValue()->GetType() == TYPE_ELEMENT_COLOR)
+		{
+			auto colorValue = static_cast<CTreeElementValueColor*>(data->GetInitValue());
+			initialColor = colorValue->GetValue();
+		}
+
+		// Appel de la méthode de création héritée de CTreeControl
+		CTreeElementColor* treeElementColor = CreateColorElement(
+			themeTree.GetRowWidth(), themeTree.GetRowHeight(), initialColor);
+		treeElementColor->SetVisible(visible);
+
+		// Enregistrement de la position sur la colonne de droite (colonne 1)
+		posElement = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
+			themeTree.GetRowHeight(), ELEMENT_COLOR, treeElementColor, data);
+	}
+	else
+	{
+		// Mise à jour de l'interface : repositionnement XY standard
+		auto* colorElement = static_cast<CTreeElementColor*>(posElement->GetTreeElement());
+		colorElement->SetVisible(visible);
+		colorElement->SetElementPos(xPos, yPos);
+
+		posElement->SetX(xPos);
+		posElement->SetY(yPos);
+	}
+
+	return posElement;
+}
+
 
 void CFiltreEffect::Init(CEffectParameter* effectParameter, cv::Mat source, const wxString& filename,
                          const int& filtre)
@@ -341,6 +390,10 @@ void CFiltreEffect::CreateElementChild(tree<CTreeData*>::sibling_iterator& it, C
 				mode);
 
 		}
+		else if (data->GetType() == TYPE_COLOR)
+		{
+			pos_element = RenderColor(data, xPos, yPos, isVisible, mode);
+		}
 
 		if (pos_element != nullptr)
 			widthElementColumn2 = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
@@ -570,6 +623,34 @@ void CFiltreEffect::ClickOnElement(CPositionElement* element, wxWindow* window, 
 
 
 		update = true;
+	}
+	else if (element->GetType() == ELEMENT_COLOR)
+	{
+		auto treeElementColor = static_cast<CTreeElementColor*>(treeElement);
+
+		// 1. Déclenche la boîte de dialogue wxWidgets native et met à jour l'élément interne
+		treeElementColor->ClickElement(window, (x + posLargeur) - element->GetX(), (y + posHauteur) - element->GetY());
+
+		// 2. Synchronisation avec les paramètres du filtre OpenCV
+		if (filterEffect != nullptr)
+		{
+			auto data = static_cast<CTreeDataEffect*>(element->GetTreeData());
+
+			// Capture de la couleur sélectionnée par l'utilisateur
+			wxColour selectedColor = treeElementColor->GetColor();
+
+			// Encapsulation dans notre Value Object
+			CTreeElementValueColor tree_element_value_color(selectedColor);
+
+			// Notification et envoi vers FilterChangeParam du filtre actif (ex: CPenFilter)
+			filterEffect->FilterChangeParam(effectParameter, &tree_element_value_color, data->GetExifKey());
+		}
+
+		update = true;
+
+		// 3. Demande de recalcul immédiat de l'effet visuel
+		if (bitmapViewer != nullptr)
+			bitmapViewer->UpdateFiltre(effectParameter);
 	}
 
 	if (update)

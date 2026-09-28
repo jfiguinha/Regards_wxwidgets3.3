@@ -5,17 +5,16 @@ namespace Regards::Window
 #define TYPE_ELEMENT_INT 1
 #define TYPE_ELEMENT_FLOAT 2
 #define TYPE_ELEMENT_BOOL 3
+#define TYPE_ELEMENT_COLOR 4 // Ajout du type couleur
 
 	class CTreeElementValue
 	{
 	public:
 		CTreeElementValue()
-		{
-		};
+		{};
 
 		virtual ~CTreeElementValue()
-		{
-		};
+		{};
 
 		virtual int GetType()
 		{
@@ -35,8 +34,7 @@ namespace Regards::Window
 		CTreeElementValueInt(const int& value) { this->value = value; };
 
 		~CTreeElementValueInt() override
-		{
-		};
+		{};
 
 		bool operator==(const CTreeElementValueInt& other)
 		{
@@ -79,8 +77,7 @@ namespace Regards::Window
 		};
 
 		~CTreeElementValueFloat() override
-		{
-		};
+		{};
 
 		bool operator==(const CTreeElementValueFloat& other)
 		{
@@ -127,8 +124,7 @@ namespace Regards::Window
 		CTreeElementValueBool(const bool& value) { this->value = value; };
 
 		~CTreeElementValueBool() override
-		{
-		};
+		{};
 
 		bool operator==(const CTreeElementValueBool& other)
 		{
@@ -159,5 +155,46 @@ namespace Regards::Window
 
 	private:
 		bool value;
+	};
+
+	// --- AJOUT DE LA NOUVELLE CLASSE POUR LE TYPE COLOR ---
+	class CTreeElementValueColor : public CTreeElementValue
+	{
+	public:
+		CTreeElementValueColor(const wxColour& value) { this->value = value; };
+
+		~CTreeElementValueColor() override
+		{};
+
+		bool operator==(const CTreeElementValueColor& other)
+		{
+			if (value == other.value)
+				return true;
+			return false;
+		}
+
+		wxColour GetValue()
+		{
+			return value;
+		}
+
+		void SetValue(const wxColour& value)
+		{
+			this->value = value;
+		}
+
+		int GetType() override
+		{
+			return TYPE_ELEMENT_COLOR;
+		}
+
+		// Retourne la couleur sous format Hexadécimal lisible (Ex: #FF0000)
+		wxString GetStringValue() override
+		{
+			return value.GetAsString(wxC2S_HTML_SYNTAX);
+		}
+
+	private:
+		wxColour value;
 	};
 }

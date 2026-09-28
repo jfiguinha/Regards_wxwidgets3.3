@@ -8,6 +8,7 @@
 #include "TreeElementTexteClick.h"
 #include "TreeElementCheckBox.h"
 #include "TreeElementListBox.h"
+#include "TreeElementColor.h"
 #include "TreeElementStar.h"
 #include "TreeDataStars.h"
 #include "TreeDataLink.h"
@@ -63,6 +64,63 @@ CTreeControl::CTreeControl(CThemeTree* theme, CTreeElementControlInterface* inte
 	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
 	eventControl = interfaceControl;
 }
+
+/**
+ * Alloue et configure une instance de l'élément graphique de sélection de couleur.
+ */
+CTreeElementColor* CTreeControl::CreateColorElement(const int& width, const int& height, const wxColour& initialColor)
+{
+	auto treeElementColor = new CTreeElementColor();
+
+	// Configuration de la taille de cellule imposée par l'arbre
+	treeElementColor->SetZoneSize(width, height);
+
+	// Affectation de la couleur actuelle récupérée dans les paramètres du filtre
+	treeElementColor->SetColor(initialColor);
+
+	return treeElementColor;
+}
+
+/**
+ * Gère le positionnement dynamique ou la mise à jour de l'élément couleur dans l'arbre.
+ */
+CPositionElement* CTreeControl::RenderColor(
+	CTreeData* data,
+	int& xPos,
+	int& yPos,
+	const wxColour& initialColor,
+	bool visible,
+	RenderMode mode)
+{
+	CPositionElement* posElement = nullptr;
+
+	// Si nous sommes en mode mise à jour d'interface, on cherche si le conteneur existe déjà
+	if (mode == RenderMode::Update)
+		posElement = GetElement(data, ELEMENT_COLOR); // Note : Assurez-vous d'avoir défini ELEMENT_COLOR dans vos ID d'éléments
+
+	if (posElement == nullptr)
+	{
+		// Premier affichage : création de l'élément graphique et enregistrement de sa position
+		CTreeElementColor* tree_element_color = CreateColorElement(themeTree.GetRowWidth(), themeTree.GetRowHeight(), initialColor);
+		tree_element_color->SetVisible(visible);
+
+		posElement = CreatePositionElement(xPos, yPos, nbRow, 1, tree_element_color->GetWidth(),
+			tree_element_color->GetHeight(), ELEMENT_COLOR, tree_element_color, data);
+	}
+	else
+	{
+		// Rafraîchissement : mise à jour de la visibilité et réalignement des coordonnées XY
+		auto tree_element_color = static_cast<CTreeElementColor*>(posElement->GetTreeElement());
+		tree_element_color->SetVisible(visible);
+		tree_element_color->SetElementPos(xPos, yPos);
+
+		posElement->SetX(xPos);
+		posElement->SetY(yPos);
+	}
+
+	return posElement;
+}
+
 
 CTreeControl& CTreeControl::operator=(const CTreeControl& other)
 {

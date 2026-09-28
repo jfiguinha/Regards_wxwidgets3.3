@@ -48,7 +48,7 @@ namespace Regards::Control
 		wxString rotateEffect;
 		wxString hdrEffect;
 		wxString videoLabelEffect;
-
+		wxString drawingEffect;
 		// CORRECTIONS CRITIQUES POUR LE MULTI-THREAD :
 		// 1. Remplacement de l'unique_ptr par shared_ptr pour que les threads en arrière-plan
 		//    maintiennent la ressource en vie si l'utilisateur change d'image rapidement.

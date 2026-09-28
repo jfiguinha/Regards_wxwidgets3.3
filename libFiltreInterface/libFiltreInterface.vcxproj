@@ -476,6 +476,7 @@
     <ClInclude Include="IFiltreEffet.h" />
     <ClInclude Include="MouseUpdate.h" />
     <ClInclude Include="TreeElementValue.h" />
+    <ClInclude Include="treetypeid.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

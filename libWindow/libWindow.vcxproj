@@ -843,6 +843,7 @@
     <ClInclude Include="CalendarDialogBox.h" />
     <ClInclude Include="CalendarSelect.h" />
     <ClInclude Include="ClickToolbar.h" />
+    <ClInclude Include="TreeElementColor.h" />
     <ClInclude Include="GLcontext.h" />
     <ClInclude Include="GpsEngine.h" />
     <ClInclude Include="IBitmapRenderInterface.h" />
@@ -973,6 +974,7 @@
     <ClCompile Include="TreeDataStars.cpp" />
     <ClCompile Include="TreeElement.cpp" />
     <ClCompile Include="TreeElementCheckBox.cpp" />
+    <ClCompile Include="TreeElementColor.cpp" />
     <ClCompile Include="TreeElementDelete.cpp" />
     <ClCompile Include="TreeElementListBox.cpp" />
     <ClCompile Include="TreeElementSlide.cpp" />

@@ -149,6 +149,11 @@ namespace Regards::Window
 
 		void SetTabValue(const std::vector<int>& value);
 
+		CEffectParameter* GetEffectPointer() override
+		{
+			return effectParameter;
+		}
+
 	protected:
 
 		void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;

@@ -69,6 +69,13 @@ namespace Regards::FiltreEffet
 		{
 		};
 
+
+		virtual void MouseUp()
+		{};
+
+		virtual void MouseDown()
+		{};
+
 		virtual void GetPos(wxRect& rc)
 		{
 			rc = m_rcAffichage;
@@ -76,10 +83,12 @@ namespace Regards::FiltreEffet
 
 		virtual void GetPoint(wxPoint& pt)
 		{
+			pt = this->pt;
 		};
 
 		virtual void GetScreenPoint(wxPoint& pt)
 		{
+			pt = this->pt;
 		};
 
 		virtual void SetScaleFactor(const double& factor)
