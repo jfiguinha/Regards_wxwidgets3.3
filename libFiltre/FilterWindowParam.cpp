@@ -47,31 +47,40 @@ void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBi
 	{
 		if (effectParameter->IfNeedTransparence())
 		{
+			// /!\ ATTENTION : Si GetBitmap(false) contient déjà les dessins précédents,
+			// préférez passer 'true' ou écraser avec la source propre pour éviter la superposition infinie.
 			cv::Mat matBase = filtreEffet->GetBitmap(false);
+
+			// Appelle CPenFilter::Drawing qui appelle à son tour m_cDessin->DessinerSurMat
 			Drawing(matBase, bitmapViewer, m_cDessin);
 
-			auto imageLoad = new CImageLoadingFormat();
-			imageLoad->SetPicture(matBase);
-			filtreEffet->SetBitmap(imageLoad);
-			delete imageLoad;
+			CImageLoadingFormat imageLoad;
+			imageLoad.SetPicture(matBase);
+			filtreEffet->SetBitmap(&imageLoad);
+			// Plus besoin de delete manuel ici pour imageLoad car alloué sur la pile
 		}
-		else if (m_cDessin != nullptr)
+		else
 		{
 			wxImage image = filtreEffet->GetwxImage();
+			wxBitmap bitmap(image);
 
-			auto bitmap = wxBitmap(image);
-			wxMemoryDC dc;
-			dc.SelectObject(bitmap);
-			Drawing(&dc, bitmapViewer, m_cDessin);
-			dc.SelectObject(wxNullBitmap);
-			auto imageLoad = new CImageLoadingFormat();
-			auto local_image = new wxImage(bitmap.ConvertToImage());
-			imageLoad->SetPicture(*local_image);
-			filtreEffet->SetBitmap(imageLoad);
-			delete imageLoad;
+			{
+				wxMemoryDC dc;
+				dc.SelectObject(bitmap);
+				Drawing(&dc, bitmapViewer, m_cDessin);
+				dc.SelectObject(wxNullBitmap);
+			} // Le scope { } garantit que la restriction de la DC est libérée proprement avant la conversion
+
+			// ALLOCATION SUR LA PILE (STACK) : Évite les fuites de mémoire (Memory Leaks)
+			wxImage local_image = bitmap.ConvertToImage();
+
+			CImageLoadingFormat imageLoad;
+			imageLoad.SetPicture(local_image);
+			filtreEffet->SetBitmap(&imageLoad);
 		}
 	}
 }
+
 
 
 
