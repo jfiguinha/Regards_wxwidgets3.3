@@ -15,19 +15,19 @@ void CPenDraw::Reset() {
 }
 
 
-
 void CPenDraw::MouseDown() {
     m_isDrawing = true;
 
-    // Initialisation du nouveau tracé avec la couleur, la taille ET LE BRUSH courants
     SLineStyleDraw nouvelleLigne;
     nouvelleLigne.color = m_currentColor;
     nouvelleLigne.penSize = m_currentSize;
-    nouvelleLigne.typeBrush = m_currentBrush; // <--- AJOUT CRUCIAL : Sauvegarde du style pour ce trait
+    nouvelleLigne.typeBrush = m_currentBrush;
+    nouvelleLigne.opacity = m_currentOpacity; // <-- On fige l'opacité pour ce trait
     nouvelleLigne.points.clear();
 
     m_tousLesTraces.push_back(nouvelleLigne);
 }
+
 
 void CPenDraw::MouseUp() {
     m_isDrawing = false;
@@ -94,10 +94,11 @@ void CPenDraw::Dessiner(wxDC* deviceContext, const long& hScroll,
     for (const auto& ligne : m_tousLesTraces) {
         if (ligne.points.empty()) continue;
 
+
+
         // Calcul du diamètre d'affichage à l'écran (proportions conservées selon le zoom/ratio)
         int epaisseurAffichage = std::max(1, static_cast<int>(ligne.penSize * 2 * ratio));
 
-        // 1. Détermination du style de ligne wxWidgets
         wxPenStyle penStylewx = wxPENSTYLE_SOLID;
         if (ligne.typeBrush == 2) {
             penStylewx = wxPENSTYLE_SHORT_DASH; // Style de trait en pointillés

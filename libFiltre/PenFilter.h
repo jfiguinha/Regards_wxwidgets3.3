@@ -38,5 +38,10 @@ namespace Regards::Filter
 		wxString libellePenSize;
 		wxString libelleColor;
 		wxString libelleTypeBrush;
+		wxString libelleOpacity;
+
+		cv::Mat matPreview;    // Matrice de travail persistante (ultra-rapide)
+		wxPoint ptPrecedent;   // Mémorise la position précédente pour le tracé en cours
+		bool m_isDrawingActive = false;
 	};
 }

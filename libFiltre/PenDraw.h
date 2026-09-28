@@ -10,8 +10,10 @@ namespace Regards::FiltreEffet {
         std::vector<wxPoint> points;
         wxColour color;
         int penSize;
-        int typeBrush; // Ajout du type de brush
+        int typeBrush;
+        int opacity; // <-- Stockage à l'écran
     };
+
 
     class CPenDraw : public CDraw {
     public:
@@ -41,12 +43,14 @@ namespace Regards::FiltreEffet {
         // Dans PenDraw.h, section public :
         void SetCurrentBrushType(int type) { m_currentBrush = type; }
 
+        void SetCurrentOpacity(int type) { m_currentOpacity = type; }
+
     private:
         std::vector<SLineStyleDraw> m_tousLesTraces;
         bool m_isDrawing = false;
         // Dans PenDraw.h, section private :
         int m_currentBrush = 0;
-
+        int m_currentOpacity = 0;
         // Variables temporaires pour stocker le style du tracé actuel
         wxColour m_currentColor;
         int m_currentSize = 4;

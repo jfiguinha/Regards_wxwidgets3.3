@@ -24,6 +24,7 @@ CPenFilter::CPenFilter()
 	libellePenSize = "Effect.Pen Size";
 	libelleColor = "Effect.Color";
 	libelleTypeBrush = "Effect.Brush";
+	libelleOpacity = "Effect.Opacity";
 }
 
 CPenFilter::~CPenFilter()
@@ -77,7 +78,7 @@ void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 {
 	this->source = source;
 	this->filename = filename;
-	CPenFilterParameter* inpaintParam = (CPenFilterParameter*)effectParameter;
+	CPenFilterParameter* penParam = (CPenFilterParameter*)effectParameter;
 
 	vector<int> elementSize;
 	for (auto i = 0; i < 50; i++)
@@ -91,11 +92,20 @@ void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 
 
 	filtreInterface->AddTreeInfos(libellePenSize,
-		new CTreeElementValueInt(inpaintParam->penSize), &elementSize);
+		new CTreeElementValueInt(penParam->penSize), &elementSize);
 	filtreInterface->AddTreeInfos(libelleColor,
-		new CTreeElementValueColor(ConvertScalarToWxColour(inpaintParam->color)), &elementSize, TYPE_COLOR, TYPE_COLOR);
+		new CTreeElementValueColor(ConvertScalarToWxColour(penParam->color)), &elementSize, TYPE_COLOR, TYPE_COLOR);
 	// Appel de AddTreeInfos en spécifiant TYPE_COMBOBOX (type = 4) pour l'affichage d'une liste déroulante
-	filtreInterface->AddTreeInfos(libelleTypeBrush, new CTreeElementValueInt(inpaintParam->typeBrush), &brushOptions, 3, TYPE_COMBOBOX);
+	filtreInterface->AddTreeInfos(libelleTypeBrush, new CTreeElementValueInt(penParam->typeBrush), &brushOptions, 3, TYPE_COMBOBOX);
+
+	// Remplissage des valeurs du curseur de 0 à 255
+	vector<int> elementOpacity;
+	for (auto i = 0; i <= 255; i++)
+		elementOpacity.push_back(i);
+
+	// Ajout du curseur d'opacité dans l'arbre
+	filtreInterface->AddTreeInfos(libelleOpacity, new CTreeElementValueInt(penParam->opacity), &elementOpacity);
+
 
 }
 
@@ -121,6 +131,12 @@ void CPenFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeEleme
 		auto intValue = static_cast<CTreeElementValueInt*>(valueData);
 		penParameter->typeBrush = intValue->GetValue(); // Sauvegarde de l'index de forme choisi (0, 1 ou 2)
 	}
+	else if (key == libelleOpacity && valueData->GetType() == TYPE_ELEMENT_INT)
+	{
+		auto intValue = static_cast<CTreeElementValueInt*>(valueData);
+		penParameter->opacity = intValue->GetValue(); // Sauvegarde de la transparence choisie
+	}
+
 }
 
 int CPenFilter::GetTypeFilter()
@@ -160,47 +176,49 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 			{
 				if (ligne.points.empty()) continue;
 
-				if (ligne.points.size() == 1)
+				// 1. Si le tracé est à 100% opaque, pas besoin de calculs complexes, rendu direct :
+				if (ligne.opacity >= 255)
 				{
-					cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
-				}
-				else if (ligne.points.size() > 1)
-				{
-					for (size_t i = 1; i < ligne.points.size(); ++i)
+					if (ligne.points.size() == 1)
+						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+					else
 					{
-						// APPLICATION DE LA LOGIQUE OPENCV SELON LE PINCEAU SÉLECTIONNÉ
-						if (ligne.typeBrush == 1)
+						for (size_t i = 1; i < ligne.points.size(); ++i)
 						{
-							// --- Pinceau de forme Carrée ---
-							// On simule une ligne carrée en dessinant un rectangle OpenCV orienté ou une boîte
-							cv::line(matrix,
-								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y),
-								ligne.color, ligne.penSize * 2, cv::LINE_8
-							);
-						}
-						else if (ligne.typeBrush == 2)
-						{
-							// --- Pinceau à effet Pointillés ---
-							// On ne dessine qu'un segment sur deux pour créer une discontinuité
-							if (i % 2 == 0) {
-								cv::line(matrix,
-									cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-									cv::Point(ligne.points[i].x, ligne.points[i].y),
-									ligne.color, ligne.penSize * 2, cv::LINE_AA
-								);
-							}
-						}
-						else
-						{
-							// --- Pinceau Standard (Rond continu) ---
-							cv::line(matrix,
-								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y),
-								ligne.color, ligne.penSize * 2, cv::LINE_AA
-							);
+							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
+							if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
+
+							cv::line(matrix, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
 						}
 					}
+				}
+				// 2. Si le tracé est semi-transparent (Opacité < 255) :
+				else if (ligne.opacity > 0)
+				{
+					// Création d'une copie du calque d'origine pour dessiner l'overlay dessus
+					cv::Mat overlay = matrix.clone();
+
+					if (ligne.points.size() == 1)
+						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+					else
+					{
+						for (size_t i = 1; i < ligne.points.size(); ++i)
+						{
+							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
+							if (ligne.typeBrush == 2 && i % 2 != 0) continue;
+
+							cv::line(overlay, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
+						}
+					}
+
+					// Calcul des ratios d'opacité pour le mélange (Alpha Blending)
+					double alpha = ligne.opacity / 255.0;
+					double beta = 1.0 - alpha;
+
+					// Fusion mathématique de l'overlay transparent par-dessus la matrice d'origine
+					cv::addWeighted(overlay, alpha, matrix, beta, 0, matrix);
 				}
 			}
 		}
@@ -209,6 +227,7 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 			const char* err_msg = e.what();
 			std::cout << "exception caught: " << err_msg << std::endl;
 		}
+
 
 		filtreEffet->SetBitmap(imageLoad);
 	}
@@ -242,41 +261,49 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 			{
 				if (ligne.points.empty()) continue;
 
-				if (ligne.points.size() == 1)
+				// 1. Si le tracé est à 100% opaque, pas besoin de calculs complexes, rendu direct :
+				if (ligne.opacity >= 255)
 				{
-					cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
-				}
-				else if (ligne.points.size() > 1)
-				{
-					for (size_t i = 1; i < ligne.points.size(); ++i)
+					if (ligne.points.size() == 1)
+						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+					else
 					{
-						if (ligne.typeBrush == 1) // Carré
+						for (size_t i = 1; i < ligne.points.size(); ++i)
 						{
-							cv::line(matrix,
-								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y),
-								ligne.color, ligne.penSize * 2, cv::LINE_8
-							);
-						}
-						else if (ligne.typeBrush == 2) // Pointillés
-						{
-							if (i % 2 == 0) {
-								cv::line(matrix,
-									cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-									cv::Point(ligne.points[i].x, ligne.points[i].y),
-									ligne.color, ligne.penSize * 2, cv::LINE_AA
-								);
-							}
-						}
-						else // Rond standard
-						{
-							cv::line(matrix,
-								cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y),
-								ligne.color, ligne.penSize * 2, cv::LINE_AA
-							);
+							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
+							if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
+
+							cv::line(matrix, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
 						}
 					}
+				}
+				// 2. Si le tracé est semi-transparent (Opacité < 255) :
+				else if (ligne.opacity > 0)
+				{
+					// Création d'une copie du calque d'origine pour dessiner l'overlay dessus
+					cv::Mat overlay = matrix.clone();
+
+					if (ligne.points.size() == 1)
+						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+					else
+					{
+						for (size_t i = 1; i < ligne.points.size(); ++i)
+						{
+							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
+							if (ligne.typeBrush == 2 && i % 2 != 0) continue;
+
+							cv::line(overlay, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
+								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
+						}
+					}
+
+					// Calcul des ratios d'opacité pour le mélange (Alpha Blending)
+					double alpha = ligne.opacity / 255.0;
+					double beta = 1.0 - alpha;
+
+					// Fusion mathématique de l'overlay transparent par-dessus la matrice d'origine
+					cv::addWeighted(overlay, alpha, matrix, beta, 0, matrix);
 				}
 			}
 		}
@@ -286,11 +313,14 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 			std::cout << "exception caught: " << err_msg << std::endl;
 		}
 
+
 		penParameter->apply = true;
 	}
 
 	return imageLoad;
 }
+
+
 void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
 	if (m_cDessin != nullptr && dc != nullptr && bitmapViewer != nullptr)
@@ -299,34 +329,42 @@ void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_
 		int vpos = bitmapViewer->GetVPos();
 		float ratio = bitmapViewer->GetRatio();
 
+		// 1. Récupération des paramètres actuels du filtre
 		auto penParameter = static_cast<CPenFilterParameter*>(bitmapViewer->GetEffectPointer());
 
-		wxColour wxColor(255, 0, 0);
+		wxColour wxColor(255, 0, 0); // Rouge par défaut
 		int activePenSize = 4;
-		int activeBrushType = 0; // Par défaut : rond
+		int activeBrushType = 0;
+		int activeOpacity = 255;
 
 		if (penParameter != nullptr)
 		{
+			// Utilisation de votre fonction de conversion Scalar (BGR) vers wxColour (RGB)
 			wxColor = ConvertScalarToWxColour(penParameter->color);
 			activePenSize = penParameter->penSize;
-			activeBrushType = penParameter->typeBrush; // Récupération du choix de la ComboBox
+			activeBrushType = penParameter->typeBrush;
+			activeOpacity = penParameter->opacity;
 		}
 
+		// 2. Synchronisation en amont des styles courants vers la classe de dessin écran
 		auto penDraw = static_cast<Regards::FiltreEffet::CPenDraw*>(m_cDessin);
 		if (penDraw != nullptr)
 		{
-			// Transmet de force le type de brush sélectionné à la classe de dessin avant le tracé
-			// Ajoutez cette variable membre 'm_currentBrush' ou une méthode publique SetCurrentBrush(int) dans CPenDraw
 			penDraw->SetCurrentBrushType(activeBrushType);
+			penDraw->SetCurrentOpacity(activeOpacity); // Transmission de la transparence courante
 		}
 
-		// Rendu de l'affichage temporaire à l'écran
+		// 3. Rendu temporaire du tracé vectoriel à l'écran (wxWidgets)
+		// Le paramètre activePenSize est transmis via l'argument 'style' de Dessiner
 		m_cDessin->Dessiner(dc, hpos, vpos, ratio, wxColor, wxColor, wxColor, activePenSize);
 
-		// Synchronisation inverse lors de la sauvegarde (on propage aussi le type de brush)
+		// 4. SAUVEGARDE ET SYNCHRONISATION INVERSE : Écran (wxWidgets) -> Paramètres (OpenCV)
 		if (penParameter != nullptr && penDraw != nullptr)
 		{
+			// On vide l'ancien conteneur pour y copier l'état exact et complet de l'écran
 			penParameter->listLines.clear();
+
+			// Récupération du tableau de structures m_tousLesTraces depuis CPenDraw
 			const auto& tracesEcran = penDraw->GetTousLesTraces();
 
 			for (const auto& traceEcran : tracesEcran)
@@ -334,13 +372,18 @@ void CPenFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_
 				SLineTrace ligneOpenCV;
 				ligneOpenCV.points = traceEcran.points;
 				ligneOpenCV.penSize = traceEcran.penSize;
-				ligneOpenCV.typeBrush = traceEcran.typeBrush; // On conserve le type historique du trait
+				ligneOpenCV.typeBrush = traceEcran.typeBrush;
+				ligneOpenCV.opacity = traceEcran.opacity; // Sauvegarde de l'opacité historique de la ligne
+
+				// Conversion inverse : wxColour (RGB) vers cv::Scalar (BGR)
 				ligneOpenCV.color = cv::Scalar(
 					traceEcran.color.Blue(),
 					traceEcran.color.Green(),
 					traceEcran.color.Red(),
 					traceEcran.color.Alpha()
 				);
+
+				// Stockage définitif pour le moteur OpenCV (RenderEffect / ApplyEffect)
 				penParameter->listLines.push_back(ligneOpenCV);
 			}
 		}
