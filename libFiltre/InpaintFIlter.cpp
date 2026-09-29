@@ -123,8 +123,8 @@ void CInpaintFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* e
 	if (videoEffectParameter->cropApply)
 	{
 		imageLoad = new CImageLoadingFormat();
-		imageLoad->SetPicture(filtreEffet->GetBitmap(true));
-		//imageLoad->Flip();
+		cv::Mat picture = filtreEffet->GetBitmap(true);
+		imageLoad->SetPicture(picture);
 		imageLoad->RotateExif(orientation);
 
 		try

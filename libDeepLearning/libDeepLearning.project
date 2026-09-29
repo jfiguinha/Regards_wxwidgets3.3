@@ -17,6 +17,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="ExtractPerson.cpp"/>
     <File Name="colornet.cpp"/>
     <File Name="realesrgan.cpp"/>
     <File Name="gfpgan.cpp"/>
@@ -25,6 +26,7 @@
     <File Name="DeepLearning.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="ExtractPerson.h"/>
     <File Name="colornet.h"/>
     <File Name="Sig17Slice.h"/>
     <File Name="realesrgan.h"/>

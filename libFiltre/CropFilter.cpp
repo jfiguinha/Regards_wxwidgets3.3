@@ -159,8 +159,8 @@ void CCropFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effe
 	if (cropEffectParameter->cropApply)
 	{
 		imageLoad = new CImageLoadingFormat();
-		imageLoad->SetPicture(filtreEffet->GetBitmap(true));
-		//imageLoad->Flip();
+		cv::Mat picture = filtreEffet->GetBitmap(true);
+		imageLoad->SetPicture(picture);
 		imageLoad->RotateExif(orientation);
 
 		try

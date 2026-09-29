@@ -606,7 +606,8 @@ namespace Regards::Filter
 				{
 					CRgbaquad backcolor;
 					CImageLoadingFormat image;
-					image.SetPicture(filtreEffet->GetBitmap(true));
+					cv::Mat picture = filtreEffet->GetBitmap(true);
+					image.SetPicture(picture);
 					auto filtre = std::make_unique<CFiltreEffet>(backcolor, nullptr, &image);
 					filtre->ExtractPersonFromPhoto();
 					CImageLoadingFormat * imageLoad = new CImageLoadingFormat();
