@@ -33,6 +33,9 @@ namespace Regards::FiltreEffet {
         void Reset();
         void GetPoint(wxPoint& pt) override;
 
+        void GetStartPoint(wxPoint& pt);
+        void InjectExternalShape(int type, const std::vector<wxPoint>& pointsReels);
+
         const std::vector<SSelectionStyleDraw>& GetTousLesTraces() const { return m_tousLesTraces; }
 
         // Gère uniquement le type, le reste est fixé en dur

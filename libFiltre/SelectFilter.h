@@ -35,7 +35,7 @@ namespace Regards::Filter
 		void DrawSelectionOnMat(cv::Mat& matrix, SSelectionTrace& selection);
 
 		wxString libelleSelectType;
-		wxString libellePenSize;
+		wxString libelleTolerance;
 
 	};
 }

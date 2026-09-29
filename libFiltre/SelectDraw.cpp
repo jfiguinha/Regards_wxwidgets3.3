@@ -42,6 +42,35 @@ void CSelectDraw::MouseDown(CEffectParameter* effect) {
     m_tousLesTraces.push_back(nouvelleSelection);
 }
 
+void CSelectDraw::GetStartPoint(wxPoint& pt) {
+    if (!m_tousLesTraces.empty()) pt = m_tousLesTraces.back().startPoint;
+    else pt = wxPoint(-1, -1);
+}
+
+// MET À JOUR L'HISTORIQUE AVEC LES NOUVEAUX POINTS DE LA BAGUETTE MAGIQUE
+void CSelectDraw::InjectExternalShape(int type, const std::vector<wxPoint>& pointsReels) {
+    m_tousLesTraces.clear(); // Conserve une sélection unique active
+
+    SSelectionStyleDraw shape;
+    shape.selectType = type;
+    shape.color = wx_color;
+    shape.penSize = 1;
+    shape.opacity = 255;
+    shape.isFilled = false;
+    shape.points = pointsReels; // Copie et intègre l'ensemble des points générés
+
+    if (!pointsReels.empty()) {
+        shape.startPoint = pointsReels.front();
+        shape.endPoint = pointsReels.back();
+    }
+    else {
+        shape.startPoint = wxPoint(0, 0);
+        shape.endPoint = wxPoint(0, 0);
+    }
+
+    m_tousLesTraces.push_back(shape);
+}
+
 void CSelectDraw::InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll, const float& ratio) {
     const wxPoint point(static_cast<int>(m_lx), static_cast<int>(m_ly));
     if (!VerifierValiditerPoint(point)) return;
@@ -80,12 +109,11 @@ void CSelectDraw::Dessiner(wxDC* deviceContext, const long& hScroll, const long&
     if (deviceContext == nullptr || m_tousLesTraces.empty()) return;
 
     for (const auto& select : m_tousLesTraces) {
-        // Epaisseur de contour fixe de 1px adaptée au ratio d'affichage
         int epaisseur = std::max(1, static_cast<int>(1 * ratio));
-        wxPen pen(select.color, epaisseur, wxPENSTYLE_SHORT_DASH); // Pointillés de sélection
+        wxPen pen(select.color, epaisseur, wxPENSTYLE_SHORT_DASH); // Lignes pointillées de sélection
 
         deviceContext->SetPen(pen);
-        deviceContext->SetBrush(*wxTRANSPARENT_BRUSH); // Pas de remplissage
+        deviceContext->SetBrush(*wxTRANSPARENT_BRUSH);
 
         int x1 = static_cast<int>(XDrawingPosition(static_cast<float>(select.startPoint.x), hScroll, ratio));
         int y1 = static_cast<int>(YDrawingPosition(static_cast<float>(select.startPoint.y), vScroll, ratio));
@@ -98,7 +126,7 @@ void CSelectDraw::Dessiner(wxDC* deviceContext, const long& hScroll, const long&
         else if (select.selectType == SELECT_ELLIPSE) {
             deviceContext->DrawEllipse(wxRect(wxPoint(x1, y1), wxPoint(x2, y2)));
         }
-        else if (select.selectType == SELECT_LASSO && select.points.size() > 1) {
+        else if ((select.selectType == SELECT_LASSO || select.selectType == SELECT_MAGICWAND) && select.points.size() > 1) {
             std::vector<wxPoint> screenPoints;
             for (const auto& ptReel : select.points) {
                 int sx = static_cast<int>(XDrawingPosition(static_cast<float>(ptReel.x), hScroll, ratio));
@@ -112,8 +140,9 @@ void CSelectDraw::Dessiner(wxDC* deviceContext, const long& hScroll, const long&
     deviceContext->SetPen(wxNullPen);
 }
 
+// MISE À JOUR DE LA FUSION OPENCV AVEC PRISE EN CHARGE DU TYPE SELECT_MAGICWAND
 void CSelectDraw::DrawSelectionOnMat(cv::Mat& matrix, SSelectionStyleDraw& selection, const long& hScroll, const long& vScroll, const float& ratio) {
-    int thickness = 1; // Contour de 1px fixe
+    int thickness = 1;
     int lineStyle = cv::LINE_AA;
 
     cv::Point p1;
@@ -131,13 +160,15 @@ void CSelectDraw::DrawSelectionOnMat(cv::Mat& matrix, SSelectionStyleDraw& selec
         cv::Size axes(std::abs(p2.x - p1.x) / 2, std::abs(p2.y - p1.y) / 2);
         cv::ellipse(matrix, center, axes, 0, 0, 360, cvColor, thickness, lineStyle);
     }
-    else if (selection.selectType == SELECT_LASSO && selection.points.size() > 1) {
+    // GESTION DE LA BAGUETTE MAGIQUE ALIGNÉE SUR LE RENDU DU LASSO
+    else if ((selection.selectType == SELECT_LASSO || selection.selectType == SELECT_MAGICWAND) && selection.points.size() > 1) {
         std::vector<cv::Point> cvPoints;
         for (const auto& ptReel : selection.points) {
             int cx = static_cast<int>(XDrawingPosition(static_cast<float>(ptReel.x), hScroll, ratio));
             int cy = static_cast<int>(YDrawingPosition(static_cast<float>(ptReel.y), vScroll, ratio));
             cvPoints.push_back(cv::Point(cx, cy));
         }
+
         std::vector<std::vector<cv::Point>> ppt = { cvPoints };
         cv::polylines(matrix, ppt, true, cvColor, thickness, lineStyle);
     }
