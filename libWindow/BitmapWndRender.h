@@ -350,5 +350,7 @@ namespace Regards::Window
         std::chrono::system_clock::time_point start;
 		int widthOutputOld = 0;
 		int heightOutputOld = 0;
+
+		bool forceUpdateFilter = false;
 	};
 }

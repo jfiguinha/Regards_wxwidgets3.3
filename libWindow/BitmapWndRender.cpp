@@ -133,6 +133,8 @@ vector<int> CBitmapWndRender::GetListCommand()
 
 void CBitmapWndRender::OnCommand(wxCommandEvent& event)
 {
+	
+
 	switch (event.GetEventType())
 	{
 	case wxEVENT_SETTRANSITIONBITMAP:
@@ -1604,7 +1606,7 @@ void CBitmapWndRender::OnPaint2D(wxWindow* gdi)
 		if (updateFilter)
 		{
 			BeforeInterpolationBitmap();
-			updateFilter = false;
+			updateFilter = !forceUpdateFilter ? false : true;
 		}
 
 		GenerateScreenBitmap(filtreEffet.get(), widthOutput, heightOutput);
@@ -1711,7 +1713,7 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
                 glTexture->SetData(mat, renderOpenGL->GetOpenCLContext());
             }
 
-            updateFilter = false;
+			updateFilter = !forceUpdateFilter ? false : true;
 
             widthOutputOld = widthOutput;
             heightOutputOld = heightOutput;

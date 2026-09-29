@@ -193,7 +193,7 @@ void CBitmapWndViewer::BeforeInterpolationBitmap()
 
             filtreEffet->SetPreviewMode(false);
             mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet.get(), m_cDessin.get());
-            updateFilter = false;
+			updateFilter = !forceUpdateFilter ? false : true;
             bitmapwidth = filtreEffet->GetWidth();
             bitmapheight = filtreEffet->GetHeight();
 
@@ -442,6 +442,8 @@ void CBitmapWndViewer::SetBitmapPreviewEffect(const int& effect)
 	m_cDessin.reset(CFiltreData::GetDrawingPt(effect));
 	if (m_cDessin != nullptr)
 	{
+		forceUpdateFilter = true;
+
 		SetDessinRatio();
 		wxSetCursor(wxCursor(wxCURSOR_CROSS));
 		isInUse = false;
@@ -449,6 +451,7 @@ void CBitmapWndViewer::SetBitmapPreviewEffect(const int& effect)
 	}
 	else
 	{
+		forceUpdateFilter = false;
 		wxSetCursor(*wxSTANDARD_CURSOR);
 		toolOption = MOVEPICTURE;
 	}
@@ -473,6 +476,7 @@ bool CBitmapWndViewer::ApplyPreviewEffect(int& widthOutput, int& heightOutput)
 	if (preview > 1 && mouseUpdate != nullptr)
 	{
 		mouseUpdate->ApplyPreviewEffect(effectParameter, this, filtreEffet.get(), m_cDessin.get(), widthOutput, heightOutput);
+		updateFilter = true;
 
 		if (mouseUpdate->NeedToUpdateSource())
 			updateFilter = true;
@@ -483,11 +487,13 @@ bool CBitmapWndViewer::ApplyPreviewEffect(int& widthOutput, int& heightOutput)
 void CBitmapWndViewer::OnFiltreOk()
 {
 	RemoveListener();
+	forceUpdateFilter = false;
 }
 
 void CBitmapWndViewer::OnFiltreCancel()
 {
 	RemoveListener();
+	forceUpdateFilter = false;
 }
 
 void CBitmapWndViewer::ApplyPicturePosition(const int& angle, const int& flipH, const int& flipV)
@@ -620,6 +626,10 @@ void CBitmapWndViewer::MouseRelease(const int& xPos, const int& yPos)
 			parentRender->ReleaseMouse();
 
 		m_cDessin->MouseUp();
+
+				// Forcer la régénération depuis la source originale
+		updateFilter = true; 
+		needToRefresh = true;
 	}
 
 	if (clickTimer->IsRunning())
