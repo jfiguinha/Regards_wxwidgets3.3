@@ -45,11 +45,14 @@ void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBi
 {
 	if (m_cDessin != nullptr && effectParameter != nullptr)
 	{
+		
+
 		if (effectParameter->IfNeedTransparence())
 		{
+			Regards::Picture::CPictureArray mat = filtreEffet->GetMatrix();
 			// /!\ ATTENTION : Si GetBitmap(false) contient déjà les dessins précédents,
 			// préférez passer 'true' ou écraser avec la source propre pour éviter la superposition infinie.
-			cv::Mat matBase = filtreEffet->GetBitmap(false);
+			cv::Mat matBase = mat.getMat();
 
 			// Appelle CPenFilter::Drawing qui appelle à son tour m_cDessin->DessinerSurMat
 			Drawing(matBase, bitmapViewer, m_cDessin);
@@ -131,6 +134,7 @@ void CFilterWindowParam::ApplyPreviewEffect(CEffectParameter* effectParameter, I
 void CFilterWindowParam::ApplyPreviewEffectSource(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
                                                   CFiltreEffet* filtreEffet, CDraw* m_cDessin)
 {
+
 }
 
 void CFilterWindowParam::ApplyExifToPoint(wxPoint& pt, int numExif, const int& width, const int& height)
