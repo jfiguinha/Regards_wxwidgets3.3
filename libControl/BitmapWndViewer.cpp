@@ -193,7 +193,7 @@ void CBitmapWndViewer::BeforeInterpolationBitmap()
 
             filtreEffet->SetPreviewMode(false);
             mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet.get(), m_cDessin.get());
-			updateFilter = !forceUpdateFilter ? false : true;
+			updateFilter = false;
             bitmapwidth = filtreEffet->GetWidth();
             bitmapheight = filtreEffet->GetHeight();
 
@@ -476,7 +476,6 @@ bool CBitmapWndViewer::ApplyPreviewEffect(int& widthOutput, int& heightOutput)
 	if (preview > 1 && mouseUpdate != nullptr)
 	{
 		mouseUpdate->ApplyPreviewEffect(effectParameter, this, filtreEffet.get(), m_cDessin.get(), widthOutput, heightOutput);
-		updateFilter = true;
 
 		if (mouseUpdate->NeedToUpdateSource())
 			updateFilter = true;
@@ -793,7 +792,6 @@ void CBitmapWndViewer::KeyPress(const int& key)
 		if (CFiltreData::SupportMouseSelection(toolOption))
 		{
 			preview = PREVIEW_NONE;
-			updateFilter = true;
 			RefreshWindow();
 		}
 	}
