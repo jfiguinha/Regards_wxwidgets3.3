@@ -82,6 +82,14 @@ namespace Regards::FiltreEffet
 
 		};
 
+		cv::Scalar GetColorWithTransparancy(wxColour color, int opacity)
+		{
+			// OpenCV utilise le format BGR(A) : 
+			// color[0] = Blue, color[1] = Green, color[2] = Red
+			// On écrase le 4ème canal (indice 3) avec la valeur d'opacité courante du trait
+			return cv::Scalar(color.Red(), color.Green(), color.Blue(), static_cast<double>(opacity));
+		};
+
 		virtual void MouseUp()
 		{};
 

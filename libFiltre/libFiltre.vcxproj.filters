@@ -372,6 +372,15 @@
     <ClInclude Include="PenDraw.h">
       <Filter>Filter\include</Filter>
     </ClInclude>
+    <ClInclude Include="RectangleFilterParameter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="RectangleFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="RectangleDraw.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">
@@ -540,6 +549,12 @@
       <Filter>window\Drawing</Filter>
     </ClCompile>
     <ClCompile Include="PenDraw.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="RectangleFilter.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="RectangleDraw.cpp">
       <Filter>Filter\source</Filter>
     </ClCompile>
   </ItemGroup>

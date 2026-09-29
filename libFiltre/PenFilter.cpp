@@ -21,10 +21,10 @@ using namespace cv;
 
 CPenFilter::CPenFilter()
 {
-	libellePenSize = "Effect.Pen Size";
-	libelleColor = "Effect.Color";
-	libelleTypeBrush = "Effect.Brush";
-	libelleOpacity = "Effect.Opacity";
+	libellePenSize = CLibResource::LoadStringFromResource("LBLEFFECTPENSIZE", 1);
+	libelleColor = CLibResource::LoadStringFromResource("LBLEFFECTCOLOR", 1);
+	libelleTypeBrush = CLibResource::LoadStringFromResource("LBLEFFECTBRUSH", 1);
+	libelleOpacity = CLibResource::LoadStringFromResource("LBLEFFECTOPACITY", 1);
 }
 
 CPenFilter::~CPenFilter()
@@ -71,10 +71,9 @@ void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 
 	// 3. CONFIGURATION ET AJOUT DE LA COMBOBOX POUR LE TYPE DE PINCEAU
 	vector<CMetadata> brushOptions;
-	AddMetadataElement(brushOptions, "Standard (Rond)", 0);
-	AddMetadataElement(brushOptions, "Carré", 1);
-	AddMetadataElement(brushOptions, "Pointillés", 2);
-
+	AddMetadataElement(brushOptions, CLibResource::LoadStringFromResource("LBLBRUSHSTD", 1), 0);
+	AddMetadataElement(brushOptions, CLibResource::LoadStringFromResource("LBLBRUSHSQUARE", 1), 1);
+	AddMetadataElement(brushOptions, CLibResource::LoadStringFromResource("LBLBRUSHDASHED", 1), 2);
 
 	filtreInterface->AddTreeInfos(libellePenSize,
 		new CTreeElementValueInt(penParam->penSize), &elementSize);
@@ -314,6 +313,38 @@ void CPenFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m
 	int vpos = bitmapViewer->GetVPos();
 	float ratio = bitmapViewer->GetRatio();
 	m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
+
+	auto penDraw = static_cast<Regards::FiltreEffet::CPenDraw*>(m_cDessin);
+	auto penParameter = static_cast<CPenFilterParameter*>(bitmapViewer->GetEffectPointer());
+
+	if (penParameter != nullptr && penDraw != nullptr)
+	{
+		// On vide l'ancien conteneur pour y copier l'état exact et complet de l'écran
+		penParameter->listLines.clear();
+
+		// Récupération du tableau de structures m_tousLesTraces depuis CPenDraw
+		const auto& tracesEcran = penDraw->GetTousLesTraces();
+
+		for (const auto& traceEcran : tracesEcran)
+		{
+			SLineTrace ligneOpenCV;
+			ligneOpenCV.points = traceEcran.points;
+			ligneOpenCV.penSize = traceEcran.penSize;
+			ligneOpenCV.typeBrush = traceEcran.typeBrush;
+			ligneOpenCV.opacity = traceEcran.opacity; // Sauvegarde de l'opacité historique de la ligne
+
+			// Conversion inverse : wxColour (RGB) vers cv::Scalar (BGR)
+			ligneOpenCV.color = cv::Scalar(
+				traceEcran.color.Blue(),
+				traceEcran.color.Green(),
+				traceEcran.color.Red(),
+				penParameter->opacity
+			);
+
+			// Stockage définitif pour le moteur OpenCV (RenderEffect / ApplyEffect)
+			penParameter->listLines.push_back(ligneOpenCV);
+		}
+	}
 }
 
 

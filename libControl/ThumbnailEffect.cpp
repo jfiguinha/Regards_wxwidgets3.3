@@ -207,6 +207,13 @@ void CThumbnailEffect::SetFile(const wxString& filename,
                 thumbnailData->SetBitmap(pBitmap);
                 break;
             }
+            case IDM_RECTANGLEFILTER: {
+                cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_RECTANGLE");
+                thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
+                infosSeparationDrawingTools->AddPhotoToList(numElement);
+                thumbnailData->SetBitmap(pBitmap);
+                break;
+            }
             case IDM_WAVE_EFFECT:
                 thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
                 infosSeparationSpecialEffect->AddPhotoToList(numElement);

@@ -876,6 +876,9 @@
     <ClInclude Include="PhotoFiltreFilter.h" />
     <ClInclude Include="PosterisationEffectParameter.h" />
     <ClInclude Include="PosterisationFilter.h" />
+    <ClInclude Include="RectangleDraw.h" />
+    <ClInclude Include="RectangleFilter.h" />
+    <ClInclude Include="RectangleFilterParameter.h" />
     <ClInclude Include="RedEyeParameter.h" />
     <ClInclude Include="RgbEffectParameter.h" />
     <ClInclude Include="RotateFreeFilter.h" />
@@ -958,6 +961,8 @@
     <ClCompile Include="PerlinNoise.cpp" />
     <ClCompile Include="PhotoFiltreFilter.cpp" />
     <ClCompile Include="PosterisationFilter.cpp" />
+    <ClCompile Include="RectangleDraw.cpp" />
+    <ClCompile Include="RectangleFilter.cpp" />
     <ClCompile Include="RotateFreeFilter.cpp" />
     <ClCompile Include="Selection.cpp" />
     <ClCompile Include="SharpenMaskingFilter.cpp" />
