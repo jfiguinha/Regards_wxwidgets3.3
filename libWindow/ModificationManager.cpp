@@ -35,6 +35,7 @@
 #include <WaveEffectParameter.h>
 #include <effect_id.h>
 #include <CropEffectParameter.h>
+#include <SelectFilterParameter.h>
 #include <RectangleFilterParameter.h>
 #include <PenEffectParameter.h>
 using namespace Regards::Picture;
@@ -101,6 +102,8 @@ static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffe
 		return std::make_unique<CPenFilterParameter>(*static_cast<CPenFilterParameter*>(effectParameter));
 	case IDM_RECTANGLEFILTER:
 		return std::make_unique<CRectangleFilterParameter>(*static_cast<CRectangleFilterParameter*>(effectParameter));
+	case IDM_SELECTFILTER:
+		return std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
 	case IDM_CROP:
 		return std::make_unique<CCropEffectParameter>(*static_cast<CCropEffectParameter*>(effectParameter));
 		// Ajoutez ici d'autres cas si le paramètre rgbEffectParameter correspond à d'autres filtres (ex: IDM_COLOR_BALANCE)

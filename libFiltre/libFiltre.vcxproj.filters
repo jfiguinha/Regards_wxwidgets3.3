@@ -381,6 +381,15 @@
     <ClInclude Include="RectangleDraw.h">
       <Filter>Filter\include</Filter>
     </ClInclude>
+    <ClInclude Include="SelectFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectFilterParameter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectDraw.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">
@@ -556,6 +565,12 @@
     </ClCompile>
     <ClCompile Include="RectangleDraw.cpp">
       <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectDraw.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectFilter.cpp">
+      <Filter>window\Drawing</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

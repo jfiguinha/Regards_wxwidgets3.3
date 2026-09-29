@@ -42,6 +42,7 @@
 #include "EdgePreservingFilter.h"
 #include "PencilSketch.h"
 #include "InpaintFilter.h"
+#include "SelectFilter.h"
 #include "PenFilter.h"
 #include "RectangleFilter.h"
 #include "Stylization.h"
@@ -114,6 +115,7 @@ const std::unordered_map<int, CFiltreData::FilterFactory>& CFiltreData::GetFacto
 		FILTER_ENTRY(IDM_INPAINT, CInpaintFilter),
 		FILTER_ENTRY(IDM_PENFILTER, CPenFilter),
 		FILTER_ENTRY(IDM_RECTANGLEFILTER, CRectangleFilter),
+		FILTER_ENTRY(IDM_SELECTFILTER, CSelectFilter),
 		FILTER_ENTRY(IDM_EXTRACTPERSON, CExtractFilterPerson)
 	};
 	return factoryMap;

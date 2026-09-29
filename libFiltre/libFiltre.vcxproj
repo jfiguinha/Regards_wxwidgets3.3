@@ -882,6 +882,9 @@
     <ClInclude Include="RedEyeParameter.h" />
     <ClInclude Include="RgbEffectParameter.h" />
     <ClInclude Include="RotateFreeFilter.h" />
+    <ClInclude Include="SelectDraw.h" />
+    <ClInclude Include="SelectFilter.h" />
+    <ClInclude Include="SelectFilterParameter.h" />
     <ClInclude Include="Selection.h" />
     <ClInclude Include="SharpenMaskingFilter.h" />
     <ClInclude Include="SharpenMaskingParameter.h" />
@@ -964,6 +967,8 @@
     <ClCompile Include="RectangleDraw.cpp" />
     <ClCompile Include="RectangleFilter.cpp" />
     <ClCompile Include="RotateFreeFilter.cpp" />
+    <ClCompile Include="SelectDraw.cpp" />
+    <ClCompile Include="SelectFilter.cpp" />
     <ClCompile Include="Selection.cpp" />
     <ClCompile Include="SharpenMaskingFilter.cpp" />
     <ClCompile Include="SolarisationFilter.cpp" />

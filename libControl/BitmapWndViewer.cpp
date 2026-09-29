@@ -193,7 +193,7 @@ void CBitmapWndViewer::BeforeInterpolationBitmap()
 
             filtreEffet->SetPreviewMode(false);
             mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet.get(), m_cDessin.get());
-			updateFilter = false;
+			//updateFilter = false;
             bitmapwidth = filtreEffet->GetWidth();
             bitmapheight = filtreEffet->GetHeight();
 
@@ -487,12 +487,15 @@ void CBitmapWndViewer::OnFiltreOk()
 {
 	RemoveListener();
 	forceUpdateFilter = false;
+	widthOutputOld = 0;
 }
 
 void CBitmapWndViewer::OnFiltreCancel()
 {
 	RemoveListener();
 	forceUpdateFilter = false;
+	needToRefresh = true;
+	widthOutputOld = 0;
 }
 
 void CBitmapWndViewer::ApplyPicturePosition(const int& angle, const int& flipH, const int& flipV)
