@@ -77,7 +77,7 @@ namespace Regards::FiltreEffet
 
 		};
 
-		virtual void  DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio)
+		virtual void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio)
 		{
 
 		};

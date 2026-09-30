@@ -26,7 +26,7 @@ namespace Regards::Filter
 
 		// Surcharges pour la capture et le rendu à l'écran (wxWidgets) et OpenCV
 		void Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
-		void Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
+
 		CDraw* GetDrawingPt() override;
 
 	private:

@@ -24,7 +24,7 @@ public:
 	CSelectFilterParameter() {
 	};
 
-	bool IfNeedTransparence() override { return true; } // Contour net
+	bool IfNeedTransparence() override { return false; } // Contour net
 
 	bool apply = false;
 	std::vector<SSelectionTrace> listSelections;

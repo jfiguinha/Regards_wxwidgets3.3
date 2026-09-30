@@ -227,32 +227,3 @@ void CRectangleFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CD
 		}
 	}
 }
-
-void CRectangleFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
-{
-	if (!m_cDessin || !dc || !bitmapViewer) return;
-
-	auto param = static_cast<CRectangleFilterParameter*>(bitmapViewer->GetEffectPointer());
-	auto rectDraw = static_cast<Regards::FiltreEffet::CRectangleDraw*>(m_cDessin);
-
-	if (param && rectDraw) {
-		rectDraw->SetCurrentShapeParams(param->shapeType, param->typeBrush, param->opacity, param->isFilled);
-		wxColour color = ConvertScalarToWxColour(param->color, param->opacity);
-		m_cDessin->Dessiner(dc, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio(), color, color, color, param->penSize);
-
-		// Synchronisation de l'écran vers les paramètres OpenCV
-		param->listShapes.clear();
-		for (const auto& s : rectDraw->GetTousLesTraces()) {
-			SShapeTrace shapeOpenCV;
-			shapeOpenCV.startPoint = s.startPoint;
-			shapeOpenCV.endPoint = s.endPoint;
-			shapeOpenCV.shapeType = s.shapeType;
-			shapeOpenCV.penSize = s.penSize;
-			shapeOpenCV.typeBrush = s.typeBrush;
-			shapeOpenCV.opacity = s.opacity;
-			shapeOpenCV.isFilled = s.isFilled;
-			shapeOpenCV.color = cv::Scalar(s.color.Blue(), s.color.Green(), s.color.Red(), param->opacity);
-			param->listShapes.push_back(shapeOpenCV);
-		}
-	}
-}

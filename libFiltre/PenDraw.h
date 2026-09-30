@@ -27,10 +27,7 @@ namespace Regards::FiltreEffet {
             const long& m_lHScroll, const long& m_lVScroll,
             const float& ratio) override;
 
-        void Dessiner(wxDC* deviceContext, const long& hScroll, const long& vScroll, const float& ratio,
-            const wxColour& rgb, const wxColour& rgbFirst, const wxColour& rgbSecond, const int32_t& style) override;
-
-        void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio);
+        void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio) override;
 
         void MouseDown(CEffectParameter* effect) override;
         void MouseUp() override;

@@ -30,7 +30,7 @@ namespace Regards::Filter
 		CEffectParameter* GetEffectPointer() override;
 		void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter,
 			const bool& preview) override;
-		void Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
+
 		void Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
 		CDraw* GetDrawingPt() override;
 	private:

@@ -55,43 +55,6 @@ void CRectangleDraw::MouseMove(const long& xNewSize, const long& yNewSize, const
     m_tousLesTraces.back().endPoint = wxPoint(static_cast<int>(realX), static_cast<int>(realY));
 }
 
-void CRectangleDraw::Dessiner(wxDC* deviceContext, const long& hScroll, const long& vScroll, const float& ratio, const wxColour& rgb, const wxColour& rgbFirst, const wxColour& rgbSecond, const int32_t& style) {
-    if (deviceContext == nullptr || m_tousLesTraces.empty()) return;
-
-    for (const auto& shape : m_tousLesTraces) {
-        int epaisseur = std::max(1, static_cast<int>(shape.penSize * 2 * ratio));
-        wxPenStyle penStylewx = (shape.typeBrush == 2) ? wxPENSTYLE_SHORT_DASH : wxPENSTYLE_SOLID;
-
-        wxPen pen(wxColour(shape.color.Red(), shape.color.Green(), shape.color.Blue(), shape.opacity), epaisseur, penStylewx);
-        deviceContext->SetPen(pen);
-
-        if (shape.isFilled && shape.shapeType != SHAPE_LINE) {
-            deviceContext->SetBrush(wxBrush(wxColour(shape.color.Red(), shape.color.Green(), shape.color.Blue(), shape.opacity)));
-        }
-        else {
-            deviceContext->SetBrush(*wxTRANSPARENT_BRUSH);
-        }
-
-        int x1 = static_cast<int>(XDrawingPosition(static_cast<float>(shape.startPoint.x), hScroll, ratio));
-        int y1 = static_cast<int>(YDrawingPosition(static_cast<float>(shape.startPoint.y), vScroll, ratio));
-        int x2 = static_cast<int>(XDrawingPosition(static_cast<float>(shape.endPoint.x), hScroll, ratio));
-        int y2 = static_cast<int>(YDrawingPosition(static_cast<float>(shape.endPoint.y), vScroll, ratio));
-
-        if (shape.shapeType == SHAPE_RECTANGLE) {
-            deviceContext->DrawRectangle(wxRect(wxPoint(x1, y1), wxPoint(x2, y2)));
-        }
-        else if (shape.shapeType == SHAPE_CIRCLE) {
-            double radius = std::sqrt(std::pow(x2 - x1, 2) + std::pow(y2 - y1, 2));
-            deviceContext->DrawCircle(wxPoint(x1, y1), static_cast<wxCoord>(radius));
-        }
-        else if (shape.shapeType == SHAPE_LINE) {
-            deviceContext->DrawLine(x1, y1, x2, y2);
-        }
-    }
-    deviceContext->SetBrush(wxNullBrush);
-    deviceContext->SetPen(wxNullPen);
-}
-
 
 void CRectangleDraw::DrawShapeOnMat(cv::Mat& matrix, SShapeStyleDraw& shape, const long& hScroll, const long& vScroll, const float& ratio)
 {
