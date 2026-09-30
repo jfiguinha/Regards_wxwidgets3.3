@@ -81,6 +81,8 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="TreeElementComboBox.cpp"/>
+    <File Name="TreeElementColor.cpp"/>
     <File Name="SplitterImpl.cpp"/>
     <File Name="TreeElementStar.cpp"/>
     <File Name="KeywordDialogBox.cpp"/>
@@ -128,6 +130,9 @@
     <File Name="IconeList.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="TreeElementComboBox.h"/>
+    <File Name="TreeElementColor.h"/>
+    <File Name="ThreadLoadingBitmap.h"/>
     <File Name="SplitterImpl.h"/>
     <File Name="TreeElementStar.h"/>
     <File Name="KeywordDialogBox.h"/>

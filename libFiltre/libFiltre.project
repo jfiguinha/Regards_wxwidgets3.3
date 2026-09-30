@@ -39,6 +39,10 @@
       <File Name="MeanShift.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="src">
+      <File Name="SelectDraw.cpp"/>
+      <File Name="RectangleDraw.cpp"/>
+      <File Name="PenDraw.cpp"/>
+      <File Name="Crop.cpp"/>
       <File Name="Wave.cpp"/>
       <File Name="Selection.cpp"/>
       <File Name="PerlinNoise.cpp"/>
@@ -46,11 +50,15 @@
       <File Name="Line.cpp"/>
       <File Name="LensFlare.cpp"/>
       <File Name="Draw.cpp"/>
-      <File Name="Crop.cpp"/>
       <File Name="Color.cpp"/>
       <File Name="circle.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="include">
+      <File Name="SelectDraw.h"/>
+      <File Name="RectangleDraw.h"/>
+      <File Name="PenDraw.h"/>
+      <File Name="Draw.h"/>
+      <File Name="Crop.h"/>
       <File Name="Wave.h"/>
       <File Name="Selection.h"/>
       <File Name="Rotation.h"/>
@@ -58,14 +66,18 @@
       <File Name="MotionBlur.h"/>
       <File Name="Line.h"/>
       <File Name="LensFlare.h"/>
-      <File Name="Draw.h"/>
-      <File Name="Crop.h"/>
       <File Name="Color.h"/>
       <File Name="circle.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="window">
     <VirtualDirectory Name="drawing">
+      <File Name="SelectFilter.h"/>
+      <File Name="RectangleFilter.h"/>
+      <File Name="PenFilter.h"/>
+      <File Name="PenFilter.cpp"/>
+      <File Name="SelectFilter.cpp"/>
+      <File Name="RectangleFilter.cpp"/>
       <File Name="InpaintFilter.h"/>
       <File Name="InpaintFIlter.cpp"/>
       <File Name="CropFilter.h"/>
@@ -79,6 +91,10 @@
       <File Name="FilterWindowParam.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="data structure">
+      <File Name="SelectFilterParameter.h"/>
+      <File Name="RectangleFilterParameter.h"/>
+      <File Name="PenEffectParameter.h"/>
+      <File Name="CropEffectParameter.h"/>
       <File Name="MosaicFilterParameter.h"/>
       <File Name="LensDistortionEffectParameter.h"/>
       <File Name="VignetteEffectParameter.h"/>

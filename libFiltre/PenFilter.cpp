@@ -107,7 +107,7 @@ void CPenFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeEleme
 	{
 		auto colorValue = static_cast<CTreeElementValueColor*>(valueData);
 		wxColour c = colorValue->GetValue();
-		penParameter->color = cv::Scalar(c.Blue(), c.Green(), c.Red(), effectParameter->opacity);
+		penParameter->color = cv::Scalar(c.Red(), c.Green(), c.Blue(), effectParameter->opacity);
 	}
 	// --- INTERCEPTION DU CHANGEMENT DE LA COMBOBOX ---
 	else if (key == libelleTypeBrush && valueData->GetType() == TYPE_ELEMENT_INT)
@@ -149,7 +149,8 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 	if (penParameter->apply)
 	{
 		imageLoad = new CImageLoadingFormat();
-		imageLoad->SetPicture(filtreEffet->GetBitmap(true));
+		cv::Mat picture = filtreEffet->GetBitmap(true);
+		imageLoad->SetPicture(picture);
 		imageLoad->RotateExif(orientation);
 
 		try

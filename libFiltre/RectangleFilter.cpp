@@ -151,7 +151,8 @@ void CRectangleFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter*
 	if (!param->apply) return;
 
 	CImageLoadingFormat* imageLoad = new CImageLoadingFormat();
-	imageLoad->SetPicture(filtreEffet->GetBitmap(true));
+	cv::Mat picture = filtreEffet->GetBitmap(true);
+	imageLoad->SetPicture(picture);
 	cv::Mat& matrix = imageLoad->GetMatImage();
 
 	try {
