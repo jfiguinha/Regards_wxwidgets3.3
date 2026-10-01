@@ -51,20 +51,10 @@ void CPaintBucketFilter::FilterChangeParam(CEffectParameter* effectParameter, CT
 
     if (key == libelleColor && valueData->GetType() == 4) {
         wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
-        param->fillColor = cv::Scalar(c.Red(), c.Green(), c.Blue(), 255);
-
-        // Rétroaction : On met à jour la couleur de tout l'historique si l'utilisateur change la couleur globale
-        for (auto& action : param->actionsHistory) {
-            action.fillColor = param->fillColor;
-        }
+        param->fillColor = cv::Scalar(c.Blue(), c.Green(), c.Red(), 255);
     }
     else if (key == libelleTolerance && valueData->GetType() == TYPE_ELEMENT_INT) {
         param->tolerance = static_cast<CTreeElementValueInt*>(valueData)->GetValue();
-
-        // Rétroaction : On réajuste la tolérance de tout l'historique pour recalculer les zones
-        for (auto& action : param->actionsHistory) {
-            action.tolerance = param->tolerance;
-        }
     }
 }
 
@@ -88,28 +78,32 @@ void CPaintBucketFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, 
     int vpos = bitmapViewer->GetVPos();
     float ratio = bitmapViewer->GetRatio();
 
-    if (param != nullptr && paintDraw != nullptr && paintDraw->HasClicked())
+    if (param != nullptr && paintDraw != nullptr)
     {
-        // 1. Création d'un nouvel enregistrement d'action avec les paramètres courants du clic
-        SPaintBucketAction nouvelleAction;
-        nouvelleAction.ptClick = cv::Point(paintDraw->GetClickPoint().x, paintDraw->GetClickPoint().y);
-        nouvelleAction.fillColor = param->fillColor;
-        nouvelleAction.tolerance = param->tolerance;
+        if (paintDraw->HasClicked())
+        {
+            // 1. Création d'un nouvel enregistrement d'action avec les paramètres courants du clic
+            SPaintBucketAction nouvelleAction;
+            nouvelleAction.ptClick = cv::Point(paintDraw->GetClickPoint().x, paintDraw->GetClickPoint().y);
+            nouvelleAction.fillColor = param->fillColor;
+            nouvelleAction.tolerance = param->tolerance;
 
-        // 2. Empilage de la zone dans le vecteur de sauvegarde
-        param->actionsHistory.push_back(nouvelleAction);
-
+            // 2. Empilage de la zone dans le vecteur de sauvegarde
+            param->actionsHistory.push_back(nouvelleAction);
+        }
         // 3. Redessine TOUTES les zones sauvegardées séquentiellement sur l'image source d'origine
         for (const auto& action : param->actionsHistory)
         {
             int screenX = static_cast<int>(paintDraw->XDrawingPosition(static_cast<float>(action.ptClick.x), hpos, ratio));
             int screenY = static_cast<int>(paintDraw->YDrawingPosition(static_cast<float>(action.ptClick.y), vpos, ratio));
 
+            cv::Point ptClick = cv::Point(screenX, screenY);
+
             if (screenX >= 0 && screenX < matrix.cols && screenY >= 0 && screenY < matrix.rows)
             {
                 cv::Scalar diff(action.tolerance, action.tolerance, action.tolerance, action.tolerance);
                 cv::Mat mask = cv::Mat::zeros(matrix.rows + 2, matrix.cols + 2, CV_8UC1);
-                cv::floodFill(matrix, mask, action.ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
+                cv::floodFill(matrix, mask, ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
             }
         }
 

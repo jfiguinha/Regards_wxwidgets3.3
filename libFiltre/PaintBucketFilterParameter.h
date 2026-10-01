@@ -22,10 +22,10 @@ public:
         actionsHistory.clear();
     }
 
-    bool IfNeedTransparence() override { return false; }
+    bool IfNeedTransparence() override { return true; }
 
     wxColour GetWxFillColor() {
-        return wxColour(fillColor[2], fillColor[1], fillColor[0], 255);
+        return wxColour(fillColor[0], fillColor[1], fillColor[2], 255);
     }
 
     cv::Scalar fillColor; // Couleur courante sélectionnée pour le prochain clic
