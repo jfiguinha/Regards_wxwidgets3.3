@@ -28,6 +28,17 @@ namespace Regards::FiltreEffet {
             return true;
         }
 
+
+        bool RefreshAfterUpdateParameter() override
+        {
+            return true;
+        }
+
+        void SetCursor() override
+        {
+            wxSetCursor(wxCursor(wxCURSOR_IBEAM));
+        }
+
         void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll, const float& ratio) override;
         void MouseMove(const long& xNewSize, const long& yNewSize, const long& m_lHScroll, const long& m_lVScroll, const float& ratio) override;
         void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio) override;
@@ -41,15 +52,7 @@ namespace Regards::FiltreEffet {
         void KeyDown(const int32_t& keyCode) override;
 
         // Configuration dynamique de la boîte à outils active
-        void SetCurrentTextParams(int size, const wxString& fontName, int fontIndex, bool bold, bool italic, int opacity, const wxColour& color) {
-            m_currentFontSize = size;
-            m_currentFontName = fontName;
-            m_currentFontIndex = fontIndex;
-            m_currentIsBold = bold;
-            m_currentIsItalic = italic;
-            m_currentOpacity = opacity;
-            m_currentColor = color;
-        }
+        void SetCurrentTextParams(int size, const wxString& fontName, int fontIndex, bool bold, bool italic, int opacity, const wxColour& color);
     private:
         std::vector<STextStyleDraw> m_tousLesTextes;
 

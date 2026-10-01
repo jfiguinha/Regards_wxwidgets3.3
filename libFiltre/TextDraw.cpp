@@ -64,6 +64,31 @@ void CTextDraw::MouseMove(const long& xNewSize, const long& yNewSize, const long
     // Non utilisé pour la saisie clavier pure
 }
 
+// Configuration dynamique de la boîte à outils active
+void CTextDraw::SetCurrentTextParams(int size, const wxString& fontName, int fontIndex, bool bold, bool italic, int opacity, const wxColour& color) {
+    m_currentFontSize = size;
+    m_currentFontName = fontName;
+    m_currentFontIndex = fontIndex;
+    m_currentIsBold = bold;
+    m_currentIsItalic = italic;
+    m_currentOpacity = opacity;
+    m_currentColor = color;
+
+    // Sécurité : Vérifie si un élément de texte est en cours d'édition
+    if (m_tousLesTextes.empty() || !m_isDrawing) return;
+
+    auto& texteActif = m_tousLesTextes.back();
+	texteActif.color = m_currentColor;
+	texteActif.fontIndex = m_currentFontIndex;
+    texteActif.fontSize = m_currentFontSize;
+    texteActif.fontName = m_currentFontName;
+    texteActif.isBold = m_currentIsBold;
+    texteActif.isItalic = m_currentIsItalic;
+    texteActif.opacity = m_currentOpacity;
+    texteActif.color = m_currentColor;
+
+}
+
 void CTextDraw::KeyDown(const int32_t& keyCode)
 {
     // Sécurité : Vérifie si un élément de texte est en cours d'édition

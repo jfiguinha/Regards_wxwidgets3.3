@@ -88,6 +88,7 @@ void CTextFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElem
 
     if (key == lblFontFace && valueData->GetType() == TYPE_ELEMENT_INT) {
         param->fontIndex = static_cast<CTreeElementValueInt*>(valueData)->GetValue();
+		param->fontName = m_systemFonts[param->fontIndex]; // Met à jour le nom de la police en fonction de l'index sélectionné
     }
     else if (key == lblFontSize && valueData->GetType() == TYPE_ELEMENT_INT) {
         param->fontSize = static_cast<CTreeElementValueInt*>(valueData)->GetValue();

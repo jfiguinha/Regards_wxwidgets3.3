@@ -41,6 +41,10 @@ namespace Regards::FiltreEffet
 			return false;
 		}
 
+		virtual bool RefreshAfterUpdateParameter()
+		{
+			return false;
+		}
 
 		wxColour WithOpacity(const cv::Scalar& colour)
 		{
@@ -158,6 +162,11 @@ namespace Regards::FiltreEffet
 		virtual double GetScaleFactor()
 		{
 			return factor;
+		}
+
+		virtual void SetCursor()
+		{
+			wxSetCursor(wxCursor(wxCURSOR_ARROW));
 		}
 
 		float XDrawingPosition(const float& m_lx, const long& m_lHScroll, const float& ratio);

@@ -162,6 +162,8 @@ void CBitmapWndViewer::OnUpdateFiltre(wxCommandEvent& event)
 	RefreshWindow();
 }
 
+
+
 void CBitmapWndViewer::UpdateFiltre(CEffectParameter* effectParameter)
 {
 	wxCommandEvent event(wxEVENT_UPDATEEFFECTFILTER);
@@ -445,7 +447,7 @@ void CBitmapWndViewer::SetBitmapPreviewEffect(const int& effect)
 		forceUpdateFilter = true;
 
 		SetDessinRatio();
-		wxSetCursor(wxCursor(wxCURSOR_CROSS));
+		m_cDessin->SetCursor();
 		isInUse = false;
 		SetTool(preview);
 	}
@@ -810,7 +812,7 @@ void CBitmapWndViewer::KeyPress(const int& key)
 
 void CBitmapWndViewer::MouseMove(const int& xPos, const int& yPos)
 {
-	if (CFiltreData::SupportMouseClick(toolOption))
+	if (m_cDessin && CFiltreData::SupportMouseClick(toolOption))
 	{
 		int hpos = GetHPos();
 		int vpos = GetVPos();
@@ -820,7 +822,7 @@ void CBitmapWndViewer::MouseMove(const int& xPos, const int& yPos)
 
 		m_cDessin->SetScaleFactor(scale_factor);
 
-		CFiltreData::SetCursor(toolOption);
+		m_cDessin->SetCursor();
 		if (mouseBlock)
 		{
 			m_cDessin->MouseMove(x, y, hpos, vpos, GetRatio());
