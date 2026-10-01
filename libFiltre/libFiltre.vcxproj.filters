@@ -408,6 +408,15 @@
     <ClInclude Include="TextFilter.h">
       <Filter>window\Drawing</Filter>
     </ClInclude>
+    <ClInclude Include="GradientFilterParameter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="GradientDraw.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="GradientFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">
@@ -600,6 +609,9 @@
       <Filter>Filter\source</Filter>
     </ClCompile>
     <ClCompile Include="TextFilter.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="GradientFilter.cpp">
       <Filter>window\Drawing</Filter>
     </ClCompile>
   </ItemGroup>
