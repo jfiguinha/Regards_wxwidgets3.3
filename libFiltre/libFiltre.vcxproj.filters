@@ -387,8 +387,17 @@
     <ClInclude Include="SelectFilterParameter.h">
       <Filter>window\Drawing</Filter>
     </ClInclude>
-    <ClInclude Include="SelectDraw.h">
+    <ClInclude Include="MagicHandParameter.h">
       <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="MagicHandFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="MagicHandDraw.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="SelectDraw.h">
+      <Filter>Filter\include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -566,11 +575,17 @@
     <ClCompile Include="RectangleDraw.cpp">
       <Filter>Filter\source</Filter>
     </ClCompile>
-    <ClCompile Include="SelectDraw.cpp">
-      <Filter>window\Drawing</Filter>
-    </ClCompile>
     <ClCompile Include="SelectFilter.cpp">
       <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="MagicHandFilter.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="MagicHandDraw.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="SelectDraw.cpp">
+      <Filter>Filter\source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -56,12 +56,6 @@ void CSelectFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, c
 	AddMetadataElement(selectOptions, CLibResource::LoadStringFromResource("LBLSELECTELLIPSE", 1), SELECT_ELLIPSE);
 	AddMetadataElement(selectOptions, CLibResource::LoadStringFromResource("LBLSELECTLASSO", 1), SELECT_LASSO);
 	filtreInterface->AddTreeInfos(libelleSelectType, new CTreeElementValueInt(param->selectType), &selectOptions, 3, TYPE_COMBOBOX);
-
-	vector<int> elementTolerance;
-	for (auto i = 0; i <= 100; i++) // Remplissage de 0 à 100 %
-		elementTolerance.push_back(i);
-
-	filtreInterface->AddTreeInfos(libelleTolerance, new CTreeElementValueInt(param->tolerancePercent), &elementTolerance);
 }
 
 void CSelectFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData, const wxString& key)

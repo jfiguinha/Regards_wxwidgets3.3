@@ -853,6 +853,9 @@
     <ClInclude Include="LensFlareEffectParameter.h" />
     <ClInclude Include="LensFlareFilter.h" />
     <ClInclude Include="Line.h" />
+    <ClInclude Include="MagicHandDraw.h" />
+    <ClInclude Include="MagicHandFilter.h" />
+    <ClInclude Include="MagicHandParameter.h" />
     <ClInclude Include="MeanShift.h" />
     <ClInclude Include="MosaicFilter.h" />
     <ClInclude Include="MosaicFilterParameter.h" />
@@ -945,6 +948,8 @@
     <ClCompile Include="LensFlare.cpp" />
     <ClCompile Include="LensFlareFilter.cpp" />
     <ClCompile Include="Line.cpp" />
+    <ClCompile Include="MagicHandDraw.cpp" />
+    <ClCompile Include="MagicHandFilter.cpp" />
     <ClCompile Include="MeanShift.cpp" />
     <ClCompile Include="MosaicFilter.cpp" />
     <ClCompile Include="MotionBlur.cpp" />
