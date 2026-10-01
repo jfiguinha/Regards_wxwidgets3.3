@@ -58,15 +58,6 @@ void CPaintBucketFilter::FilterChangeParam(CEffectParameter* effectParameter, CT
     }
 }
 
-// Parcours et exécute séquentiellement l'ensemble des remplissages enregistrés
-void CPaintBucketFilter::ApplyFloodFill(cv::Mat& matrix, const cv::Point& seedPoint, const cv::Scalar& color, int tolerance)
-{
-    // Cette méthode interne gère désormais la boucle complète sur l'historique
-    // L'argument brut 'matrix' est modifié par effet de bord (In-place)
-    // Nous n'utilisons plus les arguments unitaires seedPoint/color/tolerance de signature directs ici,
-    // mais une encapsulation propre à chaque itération.
-}
-
 void CPaintBucketFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
     if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;

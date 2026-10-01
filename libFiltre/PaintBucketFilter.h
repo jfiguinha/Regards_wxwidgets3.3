@@ -26,7 +26,6 @@ namespace Regards::Filter
         CDraw* GetDrawingPt() override;
 
     private:
-        void ApplyFloodFill(cv::Mat& matrix, const cv::Point& seedPoint, const cv::Scalar& color, int tolerance);
 
         wxString libelleColor;
         wxString libelleTolerance;
