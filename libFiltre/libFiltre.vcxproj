@@ -871,6 +871,9 @@
     <ClInclude Include="OilPaintingEffectParameter.h" />
     <ClInclude Include="OilPaintingFilter.h" />
     <ClInclude Include="OpenCLEffect.h" />
+    <ClInclude Include="PaintBucketDraw.h" />
+    <ClInclude Include="PaintBucketFilter.h" />
+    <ClInclude Include="PaintBucketFilterParameter.h" />
     <ClInclude Include="panorama.h" />
     <ClInclude Include="PencilSketch.h" />
     <ClInclude Include="PencilSketchParameter.h" />
@@ -965,6 +968,7 @@
     <ClCompile Include="NlmeansFilter.cpp" />
     <ClCompile Include="OilPaintingFilter.cpp" />
     <ClCompile Include="OpenCLEffect.cpp" />
+    <ClCompile Include="PaintBucketFilter.cpp" />
     <ClCompile Include="panorama.cpp" />
     <ClCompile Include="PencilSketch.cpp" />
     <ClCompile Include="PenDraw.cpp" />

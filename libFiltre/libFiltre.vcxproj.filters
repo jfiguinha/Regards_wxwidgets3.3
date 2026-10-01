@@ -417,6 +417,15 @@
     <ClInclude Include="GradientFilter.h">
       <Filter>window\Drawing</Filter>
     </ClInclude>
+    <ClInclude Include="PaintBucketFilterParameter.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="PaintBucketDraw.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="PaintBucketFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">
@@ -612,6 +621,9 @@
       <Filter>window\Drawing</Filter>
     </ClCompile>
     <ClCompile Include="GradientFilter.cpp">
+      <Filter>window\Drawing</Filter>
+    </ClCompile>
+    <ClCompile Include="PaintBucketFilter.cpp">
       <Filter>window\Drawing</Filter>
     </ClCompile>
   </ItemGroup>

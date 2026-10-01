@@ -39,6 +39,7 @@
 #include <RectangleFilterParameter.h>
 #include <PenEffectParameter.h>
 #include <TextEffectParameter.h>
+#include <PaintBucketFilterParameter.h>
 #include <GradientFilterParameter.h>
 using namespace Regards::Picture;
 
@@ -110,6 +111,8 @@ static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffe
 		return std::make_unique<Regards::Filter::CTextFilterParameter>(*static_cast<Regards::Filter::CTextFilterParameter*>(effectParameter));
 	case IDM_GRADIENTFILTER:
 		return std::make_unique<CGradientFilterParameter>(*static_cast<CGradientFilterParameter*>(effectParameter));
+	case IDM_PAINTBUCKETFILTER:
+		return std::make_unique<CPaintBucketFilterParameter>(*static_cast<CPaintBucketFilterParameter*>(effectParameter));
 	case IDM_CROP:
 		return std::make_unique<CCropEffectParameter>(*static_cast<CCropEffectParameter*>(effectParameter));
 		// Ajoutez ici d'autres cas si le paramètre rgbEffectParameter correspond à d'autres filtres (ex: IDM_COLOR_BALANCE)
