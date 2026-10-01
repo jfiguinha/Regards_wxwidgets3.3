@@ -15,6 +15,42 @@ namespace Regards::FiltreEffet
 		void SetMaxPosition(const wxRect& m_rcPicture);
 		CDraw();
 		virtual ~CDraw();
+
+		wxColour WithOpacity(const wxColour& colour, unsigned char opacity)
+		{
+			return wxColour(
+				colour.Red(),
+				colour.Green(),
+				colour.Blue(),
+				opacity);
+		}
+
+		cv::Scalar ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha)
+		{
+			// Extraction des canaux OpenCV (Indices standard : 0 = Blue, 1 = Green, 2 = Red, 3 = Alpha)
+			int blue = static_cast<int>(scalar_color[0]);
+			int green = static_cast<int>(scalar_color[1]);
+			int red = static_cast<int>(scalar_color[2]);
+
+			return cv::Scalar(red, green, blue, alpha);
+		}
+
+
+		virtual bool RefreshAfterKeyDown()
+		{
+			return false;
+		}
+
+
+		wxColour WithOpacity(const cv::Scalar& colour)
+		{
+			return wxColour(
+				static_cast<unsigned char>(colour[2]),
+				static_cast<unsigned char>(colour[1]),
+				static_cast<unsigned char>(colour[0]),
+				static_cast<unsigned char>(colour[3]));
+		}
+
 		static void DrawARectangle(wxDC* deviceContext, const wxRect& rc, const wxColour& rgb);
 		static void DessinerRectangleVide(wxDC* deviceContext, const int32_t& iTaille, const wxRect& rc,
 		                                  const wxColour& rgb);
@@ -55,6 +91,9 @@ namespace Regards::FiltreEffet
 		                       const long& m_lVScroll, const float& ratio, const wxColour& rgb)
 		{
 		};
+
+
+		virtual void KeyDown(const int32_t& keyCode) {};
 
 		virtual void MouseMove(wxDC* deviceContext, const long& m_lx, const long& m_ly, const long& m_lHScroll,
 		                       const long& m_lVScroll, const float& ratio, const wxColour& rgb, const wxColour& rgbBack)

@@ -106,24 +106,7 @@ void CPenDraw::SetTransparenceValue(wxImage& drawingImage)
     }
 }
 
-wxColour WithOpacity(const wxColour& colour, unsigned char opacity)
-{
-    return wxColour(
-        colour.Red(),
-        colour.Green(),
-        colour.Blue(),
-        opacity);
-}
 
-cv::Scalar CPenDraw::ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha)
-{
-    // Extraction des canaux OpenCV (Indices standard : 0 = Blue, 1 = Green, 2 = Red, 3 = Alpha)
-    int blue = static_cast<int>(scalar_color[0]);
-    int green = static_cast<int>(scalar_color[1]);
-    int red = static_cast<int>(scalar_color[2]);
-
-    return cv::Scalar(red, green, blue, alpha);
-}
 
 
 

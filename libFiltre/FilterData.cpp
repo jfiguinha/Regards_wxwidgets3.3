@@ -47,6 +47,7 @@
 #include "RectangleFilter.h"
 #include "MagicHandFilter.h"
 #include "Stylization.h"
+#include "TextFilter.h"
 #include <effect_id.h>
 using namespace Regards::Filter;
 
@@ -118,6 +119,7 @@ const std::unordered_map<int, CFiltreData::FilterFactory>& CFiltreData::GetFacto
 		FILTER_ENTRY(IDM_MAGICHANDFILTER, CMagicHandFilter),
 		FILTER_ENTRY(IDM_RECTANGLEFILTER, CRectangleFilter),
 		FILTER_ENTRY(IDM_SELECTFILTER, CSelectFilter),
+		FILTER_ENTRY(IDM_TEXTFILTER, CTextFilter),
 		FILTER_ENTRY(IDM_EXTRACTPERSON, CExtractFilterPerson)
 	};
 	return factoryMap;

@@ -399,6 +399,15 @@
     <ClInclude Include="SelectDraw.h">
       <Filter>Filter\include</Filter>
     </ClInclude>
+    <ClInclude Include="TextEffectParameter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
+    <ClInclude Include="TextDraw.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
+    <ClInclude Include="TextFilter.h">
+      <Filter>window\Drawing</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">
@@ -586,6 +595,12 @@
     </ClCompile>
     <ClCompile Include="SelectDraw.cpp">
       <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="TextDraw.cpp">
+      <Filter>Filter\source</Filter>
+    </ClCompile>
+    <ClCompile Include="TextFilter.cpp">
+      <Filter>window\Drawing</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

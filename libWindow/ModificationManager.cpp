@@ -38,6 +38,7 @@
 #include <SelectFilterParameter.h>
 #include <RectangleFilterParameter.h>
 #include <PenEffectParameter.h>
+#include <TextEffectParameter.h>
 using namespace Regards::Picture;
 
 
@@ -104,6 +105,8 @@ static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffe
 		return std::make_unique<CRectangleFilterParameter>(*static_cast<CRectangleFilterParameter*>(effectParameter));
 	case IDM_SELECTFILTER:
 		return std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
+	case IDM_TEXTFILTER:
+		return std::make_unique<Regards::Filter::CTextFilterParameter>(*static_cast<Regards::Filter::CTextFilterParameter*>(effectParameter));
 	case IDM_CROP:
 		return std::make_unique<CCropEffectParameter>(*static_cast<CCropEffectParameter*>(effectParameter));
 		// Ajoutez ici d'autres cas si le paramètre rgbEffectParameter correspond à d'autres filtres (ex: IDM_COLOR_BALANCE)

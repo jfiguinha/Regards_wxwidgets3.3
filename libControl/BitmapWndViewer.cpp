@@ -798,6 +798,14 @@ void CBitmapWndViewer::KeyPress(const int& key)
 			RefreshWindow();
 		}
 	}
+	else if(m_cDessin)
+	{
+		m_cDessin->KeyDown(key);
+		if (m_cDessin->RefreshAfterKeyDown())
+		{
+			RefreshWindow();
+		}
+	}
 }
 
 void CBitmapWndViewer::MouseMove(const int& xPos, const int& yPos)

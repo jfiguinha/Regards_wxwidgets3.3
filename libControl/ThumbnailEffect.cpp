@@ -207,6 +207,13 @@ void CThumbnailEffect::SetFile(const wxString& filename,
                 thumbnailData->SetBitmap(pBitmap);
                 break;
             }
+            case IDM_TEXTFILTER: {
+                cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_TEXT");
+                thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
+                infosSeparationDrawingTools->AddPhotoToList(numElement);
+                thumbnailData->SetBitmap(pBitmap);
+                break;
+            }
             case IDM_MAGICHANDFILTER: {
                 cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_MAGICHAND");
                 thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));

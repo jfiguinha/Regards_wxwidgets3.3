@@ -897,6 +897,9 @@
     <ClInclude Include="StylizationParameter.h" />
     <ClInclude Include="SwirlEffectParameter.h" />
     <ClInclude Include="SwirlFilter.h" />
+    <ClInclude Include="TextDraw.h" />
+    <ClInclude Include="TextEffectParameter.h" />
+    <ClInclude Include="TextFilter.h" />
     <ClInclude Include="VideoFilter.h" />
     <ClInclude Include="videostream.h" />
     <ClInclude Include="VignetteEffectParameter.h" />
@@ -979,6 +982,8 @@
     <ClCompile Include="SolarisationFilter.cpp" />
     <ClCompile Include="Stylization.cpp" />
     <ClCompile Include="SwirlFilter.cpp" />
+    <ClCompile Include="TextDraw.cpp" />
+    <ClCompile Include="TextFilter.cpp" />
     <ClCompile Include="VideoFilter.cpp" />
     <ClCompile Include="videostream.cpp" />
     <ClCompile Include="VignetteFilter.cpp" />
