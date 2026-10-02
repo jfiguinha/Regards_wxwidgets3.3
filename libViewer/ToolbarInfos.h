@@ -25,6 +25,12 @@ namespace Regards::Viewer
 
 		void SetEffectActif();
 		void SetEffectInactif();
+
+
+		void SetCalqueActif();
+		void SetCalqueInactif();
+		void SetCalquePush();
+
 		void SetCriteriaPush();
 
 		void SetHistogramPush();
@@ -51,5 +57,6 @@ namespace Regards::Viewer
 		std::unique_ptr<CToolbarTexte> effectParameter = nullptr;
 		std::unique_ptr<CToolbarTexte> criteria = nullptr;
 		std::unique_ptr<CToolbarTexte> histogramParameter = nullptr;
+		std::unique_ptr<CToolbarTexte> calqueParameter = nullptr;
 	};
 }

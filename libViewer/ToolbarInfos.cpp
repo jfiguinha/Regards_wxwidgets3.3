@@ -21,6 +21,7 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
 	criteria = CreateTexte("LBLCRITERIA", WM_CRITERIA);
 	effectParameter = CreateTexte("LBLEFFECTPARAMETER", WM_EFFECTPARAMETER);
 	histogramParameter = CreateTexte("LBLHISTOGRAM", WM_HISTOGRAM);
+	calqueParameter = CreateTexte("LBL_CALQUE", WM_CALQUE);
 }
 
 void CToolbarInfos::SetHistogramPush()
@@ -65,7 +66,21 @@ void CToolbarInfos::SetEffectParameterPush()
 	effectParameter->SetPush(true);
 }
 
-
+void CToolbarInfos::SetCalqueActif()
+{
+	SetAllDisable();
+	calqueParameter->SetVisible(true);
+	toolbarInterface->ClickShowButton(WM_CALQUE);
+}
+void CToolbarInfos::SetCalqueInactif()
+{
+	calqueParameter->SetVisible(false);
+	needToRefresh = true;
+}
+void CToolbarInfos::SetCalquePush()
+{
+	calqueParameter->SetPush(true);
+}
 
 void CToolbarInfos::SetInfosActif()
 {
@@ -132,6 +147,7 @@ void CToolbarInfos::SetVideoToolbar()
 	map->SetVisible(false);
 	effectParameter->SetVisible(false);
 	effect->SetVisible(false);
+	calqueParameter->SetVisible(false);
 	videoeffect->SetVisible(true);
 	audiovideo->SetVisible(true);
 	needToRefresh = true;
@@ -145,6 +161,7 @@ void CToolbarInfos::SetPictureThumbnailToolbar()
 	history->SetVisible(false);
 	effectParameter->SetVisible(false);
 	histogramParameter->SetVisible(false);
+	calqueParameter->SetVisible(false);
 	needToRefresh = true;
 }
 
@@ -157,6 +174,7 @@ void CToolbarInfos::SetPictureToolbar()
 	audiovideo->SetVisible(false);
 	effectParameter->SetVisible(false);
 	histogramParameter->SetVisible(true);
+	calqueParameter->SetVisible(true);
 	needToRefresh = true;
 }
 

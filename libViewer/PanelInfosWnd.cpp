@@ -24,6 +24,7 @@
 #include <wx/filename.h>
 #include <wx/busyinfo.h>
 #include "ParamInit.h"
+#include "ThumbnailCalqueWnd.h"
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
 #include <ModificationManager.h>
@@ -499,6 +500,7 @@ void CPanelInfosWnd::VideoEffectUpdate()
 	}
 }
 
+
 void CPanelInfosWnd::HistoryUpdate()
 {
 	if (!isVideo)
@@ -563,6 +565,12 @@ void CPanelInfosWnd::LoadInfo()
 		criteriaTreeWnd->SetFile(filename);
 		infosToolbar->SetCriteriaPush();
 		windowVisible = WM_CRITERIA;
+		break;
+
+	case WM_CALQUE:
+		thumbnailCalqueWnd->SetFile(filename);
+		infosToolbar->SetCalquePush();
+		windowVisible = WM_CALQUE;
 		break;
 
 	case WM_MAPS:

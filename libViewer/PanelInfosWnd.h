@@ -31,6 +31,7 @@ namespace Regards
 		class CInfoEffectWnd;
 		class CFiltreEffectScrollWnd;
 		class CThumbnailViewerEffectWnd;
+		class CThumbnailCalqueWnd;	
 	}
 
 	namespace Viewer
@@ -57,6 +58,7 @@ namespace Regards
 			wxString MapsUpdate();
 			void EffectUpdate();
 			void HistoryUpdate();
+
 			void VideoEffectUpdate();
 			void InfosUpdate();
 			void LoadInfo() override;
@@ -67,6 +69,7 @@ namespace Regards
 			CInfosFileWnd * infosFileWnd;
 			CInfoEffectWnd * historyEffectWnd;
 			CThumbnailViewerEffectWnd * thumbnailEffectWnd;
+			CThumbnailCalqueWnd* thumbnailCalqueWnd;
 			CFiltreEffectScrollWnd * filtreEffectWnd;
 			CCriteriaWindow * criteriaTreeWnd;
 			CPicturePanel * picturePanel;

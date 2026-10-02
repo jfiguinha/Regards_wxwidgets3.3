@@ -7,27 +7,29 @@
 //
 
 #pragma once
-#include "ThumbnailViewerEffect.h"
+#include "ThumbnailCalque.h"
 #include <ScrollbarWnd.h>
 using namespace Regards::Control;
 
 namespace Regards::Control
 {
-	class CThumbnailViewerEffectWnd : public CWindowMain
+	class CThumbnailCalqueWnd : public CWindowMain
 	{
 	public:
-		CThumbnailViewerEffectWnd(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface,
-		                          const CThemeScrollBar& themeScroll, const CThemeThumbnail& themeThumbnail,
-		                          int panelInfosId, bool checkValidity);
-		~CThumbnailViewerEffectWnd(void) = default;
+		CThumbnailCalqueWnd(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface,
+		                     const CThemeScrollBar& themeScroll, const CThemeThumbnail& themeThumbnail,
+		                     int panelInfosId, bool checkValidity);
+		~CThumbnailCalqueWnd(void) = default;
 
 		void UpdateScreenRatio() override;
 		void Resize() override;
 		wxString GetFilename();
 		void SetFile(const wxString& filename);
 
+
 	private:
 		CScrollbarWnd * thumbnailEffectScroll;
-		CThumbnailViewerEffect * thumbnailEffect;
+		
+		CThumbnailCalque * thumbnailCalque;
 	};
 }

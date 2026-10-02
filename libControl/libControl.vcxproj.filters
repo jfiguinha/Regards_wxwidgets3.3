@@ -115,6 +115,12 @@
     <ClCompile Include="GlassLensFilter.cpp">
       <Filter>Bitmap\PostEffect</Filter>
     </ClCompile>
+    <ClCompile Include="ThumbnailCalque.cpp">
+      <Filter>Thumbnail\source</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailCalqueWnd.cpp">
+      <Filter>Thumbnail\source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CriteriaTree.h">
@@ -248,6 +254,12 @@
     </ClInclude>
     <ClInclude Include="GlassLensFilter.h">
       <Filter>Bitmap\PostEffect</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailCalque.h">
+      <Filter>Thumbnail\header</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailCalqueWnd.h">
+      <Filter>Thumbnail\header</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

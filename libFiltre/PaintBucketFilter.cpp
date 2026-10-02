@@ -16,15 +16,16 @@ using namespace std;
 
 CPaintBucketFilter::CPaintBucketFilter()
 {
-    libelleColor = "Effect.Color";
-    libelleTolerance = "Effect.Tolerance";
+    libelleColor = CLibResource::LoadStringFromResource("LBLCOLOR", 1);
+    libelleTolerance = CLibResource::LoadStringFromResource("LBLTOLERANCE", 1);
 }
 
 CPaintBucketFilter::~CPaintBucketFilter() {}
 
 int CPaintBucketFilter::GetTypeFilter() { return IDM_PAINTBUCKETFILTER; }
 int CPaintBucketFilter::GetNameFilter() { return IDM_PAINTBUCKETFILTER; }
-wxString CPaintBucketFilter::GetFilterLabel() { return "Paint Bucket"; }
+wxString CPaintBucketFilter::GetFilterLabel() { return CLibResource::LoadStringFromResource("LBLPAINTBUCKETFILTER", 1);
+}
 
 CEffectParameter* CPaintBucketFilter::GetEffectPointer() { return new CPaintBucketFilterParameter(); }
 CDraw* CPaintBucketFilter::GetDrawingPt() { return new Regards::FiltreEffet::CPaintBucketDraw(); }

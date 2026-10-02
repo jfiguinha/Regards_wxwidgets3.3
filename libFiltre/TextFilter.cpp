@@ -15,12 +15,12 @@ using namespace Regards::Filter;
 
 CTextFilter::CTextFilter() {
 
-    lblFontFace = "Effect.Police";
-    lblFontSize = "Effect.Size";
-    lblColor = "Effect.Color";
-    lblBold = "Effect.Bold";
-    lblItalic = "Effect.Italic";
-    lblOpacity = "Effect.Transparence";
+    lblFontFace = CLibResource::LoadStringFromResource("LBLTEXTPOLICE", 1);
+    lblFontSize = CLibResource::LoadStringFromResource("LBLTEXTSIZE", 1);
+    lblColor = CLibResource::LoadStringFromResource("LBLCOLOR", 1);
+    lblBold = CLibResource::LoadStringFromResource("LBLTEXTBOLD", 1);
+    lblItalic = CLibResource::LoadStringFromResource("LBLTEXTITALIC", 1);
+    lblOpacity = CLibResource::LoadStringFromResource("LBLOPACITY", 1);
 
 
     // <-- AJOUT : Récupération automatique des polices du système
@@ -30,7 +30,7 @@ CTextFilter::CTextFilter() {
 
 int CTextFilter::GetTypeFilter() { return IDM_TEXTFILTER; } // Utilisez un ID unique de votre effect_id.h
 int CTextFilter::GetNameFilter() { return IDM_TEXTFILTER; }
-wxString CTextFilter::GetFilterLabel() { return "Texte"; }
+wxString CTextFilter::GetFilterLabel() { return CLibResource::LoadStringFromResource("LBLTEXTFILTER", 1); }
 
 CEffectParameter* CTextFilter::GetEffectPointer() { return new CTextFilterParameter(); }
 CDraw* CTextFilter::GetDrawingPt() { return new Regards::FiltreEffet::CTextDraw(); }

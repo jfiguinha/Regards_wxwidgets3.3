@@ -17,16 +17,17 @@ using namespace std;
 
 CGradientFilter::CGradientFilter()
 {
-    libelleColorStart = "Effect.Color Start"; // Modifiable par CLibResource::LoadStringFromResource
-    libelleColorEnd = "Effect.Color End"; // Modifiable par CLibResource::LoadStringFromResource
-    libelleGradientType = "Effect.Gradient Type"; // Modifiable par CLibResource::LoadStringFromResource
+    libelleColorStart = CLibResource::LoadStringFromResource("LBLCOLORSTART", 1); // Modifiable par CLibResource::LoadStringFromResource
+    libelleColorEnd = CLibResource::LoadStringFromResource("LBLCOLOREND", 1); // Modifiable par CLibResource::LoadStringFromResource
+    libelleGradientType = CLibResource::LoadStringFromResource("LBLGRADIENTTYPE", 1); // Modifiable par CLibResource::LoadStringFromResource
 }
 
 CGradientFilter::~CGradientFilter() {}
 
 int CGradientFilter::GetTypeFilter() { return IDM_GRADIENTFILTER; } // Affectez un ID unique disponible dans effect_id.h
 int CGradientFilter::GetNameFilter() { return IDM_GRADIENTFILTER; }
-wxString CGradientFilter::GetFilterLabel() { return "Gradient Filter"; }
+wxString CGradientFilter::GetFilterLabel() { return CLibResource::LoadStringFromResource("LBLGRADIENTFILTER", 1);
+}
 
 CEffectParameter* CGradientFilter::GetEffectPointer() { return new CGradientFilterParameter(); }
 CDraw* CGradientFilter::GetDrawingPt() { return new Regards::FiltreEffet::CGradientDraw(); }

@@ -23,10 +23,8 @@ namespace Regards::Control
 		void UpdateScroll() override;
 
 	private:
-		void GetBitmapDimension(const int& width, const int& height, int& tailleAffichageBitmapWidth,
-			int& tailleAffichageBitmapHeight, float& newRatio);
-		float CalculRatio(const int& width, const int& height, const int& tailleBitmapWidth,
-			const int& tailleBitmapHeight);
+
+
 		CInfosSeparationBarEffect* CreateNewSeparatorBar(const wxString& libelle);
 		static bool ItemCompFonct(int x, int y, CIcone* icone, CWindowMain* parent);
 		CIcone* FindElement(const int& xPos, const int& yPos) override;

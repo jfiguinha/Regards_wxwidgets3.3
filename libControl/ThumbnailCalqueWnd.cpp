@@ -6,54 +6,54 @@
 //  Created by figuinha jacques on 02/10/2015.
 //  Copyright © 2015 figuinha jacques. All rights reserved.
 
-#include "ThumbnailViewerEffectWnd.h"
+#include "ThumbnailCalqueWnd.h"
 #include <libPicture.h>
 using namespace Regards::Control;
 using namespace Regards::Picture;
 
-CThumbnailViewerEffectWnd::CThumbnailViewerEffectWnd(wxWindow* parent, wxWindowID id,
+CThumbnailCalqueWnd::CThumbnailCalqueWnd(wxWindow* parent, wxWindowID id,
                                                      const CThemeScrollBar& themeScroll,
                                                      const CThemeThumbnail& themeThumbnail, int panelInfosId,
                                                      bool checkValidity)
-	: CWindowMain("CThumbnailViewerEffectWnd", parent, id)
+	: CWindowMain("CThumbnailCalqueWnd", parent, id)
 {
 	thumbnailEffectScroll = nullptr;
-	thumbnailEffect = nullptr;
+	thumbnailCalque = nullptr;
 
-	thumbnailEffect = new CThumbnailViewerEffect(this, wxID_ANY, themeThumbnail, checkValidity, panelInfosId);
-	thumbnailEffectScroll = new CScrollbarWnd(this, thumbnailEffect, wxID_ANY);
+	thumbnailCalque = new CThumbnailCalque(this, wxID_ANY, themeThumbnail);
+	thumbnailEffectScroll = new CScrollbarWnd(this, thumbnailCalque, wxID_ANY);
 }
 
-void CThumbnailViewerEffectWnd::UpdateScreenRatio()
+void CThumbnailCalqueWnd::UpdateScreenRatio()
 {
 	if (thumbnailEffectScroll != nullptr)
 		thumbnailEffectScroll->UpdateScreenRatio();
 
-	if (thumbnailEffect != nullptr)
-		thumbnailEffect->UpdateScreenRatio();
+	if (thumbnailCalque != nullptr)
+		thumbnailCalque->UpdateScreenRatio();
 }
 
-void CThumbnailViewerEffectWnd::Resize()
+void CThumbnailCalqueWnd::Resize()
 {
 	if (thumbnailEffectScroll != nullptr)
 		thumbnailEffectScroll->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
-	thumbnailEffect->UpdateScroll();
+	thumbnailCalque->UpdateScroll();
 }
 
-wxString CThumbnailViewerEffectWnd::GetFilename()
+wxString CThumbnailCalqueWnd::GetFilename()
 {
-	if (thumbnailEffect != nullptr)
-		return thumbnailEffect->GetFilename();
+	if (thumbnailCalque != nullptr)
+		return thumbnailCalque->GetFilename();
 	return "";
 }
 
-void CThumbnailViewerEffectWnd::SetFile(const wxString& filename)
+void CThumbnailCalqueWnd::SetFile(const wxString& filename)
 {
-	if (thumbnailEffect != nullptr)
+	if (thumbnailCalque != nullptr)
 	{
 		CLibPicture libPicture;
 		CImageLoadingFormat* load = libPicture.LoadThumbnail(filename);
-		thumbnailEffect->SetFile(filename, load);
+		thumbnailCalque->SetFile(filename, load);
 		//thumbnailEffect->UpdateScroll();
 	}
 }
