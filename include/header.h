@@ -74,7 +74,7 @@
 
 #define wxUSE_DIRDLG 1
 #define wxUSE_DRAWINGTOOLS 1
-#define wxUSE_LAYERTOOLS 1
+#define wxUSE_LAYERTOOLS 0
 
 #include <thread>
 #include <mutex>
