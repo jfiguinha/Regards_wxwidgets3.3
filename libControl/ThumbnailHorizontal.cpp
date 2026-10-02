@@ -54,7 +54,7 @@ void CThumbnailHorizontal::RenderIcone(wxDC* deviceContext)
 		if (pBitmapIcone != nullptr)
 		{
 			// Position absolue sur la toile virtuelle
-			int absX = i * iconeWidth;
+			int absX = (i - firstVisibleIdx) * iconeWidth;
 			int absY = 0;
 
 			// Coordonnées relatives à l'écran (pour RenderIcone interne)
