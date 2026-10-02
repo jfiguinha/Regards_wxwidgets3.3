@@ -27,6 +27,10 @@ namespace Regards::Filter {
             opacity = 255;
         }
 
+        bool IsApplyBeforeInterpolation() override
+        {
+            return false;
+        }
 
         bool IfNeedTransparence() override { return false; }
 

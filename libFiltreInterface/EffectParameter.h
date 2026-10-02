@@ -9,6 +9,11 @@ public:
 		return false;
 	}
 
+	virtual bool IsApplyBeforeInterpolation()
+	{
+		return false;
+	}
+
 	bool updateEffect = false;
 	int opacity = 255;
 };

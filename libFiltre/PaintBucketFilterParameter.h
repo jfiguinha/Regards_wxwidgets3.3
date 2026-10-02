@@ -24,6 +24,11 @@ public:
 
     bool IfNeedTransparence() override { return true; }
 
+    bool IsApplyBeforeInterpolation() override
+    {
+        return false;
+    }
+
     wxColour GetWxFillColor() {
         return wxColour(fillColor[0], fillColor[1], fillColor[2], 255);
     }

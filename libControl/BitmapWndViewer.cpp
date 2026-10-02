@@ -191,7 +191,7 @@ void CBitmapWndViewer::BeforeInterpolationBitmap()
 	{
 		if (updateFilter)
 		{
-			wxBeginBusyCursor();
+			//wxBeginBusyCursor();
 
             filtreEffet->SetPreviewMode(false);
             mouseUpdate->ApplyPreviewEffectSource(effectParameter, this, filtreEffet.get(), m_cDessin.get());
@@ -202,7 +202,7 @@ void CBitmapWndViewer::BeforeInterpolationBitmap()
 			if (mouseUpdate->NeedToShrink())
 				ShrinkImage();
 
-			wxEndBusyCursor();
+			//wxEndBusyCursor();
 		}
 	}
 }

@@ -41,6 +41,12 @@ public:
 		return true;
 	}
 
+	bool IsApplyBeforeInterpolation() override
+	{
+		return false;
+	}
+
+
 	CRectangleFilterParameter() {};
 
 	bool apply = false;

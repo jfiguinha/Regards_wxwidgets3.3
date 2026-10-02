@@ -52,7 +52,10 @@ public:
 	{
 		return true;
 	}
-
+	bool IsApplyBeforeInterpolation() override
+	{
+		return false;
+	}
 
 
 	CPenFilterParameter() {};

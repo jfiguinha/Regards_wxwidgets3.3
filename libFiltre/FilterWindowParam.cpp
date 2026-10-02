@@ -43,7 +43,7 @@ void CFilterWindowParam::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, 
 void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
 	CFiltreEffet* filtreEffet, CDraw* m_cDessin)
 {
-	if (m_cDessin != nullptr && effectParameter != nullptr)
+	if (m_cDessin != nullptr && effectParameter != nullptr && !effectParameter->IsApplyBeforeInterpolation())
 	{
 		
 
@@ -134,7 +134,22 @@ void CFilterWindowParam::ApplyPreviewEffect(CEffectParameter* effectParameter, I
 void CFilterWindowParam::ApplyPreviewEffectSource(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
                                                   CFiltreEffet* filtreEffet, CDraw* m_cDessin)
 {
+	if (effectParameter->IsApplyBeforeInterpolation())
+	{
+		cv::Mat matBase = filtreEffet->GetBitmap(true);
 
+		// Appelle CPenFilter::Drawing qui appelle à son tour m_cDessin->DessinerSurMat
+		//Drawing(matBase, bitmapViewer, m_cDessin);
+
+		int hpos = bitmapViewer->GetHPos();
+		int vpos = bitmapViewer->GetVPos();
+		float ratio = 1;// bitmapViewer->GetRatio();
+		m_cDessin->DessinerSurMat(matBase, hpos, vpos, ratio);
+
+		auto imageLoad = std::make_unique<CImageLoadingFormat>();
+		imageLoad->SetPicture(matBase);
+		filtreEffet->SetBitmap(imageLoad.get());
+	}
 }
 
 void CFilterWindowParam::ApplyExifToPoint(wxPoint& pt, int numExif, const int& width, const int& height)
