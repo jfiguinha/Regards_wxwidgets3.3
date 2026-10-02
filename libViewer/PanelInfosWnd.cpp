@@ -24,7 +24,7 @@
 #include <wx/filename.h>
 #include <wx/busyinfo.h>
 #include "ParamInit.h"
-#include "ThumbnailCalqueWnd.h"
+#include "ListLayer.h"
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
 #include <ModificationManager.h>
@@ -217,25 +217,11 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 	if (viewerTheme != nullptr)
 	{
-		bool checkValidity = false;
-
-		CThemeScrollBar themeScroll;
-		viewerTheme->GetScrollTheme(&themeScroll);
-
-		CThemeThumbnail themeThumbnail;
-		viewerTheme->GetThumbnailTheme(&themeThumbnail);
-
-		CMainParam* main_param = CMainParamInit::getInstance();
-		if (main_param != nullptr)
-			checkValidity = main_param->GetCheckThumbnailValidity();
-
-		thumbnailCalqueWnd = new CThumbnailCalqueWnd(this, wxID_ANY, themeScroll, themeThumbnail, PANELINFOSWNDID,
-			checkValidity);
-
-		thumbnailCalqueWnd->Show(false);
+		listLayer = new CListLayer(this, LISTLAYERID);
+		listLayer->Show(false);
 
 		auto tabInfosCalque = new CTabWindowData();
-		tabInfosCalque->SetWindow(thumbnailCalqueWnd);
+		tabInfosCalque->SetWindow(listLayer);
 		tabInfosCalque->SetId(WM_CALQUE);
 		listWindow.push_back(tabInfosCalque);
 	}
@@ -593,9 +579,7 @@ void CPanelInfosWnd::LoadInfo()
 		break;
 
 	case WM_CALQUE:
-		if (!thumbnailCalqueWnd->IsShown())
-			thumbnailCalqueWnd->Show(true);
-		thumbnailCalqueWnd->SetFile(filename);
+		listLayer->SetFilename(filename);
 		infosToolbar->SetCalquePush();
 		windowVisible = WM_CALQUE;
 		break;

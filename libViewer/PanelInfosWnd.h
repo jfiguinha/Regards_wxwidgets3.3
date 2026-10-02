@@ -31,7 +31,7 @@ namespace Regards
 		class CInfoEffectWnd;
 		class CFiltreEffectScrollWnd;
 		class CThumbnailViewerEffectWnd;
-		class CThumbnailCalqueWnd;	
+		class CListLayer;
 	}
 
 	namespace Viewer
@@ -69,7 +69,7 @@ namespace Regards
 			CInfosFileWnd * infosFileWnd;
 			CInfoEffectWnd * historyEffectWnd;
 			CThumbnailViewerEffectWnd * thumbnailEffectWnd;
-			CThumbnailCalqueWnd* thumbnailCalqueWnd;
+			CListLayer * listLayer;
 			CFiltreEffectScrollWnd * filtreEffectWnd;
 			CCriteriaWindow * criteriaTreeWnd;
 			CPicturePanel * picturePanel;

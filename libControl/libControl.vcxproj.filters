@@ -115,17 +115,23 @@
     <ClCompile Include="GlassLensFilter.cpp">
       <Filter>Bitmap\PostEffect</Filter>
     </ClCompile>
-    <ClCompile Include="ThumbnailCalque.cpp">
-      <Filter>Thumbnail\source</Filter>
-    </ClCompile>
-    <ClCompile Include="ThumbnailCalqueWnd.cpp">
-      <Filter>Thumbnail\source</Filter>
-    </ClCompile>
     <ClCompile Include="ThumbnailDrawing.cpp">
       <Filter>Thumbnail\source</Filter>
     </ClCompile>
     <ClCompile Include="ThumbnailDrawingWnd.cpp">
       <Filter>Thumbnail\source</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailCalque.cpp">
+      <Filter>Layer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailCalqueWnd.cpp">
+      <Filter>Layer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="LayerToolBar.cpp">
+      <Filter>Layer\Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ListLayer.cpp">
+      <Filter>Layer\Source</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -261,17 +267,23 @@
     <ClInclude Include="GlassLensFilter.h">
       <Filter>Bitmap\PostEffect</Filter>
     </ClInclude>
-    <ClInclude Include="ThumbnailCalque.h">
-      <Filter>Thumbnail\header</Filter>
-    </ClInclude>
-    <ClInclude Include="ThumbnailCalqueWnd.h">
-      <Filter>Thumbnail\header</Filter>
-    </ClInclude>
     <ClInclude Include="ThumbnailDrawing.h">
       <Filter>Thumbnail\header</Filter>
     </ClInclude>
     <ClInclude Include="ThumbnailDrawingWnd.h">
       <Filter>Thumbnail\header</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailCalque.h">
+      <Filter>Layer\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailCalqueWnd.h">
+      <Filter>Layer\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerToolBar.h">
+      <Filter>Layer\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="ListLayer.h">
+      <Filter>Layer\Include</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -322,6 +334,15 @@
     </Filter>
     <Filter Include="ExifModification">
       <UniqueIdentifier>{6e174e20-187b-4e78-aa59-f0ab1e1a69d0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Layer">
+      <UniqueIdentifier>{35eba34b-642f-45d6-b10e-4b42311fa71a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Layer\Source">
+      <UniqueIdentifier>{e2747302-7d65-47b2-86f7-32d908564327}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Layer\Include">
+      <UniqueIdentifier>{d11d5873-8004-450e-a878-18a3f6e80783}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
