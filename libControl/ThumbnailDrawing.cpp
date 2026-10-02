@@ -75,6 +75,7 @@ void CThumbnailDrawing::OnPictureClick(const int& numPhotoId)
     wxWindow* panelInfos = this->FindWindowById(panelInfosId);
     if (panelInfos != nullptr)
     {
+
         wxCommandEvent evt(wxEVENT_APPLYEFFECT);
         evt.SetInt(numPhotoId);
         panelInfos->GetEventHandler()->AddPendingEvent(evt);

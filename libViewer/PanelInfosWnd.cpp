@@ -418,6 +418,20 @@ void CPanelInfosWnd::ShowFiltreEvent(wxCommandEvent& event)
 
 void CPanelInfosWnd::ApplyEffect(wxCommandEvent& event)
 {
+	CBitmapWndViewer* bitmapViewer = nullptr;
+	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(FindWindowById(BITMAPWINDOWVIEWERID));
+	if (bitmapWindow != nullptr)
+	{
+		bitmapViewer = static_cast<CBitmapWndViewer*>(bitmapWindow->GetWndPt());
+	}
+
+	if (bitmapViewer != nullptr)
+	{
+		bitmapViewer->OnFiltreCancel();
+		bitmapViewer->SetBitmapPreviewEffect(0);
+	}
+
+
 	int numItem = event.GetInt();
 	//Test si l'history fonctionne ou pas 
 	HistoryUpdate();

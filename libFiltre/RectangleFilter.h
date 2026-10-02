@@ -28,7 +28,7 @@ namespace Regards::Filter
 	private:
 		wxColour ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha);
 		void AddMetadataElement(vector<CMetadata>& element, wxString value, int key);
-		void DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape);
+		void DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape, bool rgba = true);
 
 		wxString libelleShapeType;
 		wxString libellePenSize;

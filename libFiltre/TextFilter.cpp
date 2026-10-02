@@ -20,7 +20,7 @@ CTextFilter::CTextFilter() {
     lblColor = CLibResource::LoadStringFromResource("LBLCOLOR", 1);
     lblBold = CLibResource::LoadStringFromResource("LBLTEXTBOLD", 1);
     lblItalic = CLibResource::LoadStringFromResource("LBLTEXTITALIC", 1);
-    lblOpacity = CLibResource::LoadStringFromResource("LBLOPACITY", 1);
+    lblOpacity = CLibResource::LoadStringFromResource("LBLEFFECTOPACITY", 1);
 
 
     // <-- AJOUT : Récupération automatique des polices du système
@@ -112,21 +112,30 @@ void CTextFilter::AppliquerRenduTexte(cv::Mat& matrix, CTextFilterParameter* par
     for (const auto& t : param->listTexts) {
         if (t.text.IsEmpty()) continue;
 
-        cv::Mat overlay = matrix.clone();
-        int fontFace = t.fontIndex;
-        if (t.isItalic) fontFace |= cv::FONT_ITALIC;
+        try
+        {
+            cv::Mat overlay = matrix.clone();
+            int fontFace = t.fontIndex;
+            if (t.isItalic) fontFace |= cv::FONT_ITALIC;
 
-        double fontScale = t.fontSize * 0.05; // Conversion brute OpenCV
-        int epaisseur = t.isBold ? 3 : 1;
+            double fontScale = t.fontSize * 0.05; // Conversion brute OpenCV
+            int epaisseur = t.isBold ? 3 : 1;
 
-        cv::putText(overlay, t.text.ToStdString(), cv::Point(t.position.x, t.position.y), fontFace, fontScale, t.color, epaisseur, cv::LINE_AA);
+            cv::putText(overlay, t.text.ToStdString(), cv::Point(t.position.x, t.position.y), fontFace, fontScale, t.color, epaisseur, cv::LINE_AA);
 
-        if (t.opacity >= 255) {
-            overlay.copyTo(matrix);
+            if (t.opacity >= 255) {
+                overlay.copyTo(matrix);
+            }
+            else if (t.opacity > 0) {
+                double alpha = t.opacity / 255.0;
+                cv::addWeighted(overlay, alpha, matrix, 1.0 - alpha, 0, matrix);
+            }
         }
-        else if (t.opacity > 0) {
-            double alpha = t.opacity / 255.0;
-            cv::addWeighted(overlay, alpha, matrix, 1.0 - alpha, 0, matrix);
+        catch (cv::Exception& e)
+        {
+            const char* err_msg = e.what();
+            std::cout << "BilateralEffect exception caught: " << err_msg << std::endl;
+            std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
         }
     }
 }

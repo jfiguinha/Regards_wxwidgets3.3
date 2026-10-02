@@ -121,7 +121,6 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 	}
 
 #endif
-
 	if (viewerTheme != nullptr)
 	{
 		CThemeToolbar theme;

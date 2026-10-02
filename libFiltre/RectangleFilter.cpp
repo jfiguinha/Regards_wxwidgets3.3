@@ -111,7 +111,7 @@ void CRectangleFilter::FilterChangeParam(CEffectParameter* effectParameter, CTre
 		param->isFilled = (static_cast<CTreeElementValueBool*>(valueData)->GetValue());
 }
 
-void CRectangleFilter::DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape)
+void CRectangleFilter::DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape, bool rgba)
 {
 	int thickness = shape.isFilled ? -1 : shape.penSize * 2;
 	if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize * 2; // Une ligne ne peut pas être "remplie"
@@ -122,12 +122,17 @@ void CRectangleFilter::DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape)
 	cv::Point p1(shape.startPoint.x, shape.startPoint.y);
 	cv::Point p2(shape.endPoint.x, shape.endPoint.y);
 
+	cv::Scalar color = shape.color;
+
+	if(!rgba)
+		color = cv::Scalar(shape.color[2], shape.color[1], shape.color[0]); // Ignore alpha if not RGBA
+
 	if (shape.shapeType == SHAPE_RECTANGLE) {
-		cv::rectangle(matrix, p1, p2, shape.color, thickness, lineStyle);
+		cv::rectangle(matrix, p1, p2, color, thickness, lineStyle);
 	}
 	else if (shape.shapeType == SHAPE_CIRCLE) {
 		double radius = cv::norm(p1 - p2);
-		cv::circle(matrix, p1, static_cast<int>(radius), shape.color, thickness, lineStyle);
+		cv::circle(matrix, p1, static_cast<int>(radius), color, thickness, lineStyle);
 	}
 	else if (shape.shapeType == SHAPE_LINE) {
 		if (shape.typeBrush == 2) {
@@ -135,12 +140,12 @@ void CRectangleFilter::DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape)
 			cv::LineIterator it(matrix, p1, p2, 8);
 			for (int i = 0; i < it.count; i++, ++it) {
 				if (i % 10 < 5) { // Dessine 5 pixels, saute 5 pixels
-					matrix.at<cv::Vec4b>(it.pos()) = cv::Vec4b(shape.color[0], shape.color[1], shape.color[2], shape.color[3]);
+					matrix.at<cv::Vec4b>(it.pos()) = cv::Vec4b(color[0], color[1], color[2], color[3]);
 				}
 			}
 		}
 		else {
-			cv::line(matrix, p1, p2, shape.color, thickness, lineStyle);
+			cv::line(matrix, p1, p2, color, thickness, lineStyle);
 		}
 	}
 }
@@ -158,11 +163,11 @@ void CRectangleFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter*
 	try {
 		for (auto& shape : param->listShapes) {
 			if (shape.opacity >= 255) {
-				DrawShapeOnMat(matrix, shape);
+				DrawShapeOnMat(matrix, shape, false);
 			}
 			else if (shape.opacity > 0) {
 				cv::Mat overlay = matrix.clone();
-				DrawShapeOnMat(overlay, shape);
+				DrawShapeOnMat(overlay, shape, false);
 				double alpha = shape.opacity / 255.0;
 				cv::addWeighted(overlay, alpha, matrix, 1.0 - alpha, 0, matrix);
 			}
@@ -186,11 +191,11 @@ CImageLoadingFormat* CRectangleFilter::ApplyEffect(CEffectParameter* effectParam
 	try {
 		for (auto& shape : param->listShapes) {
 			if (shape.opacity >= 255) {
-				DrawShapeOnMat(matrix, shape);
+				DrawShapeOnMat(matrix, shape, false);
 			}
 			else if (shape.opacity > 0) {
 				cv::Mat overlay = matrix.clone();
-				DrawShapeOnMat(overlay, shape);
+				DrawShapeOnMat(overlay, shape, false);
 				double alpha = shape.opacity / 255.0;
 				cv::addWeighted(overlay, alpha, matrix, 1.0 - alpha, 0, matrix);
 			}

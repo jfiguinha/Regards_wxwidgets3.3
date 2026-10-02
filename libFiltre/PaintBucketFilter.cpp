@@ -93,9 +93,18 @@ void CPaintBucketFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, 
 
             if (screenX >= 0 && screenX < matrix.cols && screenY >= 0 && screenY < matrix.rows)
             {
-                cv::Scalar diff(action.tolerance, action.tolerance, action.tolerance, action.tolerance);
-                cv::Mat mask = cv::Mat::zeros(matrix.rows + 2, matrix.cols + 2, CV_8UC1);
-                cv::floodFill(matrix, mask, ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
+                try
+                {
+                    cv::Scalar diff(action.tolerance, action.tolerance, action.tolerance, action.tolerance);
+                    cv::Mat mask = cv::Mat::zeros(matrix.rows + 2, matrix.cols + 2, CV_8UC1);
+                    cv::floodFill(matrix, mask, ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
+                }
+                catch (cv::Exception& e)
+                {
+                    const char* err_msg = e.what();
+                    std::cout << "BilateralEffect exception caught: " << err_msg << std::endl;
+                    std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
+                }
             }
         }
 
@@ -115,14 +124,26 @@ CImageLoadingFormat* CPaintBucketFilter::ApplyEffect(CEffectParameter* effectPar
 
     cv::Mat& matrix = imageLoad->GetMatImage();
 
+    if (matrix.empty()) return imageLoad;
+    if (matrix.channels() == 4) cv::cvtColor(matrix, matrix, cv::COLOR_BGRA2BGR);
+
     // 3. Redessine TOUTES les zones sauvegardées séquentiellement sur l'image source d'origine
     for (const auto& action : param->actionsHistory)
     {
         if (action.ptClick.x >= 0 && action.ptClick.x < matrix.cols && action.ptClick.y >= 0 && action.ptClick.y < matrix.rows)
         {
-            cv::Scalar diff(action.tolerance, action.tolerance, action.tolerance, action.tolerance);
-            cv::Mat mask = cv::Mat::zeros(matrix.rows + 2, matrix.cols + 2, CV_8UC1);
-            cv::floodFill(matrix, mask, action.ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
+            try
+            {
+                cv::Scalar diff(action.tolerance, action.tolerance, action.tolerance, action.tolerance);
+                cv::Mat mask = cv::Mat::zeros(matrix.rows + 2, matrix.cols + 2, CV_8UC1);
+                cv::floodFill(matrix, mask, action.ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
+            }
+            catch (cv::Exception& e)
+            {
+                const char* err_msg = e.what();
+                std::cout << "BilateralEffect exception caught: " << err_msg << std::endl;
+                std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
+            }
         }
     }
 
@@ -135,23 +156,43 @@ void CPaintBucketFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParamete
     auto param = static_cast<CPaintBucketFilterParameter*>(effectParameter);
     if (!param->apply) return;
 
+
+
     CImageLoadingFormat* imageLoad = new CImageLoadingFormat();
     cv::Mat picture = filtreEffet->GetBitmap(true);
+
+
+
     imageLoad->SetPicture(picture);
     imageLoad->RotateExif(orientation);
 
     cv::Mat& matrix = imageLoad->GetMatImage();
+
+	int nbChannels = matrix.channels();
+
+    if (matrix.empty()) return;
+    if (nbChannels == 4) cv::cvtColor(matrix, matrix, cv::COLOR_BGRA2BGR);
 
     // Même processus de ré-application en cascade pour le moteur de rendu de sortie
     for (const auto& action : param->actionsHistory)
     {
         if (action.ptClick.x >= 0 && action.ptClick.x < matrix.cols && action.ptClick.y >= 0 && action.ptClick.y < matrix.rows)
         {
-            cv::Scalar diff(action.tolerance, action.tolerance, action.tolerance, action.tolerance);
-            cv::Mat mask = cv::Mat::zeros(matrix.rows + 2, matrix.cols + 2, CV_8UC1);
-            cv::floodFill(matrix, mask, action.ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
+            try
+            {
+                cv::Scalar diff(action.tolerance, action.tolerance, action.tolerance, action.tolerance);
+                cv::Mat mask = cv::Mat::zeros(matrix.rows + 2, matrix.cols + 2, CV_8UC1);
+                cv::floodFill(matrix, mask, action.ptClick, action.fillColor, nullptr, diff, diff, 4 | cv::FLOODFILL_FIXED_RANGE);
+            }
+            catch (cv::Exception& e)
+            {
+                const char* err_msg = e.what();
+                std::cout << "BilateralEffect exception caught: " << err_msg << std::endl;
+                std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
+            }
         }
     }
 
+    if (nbChannels == 4) cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
     filtreEffet->SetBitmap(imageLoad);
 }

@@ -157,15 +157,18 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 		{
 			cv::Mat& matrix = imageLoad->GetMatImage();
 
-			for (const auto& ligne : penParameter->listLines)
+			for (auto& ligne : penParameter->listLines)
 			{
 				if (ligne.points.empty()) continue;
+
+				ligne.rgba = false;
+				cv::Scalar color = ligne.GetColorWithTransparancy();
 
 				// 1. Si le tracé est à 100% opaque, pas besoin de calculs complexes, rendu direct :
 				if (ligne.opacity >= 255)
 				{
 					if (ligne.points.size() == 1)
-						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
 					else
 					{
 						for (size_t i = 1; i < ligne.points.size(); ++i)
@@ -174,7 +177,7 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 							if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
 
 							cv::line(matrix, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
+								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
 						}
 					}
 				}
@@ -185,7 +188,7 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 					cv::Mat overlay = matrix.clone();
 
 					if (ligne.points.size() == 1)
-						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
 					else
 					{
 						for (size_t i = 1; i < ligne.points.size(); ++i)
@@ -194,7 +197,7 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 							if (ligne.typeBrush == 2 && i % 2 != 0) continue;
 
 							cv::line(overlay, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
+								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
 						}
 					}
 
@@ -242,15 +245,18 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 		{
 			cv::Mat& matrix = imageLoad->GetMatImage();
 
-			for (const auto& ligne : penParameter->listLines)
+			for (auto& ligne : penParameter->listLines)
 			{
+				ligne.rgba = false;
+				cv::Scalar color = ligne.GetColorWithTransparancy();
+
 				if (ligne.points.empty()) continue;
 
 				// 1. Si le tracé est à 100% opaque, pas besoin de calculs complexes, rendu direct :
 				if (ligne.opacity >= 255)
 				{
 					if (ligne.points.size() == 1)
-						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
 					else
 					{
 						for (size_t i = 1; i < ligne.points.size(); ++i)
@@ -259,7 +265,7 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 							if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
 
 							cv::line(matrix, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
+								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
 						}
 					}
 				}
@@ -270,7 +276,7 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 					cv::Mat overlay = matrix.clone();
 
 					if (ligne.points.size() == 1)
-						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, ligne.color, -1);
+						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
 					else
 					{
 						for (size_t i = 1; i < ligne.points.size(); ++i)
@@ -279,7 +285,7 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 							if (ligne.typeBrush == 2 && i % 2 != 0) continue;
 
 							cv::line(overlay, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), ligne.color, ligne.penSize * 2, lineStyle);
+								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
 						}
 					}
 
