@@ -157,7 +157,7 @@ CCentralWindow::CCentralWindow(wxWindow* parent, wxWindowID id,
     // ── Sub-controllers ───────────────────────────────────────────────
     musicController = std::make_unique<CMusicController>(this);
 
-    mediaLoader = std::make_unique<CMediaLoader>(this, previewWindow, panelInfosWindow,thumbnailPicture, thumbnailVideo, musicController.get());
+    mediaLoader = std::make_unique<CMediaLoader>(this, previewWindow, panelInfosWindow, panelPhotoWnd,thumbnailPicture, thumbnailVideo, musicController.get());
     
     mediaLoader->windowMode = initialWindowMode;
 

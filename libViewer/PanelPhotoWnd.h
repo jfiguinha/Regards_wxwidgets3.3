@@ -16,6 +16,7 @@ namespace Regards::Viewer
 	public:
 		CPanelPhotoWnd(wxWindow* parent, wxWindowID id);
 		~CPanelPhotoWnd() = default;
+		void SetPanelBitmap(const bool &showPanelBitmap);
 
 	protected:
 		void SetFolder(wxCommandEvent& folderEvent);

@@ -13,6 +13,7 @@ namespace Regards::Viewer
     class CMusicController;
     class CPreviewWnd;
     class CPanelInfosWnd;
+    class CPanelPhotoWnd;
     // ── Thread transfer objects ──────────────────────────────────────
     class CThreadPictureData
     {
@@ -36,6 +37,7 @@ namespace Regards::Viewer
         CMediaLoader(wxWindow*                parent,
                      CPreviewWnd*             previewWindow,
                      CPanelInfosWnd*          panelInfosWindow,
+                     CPanelPhotoWnd*          panelPhotoWindow,
                      CThumbnailViewerPicture* thumbnailPicture,
                      CThumbnailViewerVideo*   thumbnailVideo,
                      CMusicController*        musicController);
@@ -109,6 +111,7 @@ namespace Regards::Viewer
         wxWindow*                parent           = nullptr;
         CPreviewWnd*             previewWindow    = nullptr;
         CPanelInfosWnd*          panelInfosWindow = nullptr;
+        CPanelPhotoWnd*          panelPhotoWindow = nullptr;
         CThumbnailViewerPicture* thumbnailPicture = nullptr;
         CThumbnailViewerVideo*   thumbnailVideo   = nullptr;
         CMusicController*        musicController  = nullptr;

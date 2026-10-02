@@ -28,6 +28,19 @@ void CToolbarPhoto::SetCriteriaPush()
 	criteria->SetPush(true);
 }
 
+void CToolbarPhoto::ShowBitmapToolbar(const bool& showBitmapToolbar)
+{
+	if(showBitmapToolbar)
+	{
+		drawing->SetVisible(true);
+	}
+	else
+	{
+		drawing->SetVisible(false);
+	}
+	this->Refresh();
+}
+
 void CToolbarPhoto::SetDrawingPush()
 {
 	drawing->SetPush(true);

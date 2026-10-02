@@ -16,7 +16,7 @@ namespace Regards::Viewer
 		void SetFolderPush();
 		void SetCriteriaPush();
 		void SetDrawingPush();
-
+		void ShowBitmapToolbar(const bool& showBitmapToolbar);
 	private:
 		void Resize() override;
 		void EventManager(const int& id) override;

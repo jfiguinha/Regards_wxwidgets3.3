@@ -18,6 +18,7 @@
 #include "ViewerController.h"   // for CBitmapReturn & EVENT_SHOWPICTURE
 #include <appcontext.h>
 #include <TreeWindow.h>
+#include <PanelPhotoWnd.h>
 #include <ScrollbarWnd.h>
 extern AppContext application_context;
 
@@ -34,12 +35,14 @@ using namespace Regards::Picture;
 CMediaLoader::CMediaLoader(wxWindow*                parent,
                            CPreviewWnd*             previewWindow,
                            CPanelInfosWnd*          panelInfosWindow,
+                           CPanelPhotoWnd*          panelPhotoWindow,
                            CThumbnailViewerPicture* thumbnailPicture,
                            CThumbnailViewerVideo*   thumbnailVideo,
                            CMusicController*        musicController)
     : parent(parent)
     , previewWindow(previewWindow)
     , panelInfosWindow(panelInfosWindow)
+    , panelPhotoWindow(panelPhotoWindow)
     , thumbnailPicture(thumbnailPicture)
     , thumbnailVideo(thumbnailVideo)
     , musicController(musicController)
@@ -105,12 +108,17 @@ void CMediaLoader::StopLoadingPicture()
 
 void CMediaLoader::SetPanelInfos(const bool& isThumbnail)
 {
+    panelPhotoWindow->SetPanelBitmap(false);
+
     if (panelInfosWindow->GetFilename() != filename)
     {
         if (isVideo)
             panelInfosWindow->SetVideoFile(filename);
         else
+        {
             panelInfosWindow->SetBitmapFile(filename, isThumbnail);
+            
+        }
         panelInfosWindow->Refresh();
         panelInfosWindow->Update();
     }
@@ -119,6 +127,7 @@ void CMediaLoader::SetPanelInfos(const bool& isThumbnail)
         panelInfosWindow->SetBitmapFile(filename, isThumbnail);
         panelInfosWindow->Refresh();
         panelInfosWindow->Update();
+        panelPhotoWindow->SetPanelBitmap(true);
     }
 }
 

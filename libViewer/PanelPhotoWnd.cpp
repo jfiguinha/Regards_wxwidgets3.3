@@ -138,6 +138,18 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 	categoryFolderWnd->UpdateCriteria(false);
 }
 
+void CPanelPhotoWnd::SetPanelBitmap(const bool& showPanelBitmap)
+{
+	if (showPanelBitmap)
+	{
+		photoToolbar->ShowBitmapToolbar(true);
+	}
+	else
+	{
+		photoToolbar->ShowBitmapToolbar(false);
+	}
+}
+
 void CPanelPhotoWnd::UpdateCriteria(wxCommandEvent& event)
 {
 	if (categoryFolderWnd != nullptr)
