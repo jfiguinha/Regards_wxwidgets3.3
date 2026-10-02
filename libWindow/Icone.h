@@ -99,13 +99,13 @@ namespace Regards::Window
 
 		wxBitmap GetCopyIcone() const;
 
-	private:
+	protected:
 
 		void Invalidate() noexcept;
 
-		void RenderPictureBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
-		void RenderVideoBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
-		void RenderBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
+		virtual void RenderPictureBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
+		virtual void RenderVideoBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
+		virtual void RenderBitmap(wxDC* dc, wxImage& bitmapScale, const int& type);
 
 		void CalculPosition(const wxImage& render);
 		void GetBitmapDimension(const int& width, const int& height, int& tailleAffichageBitmapWidth,

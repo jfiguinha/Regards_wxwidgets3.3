@@ -10,7 +10,7 @@
 #include <RegardsConfigParam.h>
 #include <ThumbnailDataStorage.h>
 #include <effect_id.h>
-
+#include "LayerIcone.h"
 #include <libPicture.h>
 
 #include <algorithm>
@@ -88,8 +88,9 @@ void CThumbnailCalque::SetFile(const wxString& filename,
     thumbnailData->SetNumPhotoId(IDM_FILTRE_VIDEO);
     thumbnailData->SetBitmap(CLibPicture::mat_from_wx(pBitmap));
 
-    auto* pBitmapIcone = new CIcone(thumbnailData);
+    auto* pBitmapIcone = new CLayerIcone(thumbnailData);
     pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+    pBitmapIcone->SetLibelle("First Layer");
     iconeListLocal->AddElement(pBitmapIcone);
 
     isAllProcess = true;
@@ -106,6 +107,12 @@ void CThumbnailCalque::SetFile(const wxString& filename,
     UpdateScroll();
     ResizeThumbnail();
     needToRefresh = true;
+}
+
+void CThumbnailCalque::Resize()
+{
+	this->SetIconeSize(this->GetWindowWidth(), 50);
+	this->ResizeThumbnail();    
 }
 
 void CThumbnailCalque::ProcessIdle()

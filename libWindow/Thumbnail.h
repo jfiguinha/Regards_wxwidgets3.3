@@ -76,7 +76,7 @@ namespace Regards::Window
 		int GetTabValue();
 		virtual void ProcessVideo() {};
 		CIcone* GetIconeByPath(const wxString& filepath);
-
+		void SetIconeSize(const int& width, const int& height);
 	protected:
 
 		void SetActifByNumItem(const int& numItem, const bool &move);
@@ -105,7 +105,7 @@ namespace Regards::Window
 		{};
 
 		void OpenFileViewer(const wxString& filename);
-		void SetIconeSize(const int& width, const int& height);
+		
 
 		virtual void CreateOrLoadStorageFile()
 		{};

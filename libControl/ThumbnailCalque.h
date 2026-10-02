@@ -20,13 +20,13 @@ namespace Regards::Control
 		void SetFile(const wxString& filename, CImageLoadingFormat* imageLoading);
 		wxString GetFilename();
 
-
+		void Resize();
 
 		void OnPictureClick(const int& numPhotoId) override;
 
 	private:
 
-
+		
 		static bool ItemCompFonct(int x, int y, CIcone* icone, CWindowMain* parent);
 		CIcone* FindElement(const int& xPos, const int& yPos) override;
 

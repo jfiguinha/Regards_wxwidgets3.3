@@ -133,6 +133,9 @@
     <ClCompile Include="ListLayer.cpp">
       <Filter>Layer\Source</Filter>
     </ClCompile>
+    <ClCompile Include="LayerIcone.cpp">
+      <Filter>Layer\Source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CriteriaTree.h">
@@ -283,6 +286,9 @@
       <Filter>Layer\Include</Filter>
     </ClInclude>
     <ClInclude Include="ListLayer.h">
+      <Filter>Layer\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerIcone.h">
       <Filter>Layer\Include</Filter>
     </ClInclude>
   </ItemGroup>

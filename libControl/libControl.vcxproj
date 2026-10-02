@@ -876,6 +876,7 @@
     <ClInclude Include="FiltreEffectWnd.h" />
     <ClInclude Include="FiltreToolbar.h" />
     <ClInclude Include="GlassLensFilter.h" />
+    <ClInclude Include="LayerIcone.h" />
     <ClInclude Include="InfoEffect.h" />
     <ClInclude Include="InfoEffectWnd.h" />
     <ClInclude Include="InfosFile.h" />
@@ -942,6 +943,7 @@
     <ClCompile Include="InfosSeparationBarEffect.cpp" />
     <ClCompile Include="InfosSeparationBarExplorer.cpp" />
     <ClCompile Include="InfosSeparationBarFace.cpp" />
+    <ClCompile Include="LayerIcone.cpp" />
     <ClCompile Include="LayerToolBar.cpp" />
     <ClCompile Include="ListLayer.cpp" />
     <ClCompile Include="MoveEffectTexture.cpp" />
