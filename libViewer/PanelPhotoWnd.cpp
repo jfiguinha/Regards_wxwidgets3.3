@@ -93,6 +93,8 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 		listWindow.push_back(std::move(tabInfosFile));
 	}
 
+#if wxUSE_DRAWINGTOOLS
+
 	if (viewerTheme != nullptr)
 	{
 		bool checkValidity = false;
@@ -117,6 +119,8 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 		tabInfosCalque->SetId(WM_DRAWING);
 		listWindow.push_back(tabInfosCalque);
 	}
+
+#endif
 
 	if (viewerTheme != nullptr)
 	{

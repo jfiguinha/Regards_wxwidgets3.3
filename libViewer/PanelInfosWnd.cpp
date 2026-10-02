@@ -215,6 +215,8 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		listWindow.push_back(tabInfosFileEffect);
 	}
 
+#if wxUSE_LAYERTOOLS
+
 	if (viewerTheme != nullptr)
 	{
 		listLayer = new CListLayer(this, LISTLAYERID);
@@ -225,6 +227,8 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		tabInfosCalque->SetId(WM_CALQUE);
 		listWindow.push_back(tabInfosCalque);
 	}
+
+#endif
 
 	if (webBrowser == nullptr)
 	{
