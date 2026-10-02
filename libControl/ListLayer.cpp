@@ -6,7 +6,7 @@
 #include <LibResource.h>
 #include "ViewerParam.h"
 #include "ViewerParamInit.h"
-#include "LayerToolbar.h"
+#include "LayerToolBar.h"
 #include <ImageLoadingFormat.h>
 #include <WindowManager.h>
 #include "ThumbnailCalqueWnd.h"
