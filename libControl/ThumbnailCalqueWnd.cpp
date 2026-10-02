@@ -37,7 +37,7 @@ void CThumbnailCalqueWnd::Resize()
 {
 	if (thumbnailEffectScroll != nullptr)
 		thumbnailEffectScroll->SetSize(0, 0, GetWindowWidth(), GetWindowHeight());
-	thumbnailCalque->UpdateScroll();
+	thumbnailCalque->Resize();
 }
 
 wxString CThumbnailCalqueWnd::GetFilename()
