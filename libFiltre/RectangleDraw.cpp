@@ -58,8 +58,8 @@ void CRectangleDraw::MouseMove(const long& xNewSize, const long& yNewSize, const
 
 void CRectangleDraw::DrawShapeOnMat(cv::Mat& matrix, SShapeStyleDraw& shape, const long& hScroll, const long& vScroll, const float& ratio)
 {
-    int thickness = shape.isFilled ? -1 : shape.penSize * ratio;
-    if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize * ratio; // Une ligne ne peut pas être "remplie"
+    int thickness = shape.isFilled ? -1 : shape.penSize * 2 * ratio;
+    if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize * 2 * ratio; // Une ligne ne peut pas être "remplie"
 
     int lineStyle = (shape.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
     if (shape.typeBrush == 2) lineStyle = cv::LINE_8; // Pointillés forcés en standard pour le calcul du saut

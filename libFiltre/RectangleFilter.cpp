@@ -113,8 +113,8 @@ void CRectangleFilter::FilterChangeParam(CEffectParameter* effectParameter, CTre
 
 void CRectangleFilter::DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape, bool rgba)
 {
-	int thickness = shape.isFilled ? -1 : shape.penSize * 4;
-	if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize * 4; // Une ligne ne peut pas être "remplie"
+	int thickness = shape.isFilled ? -1 : shape.penSize * 2;
+	if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize * 2; // Une ligne ne peut pas être "remplie"
 
 	int lineStyle = (shape.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
 	if (shape.typeBrush == 2) lineStyle = cv::LINE_8; // Pointillés forcés en standard pour le calcul du saut
