@@ -2,6 +2,7 @@
 #include "ToolbarPhoto.h"
 #include "TabWindow.h"
 #include "CategoryFolderWindow.h"
+#include "ThumbnailDrawingWnd.h"
 using namespace std;
 using namespace Regards::Window;
 //using namespace Regards::Control;
@@ -28,6 +29,7 @@ namespace Regards::Viewer
 		void RemoveFolder(const wxString& folder);
 		wxString AddFolder(const wxString& folder, wxString* file, const bool& showDialog = true);
 
+		CThumbnailDrawingWnd* thumbnailDrawingWnd;
 		CCategoryFolderWindow * categoryFolderWnd;
 		wxGenericDirCtrl * folderWnd;
 		CToolbarPhoto * photoToolbar;

@@ -15,6 +15,8 @@
 #include "SQLRemoveData.h"
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
+#include <MainParamInit.h>
+#include <ViewerParamInit.h>
 #include <ModificationManager.h>
 namespace Regards::Viewer
 {
@@ -89,6 +91,31 @@ CPanelPhotoWnd::CPanelPhotoWnd(wxWindow* parent, wxWindowID id)
 		tabInfosFile->SetWindow(categoryFolderWnd);
 		tabInfosFile->SetId(WM_CRITERIA);
 		listWindow.push_back(std::move(tabInfosFile));
+	}
+
+	if (viewerTheme != nullptr)
+	{
+		bool checkValidity = false;
+
+		CThemeScrollBar themeScroll;
+		viewerTheme->GetScrollTheme(&themeScroll);
+
+		CThemeThumbnail themeThumbnail;
+		viewerTheme->GetThumbnailTheme(&themeThumbnail);
+
+		CMainParam* main_param = CMainParamInit::getInstance();
+		if (main_param != nullptr)
+			checkValidity = main_param->GetCheckThumbnailValidity();
+
+		thumbnailDrawingWnd = new CThumbnailDrawingWnd(this, wxID_ANY, themeScroll, themeThumbnail, PANELINFOSWNDID,
+			checkValidity);
+
+		thumbnailDrawingWnd->Show(false);
+
+		auto tabInfosCalque = new CTabWindowData();
+		tabInfosCalque->SetWindow(thumbnailDrawingWnd);
+		tabInfosCalque->SetId(WM_DRAWING);
+		listWindow.push_back(tabInfosCalque);
 	}
 
 	if (viewerTheme != nullptr)
@@ -225,6 +252,11 @@ void CPanelPhotoWnd::OnRefreshData(wxCommandEvent& event)
 			}
 		}
 		break;
+	case WM_DRAWING:
+	{
+
+	}
+	break;
 	default: ;
 	}
 }
@@ -240,6 +272,9 @@ void CPanelPhotoWnd::LoadInfo()
 			break;
 		case WM_CRITERIA:
 			photoToolbar->SetCriteriaPush();
+			break;
+		case WM_DRAWING:
+			photoToolbar->SetDrawingPush();
 			break;
 		default: ;
 		}

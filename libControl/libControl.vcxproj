@@ -893,6 +893,8 @@
     <ClInclude Include="SlideToolbar.h" />
     <ClInclude Include="ThumbnailCalque.h" />
     <ClInclude Include="ThumbnailCalqueWnd.h" />
+    <ClInclude Include="ThumbnailDrawing.h" />
+    <ClInclude Include="ThumbnailDrawingWnd.h" />
     <ClInclude Include="ThumbnailEffect.h" />
     <ClInclude Include="ThumbnailHorizontal.h" />
     <ClInclude Include="ThumbnailVertical.h" />
@@ -947,6 +949,8 @@
     <ClCompile Include="SlideToolbar.cpp" />
     <ClCompile Include="ThumbnailCalque.cpp" />
     <ClCompile Include="ThumbnailCalqueWnd.cpp" />
+    <ClCompile Include="ThumbnailDrawing.cpp" />
+    <ClCompile Include="ThumbnailDrawingWnd.cpp" />
     <ClCompile Include="ThumbnailEffect.cpp" />
     <ClCompile Include="ThumbnailHorizontal.cpp" />
     <ClCompile Include="ThumbnailVertical.cpp" />

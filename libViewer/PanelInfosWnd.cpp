@@ -215,6 +215,31 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 		listWindow.push_back(tabInfosFileEffect);
 	}
 
+	if (viewerTheme != nullptr)
+	{
+		bool checkValidity = false;
+
+		CThemeScrollBar themeScroll;
+		viewerTheme->GetScrollTheme(&themeScroll);
+
+		CThemeThumbnail themeThumbnail;
+		viewerTheme->GetThumbnailTheme(&themeThumbnail);
+
+		CMainParam* main_param = CMainParamInit::getInstance();
+		if (main_param != nullptr)
+			checkValidity = main_param->GetCheckThumbnailValidity();
+
+		thumbnailCalqueWnd = new CThumbnailCalqueWnd(this, wxID_ANY, themeScroll, themeThumbnail, PANELINFOSWNDID,
+			checkValidity);
+
+		thumbnailCalqueWnd->Show(false);
+
+		auto tabInfosCalque = new CTabWindowData();
+		tabInfosCalque->SetWindow(thumbnailCalqueWnd);
+		tabInfosCalque->SetId(WM_CALQUE);
+		listWindow.push_back(tabInfosCalque);
+	}
+
 	if (webBrowser == nullptr)
 	{
 #ifdef WIN32
@@ -568,6 +593,8 @@ void CPanelInfosWnd::LoadInfo()
 		break;
 
 	case WM_CALQUE:
+		if (!thumbnailCalqueWnd->IsShown())
+			thumbnailCalqueWnd->Show(true);
 		thumbnailCalqueWnd->SetFile(filename);
 		infosToolbar->SetCalquePush();
 		windowVisible = WM_CALQUE;

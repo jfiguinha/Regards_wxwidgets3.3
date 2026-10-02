@@ -319,3 +319,4 @@
 #define WM_REFRESH		1031
 #define WM_HISTOGRAM		1032
 #define WM_CALQUE		1033
+#define WM_DRAWING		1034

@@ -121,6 +121,12 @@
     <ClCompile Include="ThumbnailCalqueWnd.cpp">
       <Filter>Thumbnail\source</Filter>
     </ClCompile>
+    <ClCompile Include="ThumbnailDrawing.cpp">
+      <Filter>Thumbnail\source</Filter>
+    </ClCompile>
+    <ClCompile Include="ThumbnailDrawingWnd.cpp">
+      <Filter>Thumbnail\source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CriteriaTree.h">
@@ -259,6 +265,12 @@
       <Filter>Thumbnail\header</Filter>
     </ClInclude>
     <ClInclude Include="ThumbnailCalqueWnd.h">
+      <Filter>Thumbnail\header</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailDrawing.h">
+      <Filter>Thumbnail\header</Filter>
+    </ClInclude>
+    <ClInclude Include="ThumbnailDrawingWnd.h">
       <Filter>Thumbnail\header</Filter>
     </ClInclude>
   </ItemGroup>

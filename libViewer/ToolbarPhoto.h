@@ -15,7 +15,7 @@ namespace Regards::Viewer
 		~CToolbarPhoto() = default;
 		void SetFolderPush();
 		void SetCriteriaPush();
-		void SetFaceListPush();
+		void SetDrawingPush();
 
 	private:
 		void Resize() override;
@@ -23,7 +23,7 @@ namespace Regards::Viewer
 
 		CToolbarInterface* toolbarInterface;
 		std::unique_ptr<CToolbarTexte> folder;
-		std::unique_ptr<CToolbarTexte> facelist;
+		std::unique_ptr<CToolbarTexte> drawing;
 		std::unique_ptr<CToolbarTexte> criteria;
 	};
 }
