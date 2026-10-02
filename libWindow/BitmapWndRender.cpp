@@ -1690,6 +1690,19 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 			if (widthOutput < 0 || heightOutput < 0)
 				return;
 
+			// Application de votre logique d'optimisation
+// Si la mise à jour est forcée OU qu'un effet de prévisualisation est actif (preview > 0),
+// on doit obligatoirement lever le flag pour rafraîchir la source brute.
+			if (forceUpdateFilter || preview > 0 || bitmapIsLoad)
+			{
+				updateFilter = true;
+			}
+			else
+			{
+				updateFilter = false;
+			}
+
+
 			if (updateFilter)// || mouseUpdate != nullptr)
 			{
 				if (!bitmapIsLoad)

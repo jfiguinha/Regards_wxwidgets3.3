@@ -490,6 +490,7 @@ void CBitmapWndViewer::OnFiltreOk()
 	RemoveListener();
 	forceUpdateFilter = false;
 	widthOutputOld = 0;
+
 }
 
 void CBitmapWndViewer::OnFiltreCancel()
@@ -498,6 +499,7 @@ void CBitmapWndViewer::OnFiltreCancel()
 	forceUpdateFilter = false;
 	needToRefresh = true;
 	widthOutputOld = 0;
+
 }
 
 void CBitmapWndViewer::ApplyPicturePosition(const int& angle, const int& flipH, const int& flipV)
