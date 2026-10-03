@@ -21,7 +21,9 @@ CToolbarInfos::CToolbarInfos(wxWindow* parent, wxWindowID id, const CThemeToolba
 	criteria = CreateTexte("LBLCRITERIA", WM_CRITERIA);
 	effectParameter = CreateTexte("LBLEFFECTPARAMETER", WM_EFFECTPARAMETER);
 	histogramParameter = CreateTexte("LBLHISTOGRAM", WM_HISTOGRAM);
+#if wxUSE_LAYERTOOLS
 	calqueParameter = CreateTexte("LBL_CALQUE", WM_CALQUE);
+#endif
 }
 
 void CToolbarInfos::SetHistogramPush()

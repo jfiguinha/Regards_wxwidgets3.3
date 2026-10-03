@@ -15,7 +15,9 @@ CToolbarPhoto::CToolbarPhoto(wxWindow* parent, wxWindowID id, const CThemeToolba
 	saveLastPush = true;
 	folder = CreateTexte(L"LBLFOLDER", WM_FOLDER);
 	criteria = CreateTexte(L"LBLCRITERIA", WM_CRITERIA);
+#if wxUSE_DRAWINGTOOLS
 	drawing = CreateTexte(L"LBLDRAWINGEFFECT", WM_DRAWING);
+#endif
 }
 
 void CToolbarPhoto::SetFolderPush()
