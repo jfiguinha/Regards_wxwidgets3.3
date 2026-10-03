@@ -178,7 +178,6 @@ void CThumbnailEffect::SetFile(const wxString& filename,
                 thumbnailData->SetBitmap(pBitmap);
                 break;
             }
-#if wxUSE_DRAWINGTOOLS == 0
 
             case IDM_CROP: {
                 cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_CROP");
@@ -187,8 +186,6 @@ void CThumbnailEffect::SetFile(const wxString& filename,
                 thumbnailData->SetBitmap(pBitmap);
                 break;
             }
-
-#endif
 
             case IDM_FILTRE_COLORISATION: {
                 cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_COLORISATION");

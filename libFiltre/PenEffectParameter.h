@@ -10,6 +10,7 @@ struct SLineTrace {
 	cv::Scalar color;
 	int penSize = 4;
 	int typeBrush = 0;
+	float ratio = 1.0f;
 	bool rgba = true;
 	int opacity = 255; // <-- Ajout de l'opacité par trait (0 à 255)
 

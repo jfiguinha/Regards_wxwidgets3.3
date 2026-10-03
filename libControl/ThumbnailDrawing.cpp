@@ -104,14 +104,14 @@ void CThumbnailDrawing::Init() {
         thumbnailData->SetNumPhotoId(numEffect);
 
         switch (numEffect) {
-
+/*
         case IDM_CROP: {
             cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_CROP");
             thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
             infosSeparationDrawingTools->AddPhotoToList(numElement);
             thumbnailData->SetBitmap(pBitmap);
             break;
-        }
+        }*/
         case IDM_PENFILTER: {
             cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_PEN");
             thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));

@@ -218,8 +218,6 @@ void CRectangleFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CD
 	auto rectDraw = static_cast<Regards::FiltreEffet::CRectangleDraw*>(m_cDessin);
 
 	if (param && rectDraw) {
-		float ratio = bitmapViewer->GetRatio(); // On récupère le ratio d'affichage actuel
-		if (ratio <= 0.0f) ratio = 1.0f;        // Sécurité anti-division par zéro
 
 		param->listShapes.clear();
 		for (const auto& s : rectDraw->GetTousLesTraces()) {

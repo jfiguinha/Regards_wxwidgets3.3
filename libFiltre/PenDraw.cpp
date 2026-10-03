@@ -130,8 +130,7 @@ void CPenDraw::DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& 
         {
             if (ligne.points.empty()) continue;
 
-            // Calcul de l'épaisseur du trait corrigée avec le ratio d'affichage (Similaire à CPenDraw)
-            int epaisseurAffichage = std::max<int>(1, static_cast<int>(ligne.penSize * 2 * ratio));
+            int epaisseurAffichage = std::max<int>(1, static_cast<int>(ligne.penSize * ratio));
             int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
 
             // Si le tracé est visible
