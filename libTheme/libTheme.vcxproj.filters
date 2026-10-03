@@ -25,6 +25,9 @@
     <Filter Include="Main">
       <UniqueIdentifier>{36df1b97-1044-4c51-b786-20de8dfbb6be}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{e298c751-95b4-43b8-ad69-41991f4ccd7d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -57,6 +60,12 @@
     <ClInclude Include="MainThemeInit.h">
       <Filter>Main</Filter>
     </ClInclude>
+    <ClInclude Include="EditorTheme.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorThemeInit.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="theme.cpp">
@@ -79,6 +88,12 @@
     </ClCompile>
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorTheme.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorThemeInit.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

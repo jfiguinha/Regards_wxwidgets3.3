@@ -28,6 +28,9 @@
     <Filter Include="Main">
       <UniqueIdentifier>{0818fc64-cdc3-4d3e-8855-b1ad6d159301}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Editor">
+      <UniqueIdentifier>{d448e383-b04a-4512-b1d8-a759fe5b3433}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -63,6 +66,12 @@
     <ClInclude Include="MainParamInit.h">
       <Filter>Main</Filter>
     </ClInclude>
+    <ClInclude Include="EditorParam.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
+    <ClInclude Include="EditorParamInit.h">
+      <Filter>Editor</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ParamInit.cpp">
@@ -88,6 +97,12 @@
     </ClCompile>
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorParam.cpp">
+      <Filter>Editor</Filter>
+    </ClCompile>
+    <ClCompile Include="EditorParamInit.cpp">
+      <Filter>Editor</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

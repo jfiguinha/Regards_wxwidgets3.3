@@ -843,6 +843,8 @@
   <ItemGroup>
     <ClInclude Include="..\include\header.h" />
     <ClInclude Include="ConfigParam.h" />
+    <ClInclude Include="EditorParam.h" />
+    <ClInclude Include="EditorParamInit.h" />
     <ClInclude Include="MainParam.h" />
     <ClInclude Include="MainParamInit.h" />
     <ClInclude Include="ParamInit.h" />
@@ -864,6 +866,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_cuda|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="ConfigParam.cpp" />
+    <ClCompile Include="EditorParam.cpp" />
+    <ClCompile Include="EditorParamInit.cpp" />
     <ClCompile Include="ParamInit.cpp" />
     <ClCompile Include="RegardsConfigParam.cpp" />
     <ClCompile Include="ScannerParam.cpp" />

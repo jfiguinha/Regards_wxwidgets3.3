@@ -23,6 +23,7 @@
 #include <wx/display.h>
 #include <VideoConverterFrame.h>
 #include <ScannerFrame.h>
+#include <EditorFrame.h>
 #include <ncnn/gpu.h>
 #include <signal.h>
 #include <wx/snglinst.h> // Required header for wxSingleInstanceChecker
@@ -164,7 +165,7 @@ public:
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
 
-		frameViewer = std::make_unique<CViewerFrame>("Regards Viewer", wxDefaultPosition,
+		frameViewer = new CViewerFrame("Regards Viewer", wxDefaultPosition,
 		                               wxSize(screen.GetWidth(), screen.GetHeight()), this, fileToOpen);
 		frameViewer->Centre(wxBOTH);
 		frameViewer->Show(true);
@@ -180,7 +181,7 @@ public:
 		}
         else
         {
-            frameStart = std::make_unique<MyFrameIntro>("Welcome to Regards", "REGARDS V2", wxPoint(50, 50), wxSize(450, 340), this);
+            frameStart = new MyFrameIntro("Welcome to Regards", "REGARDS V2", wxPoint(50, 50), wxSize(450, 340), this);
             frameStart->Centre(wxBOTH);
             frameStart->Show(true);
         }
@@ -219,11 +220,12 @@ private:
 	wxString m_strImageFilterList;
 	wxString m_strImageFilter;
 
-	std::unique_ptr<CScannerFrame> framePDF;
-	std::unique_ptr<CVideoConverterFrame> frameVideoConverter;
-	std::unique_ptr<MyFrameIntro> frameStart;
-	std::unique_ptr<CViewerFrame> frameViewer;
-	wxSingleInstanceChecker* m_checker;
+	CEditorFrame * frameEditor = nullptr;
+	CScannerFrame * framePDF = nullptr;
+	CVideoConverterFrame * frameVideoConverter = nullptr;
+	MyFrameIntro * frameStart = nullptr;
+	CViewerFrame * frameViewer = nullptr;
+	wxSingleInstanceChecker* m_checker = nullptr;
 #ifdef __WXMSW__
 	//ULONG_PTR m_gdiplusToken;   // class member
 #endif

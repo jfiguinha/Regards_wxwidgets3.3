@@ -16,6 +16,7 @@
 #include <libPicture.h>
 #include <wx/webview.h>
 #include <LibResource.h>
+
 #include <FileUtility.h>
 #include <ParamInit.h>
 #include <FilterWindowParam.h>
@@ -448,7 +449,7 @@ void MyApp::LaunchApplication()
 	{
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
-		frameVideoConverter = std::make_unique<CVideoConverterFrame>(this);
+		frameVideoConverter =new CVideoConverterFrame(this);
 		frameVideoConverter->ExportVideo(fileToOpen);
 	}
 	else if (appName == "RegardsPDF")
@@ -456,13 +457,26 @@ void MyApp::LaunchApplication()
 		wxDisplay display;
 		wxRect screen = display.GetClientArea();
 		//	CScannerFrame(const wxString &title, ISCannerInterface * mainInterface, const wxPoint &pos, const wxSize &size, long style = wxDEFAULT_FRAME_STYLE);
-		framePDF = std::make_unique<CScannerFrame>("RegardsPDF", fileToOpen, this, wxDefaultPosition, wxSize(screen.GetWidth(), screen.GetHeight()));
+		framePDF = new CScannerFrame("RegardsPDF", fileToOpen, this, wxDefaultPosition, wxSize(screen.GetWidth(), screen.GetHeight()));
 		framePDF->Centre(wxBOTH);
 		framePDF->SetFocus();  // focus on my window
 		framePDF->Raise();  // bring window to front
 		framePDF->Show(true);
 		if(fileToOpen.empty())
 			framePDF->OnOpen();
+	}
+	else if (appName == "RegardsEditor")
+	{
+		wxDisplay display;
+		wxRect screen = display.GetClientArea();
+
+		frameEditor = new CEditorFrame("RegardsEditor", fileToOpen, this, wxDefaultPosition, wxSize(screen.GetWidth(), screen.GetHeight()));
+		frameEditor->Centre(wxBOTH);
+		frameEditor->SetFocus();  // focus on my window
+		frameEditor->Raise();  // bring window to front
+		frameEditor->Show(true);
+		if (fileToOpen.empty())
+			frameEditor->OnOpen();
 	}
 	else
 	{
@@ -501,12 +515,7 @@ bool MyApp::OnInit()
 		return false;
 	}
 
-	// Ensure unique_ptr frame members are explicitly null-initialized
-	// (unique_ptrs default to nullptr, but be explicit for clarity)
-	frameStart.reset();
-	frameViewer.reset();
-	framePDF.reset();
-	frameVideoConverter.reset();
+
 
 	if (!InitializeLocale()) return false;
 	if (!InitializeDirectories()) return false;
