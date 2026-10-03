@@ -97,21 +97,20 @@ void CThumbnailDrawing::Init() {
         CreateNewSeparatorBar(drawingEffect);
 
     int i = 0;
-    for (int numEffect = FILTER_START; numEffect < FILTER_END; numEffect++) {
+    for (int numEffect = FILTER_DRAWING_START; numEffect < FILTER_DRAWING_END; numEffect++) {
         int numElement = iconeListLocal->GetNbElement();
         auto* thumbnailData = new CThumbnailDataStorage("drawing");
         thumbnailData->SetNumElement(i++);
         thumbnailData->SetNumPhotoId(numEffect);
 
         switch (numEffect) {
-/*
-        case IDM_CROP: {
+        case IDM_PAINTCROP: {
             cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_CROP");
             thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
             infosSeparationDrawingTools->AddPhotoToList(numElement);
             thumbnailData->SetBitmap(pBitmap);
             break;
-        }*/
+        }
         case IDM_PENFILTER: {
             cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_PEN");
             thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
