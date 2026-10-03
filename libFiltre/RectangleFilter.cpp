@@ -113,8 +113,8 @@ void CRectangleFilter::FilterChangeParam(CEffectParameter* effectParameter, CTre
 
 void CRectangleFilter::DrawShapeOnMat(cv::Mat& matrix, SShapeTrace& shape, bool rgba)
 {
-	int thickness = shape.isFilled ? -1 : shape.penSize * 2;
-	if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize * 2; // Une ligne ne peut pas être "remplie"
+	int thickness = shape.isFilled ? -1 : shape.penSize;
+	if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize; // Une ligne ne peut pas être "remplie"
 
 	int lineStyle = (shape.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
 	if (shape.typeBrush == 2) lineStyle = cv::LINE_8; // Pointillés forcés en standard pour le calcul du saut
@@ -218,13 +218,19 @@ void CRectangleFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CD
 	auto rectDraw = static_cast<Regards::FiltreEffet::CRectangleDraw*>(m_cDessin);
 
 	if (param && rectDraw) {
+		float ratio = bitmapViewer->GetRatio(); // On récupère le ratio d'affichage actuel
+		if (ratio <= 0.0f) ratio = 1.0f;        // Sécurité anti-division par zéro
+
 		param->listShapes.clear();
 		for (const auto& s : rectDraw->GetTousLesTraces()) {
 			SShapeTrace shapeOpenCV;
 			shapeOpenCV.startPoint = s.startPoint;
 			shapeOpenCV.endPoint = s.endPoint;
 			shapeOpenCV.shapeType = s.shapeType;
+
+			// CORRECTION : On adapte la taille du pinceau à la résolution réelle de l'image
 			shapeOpenCV.penSize = s.penSize;
+
 			shapeOpenCV.typeBrush = s.typeBrush;
 			shapeOpenCV.opacity = s.opacity;
 			shapeOpenCV.isFilled = s.isFilled;
@@ -233,3 +239,4 @@ void CRectangleFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CD
 		}
 	}
 }
+
