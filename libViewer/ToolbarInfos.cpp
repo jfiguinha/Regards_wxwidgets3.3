@@ -67,7 +67,7 @@ void CToolbarInfos::SetEffectParameterPush()
 {
 	effectParameter->SetPush(true);
 }
-
+#if wxUSE_LAYERTOOLS
 void CToolbarInfos::SetCalqueActif()
 {
 	SetAllDisable();
@@ -83,7 +83,7 @@ void CToolbarInfos::SetCalquePush()
 {
 	calqueParameter->SetPush(true);
 }
-
+#endif
 void CToolbarInfos::SetInfosActif()
 {
 	SetAllDisable();
@@ -149,7 +149,9 @@ void CToolbarInfos::SetVideoToolbar()
 	map->SetVisible(false);
 	effectParameter->SetVisible(false);
 	effect->SetVisible(false);
+#if wxUSE_LAYERTOOLS
 	calqueParameter->SetVisible(false);
+#endif
 	videoeffect->SetVisible(true);
 	audiovideo->SetVisible(true);
 	needToRefresh = true;
@@ -163,7 +165,9 @@ void CToolbarInfos::SetPictureThumbnailToolbar()
 	history->SetVisible(false);
 	effectParameter->SetVisible(false);
 	histogramParameter->SetVisible(false);
+#if wxUSE_LAYERTOOLS
 	calqueParameter->SetVisible(false);
+#endif
 	needToRefresh = true;
 }
 
@@ -176,7 +180,9 @@ void CToolbarInfos::SetPictureToolbar()
 	audiovideo->SetVisible(false);
 	effectParameter->SetVisible(false);
 	histogramParameter->SetVisible(true);
+#if wxUSE_LAYERTOOLS
 	calqueParameter->SetVisible(true);
+#endif
 	needToRefresh = true;
 }
 

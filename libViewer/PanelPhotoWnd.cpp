@@ -288,9 +288,11 @@ void CPanelPhotoWnd::LoadInfo()
 		case WM_CRITERIA:
 			photoToolbar->SetCriteriaPush();
 			break;
+#if wxUSE_DRAWINGTOOLS
 		case WM_DRAWING:
 			photoToolbar->SetDrawingPush();
 			break;
+#endif
 		default: ;
 		}
 	}

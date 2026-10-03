@@ -15,6 +15,8 @@ namespace Regards::Control
 		void InitPosition();
 
 	protected:
+
+		void CalculateScrollPosition(CIcone* numSelect);
 		void RenderIcone(wxDC* deviceContext) override;
 		void UpdateScroll() override;
 		CIcone * FindElement(const int& xPos, const int& yPos) override;

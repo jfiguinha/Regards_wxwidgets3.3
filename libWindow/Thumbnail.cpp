@@ -1214,6 +1214,18 @@ void CThumbnail::on_paint(wxPaintEvent& event)
 	Render(dc);
 }
 
+void CThumbnail::CalculateScrollPosition(CIcone* numSelect)
+{
+	if (numSelect != nullptr)
+	{
+		wxRect rect = numSelect->GetPos();
+		int yPos = max((rect.y - this->GetWindowHeight() / 2), 0);
+		int xPos = max((rect.x - this->GetWindowWidth() / 2), 0);
+		posLargeur = xPos;
+		posHauteur = yPos;
+	}
+}
+
 void CThumbnail::Render(wxDC& dc)
 {
 	int width = GetWindowWidth();
@@ -1253,13 +1265,7 @@ void CThumbnail::Render(wxDC& dc)
 	{
 		CIcone* numSelect = GetIconeById(numSelectPhotoId);
 		if (numSelect != nullptr)
-		{
-			wxRect rect = numSelect->GetPos();
-			int yPos = max((rect.y - this->GetWindowHeight() / 2), 0);
-			int xPos = max((rect.x - this->GetWindowWidth() / 2), 0);
-			posLargeur = xPos;
-			posHauteur = yPos;
-		}
+			CalculateScrollPosition(numSelect);
 	}
 
 	TestMaxX();

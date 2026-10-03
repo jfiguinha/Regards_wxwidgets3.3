@@ -78,7 +78,7 @@ namespace Regards::Window
 		CIcone* GetIconeByPath(const wxString& filepath);
 		void SetIconeSize(const int& width, const int& height);
 	protected:
-
+		virtual void CalculateScrollPosition(CIcone* numSelect);
 		void SetActifByNumItem(const int& numItem, const bool &move);
 		void Render(wxDC& dc);
 		void RefreshIcone(const int& idPhoto);

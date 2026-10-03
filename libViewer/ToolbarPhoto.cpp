@@ -32,6 +32,7 @@ void CToolbarPhoto::SetCriteriaPush()
 
 void CToolbarPhoto::ShowBitmapToolbar(const bool& showBitmapToolbar)
 {
+#if wxUSE_DRAWINGTOOLS
 	if(showBitmapToolbar)
 	{
 		drawing->SetVisible(true);
@@ -40,14 +41,15 @@ void CToolbarPhoto::ShowBitmapToolbar(const bool& showBitmapToolbar)
 	{
 		drawing->SetVisible(false);
 	}
+#endif
 	this->Refresh();
 }
-
+#if wxUSE_DRAWINGTOOLS
 void CToolbarPhoto::SetDrawingPush()
 {
 	drawing->SetPush(true);
 }
-
+#endif
 void CToolbarPhoto::Resize()
 {
 	int nbElement = static_cast<int>(navElement.size());

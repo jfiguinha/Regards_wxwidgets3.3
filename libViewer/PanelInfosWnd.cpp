@@ -596,11 +596,13 @@ void CPanelInfosWnd::LoadInfo()
 		windowVisible = WM_CRITERIA;
 		break;
 
+#if wxUSE_LAYERTOOLS
 	case WM_CALQUE:
 		listLayer->SetFilename(filename);
 		infosToolbar->SetCalquePush();
 		windowVisible = WM_CALQUE;
 		break;
+#endif
 
 	case WM_MAPS:
 		{

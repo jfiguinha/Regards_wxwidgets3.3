@@ -15,7 +15,9 @@ namespace Regards::Viewer
 		~CToolbarPhoto() = default;
 		void SetFolderPush();
 		void SetCriteriaPush();
+#if wxUSE_DRAWINGTOOLS
 		void SetDrawingPush();
+#endif
 		void ShowBitmapToolbar(const bool& showBitmapToolbar);
 	private:
 		void Resize() override;
@@ -23,7 +25,9 @@ namespace Regards::Viewer
 
 		CToolbarInterface* toolbarInterface;
 		std::unique_ptr<CToolbarTexte> folder;
+#if wxUSE_DRAWINGTOOLS
 		std::unique_ptr<CToolbarTexte> drawing;
+#endif
 		std::unique_ptr<CToolbarTexte> criteria;
 	};
 }

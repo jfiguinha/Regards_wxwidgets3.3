@@ -26,10 +26,11 @@ namespace Regards::Viewer
 		void SetEffectActif();
 		void SetEffectInactif();
 
-
+#if wxUSE_LAYERTOOLS
 		void SetCalqueActif();
 		void SetCalqueInactif();
 		void SetCalquePush();
+#endif
 
 		void SetCriteriaPush();
 
@@ -57,6 +58,8 @@ namespace Regards::Viewer
 		std::unique_ptr<CToolbarTexte> effectParameter = nullptr;
 		std::unique_ptr<CToolbarTexte> criteria = nullptr;
 		std::unique_ptr<CToolbarTexte> histogramParameter = nullptr;
+#if wxUSE_LAYERTOOLS
 		std::unique_ptr<CToolbarTexte> calqueParameter = nullptr;
+#endif
 	};
 }
