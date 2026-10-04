@@ -45,6 +45,19 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     // Si vous souhaitez qu'elle soit maximisée malgré tout, décommentez la ligne ci-dessous :
     // this->Maximize();
 
+    colorDialog = new CColorPickerDialog(this);
+    layerDialog = new LayerDialog(this);
+    effectsDialog = new EffectsDialog(this);
+    infoDialog = new InfoDialog(this);
+    parameterDialog = new ParameterDialog(this);
+
+    colorDialog->Show(false);
+    layerDialog->Show(false);
+    effectsDialog->Show(false);
+	infoDialog->Show(false);    
+    parameterDialog->Show(false);
+
+
     viewerParam = CMainParamInit::getInstance();
     viewerTheme = CMainThemeInit::getInstance();
     this->mainInterface = mainInterface;
@@ -130,6 +143,15 @@ void CEditorFrame::OnOpen()
     ImageDocument* imgDoc = new ImageDocument(this, SHOWBITMAPVIEWERID, BITMAPWINDOWVIEWERID, nullptr, viewerTheme, openFileDialog.GetPath());
     imgDoc->Show(true);
     m_openedDocuments.push_back(imgDoc);
+}
+
+void CEditorFrame::SetActiveDocument(ImageDocument* doc)
+{
+    if (doc)
+    {
+        m_activeDocument = doc;
+        infoDialog->SetFilename(m_activeDocument->GetFileName());
+    }
 }
 
 // --- NOUVEAU : Gestionnaires d'événements pour le menu Window ---

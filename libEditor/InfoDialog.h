@@ -1,4 +1,6 @@
 #pragma once
+#include <InfosFileWnd.h>
+
 
 class InfoDialog : public wxDialog {
 public:
@@ -6,6 +8,8 @@ public:
     void SetFilename(const wxString& filename);
 private:
    
-    wxString m_filename;
+    void OnSize(wxSizeEvent& event);
 
+    wxString m_filename;
+    Regards::Control::CInfosFileWnd * infosFileWnd;
 };

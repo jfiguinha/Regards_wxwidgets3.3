@@ -26,7 +26,7 @@ public:
 	void OnClose();
 
 	// Permet aux ImageDocument de notifier la frame principale qu'ils ont le focus
-	void SetActiveDocument(ImageDocument* doc) { m_activeDocument = doc; }
+	void SetActiveDocument(ImageDocument* doc);
 
 	// Permet à vos boîtes de dialogue (Effets, Couleurs...) de récupérer l'image active
 	ImageDocument* GetActiveDocument() const { return m_activeDocument; }

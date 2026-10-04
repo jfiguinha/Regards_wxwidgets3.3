@@ -69,6 +69,8 @@ void ImageDocument::OnActivate(wxActivateEvent& event)
         }
     }
     event.Skip(); // IMPORTANT : laisser wxWidgets propager l'événement normalement
+
+
 }
 
 void ImageDocument::OnResize(wxCommandEvent& event)

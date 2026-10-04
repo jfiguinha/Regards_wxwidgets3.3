@@ -1,13 +1,54 @@
 #include <header.h>
 #include "InfoDialog.h"
 
+#include <EditorTheme.h>
+#include <EditorThemeInit.h>
+using namespace Regards::Editor;
+
+
 InfoDialog::InfoDialog(wxWindow* parent)
     : wxDialog(parent, wxID_ANY, "Effets d'image", wxDefaultPosition, wxSize(250, 350),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxSTAY_ON_TOP) // wxSTAY_ON_TOP la garde visible au-dessus des images
 {
 
+	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
+
+	if (viewerTheme != nullptr)
+	{
+		CThemeScrollBar themeScroll;
+		viewerTheme->GetScrollTheme(&themeScroll);
+
+		CThemeTree theme;
+		viewerTheme->GetTreeTheme(&theme);
+
+		infosFileWnd = new CInfosFileWnd(this, wxID_ANY, themeScroll, theme);
+
+		infosFileWnd->Show(true);
+	}
+
+	Connect(wxEVT_SIZE, wxSizeEventHandler(InfoDialog::OnSize));
 }
 void InfoDialog::SetFilename(const wxString& filename)
 {
     m_filename = filename;
+	infosFileWnd->InfosUpdate(filename);
+	infosFileWnd->Show(true);
+}
+
+
+void InfoDialog::OnSize(wxSizeEvent& event)
+{
+    const wxSize clientSize = this->GetClientSize();
+    int _width = clientSize.GetWidth();
+    int _height = clientSize.GetHeight();
+
+    if (_width <= 20 && _height <= 20)
+    {
+        return;
+    }
+
+	infosFileWnd->SetSize(0, 0, _width, _height);
+	infosFileWnd->Refresh();
+	// scrollbar->Refresh();
+
 }
