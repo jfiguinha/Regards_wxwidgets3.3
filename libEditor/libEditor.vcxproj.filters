@@ -48,6 +48,9 @@
     <ClInclude Include="ColorWheelCtrl.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="HistoryDialog.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EditorFrame.cpp">
@@ -81,6 +84,9 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="ColorWheelCtrl.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="HistoryDialog.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>

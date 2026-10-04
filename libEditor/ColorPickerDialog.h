@@ -11,6 +11,21 @@ class wxSlider;
 class wxPanel;
 class wxStaticText;
 
+/*
+
+wxColour currentColour(64, 120, 220, 180);
+
+CColorPickerDialog dialog(
+    this,
+    currentColour);
+
+if (dialog.ShowModal() == wxID_OK)
+{
+    currentColour = dialog.GetColour();
+}
+
+*/
+
 class CColorPickerDialog : public wxDialog
 {
 public:

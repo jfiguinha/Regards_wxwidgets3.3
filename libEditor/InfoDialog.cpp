@@ -7,7 +7,7 @@ using namespace Regards::Editor;
 
 
 InfoDialog::InfoDialog(wxWindow* parent)
-    : wxDialog(parent, wxID_ANY, "Effets d'image", wxDefaultPosition, wxSize(250, 350),
+    : wxDialog(parent, wxID_ANY, "Information", wxDefaultPosition, wxSize(250, 350),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxSTAY_ON_TOP) // wxSTAY_ON_TOP la garde visible au-dessus des images
 {
 
@@ -27,6 +27,10 @@ InfoDialog::InfoDialog(wxWindow* parent)
 	}
 
 	Connect(wxEVT_SIZE, wxSizeEventHandler(InfoDialog::OnSize));
+
+	m_statusBar = new wxStatusBar(this, wxID_ANY);
+	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
+	m_statusBar->SetStatusText("");
 }
 void InfoDialog::SetFilename(const wxString& filename)
 {

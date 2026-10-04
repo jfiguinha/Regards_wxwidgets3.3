@@ -11,6 +11,7 @@ class EffectsDialog;
 class InfoDialog;
 class ParameterDialog;
 class ImageDocument;
+class HistoryDialog;
 
 // Define a new frame type: this is going to be our main frame
 class CEditorFrame : public wxFrame
@@ -44,6 +45,7 @@ private:
 	void OnWindowColor(wxCommandEvent& event);
 	void OnWindowParameter(wxCommandEvent& event);
 	void OnWindowLayer(wxCommandEvent& event);
+	void OnWindowHistory(wxCommandEvent& event);
 	std::vector<ImageDocument*> m_openedDocuments;
    
 	Regards::Editor::CMainParam * viewerParam;
@@ -55,6 +57,7 @@ private:
 	EffectsDialog* effectsDialog = nullptr;
 	InfoDialog* infoDialog = nullptr;	
 	ParameterDialog* parameterDialog = nullptr;
+	HistoryDialog* historyDialog = nullptr;
 	wxString lastFolder = "";
 	IMainInterface* mainInterface;
 	DECLARE_EVENT_TABLE()

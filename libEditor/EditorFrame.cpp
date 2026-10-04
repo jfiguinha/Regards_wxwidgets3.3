@@ -10,6 +10,7 @@
 #include <InfoDialog.h>
 #include <LayerDialog.h>
 #include <ParameterDialog.h>
+#include <HistoryDialog.h>
 #define MAX_ZOOM	10.0
 #define MIN_ZOOM	0.1
 
@@ -20,7 +21,8 @@ enum {
     ID_WINDOW_INFOS,
     ID_WINDOW_COLOR,
     ID_WINDOW_PARAMETER,
-	ID_WINDOW_LAYER
+	ID_WINDOW_LAYER,
+    ID_WINDOW_HISTORY
 };
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
@@ -50,7 +52,9 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     effectsDialog = new EffectsDialog(this);
     infoDialog = new InfoDialog(this);
     parameterDialog = new ParameterDialog(this);
+	historyDialog = new HistoryDialog(this);
 
+    historyDialog->Show(false);
     colorDialog->Show(false);
     layerDialog->Show(false);
     effectsDialog->Show(false);
@@ -75,6 +79,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     menuWindow->Append(ID_WINDOW_COLOR, "Color");
     menuWindow->Append(ID_WINDOW_PARAMETER, "Parameter");
     menuWindow->Append(ID_WINDOW_LAYER, "Layer");
+    menuWindow->Append(ID_WINDOW_HISTORY, "History");
 
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&Fichier");
@@ -112,6 +117,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowColor, this, ID_WINDOW_COLOR);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowParameter, this, ID_WINDOW_PARAMETER);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowLayer, this, ID_WINDOW_LAYER);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowHistory, this, ID_WINDOW_HISTORY);
 
     this->Maximize();
 }
@@ -151,7 +157,18 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
     {
         m_activeDocument = doc;
         infoDialog->SetFilename(m_activeDocument->GetFileName());
+		effectsDialog->SetFilename(m_activeDocument->GetFileName());
     }
+}
+
+void CEditorFrame::OnWindowHistory(wxCommandEvent& event)
+{
+    SetStatusText("Ouverture de l'Histoire...");
+    if (!historyDialog)
+    {
+        historyDialog = new HistoryDialog(this);
+    }
+    historyDialog->Show(true);
 }
 
 // --- NOUVEAU : Gestionnaires d'événements pour le menu Window ---

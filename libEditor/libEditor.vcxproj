@@ -153,6 +153,7 @@
     <ClInclude Include="ColorWheelCtrl.h" />
     <ClInclude Include="EditorFrame.h" />
     <ClInclude Include="EffectsDialog.h" />
+    <ClInclude Include="HistoryDialog.h" />
     <ClInclude Include="ImageDocument.h" />
     <ClInclude Include="InfoDialog.h" />
     <ClInclude Include="LayerDialog.h" />
@@ -166,6 +167,7 @@
     <ClCompile Include="ColorWheelCtrl.cpp" />
     <ClCompile Include="EditorFrame.cpp" />
     <ClCompile Include="EffectsDialog.cpp" />
+    <ClCompile Include="HistoryDialog.cpp" />
     <ClCompile Include="ImageDocument.cpp" />
     <ClCompile Include="InfoDialog.cpp" />
     <ClCompile Include="LayerDialog.cpp" />

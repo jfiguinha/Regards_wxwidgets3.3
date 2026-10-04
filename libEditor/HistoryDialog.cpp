@@ -1,31 +1,37 @@
 #include <header.h>
-#include "LayerDialog.h"
+#include "HistoryDialog.h"
+
 #include <EditorTheme.h>
 #include <EditorThemeInit.h>
 using namespace Regards::Editor;
 using namespace Regards::Control;
 
-LayerDialog::LayerDialog(wxWindow* parent)
-    : wxDialog(parent, wxID_ANY, "List of Layers", wxDefaultPosition, wxSize(250, 350),
+HistoryDialog::HistoryDialog(wxWindow* parent)
+    : wxDialog(parent, wxID_ANY, "History", wxDefaultPosition, wxSize(250, 350),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxSTAY_ON_TOP) // wxSTAY_ON_TOP la garde visible au-dessus des images
 {
-
 	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
 
 	if (viewerTheme != nullptr)
 	{
-		listLayer = new CListLayer(this, LISTLAYERID);
-		listLayer->Show(true);
+		CThemeScrollBar themeScroll;
+		viewerTheme->GetScrollTheme(&themeScroll);
+
+		CThemeTree themeTree;
+		viewerTheme->GetTreeTheme(&themeTree);
+		historyEffectWnd = new CInfoEffectWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
+		historyEffectWnd->Show(true);
 	}
 
-	Connect(wxEVT_SIZE, wxSizeEventHandler(LayerDialog::OnSize));
+
+	Connect(wxEVT_SIZE, wxSizeEventHandler(HistoryDialog::OnSize));
 
 	m_statusBar = new wxStatusBar(this, wxID_ANY);
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
 	m_statusBar->SetStatusText("");
 }
 
-void LayerDialog::OnSize(wxSizeEvent& event)
+void HistoryDialog::OnSize(wxSizeEvent& event)
 {
 	const wxSize clientSize = this->GetClientSize();
 	int _width = clientSize.GetWidth();
@@ -36,8 +42,8 @@ void LayerDialog::OnSize(wxSizeEvent& event)
 		return;
 	}
 
-	listLayer->SetSize(0, 0, _width, _height - m_statusBar->GetClientSize().GetHeight());
-	listLayer->Refresh();
+	historyEffectWnd->SetSize(0, 0, _width, _height);
+	historyEffectWnd->Refresh();
 	// scrollbar->Refresh();
 
 }
