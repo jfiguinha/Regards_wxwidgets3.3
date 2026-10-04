@@ -622,7 +622,10 @@ void CBitmapWndRender::ShrinkImage(const bool& redraw)
 
 	UpdateScrollBar();
 
-	sliderInterface->SetTrackBarPosition(posRatio);
+	if (sliderInterface)
+	{
+		sliderInterface->SetTrackBarPosition(posRatio);
+	}
 
 	needToRefresh = true;
 }
@@ -1283,7 +1286,8 @@ int CBitmapWndRender::UpdateResized()
 	}
 
 	//Toolbar posRatio
-	sliderInterface->SetTrackBarPosition(posRatio);
+	if(sliderInterface)
+		sliderInterface->SetTrackBarPosition(posRatio);
 	SetDessinRatio();
 	return 0;
 }

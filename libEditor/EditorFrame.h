@@ -19,7 +19,7 @@ public:
 
     ~CEditorFrame() = default;
 
-	int OnOpen();
+	void OnOpen();
 	void OnClose();
 
 private:
@@ -35,7 +35,7 @@ private:
 	Regards::Editor::CMainParam * viewerParam;
 	Regards::Editor::CMainTheme * viewerTheme;
 
-
+	wxString lastFolder = "";
 	IMainInterface* mainInterface;
 	DECLARE_EVENT_TABLE()
 };

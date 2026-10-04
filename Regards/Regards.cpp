@@ -475,8 +475,8 @@ void MyApp::LaunchApplication()
 		frameEditor->SetFocus();  // focus on my window
 		frameEditor->Raise();  // bring window to front
 		frameEditor->Show(true);
-		if (fileToOpen.empty())
-			frameEditor->OnOpen();
+		//if (fileToOpen.empty())
+		//	frameEditor->OnOpen();
 	}
 	else
 	{

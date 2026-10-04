@@ -154,6 +154,8 @@ namespace Regards::Window
 			return effectParameter;
 		}
 
+		void SetBitmap(CImageLoadingFormat* bitmap);
+
 	protected:
 
 		void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
@@ -193,7 +195,7 @@ namespace Regards::Window
 		virtual void SetDessinRatio() {};
 
 		void UpdateBitmap(CImageLoadingFormat* bitmap, const bool& updateAll) override;
-		void SetBitmap(CImageLoadingFormat* bitmap);
+		
 		int IsSupportOpenCL();
 		virtual bool NeedAfterRenderBitmap() { return false; };
 		void CalculScreenPosFromReal(const int& xReal, const int& yReal, int& xScreen, int& yScreen);

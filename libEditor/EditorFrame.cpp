@@ -2,6 +2,8 @@
 #include "EditorFrame.h"
 #include <window_id.h>
 #include "ImageDocumentDialog.h"
+#include <LibResource.h>
+#include <wx/filename.h>
 #include <wx/artprov.h> // Pour utiliser des icônes système par défaut
 #define MAX_ZOOM	10.0
 #define MIN_ZOOM	0.1
@@ -80,11 +82,29 @@ void CEditorFrame::OnClose(wxCloseEvent& event)
 	Exit();
 }
 
-int CEditorFrame::OnOpen()
+void CEditorFrame::OnOpen()
 {
-	int value = -1;
 
-	return value;
+    wxString openPicture = CLibResource::LoadStringFromResource(L"LBLOPENPICTUREFILE", 1);
+
+    wxFileDialog openFileDialog(nullptr, openPicture, lastFolder, "",
+        "*.*", wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+
+    if (openFileDialog.ShowModal() == wxID_CANCEL)
+        return; // the user changed idea..
+
+    wxFileName filename(openFileDialog.GetPath());
+    lastFolder = filename.GetPath();
+    //int filterIndex = openFileDialog.Ge
+    
+    static int imageCount = 1;
+    imageCount++;
+
+    CMainTheme* viewerTheme = CMainThemeInit::getInstance();
+    // Création et affichage du dialogue d'image de manière non-modale
+    ImageDocumentDialog* imgDoc = new ImageDocumentDialog(this, SHOWBITMAPVIEWERID, BITMAPWINDOWVIEWERID, nullptr, viewerTheme, openFileDialog.GetPath());
+    imgDoc->Show(true);
+    m_openedDocuments.push_back(imgDoc);
 }
 
 
@@ -111,12 +131,10 @@ void CEditorFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 }
 
 void CEditorFrame::OnNewImage(wxCommandEvent& event) {
-	static int imageCount = 1;
-	wxString name = wxString::Format("Sans titre %d", imageCount++);
 
-	// Création et affichage du dialogue d'image de manière non-modale
-	ImageDocumentDialog* imgDoc = new ImageDocumentDialog(this, name);
-	imgDoc->Show(true);
-	m_openedDocuments.push_back(imgDoc);
+
+    OnOpen();
+
+
 }
 

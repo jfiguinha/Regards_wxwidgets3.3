@@ -147,10 +147,12 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="BitmapEditor.h" />
     <ClInclude Include="EditorFrame.h" />
     <ClInclude Include="ImageDocumentDialog.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BitmapEditor.cpp" />
     <ClCompile Include="EditorFrame.cpp" />
     <ClCompile Include="ImageDocumentDialog.cpp" />
   </ItemGroup>

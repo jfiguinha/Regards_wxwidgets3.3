@@ -70,7 +70,7 @@ namespace Regards::Control
 
 		static std::unique_ptr<IAfterEffect> AfterEffectPt(const int& numFilter);
 
-	private:
+	protected:
 
 		void SetTransitionBitmap(CImageLoadingFormat* bmpSecond) override;
 		void StartTransitionEffect(CImageLoadingFormat* bmpSecond, const bool& setPicture) override;
