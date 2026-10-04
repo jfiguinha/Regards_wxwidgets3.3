@@ -1,4 +1,4 @@
-#include <wx/wx.h>
+#pragma once
 
 class InfoDialog : public wxDialog {
 public:

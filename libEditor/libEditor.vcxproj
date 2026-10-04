@@ -148,23 +148,29 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="BitmapEditor.h" />
-    <ClInclude Include="ColorDialog.h" />
+    <ClInclude Include="ColorPickerDialog.h" />
+    <ClInclude Include="ColorSLPickerCtrl.h" />
+    <ClInclude Include="ColorWheelCtrl.h" />
     <ClInclude Include="EditorFrame.h" />
     <ClInclude Include="EffectsDialog.h" />
     <ClInclude Include="ImageDocument.h" />
     <ClInclude Include="InfoDialog.h" />
     <ClInclude Include="LayerDialog.h" />
     <ClInclude Include="ParameterDialog.h" />
+    <ClInclude Include="ToolDialog.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapEditor.cpp" />
-    <ClCompile Include="ColorDialog.cpp" />
+    <ClCompile Include="ColorPickerDialog.cpp" />
+    <ClCompile Include="ColorSLPickerCtrl.cpp" />
+    <ClCompile Include="ColorWheelCtrl.cpp" />
     <ClCompile Include="EditorFrame.cpp" />
     <ClCompile Include="EffectsDialog.cpp" />
     <ClCompile Include="ImageDocument.cpp" />
     <ClCompile Include="InfoDialog.cpp" />
     <ClCompile Include="LayerDialog.cpp" />
     <ClCompile Include="ParameterDialog.cpp" />
+    <ClCompile Include="ToolDialog.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

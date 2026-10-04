@@ -4,9 +4,8 @@
 #include <EditorThemeInit.h>
 #include <EditorParamInit.h>
 // IDs for the controls and the menu commands
+#include "ColorPickerDialog.h"
 
-
-class ColorDialog;
 class LayerDialog;
 class EffectsDialog;
 class InfoDialog;
@@ -51,7 +50,7 @@ private:
 	Regards::Editor::CMainTheme * viewerTheme;
 
 	ImageDocument* m_activeDocument = nullptr; 
-	ColorDialog* colorDialog = nullptr;
+	CColorPickerDialog * colorDialog = nullptr;
 	LayerDialog* layerDialog = nullptr;
 	EffectsDialog* effectsDialog = nullptr;
 	InfoDialog* infoDialog = nullptr;	

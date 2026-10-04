@@ -5,7 +5,7 @@
 #include <LibResource.h>
 #include <wx/filename.h>
 #include <wx/artprov.h> // Pour utiliser des icônes système par défaut
-#include <ColorDialog.h>
+
 #include <EffectsDialog.h>
 #include <InfoDialog.h>
 #include <LayerDialog.h>
@@ -99,6 +99,8 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowColor, this, ID_WINDOW_COLOR);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowParameter, this, ID_WINDOW_PARAMETER);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowLayer, this, ID_WINDOW_LAYER);
+
+    this->Maximize();
 }
 
 void CEditorFrame::OnClose(wxCloseEvent& event)
@@ -139,7 +141,7 @@ void CEditorFrame::OnWindowEffects(wxCommandEvent& event)
     if(!effectsDialog)
     {
 		effectsDialog = new EffectsDialog(this);
-        effectsDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");
+       // effectsDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");
     }
     effectsDialog->Show(true);
 }
@@ -156,7 +158,7 @@ void CEditorFrame::OnWindowInfos(wxCommandEvent& event)
     if(!infoDialog)
     {
 		infoDialog = new InfoDialog(this);
-        infoDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");  
+       // infoDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");  
     }
     infoDialog->Show(true); 
 }
@@ -166,7 +168,7 @@ void CEditorFrame::OnWindowColor(wxCommandEvent& event)
     SetStatusText("Ouverture de la palette de Couleurs...");
 	if (!colorDialog)
 	{
-        colorDialog = new ColorDialog(this);
+        colorDialog = new CColorPickerDialog(this, wxColour(255, 128, 0, 255));
 	}
 	colorDialog->Show(true);
 }
