@@ -6,8 +6,12 @@
 // IDs for the controls and the menu commands
 
 
-
-class ImageDocumentDialog;
+class ColorDialog;
+class LayerDialog;
+class EffectsDialog;
+class InfoDialog;
+class ParameterDialog;
+class ImageDocument;
 
 // Define a new frame type: this is going to be our main frame
 class CEditorFrame : public wxFrame
@@ -22,6 +26,12 @@ public:
 	void OnOpen();
 	void OnClose();
 
+	// Permet aux ImageDocument de notifier la frame principale qu'ils ont le focus
+	void SetActiveDocument(ImageDocument* doc) { m_activeDocument = doc; }
+
+	// Permet à vos boîtes de dialogue (Effets, Couleurs...) de récupérer l'image active
+	ImageDocument* GetActiveDocument() const { return m_activeDocument; }
+
 private:
 
 	void Exit();
@@ -29,12 +39,23 @@ private:
 	void OnNewImage(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
-
-	std::vector<ImageDocumentDialog*> m_openedDocuments;
+	void OnWindowEffects(wxCommandEvent& event);
+	void OnWindowTools(wxCommandEvent& event);
+	void OnWindowInfos(wxCommandEvent& event);
+	void OnWindowColor(wxCommandEvent& event);
+	void OnWindowParameter(wxCommandEvent& event);
+	void OnWindowLayer(wxCommandEvent& event);
+	std::vector<ImageDocument*> m_openedDocuments;
    
 	Regards::Editor::CMainParam * viewerParam;
 	Regards::Editor::CMainTheme * viewerTheme;
 
+	ImageDocument* m_activeDocument = nullptr; 
+	ColorDialog* colorDialog = nullptr;
+	LayerDialog* layerDialog = nullptr;
+	EffectsDialog* effectsDialog = nullptr;
+	InfoDialog* infoDialog = nullptr;	
+	ParameterDialog* parameterDialog = nullptr;
 	wxString lastFolder = "";
 	IMainInterface* mainInterface;
 	DECLARE_EVENT_TABLE()

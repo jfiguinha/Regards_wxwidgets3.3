@@ -1,10 +1,10 @@
 #include <header.h>
-#include "ImageDocumentDialog.h"
+#include "ImageDocument.h"
 #include <libPicture.h>
-
+#include <EditorFrame.h>
 using namespace Regards::Picture;
 
-ImageDocumentDialog::ImageDocumentDialog(wxWindow* parent, wxWindowID bitmapViewerId,
+ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename)
     : wxDialog(parent, wxID_ANY, filename, wxDefaultPosition, wxSize(600, 450),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX)
@@ -24,6 +24,8 @@ ImageDocumentDialog::ImageDocumentDialog(wxWindow* parent, wxWindowID bitmapView
         config->GetBitmapWindowTheme(&themeBitmap);
     }
 
+	m_filename = filename;
+
     this->bitmapInterface = bitmapInterfaceIn;
 
     bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface);
@@ -39,12 +41,12 @@ ImageDocumentDialog::ImageDocumentDialog(wxWindow* parent, wxWindowID bitmapView
 
 	bitmapWindow->SetBitmap(pictureLocal);
 
-    Connect(wxEVT_SIZE, wxSizeEventHandler(ImageDocumentDialog::OnSize));
-    Connect(wxEVENT_REFRESH, wxCommandEventHandler(ImageDocumentDialog::OnRefresh));
-    Connect(wxEVENT_RESIZE, wxCommandEventHandler(ImageDocumentDialog::OnResize));
-    Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocumentDialog::OnEraseBackground));
-    Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocumentDialog::OnIdle));
-
+    Connect(wxEVT_SIZE, wxSizeEventHandler(ImageDocument::OnSize));
+    Connect(wxEVENT_REFRESH, wxCommandEventHandler(ImageDocument::OnRefresh));
+    Connect(wxEVENT_RESIZE, wxCommandEventHandler(ImageDocument::OnResize));
+    Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocument::OnEraseBackground));
+    Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocument::OnIdle));
+    Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
     // --- CORRECTION : Création manuelle de la Status Bar ---
   // En passant 'this' en parent, le wxStatusBar se place automatiquement tout en bas du dialogue
     m_statusBar = new wxStatusBar(this, wxID_ANY);
@@ -52,23 +54,39 @@ ImageDocumentDialog::ImageDocumentDialog(wxWindow* parent, wxWindowID bitmapView
     m_statusBar->SetStatusText("Prêt.");
 }
 
+// Implémentation de la fonction OnActivate
+void ImageDocument::OnActivate(wxActivateEvent& event)
+{
+    // Si la fenêtre devient active
+    if (event.GetActive())
+    {
+        // On récupère le parent (CEditorFrame) et on lui transmet notre pointeur
+        CEditorFrame* frame = dynamic_cast<CEditorFrame*>(GetParent());
+        if (frame)
+        {
+            frame->SetActiveDocument(this);
+            frame->SetStatusText("Document actif changé : " + this->GetTitle());
+        }
+    }
+    event.Skip(); // IMPORTANT : laisser wxWidgets propager l'événement normalement
+}
 
-void ImageDocumentDialog::OnResize(wxCommandEvent& event)
+void ImageDocument::OnResize(wxCommandEvent& event)
 {
    // this->Resize();
 }
 
-void ImageDocumentDialog::OnRefresh(wxCommandEvent& event)
+void ImageDocument::OnRefresh(wxCommandEvent& event)
 {
     needToRefresh = true;
 }
 
 
-void ImageDocumentDialog::OnEraseBackground(wxEraseEvent& event)
+void ImageDocument::OnEraseBackground(wxEraseEvent& event)
 {}
 
 
-void ImageDocumentDialog::OnIdle(wxIdleEvent& evt)
+void ImageDocument::OnIdle(wxIdleEvent& evt)
 {
     if (needToRefresh)
     {
@@ -77,13 +95,13 @@ void ImageDocumentDialog::OnIdle(wxIdleEvent& evt)
     }
 }
 
-void ImageDocumentDialog::ResizeImage(int w, int h)
+void ImageDocument::ResizeImage(int w, int h)
 {
     scrollbar->SetSize(0, 0, w, h);
     scrollbar->Refresh();
 }
 
-void ImageDocumentDialog::OnSize(wxSizeEvent& event)
+void ImageDocument::OnSize(wxSizeEvent& event)
 {
     const wxSize clientSize = this->GetClientSize();
     int _width = clientSize.GetWidth();
