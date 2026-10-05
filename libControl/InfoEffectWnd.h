@@ -19,16 +19,21 @@ namespace Regards::Control
 	{
 	public:
 		CInfoEffectWnd(wxWindow* parent, wxWindowID id, const CThemeScrollBar& themeScroll,
-		               const CThemeTree& themeTree, int bitmap_window_id);
-		~CInfoEffectWnd(void) = default;
+		               const CThemeTree& themeTree, int bitmap_window_id, bool eraseMemory = true);
+		~CInfoEffectWnd(void);
+
+		CTreeElementControlInterface * GetTreeInterface();
+
+		void SetHistoryEffect(CInfoEffect* infoEffect);
 
 		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle);
 		void HistoryUpdate(CImageLoadingFormat* bitmap, const wxString& filename, const wxString& historyLibelle,
 		                   CModificationManager* modificationManager);
 
 	private:
-		std::unique_ptr<CInfoEffect> historyEffectOld;
+		CInfoEffect * historyEffectOld;
 		int bitmapWindowId;
+		bool eraseMemory = true;
 		//const wxWindowID id_;
 		//const CThemeScrollBar& theme_scroll_;
 	};

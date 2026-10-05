@@ -1,8 +1,10 @@
 #include <header.h>
 #include "ImageDocument.h"
 #include <libPicture.h>
-
+#include <ModificationManager.h>
+#include <FileUtility.h>
 #include <EditorFrame.h>
+#include <LibResource.h>
 using namespace Regards::Picture;
 
 
@@ -76,9 +78,20 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     // Connexion de l'événement de défilement du Slider
     m_zoomSlider->Bind(wxEVT_CUSTOM_SLIDER_CHANGED, &ImageDocument::OnSliderScroll, this);
 
+    wxString historyLibelle = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1);
+    wxString folder = CFileUtility::GetDocumentFolderPath();
+    modificationManager = std::make_unique<CModificationManager>(folder);
+    historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId);
 
+    historyEffect->Init(pictureLocal, filename, historyLibelle);
     // Mettre à jour les textes pour la première fois
     UpdateStatusText();
+}
+
+
+CInfoEffect* ImageDocument::GetHistoryPt()
+{
+    return historyEffect.get();
 }
 
 void ImageDocument::OnCrop()
@@ -95,6 +108,7 @@ void ImageDocument::OnCanvas()
 {
 
 }
+
 
 void ImageDocument::OnFlipVertical()
 {

@@ -64,6 +64,8 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     // Si vous souhaitez qu'elle soit maximisée malgré tout, décommentez la ligne ci-dessous :
     // this->Maximize();
 
+    SetIcon(wxICON(sample));
+
     colorDialog = new CColorPickerDialog(this);
     layerDialog = new LayerDialog(this);
     infoDialog = new InfoDialog(this);
@@ -230,14 +232,16 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
     {
         if (parameterDialog)
         {
-            //STImageDoc imageDoc = m_openedDocuments[m_activeDocument->GetBitmapViewerId()];
-
-            parameterDialog->SetFiltre(event.GetId() - wxID_HIGHEST - 100, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+            int numEffect = event.GetId() - wxID_HIGHEST - 100;
+            parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+            parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
             parameterDialog->Show(true);
         }
         //m_activeDocument->Crop();
     }
 }
+
+
 
 void CEditorFrame::OnWindowCrop(wxCommandEvent& event)
 {
@@ -388,6 +392,8 @@ void CEditorFrame::OnOpen()
 	imageDoc.mainId = SHOWBITMAPVIEWERID + imageCount;
 	imageDoc.bitmapId = BITMAPWINDOWVIEWERID + imageCount;
     m_openedDocuments[imageDoc.mainId] = imageDoc;
+
+    
 }
 
 void CEditorFrame::SetActiveDocument(ImageDocument* doc)
@@ -395,6 +401,7 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
     if (doc)
     {
         m_activeDocument = doc;
+        historyDialog->SetHistoryControl(doc->GetHistoryPt());
         infoDialog->SetFilename(m_activeDocument->GetFileName());
     }
 }

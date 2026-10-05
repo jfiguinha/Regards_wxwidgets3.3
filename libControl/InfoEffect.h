@@ -16,6 +16,7 @@ namespace Regards::Control
 		void Init(CImageLoadingFormat* bitmap, const wxString& libelle, const wxString& key);
 		void AddEvent(const wxString& libelle, const wxString& key);
 		void SetActifElement(const wxString& key);
+		void SetTreeInterface(CTreeElementControlInterface* interfaceControl);
 
 		// Conserve la signature, mais en interne le bitmap n'est plus enregistré sur le disque
 		// Remplacer l'ancienne signature par la nouvelle

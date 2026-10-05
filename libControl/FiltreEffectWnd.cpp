@@ -137,84 +137,82 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 
 		if (bitmapViewer != nullptr)
 		{
-			if (bitmapViewer != nullptr)
-			{
-				//auto filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
-				int typeData = CFiltreData::TypeApplyFilter(numItem);
+			//auto filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
+			int typeData = CFiltreData::TypeApplyFilter(numItem);
 
-				switch (typeData)
+			switch (typeData)
+			{
+			case 1:
 				{
-				case 1:
+					wxCommandEvent evt(wxEVENT_APPLYEFFECT);
+					evt.SetInt(numItem);
+					previewWindow->GetEventHandler()->AddPendingEvent(evt);
+
+
+					if (previewWindow != nullptr)
 					{
-						wxCommandEvent evt(wxEVENT_APPLYEFFECT);
+						wxCommandEvent wx_command_event(wxEVENT_SHOWTOOLBARFILTRE);
+						wx_command_event.SetInt(numItem);
+						previewWindow->GetEventHandler()->AddPendingEvent(wx_command_event);
+					}
+					bitmapViewer->SetTool(numItem);
+					bitmapViewer->SetBitmapPreviewEffect(numItem);
+				}
+				break;
+
+			case 2:
+				{
+					effectParameter = CFiltreData::GetEffectParameter(numItem);
+
+
+					bitmapViewer->SetBitmapPreviewEffect(numItem);
+
+					bitmap.reset(bitmapViewer->GetBitmap(true));
+
+					if(filtreEffect == nullptr)
+						filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
+
+					filtreEffect->Init(effectParameter, bitmap->GetMatImage().clone(), filename, numItem);
+
+					if (previewWindow != nullptr)
+					{
+						wxCommandEvent evt(wxEVENT_SHOWTOOLBARFILTRE);
 						evt.SetInt(numItem);
 						previewWindow->GetEventHandler()->AddPendingEvent(evt);
-
-
-						if (previewWindow != nullptr)
-						{
-							wxCommandEvent wx_command_event(wxEVENT_SHOWTOOLBARFILTRE);
-							wx_command_event.SetInt(numItem);
-							previewWindow->GetEventHandler()->AddPendingEvent(wx_command_event);
-						}
-						bitmapViewer->SetTool(numItem);
-						bitmapViewer->SetBitmapPreviewEffect(numItem);
 					}
-					break;
 
-				case 2:
+					//if (previewWindow != nullptr)
+					//	previewWindow->ShowValidationToolbar(true, numItem);
+
+					if (panelInfos != nullptr)
 					{
-						effectParameter = CFiltreData::GetEffectParameter(numItem);
-
-
-						bitmapViewer->SetBitmapPreviewEffect(numItem);
-
-						bitmap.reset(bitmapViewer->GetBitmap(true));
-
-						if(filtreEffect == nullptr)
-							filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
-
-						filtreEffect->Init(effectParameter, bitmap->GetMatImage().clone(), filename, numItem);
-
-						if (previewWindow != nullptr)
-						{
-							wxCommandEvent evt(wxEVENT_SHOWTOOLBARFILTRE);
-							evt.SetInt(numItem);
-							previewWindow->GetEventHandler()->AddPendingEvent(evt);
-						}
-
-						//if (previewWindow != nullptr)
-						//	previewWindow->ShowValidationToolbar(true, numItem);
-
-						if (panelInfos != nullptr)
-						{
-							wxCommandEvent evt(wxEVENT_SHOWFILTRE);
-							evt.SetInt(numItem);
-							panelInfos->GetEventHandler()->AddPendingEvent(evt);
-						}
-						//panelInfos->ShowFiltre(CFiltreData::GetFilterLabel(numItem));
-						treeWindow->SetTreeControl(filtreEffect);
-
-						filtreEffectOld.reset(filtreEffect);
-
-
-						break;
+						wxCommandEvent evt(wxEVENT_SHOWFILTRE);
+						evt.SetInt(numItem);
+						panelInfos->GetEventHandler()->AddPendingEvent(evt);
 					}
+					//panelInfos->ShowFiltre(CFiltreData::GetFilterLabel(numItem));
+					treeWindow->SetTreeControl(filtreEffect);
 
-				default:
-					{
-						CImageLoadingFormat* imageLoad = CFilterWindowParam::RenderEffect(
-							effectParameter, bitmapViewer, numItem);
+					filtreEffectOld.reset(filtreEffect);
 
-						historyEffectWnd->AddModification(numItem, effectParameter, CFiltreData::GetFilterLabel(numItem));
 
-						if (imageLoad != nullptr)
-							SetBitmapToViewer(imageLoad);
-					}
 					break;
 				}
+
+			default:
+				{
+					CImageLoadingFormat* imageLoad = CFilterWindowParam::RenderEffect(
+						effectParameter, bitmapViewer, numItem);
+
+					historyEffectWnd->AddModification(numItem, effectParameter, CFiltreData::GetFilterLabel(numItem));
+
+					if (imageLoad != nullptr)
+						SetBitmapToViewer(imageLoad);
+				}
+				break;
 			}
 		}
+		
 	}
 	else
 	{

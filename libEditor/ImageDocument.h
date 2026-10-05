@@ -4,14 +4,20 @@
 #include "BitmapEditor.h"
 #include <ThemeParam.h>
 #include <customslider.h>
+#include <InfoEffect.h>
+#include <InfoEffectWnd.h>
 using namespace Regards::Window;
 using namespace Regards::Control;
+
+class CModificationManager;
+
 // --- 1. La Fenêtre "Image" (Dialogue Non-Modal) ---
 class ImageDocument : public wxDialog {
 public:
     ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
         wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename);
 
+    CInfoEffect * GetHistoryPt();
 	wxString GetFileName() const { return m_filename; }
 
 	int GetBitmapViewerId() const { return id; }
@@ -52,7 +58,9 @@ private:
     CBitmapEditor* bitmapWindow = nullptr;
     CBitmapWnd3D *     bitmapWindowRender = nullptr;
     CBitmapInterface * bitmapInterface = nullptr;
-   
+    std::unique_ptr<CModificationManager> modificationManager;
+    std::unique_ptr<CInfoEffect> historyEffect;
+
     wxString m_filename;
     int id = 0;
 	int mainviewerid = 0;

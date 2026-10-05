@@ -22,7 +22,21 @@ ParameterDialog::ParameterDialog(wxWindow* parent)
 		filtreEffectWnd = new CFiltreEffectScrollWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
 		filtreEffectWnd->Show(true);
 	}
+
+	if (viewerTheme != nullptr)
+	{
+		CThemeToolbar theme;
+		viewerTheme->GetFiltreToolbarTheme(&theme);
+		filtreToolbar = new CFiltreToolbar(this, wxID_ANY, theme, false);
+		filtreToolbar->Show(true);
+	}
+
+
+	
+		
 	Connect(wxEVT_SIZE, wxSizeEventHandler(ParameterDialog::OnSize));
+	Connect(wxEVENT_FILTREOK, wxCommandEventHandler(ParameterDialog::OnFiltreOk));
+	Connect(wxEVENT_FILTRECANCEL, wxCommandEventHandler(ParameterDialog::OnFiltreCancel));
 
 	m_statusBar = new wxStatusBar(this, wxID_ANY);
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
@@ -30,10 +44,29 @@ ParameterDialog::ParameterDialog(wxWindow* parent)
 }
 
 
+void ParameterDialog::OnFiltreOk(wxCommandEvent& event)
+{
+	if(filtreEffectWnd)
+		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
+
+	this->Show(false);
+}
+
+void ParameterDialog::OnFiltreCancel(wxCommandEvent& event)
+{
+	if(filtreEffectWnd)
+		filtreEffectWnd->OnFiltreCancel();
+
+	this->Show(false);
+}
+
 void ParameterDialog::SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString &filename, const int& bitmapViewerId, const int& mainViewerId)
 {
 	if (filtreEffectWnd)
 	{
+		this->historyEffectWnd = historyEffectWnd;
+		this->numFiltre = numFiltre;
+		filtreToolbar->SetNumFiltre(numFiltre);
 		filtreEffectWnd->SetParentBitmapId(mainViewerId);
 		filtreEffectWnd->ApplyEffect(numFiltre, historyEffectWnd, filename, false, PANELINFOSWNDID,
 			bitmapViewerId);
@@ -58,8 +91,10 @@ void ParameterDialog::OnSize(wxSizeEvent& event)
 	{
 		int statusHeight = m_statusBar->GetSize().GetHeight();
 		m_statusBar->SetSize(0, _height - statusHeight, _width, statusHeight);
+		_height -= statusHeight;
 
-
+		statusHeight = filtreToolbar->GetHeight();
+		filtreToolbar->SetSize(0, _height - statusHeight, _width, statusHeight);
 		_height -= statusHeight;
 	}
 

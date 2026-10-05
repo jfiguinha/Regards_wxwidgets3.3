@@ -38,6 +38,11 @@ CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModifi
 	rowWidth.push_back(0);
 }
 
+void CInfoEffect::SetTreeInterface(CTreeElementControlInterface* interfaceControl)
+{
+	eventControl = interfaceControl;
+}
+
 void CInfoEffect::Init(CImageLoadingFormat* bitmap, const wxString& libelle, const wxString& key)
 {
 	this->baseBitmap = bitmap; // On stocke la référence de l'image source non-modifiée
@@ -110,7 +115,8 @@ void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, co
 		treeElementTriangle->ClickElement(window, (x + posLargeur) - element->GetX(),
 			(y + posHauteur) - element->GetY());
 		CreateElement(RenderMode::Update);
-		eventControl->UpdateTreeControl();
+		if(eventControl)
+			eventControl->UpdateTreeControl();
 	}
 }
 
@@ -169,7 +175,8 @@ void CInfoEffect::SetActifElement(const wxString& key)
 				data->SetActif(false);
 		}
 	}
-	eventControl->UpdateTreeControl();
+	if (eventControl)
+		eventControl->UpdateTreeControl();
 }
 
 void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
@@ -226,7 +233,8 @@ void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 		++level;
 	}
 	CreateElement(RenderMode::Update);
-	eventControl->UpdateTreeControl();
+	if(eventControl)
+		eventControl->UpdateTreeControl();
 }
 
 void CInfoEffect::CreateElement(RenderMode mode)

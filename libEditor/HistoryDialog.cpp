@@ -19,7 +19,7 @@ HistoryDialog::HistoryDialog(wxWindow* parent)
 
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
-		historyEffectWnd = new CInfoEffectWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
+		historyEffectWnd = new CInfoEffectWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID, false);
 		historyEffectWnd->Show(true);
 	}
 
@@ -29,6 +29,11 @@ HistoryDialog::HistoryDialog(wxWindow* parent)
 	m_statusBar = new wxStatusBar(this, wxID_ANY);
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
 	m_statusBar->SetStatusText("");
+}
+
+void HistoryDialog::SetHistoryControl(CInfoEffect* infoEffect)
+{
+	historyEffectWnd->SetHistoryEffect(infoEffect);
 }
 
 void HistoryDialog::OnSize(wxSizeEvent& event)

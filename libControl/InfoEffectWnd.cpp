@@ -14,12 +14,40 @@
 using namespace Regards::Control;
 using namespace Regards::Window;
 
-CInfoEffectWnd::CInfoEffectWnd(wxWindow* parent, const wxWindowID id, const CThemeScrollBar& themeScroll,
-                               const CThemeTree& themeTree, int bitmap_window_id)
+CInfoEffectWnd::CInfoEffectWnd(wxWindow* parent, wxWindowID id, const CThemeScrollBar& themeScroll,
+	const CThemeTree& themeTree, int bitmap_window_id, bool eraseMemory)
 	: CTreeWithScrollbar("CInfoEffectWnd", parent, id, themeScroll, themeTree)
 {
 	this->bitmapWindowId = bitmap_window_id;
+	this->eraseMemory = eraseMemory;
 	historyEffectOld = nullptr;
+}
+
+CTreeElementControlInterface* CInfoEffectWnd::GetTreeInterface()
+{
+	return treeWindow;
+}
+
+
+CInfoEffectWnd::~CInfoEffectWnd(void)
+{
+	if (eraseMemory && historyEffectOld)
+		delete historyEffectOld;
+}
+
+void CInfoEffectWnd::SetHistoryEffect(CInfoEffect* infoEffect)
+{
+	if (infoEffect != nullptr)
+		historyEffectOld = infoEffect;
+	eraseMemory = false;
+	if (treeWindow)
+	{
+		CTreeElementControlInterface * treeInterface = static_cast<CTreeElementControlInterface*>(treeWindow);
+		if (treeInterface)
+			treeInterface->UpdateTreeControl();
+	}
+
+	this->Refresh();
 }
 
 void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle)
@@ -37,6 +65,9 @@ void CInfoEffectWnd::HistoryUpdate(CImageLoadingFormat* bitmap, const wxString& 
 		auto historyEffect = new CInfoEffect(treeWindow, modificationManager, bitmapWindowId);
 		historyEffect->Init(bitmap, filename, historyLibelle);
 		treeWindow->SetTreeControl(historyEffect);
-		historyEffectOld.reset(historyEffect);
+
+		if (historyEffectOld)
+			delete historyEffectOld;
+		historyEffectOld = historyEffect;
 	}
 }
