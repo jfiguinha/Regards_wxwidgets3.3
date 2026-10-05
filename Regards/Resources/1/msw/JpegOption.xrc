@@ -69,16 +69,14 @@
 				</object>
 			</object>
 			
-			<!-- Espaceur dynamique : pousse obligatoirement tout ce qui suit vers le bas -->
-			<object class="sizeritem">
+			<!-- CORRECTION FINALE : Syntaxe stricte et universelle pour l'espaceur XRC -->
+			<object class="spacer">
 				<option>1</option>
 				<flag>wxEXPAND</flag>
-				<object class="wxSpacer">
-					<size>0,0</size>
-				</object>
+				<size>0,0</size>
 			</object>
 			
-			<!-- Zone des boutons (Sécurisée en bas à droite) -->
+			<!-- Zone des boutons (Poussée tout en bas) -->
 			<object class="sizeritem">
 				<flag>wxALIGN_RIGHT|wxALL</flag>
 				<border>10</border>
