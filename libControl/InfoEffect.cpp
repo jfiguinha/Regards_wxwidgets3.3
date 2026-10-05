@@ -18,8 +18,9 @@ using namespace Regards::Control;
 using namespace Regards::Picture;
 
 CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModificationManager* modificationManager,
-	int bitmapWindowId) : numEvent(0), yPos(0), index(0), baseBitmap(nullptr)
+	int bitmapWindowId, wxString filename) : numEvent(0), yPos(0), index(0), baseBitmap(nullptr)
 {
+	this->filename = filename;
 	this->bitmapWindowId = bitmapWindowId;
 	widthPosition = 0;
 	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
@@ -124,7 +125,7 @@ void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, co
 
 void CInfoEffect::InitTree(const wxString& libelle, const wxString& key)
 {
-	filename = libelle;
+	//filename = libelle;
 	numEvent = 1;
 	index = 0;
 	wxString localLibelle = libelle;

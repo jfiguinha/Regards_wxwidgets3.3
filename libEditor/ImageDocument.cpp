@@ -81,7 +81,7 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     wxString historyLibelle = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1);
     wxString folder = CFileUtility::GetDocumentFolderPath();
     modificationManager = std::make_unique<CModificationManager>(folder);
-    historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId);
+    historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, filename);
 
     historyEffect->Init(pictureLocal, filename, historyLibelle);
     // Mettre à jour les textes pour la première fois

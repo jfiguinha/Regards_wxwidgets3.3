@@ -34,6 +34,7 @@ HistoryDialog::HistoryDialog(wxWindow* parent)
 void HistoryDialog::SetHistoryControl(CInfoEffect* infoEffect)
 {
 	historyEffectWnd->SetHistoryEffect(infoEffect);
+	historyEffectWnd->Refresh();
 }
 
 void HistoryDialog::OnSize(wxSizeEvent& event)

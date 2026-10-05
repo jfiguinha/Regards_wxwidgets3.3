@@ -9,7 +9,7 @@ namespace Regards::Control
 	{
 	public:
 		CInfoEffect(CTreeElementControlInterface* interfaceControl, CModificationManager* modificationManager,
-			int bitmapWindowId);
+			int bitmapWindowId, wxString filename);
 		~CInfoEffect() = default;
 
 		wxString GetFilename();
