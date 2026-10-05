@@ -127,6 +127,9 @@
     <ClCompile Include="PictureMetadataExiv.cpp">
       <Filter>libexif</Filter>
     </ClCompile>
+    <ClCompile Include="CompressionOption.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="raw.h">
@@ -275,6 +278,9 @@
     </ClInclude>
     <ClInclude Include="PictureMetadataExiv.h">
       <Filter>libexif</Filter>
+    </ClInclude>
+    <ClInclude Include="CompressionOption.h">
+      <Filter>Dialog</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
