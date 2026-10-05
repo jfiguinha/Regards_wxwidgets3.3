@@ -16,7 +16,7 @@
 #include <FreeImage.h>
 #include <OpenEXR/ImfRgbaFile.h>
 #include <OpenEXR/ImfArray.h>
-
+#include "CompressionOption.h"
 #include "MetadataExiv2.h"
 #include "regards_webp.h"
 #include "picture_utility.h"
@@ -61,9 +61,9 @@ using namespace Regards::exiv2;
 #include <BmpOption.h>
 #include <ExrOption.h>
 #include <J2kOption.h>
+#include <JpegOption.h>
 #include <JxrOption.h>
 #include <SqlPhotos.h>
-#include <CompressionOption.h>
 #include "imageinfo.hpp"
 #include "RegardsPDF.h"
 #include "MediaInfo.h"
@@ -1557,7 +1557,7 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality)
         if (dlg.IsOk()) { option = dlg.CompressionOption(); ret = 1; }
         break;
     }
-    case JPEG:
+
     case HEIC:
     case AVIF:
     case JPEG2000:
@@ -1565,6 +1565,14 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality)
         CompressionOption dlg(nullptr);
         dlg.ShowModal();
         if (dlg.IsOk()) { option = 0; quality = dlg.CompressionLevel(); ret = 1; }
+        break;
+    }
+
+    case JPEG:
+    {
+        JpegOption dlg(nullptr);
+        dlg.ShowModal();
+        if (dlg.IsOk()) { option = dlg.CompressionOption(); quality = dlg.CompressionLevel(); ret = 1; }
         break;
     }
     case JP2:

@@ -52,9 +52,6 @@
     <ClCompile Include="webpOption.cpp">
       <Filter>Dialog</Filter>
     </ClCompile>
-    <ClCompile Include="CompressionOption.cpp">
-      <Filter>Dialog</Filter>
-    </ClCompile>
     <ClCompile Include="PictureData.cpp">
       <Filter>datastructure</Filter>
     </ClCompile>
@@ -178,9 +175,6 @@
       <Filter>Dialog</Filter>
     </ClInclude>
     <ClInclude Include="webpOption.h">
-      <Filter>Dialog</Filter>
-    </ClInclude>
-    <ClInclude Include="CompressionOption.h">
       <Filter>Dialog</Filter>
     </ClInclude>
     <ClInclude Include="PictureData.h">
