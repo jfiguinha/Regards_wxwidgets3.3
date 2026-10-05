@@ -7,7 +7,7 @@ using namespace Regards::Control;
 class ParameterDialog : public wxDialog {
 public:
     ParameterDialog(wxWindow* parent);
-    void SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString& filename);
+    void SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString& filename, const int& bitmapViewerId, const int& mainViewerId);
 
 private:
     void OnSize(wxSizeEvent& event);

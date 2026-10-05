@@ -34,7 +34,10 @@ CFiltreEffectScrollWnd::CFiltreEffectScrollWnd(wxWindow* parent, wxWindowID id, 
 	Connect(wxEVENT_UPDATEFILTER, wxCommandEventHandler(CFiltreEffectScrollWnd::OnUpdateFilter));
 }
 
-
+void CFiltreEffectScrollWnd::SetParentBitmapId(const int& bitmapWindowId)
+{
+	this->bitmapWindowId = bitmapWindowId;
+}
 
 void CFiltreEffectScrollWnd::SetBitmapToViewer(CImageLoadingFormat* bitmap)
 {

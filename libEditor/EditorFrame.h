@@ -13,6 +13,14 @@ class ParameterDialog;
 class ImageDocument;
 class HistoryDialog;
 
+
+struct STImageDoc
+{
+	ImageDocument* doc;
+	wxWindowID mainId;
+	wxWindowID bitmapId;
+};
+
 // Define a new frame type: this is going to be our main frame
 class CEditorFrame : public wxFrame
 {
@@ -61,7 +69,7 @@ private:
 	void OnWindowRotate270(wxCommandEvent& event);
 	void OnSelectEffect(wxCommandEvent& event);
 
-	std::vector<ImageDocument*> m_openedDocuments;
+	std::map<int, STImageDoc> m_openedDocuments;
    
 	Regards::Editor::CMainParam * viewerParam;
 	Regards::Editor::CMainTheme * viewerTheme;

@@ -14,6 +14,9 @@ public:
 
 	wxString GetFileName() const { return m_filename; }
 
+	int GetBitmapViewerId() const { return id; }
+	int GetMainViewerId() const { return mainviewerid; }
+
 	int GetBitmapWidth() const;
 	int GetBitmapHeight() const;
 
@@ -51,8 +54,8 @@ private:
     CBitmapInterface * bitmapInterface = nullptr;
    
     wxString m_filename;
-
-
+    int id = 0;
+	int mainviewerid = 0;
     wxCustomSlider * m_zoomSlider = nullptr; // Le slider pour le zoom
     wxStatusBar* m_statusBar;
 };

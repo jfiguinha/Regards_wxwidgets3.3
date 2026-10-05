@@ -16,6 +16,9 @@
 #define MAX_ZOOM	10.0
 #define MIN_ZOOM	0.1
 
+#define SHOWBITMAPVIEWERID 0x01000
+#define BITMAPWINDOWVIEWERID 0x00100
+
 // --- Énumération locale pour les IDs du menu Window ---
 enum {
     ID_WINDOW_EFFECTS = wxID_HIGHEST + 1,
@@ -227,7 +230,9 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
     {
         if (parameterDialog)
         {
-            parameterDialog->SetFiltre(event.GetId() - wxID_HIGHEST - 100, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName());
+            //STImageDoc imageDoc = m_openedDocuments[m_activeDocument->GetBitmapViewerId()];
+
+            parameterDialog->SetFiltre(event.GetId() - wxID_HIGHEST - 100, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
             parameterDialog->Show(true);
         }
         //m_activeDocument->Crop();
@@ -373,10 +378,16 @@ void CEditorFrame::OnOpen()
     static int imageCount = 1;
     imageCount++;
 
+
     CMainTheme* viewerTheme = CMainThemeInit::getInstance();
-    ImageDocument* imgDoc = new ImageDocument(this, SHOWBITMAPVIEWERID, BITMAPWINDOWVIEWERID, nullptr, viewerTheme, openFileDialog.GetPath());
+    ImageDocument* imgDoc = new ImageDocument(this, SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, openFileDialog.GetPath());
     imgDoc->Show(true);
-    m_openedDocuments.push_back(imgDoc);
+
+    STImageDoc imageDoc;
+    imageDoc.doc = imgDoc;
+	imageDoc.mainId = SHOWBITMAPVIEWERID + imageCount;
+	imageDoc.bitmapId = BITMAPWINDOWVIEWERID + imageCount;
+    m_openedDocuments[imageDoc.mainId] = imageDoc;
 }
 
 void CEditorFrame::SetActiveDocument(ImageDocument* doc)

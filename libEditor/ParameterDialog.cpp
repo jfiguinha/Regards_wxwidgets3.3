@@ -30,12 +30,14 @@ ParameterDialog::ParameterDialog(wxWindow* parent)
 }
 
 
-void ParameterDialog::SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString& filename)
+void ParameterDialog::SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString &filename, const int& bitmapViewerId, const int& mainViewerId)
 {
 	if (filtreEffectWnd)
 	{
+		filtreEffectWnd->SetParentBitmapId(mainViewerId);
 		filtreEffectWnd->ApplyEffect(numFiltre, historyEffectWnd, filename, false, PANELINFOSWNDID,
-			PREVIEWVIEWERID);
+			bitmapViewerId);
+		
 		filtreEffectWnd->Show(true);
 	}
 }

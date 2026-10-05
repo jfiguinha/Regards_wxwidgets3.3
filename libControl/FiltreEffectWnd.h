@@ -30,6 +30,7 @@ namespace Regards::Control
 		void OnFiltreCancel();
 		CFiltreEffect* GetFiltreEffect();
 		int GetNumFiltre();
+		void SetParentBitmapId(const int& bitmapWindowId);
 
 	private:
 		void OnUpdateFilter(wxCommandEvent& event);

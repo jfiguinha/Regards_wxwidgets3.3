@@ -20,6 +20,8 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     CLibPicture libPicture;
     CImageLoadingFormat* pictureLocal = libPicture.LoadPicture(filename);
 
+    id = bitmapViewerId;
+    this->mainviewerid = bitmapViewerId;
 
     CThemeBitmapWindow themeBitmap;
     if (config)
