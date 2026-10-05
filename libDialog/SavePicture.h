@@ -7,8 +7,8 @@ class CSavePicture
 public:
 	CSavePicture();
 	~CSavePicture();
-	static void SavePicture(wxWindow* window, CImageLoadingFormat* bitmap, const wxString& filename);
-	static void ExportPicture(wxWindow* window, const wxString& filename);
+	static wxString SavePicture(wxWindow* window, CImageLoadingFormat* bitmap, const wxString& filename);
+	static wxString ExportPicture(wxWindow* window, const wxString& filename);
 	static wxString LoadPicture();
 	static wxArrayString LoadMultiplePicture();
 

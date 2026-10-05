@@ -42,11 +42,17 @@ public:
 
 private:
 
-	void Exit();
+	
 	void OnAbout(wxCommandEvent& WXUNUSED(event));
+
 	void OnNewImage(wxCommandEvent& event);
+	void OnOpenImage(wxCommandEvent& event);
+	void OnCloseImage(wxCommandEvent& event);
+	void OnSave(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
+	void Exit();
+	
 	void OnWindowEffects(wxCommandEvent& event);
 	void OnWindowTools(wxCommandEvent& event);
 	void OnWindowInfos(wxCommandEvent& event);
@@ -68,7 +74,7 @@ private:
 	void OnWindowRotate180(wxCommandEvent& event);
 	void OnWindowRotate270(wxCommandEvent& event);
 	void OnSelectEffect(wxCommandEvent& event);
-	void OnOpenImage(wxCommandEvent& event);
+
 
 	std::map<int, STImageDoc> m_openedDocuments;
    

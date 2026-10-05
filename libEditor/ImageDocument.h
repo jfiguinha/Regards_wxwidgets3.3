@@ -29,6 +29,8 @@ public:
 	int GetBitmapWidth() const;
 	int GetBitmapHeight() const;
 
+    void Save();
+
 	void ZoomIn();
 	void ZoomOut();
 	void Shrink();

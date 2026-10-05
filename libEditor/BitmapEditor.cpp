@@ -16,3 +16,8 @@ void CBitmapEditor::SetRealSize()
 	ratio = 1.0f;
 	this->RefreshWindow();
 }
+
+void CBitmapEditor::SetFilename(const wxString& filename)
+{
+	this->filename = filename;
+}

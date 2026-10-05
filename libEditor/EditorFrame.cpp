@@ -91,7 +91,12 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     wxMenu* menuFile = new wxMenu;
     menuFile->Append(wxID_NEW, "New ..\tCtrl+N");
     menuFile->Append(wxID_OPEN, "Open...\tCtrl+O");
-    menuFile->Append(wxID_EXIT, "Quitter\tCtrl+Q");
+    menuFile->AppendSeparator();
+    menuFile->Append(wxID_SAVE, "Save...\tCtrl+S");
+    menuFile->AppendSeparator();
+    menuFile->Append(wxID_CLOSE, "Close\tCtrl+Q");
+    menuFile->AppendSeparator();
+    menuFile->Append(wxID_EXIT, "Exit\tCtrl+Q");
 
     // --- NOUVEAU : Création du menu Window ---
     wxMenu* menuWindow = new wxMenu;
@@ -204,7 +209,8 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     // Liaison des événements de base
     Bind(wxEVT_MENU, &CEditorFrame::OnNewImage, this, wxID_NEW);
     Bind(wxEVT_MENU, &CEditorFrame::OnOpenImage, this, wxID_OPEN);
-    
+    Bind(wxEVT_MENU, &CEditorFrame::OnSave, this, wxID_SAVE);
+    Bind(wxEVT_MENU, &CEditorFrame::OnCloseImage, this, wxID_CLOSE);
     Bind(wxEVT_MENU, &CEditorFrame::OnQuit, this, wxID_EXIT);
 
     // --- NOUVEAU : Liaison des événements du menu Window ---
@@ -542,4 +548,21 @@ void CEditorFrame::OnNewImage(wxCommandEvent& event) {
 void CEditorFrame::OnOpenImage(wxCommandEvent& event)
 {
     OnOpen();
+}
+
+void CEditorFrame::OnSave(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->Save();
+    }
+}
+
+void CEditorFrame::OnCloseImage(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->Close();
+
+    }
 }

@@ -6,6 +6,7 @@
 #include <EditorFrame.h>
 #include <LibResource.h>
 #include <ImageLoadingFormat.h>
+#include <SavePicture.h>
 using namespace Regards::Picture;
 
 
@@ -187,6 +188,21 @@ void ImageDocument::OnCanvas()
 
 }
 
+
+void ImageDocument::Save()
+{
+    std::unique_ptr<CImageLoadingFormat> imageLoading;
+    imageLoading.reset(bitmapWindow->GetBitmap(true));
+    wxString filename = CSavePicture::SavePicture(nullptr, imageLoading.get(), bitmapWindow->GetFilename());
+
+    if (!filename.empty())
+    {
+        this->m_filename = filename;
+        this->SetTitle(this->m_filename);
+        bitmapWindow->SetFilename(m_filename);
+    }
+    
+}
 
 void ImageDocument::OnFlipVertical()
 {

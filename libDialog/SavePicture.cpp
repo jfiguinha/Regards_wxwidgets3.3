@@ -155,19 +155,20 @@ wxArrayString CSavePicture::LoadMultiplePicture() {
     return listFile;
 }
 
-void CSavePicture::ExportPicture(wxWindow* window, const wxString& filename) {
-    if (filename.empty()) return;
+wxString CSavePicture::ExportPicture(wxWindow* window, const wxString& filename) {
+    if (filename.empty()) return "";
 
     CLibPicture libPicture;
+    wxString fileOutput = "";
 
-    const wxString file = SelectExternalFormat(window, filename);
+    fileOutput  = SelectExternalFormat(window, filename);
 
-    if (file.empty()) return;
+    if (fileOutput.empty()) return fileOutput;
 
     const bool multipage = libPicture.TestIsAnimation(filename);
 
     if (!multipage) {
-        libPicture.SavePicture(filename, file);
+        libPicture.SavePicture(filename, fileOutput);
 
         const wxString savecompleted =
             CLibResource::LoadStringFromResource("LBLSAVEFILECOMPLETED", 1);
@@ -177,28 +178,28 @@ void CSavePicture::ExportPicture(wxWindow* window, const wxString& filename) {
 
         wxMessageBox(savecompleted, infos, wxOK | wxICON_INFORMATION, window);
 
-        return;
+        return fileOutput;
     }
 
-    int iFormat = libPicture.TestImageFormat(file);
+    int iFormat = libPicture.TestImageFormat(fileOutput);
 
     int option = 0;
     int quality = 0;
 
     if (libPicture.SavePictureOption(iFormat, option, quality) != 1) {
-        return;
+        return fileOutput;
     }
 
     const std::vector<int> listPage = SelectPage(window, filename);
 
-    if (listPage.empty()) return;
+    if (listPage.empty()) return fileOutput;
 
     const wxString libelle =
         CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
 
     wxBusyInfo wait(libelle, window);
 
-    const wxFileName outputFilename(file);
+    const wxFileName outputFilename(fileOutput);
 
     const wxString extension = outputFilename.GetExt();
 
@@ -213,7 +214,7 @@ void CSavePicture::ExportPicture(wxWindow* window, const wxString& filename) {
             outputFilename.GetName() + "_" + wxString::Format("%d", numPage),
             extension);
 
-        const wxString fileOutput = pageFilename.GetFullPath();
+        fileOutput = pageFilename.GetFullPath();
 
         libPicture.SavePicture(fileOutput, imageFormat, option, quality);
 
@@ -227,17 +228,19 @@ void CSavePicture::ExportPicture(wxWindow* window, const wxString& filename) {
         CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
 
     wxMessageBox(savecompleted, infos, wxOK | wxICON_INFORMATION, window);
+
+    return fileOutput;
 }
 
-void CSavePicture::SavePicture(wxWindow* window, CImageLoadingFormat* bitmap,
+wxString CSavePicture::SavePicture(wxWindow* window, CImageLoadingFormat* bitmap,
     const wxString& filename) {
-    if (filename.empty()) return;
+    if (filename.empty()) return "";
 
     CLibPicture libPicture;
 
-    const wxString file = SelectExternalFormat(window, filename);
+    wxString file = SelectExternalFormat(window, filename);
 
-    if (file.empty()) return;
+    if (file.empty()) return "";
 
     if (bitmap != nullptr) {
         libPicture.SavePicture(file, bitmap);
@@ -253,4 +256,7 @@ void CSavePicture::SavePicture(wxWindow* window, CImageLoadingFormat* bitmap,
         CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
 
     wxMessageBox(savecompleted, infos, wxOK | wxICON_INFORMATION, window);
+
+
+    return file;
 }
