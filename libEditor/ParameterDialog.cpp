@@ -32,9 +32,12 @@ ParameterDialog::ParameterDialog(wxWindow* parent)
 
 void ParameterDialog::SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString& filename)
 {
-	filtreEffectWnd->ApplyEffect(numFiltre, historyEffectWnd, filename, false, PANELINFOSWNDID,
-		PREVIEWVIEWERID);
-
+	if (filtreEffectWnd)
+	{
+		filtreEffectWnd->ApplyEffect(numFiltre, historyEffectWnd, filename, false, PANELINFOSWNDID,
+			PREVIEWVIEWERID);
+		filtreEffectWnd->Show(true);
+	}
 }
 
 
@@ -47,6 +50,15 @@ void ParameterDialog::OnSize(wxSizeEvent& event)
 	if (_width <= 20 && _height <= 20)
 	{
 		return;
+	}
+
+	if (m_statusBar)
+	{
+		int statusHeight = m_statusBar->GetSize().GetHeight();
+		m_statusBar->SetSize(0, _height - statusHeight, _width, statusHeight);
+
+
+		_height -= statusHeight;
 	}
 
 	filtreEffectWnd->SetSize(0, 0, _width, _height);

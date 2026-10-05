@@ -171,6 +171,32 @@ void ImageDocument::OnSliderScroll(wxCommandEvent& event)
 }
 
 
+int ImageDocument::GetBitmapWidth() const
+{
+	if (bitmapWindow)
+	{
+		return bitmapWindow->GetBitmapWidth();
+	}
+	return 0;
+}
+
+int ImageDocument::GetBitmapHeight() const
+{
+	if (bitmapWindow)
+	{
+		return bitmapWindow->GetBitmapHeight();
+	}
+	return 0;
+}
+
+void ImageDocument::Resize(int newWidth, int newHeight, int interpolation)
+{
+    if (bitmapWindow)
+    {
+       // return bitmapWindow->GetBitmapHeight();
+    }
+}
+
 void ImageDocument::ZoomIn()
 {
     bitmapWindow->ZoomOn();

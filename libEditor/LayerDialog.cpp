@@ -36,6 +36,16 @@ void LayerDialog::OnSize(wxSizeEvent& event)
 		return;
 	}
 
+	if (m_statusBar)
+	{
+		int statusHeight = m_statusBar->GetSize().GetHeight();
+		m_statusBar->SetSize(0, _height - statusHeight, _width, statusHeight);
+
+
+		_height -= statusHeight;
+	}
+
+
 	listLayer->SetSize(0, 0, _width, _height - m_statusBar->GetClientSize().GetHeight());
 	listLayer->Refresh();
 	// scrollbar->Refresh();

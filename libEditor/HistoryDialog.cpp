@@ -42,6 +42,16 @@ void HistoryDialog::OnSize(wxSizeEvent& event)
 		return;
 	}
 
+	if (m_statusBar)
+	{
+		int statusHeight = m_statusBar->GetSize().GetHeight();
+		m_statusBar->SetSize(0, _height - statusHeight, _width, statusHeight);
+
+
+		_height -= statusHeight;
+	}
+
+
 	historyEffectWnd->SetSize(0, 0, _width, _height);
 	historyEffectWnd->Refresh();
 	// scrollbar->Refresh();

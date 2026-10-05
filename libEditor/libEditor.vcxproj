@@ -152,7 +152,6 @@
     <ClInclude Include="ColorSLPickerCtrl.h" />
     <ClInclude Include="ColorWheelCtrl.h" />
     <ClInclude Include="EditorFrame.h" />
-    <ClInclude Include="EffectsDialog.h" />
     <ClInclude Include="HistoryDialog.h" />
     <ClInclude Include="ImageDocument.h" />
     <ClInclude Include="InfoDialog.h" />
@@ -166,7 +165,6 @@
     <ClCompile Include="ColorSLPickerCtrl.cpp" />
     <ClCompile Include="ColorWheelCtrl.cpp" />
     <ClCompile Include="EditorFrame.cpp" />
-    <ClCompile Include="EffectsDialog.cpp" />
     <ClCompile Include="HistoryDialog.cpp" />
     <ClCompile Include="ImageDocument.cpp" />
     <ClCompile Include="InfoDialog.cpp" />

@@ -4,7 +4,7 @@
 class HistoryDialog : public wxDialog {
 public:
     HistoryDialog(wxWindow* parent);
-
+	Regards::Control::CInfoEffectWnd* GetHistoryEffectWnd() const { return historyEffectWnd; }
 private:
     void SetFilename(const wxString& filename);
 

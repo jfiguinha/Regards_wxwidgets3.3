@@ -24,9 +24,6 @@
     <ClInclude Include="BitmapEditor.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="EffectsDialog.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="ColorPickerDialog.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -60,9 +57,6 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="BitmapEditor.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="EffectsDialog.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="ColorPickerDialog.cpp">

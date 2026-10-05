@@ -51,6 +51,16 @@ void InfoDialog::OnSize(wxSizeEvent& event)
         return;
     }
 
+	if (m_statusBar)
+	{
+		int statusHeight = m_statusBar->GetSize().GetHeight();
+		m_statusBar->SetSize(0, _height - statusHeight, _width, statusHeight);
+
+
+		_height -= statusHeight;
+	}
+
+
 	infosFileWnd->SetSize(0, 0, _width, _height);
 	infosFileWnd->Refresh();
 	// scrollbar->Refresh();

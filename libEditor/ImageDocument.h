@@ -13,10 +13,16 @@ public:
         wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename);
 
 	wxString GetFileName() const { return m_filename; }
+
+	int GetBitmapWidth() const;
+	int GetBitmapHeight() const;
+
 	void ZoomIn();
 	void ZoomOut();
 	void Shrink();
 	void RealSize();
+
+	void Resize(int newWidth, int newHeight, int interpolation);
 
     void OnCrop();
     void OnResize();

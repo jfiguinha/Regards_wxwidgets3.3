@@ -59,6 +59,7 @@ private:
 	void OnWindowRotate90(wxCommandEvent& event);
 	void OnWindowRotate180(wxCommandEvent& event);
 	void OnWindowRotate270(wxCommandEvent& event);
+	void OnSelectEffect(wxCommandEvent& event);
 
 	std::vector<ImageDocument*> m_openedDocuments;
    

@@ -5,12 +5,14 @@
 #include <LibResource.h>
 #include <wx/filename.h>
 #include <wx/artprov.h> // Pour utiliser des icônes système par défaut
-
-#include <EffectsDialog.h>
+#include <wx/xrc/xmlres.h>
 #include <InfoDialog.h>
 #include <LayerDialog.h>
 #include <ParameterDialog.h>
 #include <HistoryDialog.h>
+#include <wx/spinctrl.h>
+#include <effect_id.h>
+#include <FilterData.h>
 #define MAX_ZOOM	10.0
 #define MIN_ZOOM	0.1
 
@@ -61,7 +63,6 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     colorDialog = new CColorPickerDialog(this);
     layerDialog = new LayerDialog(this);
-    effectsDialog = new EffectsDialog(this);
     infoDialog = new InfoDialog(this);
     parameterDialog = new ParameterDialog(this);
 	historyDialog = new HistoryDialog(this);
@@ -69,7 +70,6 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     historyDialog->Show(false);
     colorDialog->Show(false);
     layerDialog->Show(false);
-    effectsDialog->Show(false);
 	infoDialog->Show(false);    
     parameterDialog->Show(false);
 
@@ -116,13 +116,58 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     menuPicture->Append(wxID_ROTATE270, "Rotate 270");
 
 
+    wxString colorEffect;
+    wxString convolutionEffect;
+    wxString specialEffect;
+    wxString histogramEffect;
+    colorEffect = CLibResource::LoadStringFromResource("LBLCOLOREFFECT", 1);
+    convolutionEffect = CLibResource::LoadStringFromResource("LBLCONVOLUTIONEFFECT", 1);
+    specialEffect = CLibResource::LoadStringFromResource("LBLSPECIALEFFECT", 1);
+    histogramEffect = CLibResource::LoadStringFromResource("LBLHISTOGRAMEFFECT", 1);
+
+
+    wxMenu* menuEffect = new wxMenu;
+    wxMenu* menuColor = new wxMenu;
+    wxMenu* menuConvolution = new wxMenu;
+    wxMenu* menuSpecialEffect = new wxMenu;
+    wxMenu* menuHistogramEffect = new wxMenu;
+
+
+    for (int numEffect = FILTER_START; numEffect < FILTER_END; numEffect++)
+    {
+		int numMenu = wxID_HIGHEST + numEffect + 100;
+        int typeEffect = CFiltreData::GetTypeEffect(numEffect);
+        switch (typeEffect) {
+        case SPECIAL_EFFECT:
+            menuSpecialEffect->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
+            break;
+        case COLOR_EFFECT:
+            menuColor->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
+            break;
+        case CONVOLUTION_EFFECT:
+            menuConvolution->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
+            break;
+        case HISTOGRAM_EFFECT:
+            menuHistogramEffect->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
+            break;
+        }
+
+        Bind(wxEVT_MENU, &CEditorFrame::OnSelectEffect, this, numMenu);
+    }
+
+    menuEffect->Append(0, "Color", menuColor);
+    menuEffect->Append(1, "Convolution", menuConvolution);
+    menuEffect->Append(2, "Special Effect", menuSpecialEffect);
+    menuEffect->Append(3, "Histogram", menuHistogramEffect);
+
+
     wxMenuBar* menuBar = new wxMenuBar;
     menuBar->Append(menuFile, "&Files");
     menuBar->Append(menuEdit, "&Edit");
     menuBar->Append(menuDisplay, "&Display");
     menuBar->Append(menuPicture, "&Picture");
  //  menuBar->Append(menuEdit, "&Ajustment");
-  //  menuBar->Append(menuEdit, "&Effect");
+    menuBar->Append(menuEffect, "&Effect");
     menuBar->Append(menuWindow, "&Window"); // Ajout du menu à la barre globale
     SetMenuBar(menuBar);
 
@@ -151,7 +196,6 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnQuit, this, wxID_EXIT);
 
     // --- NOUVEAU : Liaison des événements du menu Window ---
-    Bind(wxEVT_MENU, &CEditorFrame::OnWindowEffects, this, ID_WINDOW_EFFECTS);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowTools, this, ID_WINDOW_TOOLS);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowInfos, this, ID_WINDOW_INFOS);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowColor, this, ID_WINDOW_COLOR);
@@ -177,6 +221,19 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     this->Maximize();
 }
 
+void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        if (parameterDialog)
+        {
+            parameterDialog->SetFiltre(event.GetId() - wxID_HIGHEST - 100, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName());
+            parameterDialog->Show(true);
+        }
+        //m_activeDocument->Crop();
+    }
+}
+
 void CEditorFrame::OnWindowCrop(wxCommandEvent& event)
 {
     if (m_activeDocument)
@@ -189,7 +246,29 @@ void CEditorFrame::OnWindowResize(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-       // m_activeDocument->Resize();
+        wxDialog dlg;
+        // Chargement de l'interface depuis le fichier XRC
+        if (wxXmlResource::Get()->LoadDialog(&dlg, this, "ResizeDialog"))
+        {
+            // Récupération des contrôles par leur nom XRC
+            wxSpinCtrl* spinPixelWidth = XRCCTRL(dlg, "m_spinPixelWidth", wxSpinCtrl);
+            wxSpinCtrl* spinPixelHeight = XRCCTRL(dlg, "m_spinPixelHeight", wxSpinCtrl);
+            wxComboBox* comboInterpolation = XRCCTRL(dlg, "m_comboInterpolation", wxComboBox);
+
+            // Initialisation des valeurs par défaut
+            if (spinPixelWidth) spinPixelWidth->SetValue(m_activeDocument->GetBitmapWidth());
+            if (spinPixelHeight) spinPixelHeight->SetValue(m_activeDocument->GetBitmapHeight());
+            if (comboInterpolation) comboInterpolation->SetSelection(1); // Bilinéaire par défaut
+
+            // Liaison dynamique des fonctions sur modification (Bind)
+            // dlg.Bind(wxEVT_SPINCTRL, &ImageDocument::OnPixelWidthChange, this...);
+
+            if (dlg.ShowModal() == wxID_OK)
+            {
+                // Récupérer les valeurs finales saisies par l'utilisateur
+                // Appliquer le redimensionnement...
+            }
+        }
     }
 }
 
@@ -306,7 +385,6 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
     {
         m_activeDocument = doc;
         infoDialog->SetFilename(m_activeDocument->GetFileName());
-		effectsDialog->SetFilename(m_activeDocument->GetFileName());
     }
 }
 
@@ -320,19 +398,6 @@ void CEditorFrame::OnWindowHistory(wxCommandEvent& event)
     historyDialog->Show(true);
 }
 
-// --- NOUVEAU : Gestionnaires d'événements pour le menu Window ---
-
-void CEditorFrame::OnWindowEffects(wxCommandEvent& event)
-{
-    SetStatusText("Ouverture de la boîte des Effets...");
-    // TODO: Instancier et afficher le dialogue EffectsDialog ici
-    if(!effectsDialog)
-    {
-		effectsDialog = new EffectsDialog(this);
-       // effectsDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");
-    }
-    effectsDialog->Show(true);
-}
 
 void CEditorFrame::OnWindowTools(wxCommandEvent& event)
 {
