@@ -22,7 +22,19 @@ enum {
     ID_WINDOW_COLOR,
     ID_WINDOW_PARAMETER,
 	ID_WINDOW_LAYER,
-    ID_WINDOW_HISTORY
+    ID_WINDOW_HISTORY,
+    wxID_ZOOMIN,
+	wxID_ZOOMOUT,
+    wxID_SHRINK,
+    wxID_REALSIZE,
+    wxID_CROP,
+    wxID_RESIZE,
+    wxID_CANVASSIZE,
+    wxID_FLIPVERTICAL,
+    wxID_FLIPHORIZONTAL,
+    wxID_ROTATE90,
+    wxID_ROTATE180,
+    wxID_ROTATE270
 };
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
@@ -81,8 +93,36 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     menuWindow->Append(ID_WINDOW_LAYER, "Layer");
     menuWindow->Append(ID_WINDOW_HISTORY, "History");
 
+    wxMenu* menuEdit = new wxMenu;
+    menuEdit->Append(wxID_UNDO, "Cancel\tCtrl+Z");
+    menuEdit->Append(wxID_REDO, "Redo\tCtrl+Y");
+
+    wxMenu* menuDisplay = new wxMenu;
+    menuDisplay->Append(wxID_ZOOMIN, "Zoom In\tCtrl++");
+    menuDisplay->Append(wxID_ZOOMOUT, "Zoom Out\tCtrl+-");
+    menuDisplay->Append(wxID_SHRINK, "Shrink");
+    menuDisplay->Append(wxID_REALSIZE, "Real Size");
+
+    wxMenu* menuPicture = new wxMenu;
+    menuPicture->Append(wxID_CROP, "Crop");
+    menuPicture->Append(wxID_RESIZE, "Resize");
+    menuPicture->Append(wxID_CANVASSIZE, "Canvas Size");
+    menuPicture->AppendSeparator();
+    menuPicture->Append(wxID_FLIPVERTICAL, "Flip Vertical");
+    menuPicture->Append(wxID_FLIPHORIZONTAL, "Flip Horizontal");
+    menuPicture->AppendSeparator();
+    menuPicture->Append(wxID_ROTATE90, "Rotate 90");
+    menuPicture->Append(wxID_ROTATE180, "Rotate 180");
+    menuPicture->Append(wxID_ROTATE270, "Rotate 270");
+
+
     wxMenuBar* menuBar = new wxMenuBar;
-    menuBar->Append(menuFile, "&Fichier");
+    menuBar->Append(menuFile, "&Files");
+    menuBar->Append(menuEdit, "&Edit");
+    menuBar->Append(menuDisplay, "&Display");
+    menuBar->Append(menuPicture, "&Picture");
+ //  menuBar->Append(menuEdit, "&Ajustment");
+  //  menuBar->Append(menuEdit, "&Effect");
     menuBar->Append(menuWindow, "&Window"); // Ajout du menu à la barre globale
     SetMenuBar(menuBar);
 
@@ -119,7 +159,116 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowLayer, this, ID_WINDOW_LAYER);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowHistory, this, ID_WINDOW_HISTORY);
 
+
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowZoomIn, this, wxID_ZOOMIN);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowZoomOut, this, wxID_ZOOMOUT);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowShrink, this, wxID_SHRINK);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowRealSize, this, wxID_REALSIZE);
+
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowCrop, this, wxID_CROP);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowResize, this, wxID_RESIZE);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowCanvas, this, wxID_CANVASSIZE);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowFlipVertical, this, wxID_FLIPVERTICAL);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowFlipHorizontal, this, wxID_FLIPHORIZONTAL);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate90, this, wxID_ROTATE90);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate180, this, wxID_ROTATE180);
+    Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate270, this, wxID_ROTATE270);
+
     this->Maximize();
+}
+
+void CEditorFrame::OnWindowCrop(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        //m_activeDocument->Crop();
+    }
+}
+
+void CEditorFrame::OnWindowResize(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+       // m_activeDocument->Resize();
+    }
+}
+
+void CEditorFrame::OnWindowCanvas(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        //m_activeDocument->Canvas();
+    }
+}
+
+void CEditorFrame::OnWindowFlipVertical(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->OnFlipVertical();
+    }
+}
+
+void CEditorFrame::OnWindowFlipHorizontal(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->OnFlipHorizontal();
+    }
+}
+
+void CEditorFrame::OnWindowRotate90(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->OnRotate90();
+    }
+}
+void CEditorFrame::OnWindowRotate180(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->OnRotate180();
+    }
+}
+void CEditorFrame::OnWindowRotate270(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->OnRotate270();
+    }
+}
+
+void CEditorFrame::OnWindowZoomIn(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+		m_activeDocument->ZoomIn();
+    }
+}
+
+void CEditorFrame::OnWindowZoomOut(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->ZoomOut();
+    }
+}
+
+void CEditorFrame::OnWindowShrink(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->Shrink();
+    }
+}
+
+void CEditorFrame::OnWindowRealSize(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->RealSize();
+    }
 }
 
 void CEditorFrame::OnClose(wxCloseEvent& event)

@@ -65,6 +65,7 @@ namespace Regards::Window
 		void FlipVertical();
 		void Rotate90();
 		void Rotate270();
+		void Rotate180();
 		void FlipHorizontal();
 
 		void ZoomOn();

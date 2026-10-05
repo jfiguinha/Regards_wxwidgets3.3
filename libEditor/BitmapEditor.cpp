@@ -11,3 +11,8 @@ CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId, 
 CBitmapEditor::~CBitmapEditor(void)
 {}
 
+void CBitmapEditor::SetRealSize()
+{
+	ratio = 1.0f;
+	this->RefreshWindow();
+}

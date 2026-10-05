@@ -922,6 +922,17 @@ void CBitmapWndRender::Rotate90()
 	RefreshWindow();
 }
 
+void CBitmapWndRender::Rotate180()
+{
+	//
+	angle += 180;
+	angle = angle % 360;
+
+	UpdateExifInfos();
+	UpdateResized();
+	RefreshWindow();
+}
+
 int CBitmapWndRender::GetAngleFromExif()
 {
 	//

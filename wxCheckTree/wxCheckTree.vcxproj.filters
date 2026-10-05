@@ -57,6 +57,9 @@
     <ClInclude Include="..\include\header.h">
       <Filter>header</Filter>
     </ClInclude>
+    <ClInclude Include="CustomSlider.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="checktree.cpp">
@@ -67,6 +70,9 @@
     </ClCompile>
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
+    </ClCompile>
+    <ClCompile Include="CustomSlider.cpp">
+      <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

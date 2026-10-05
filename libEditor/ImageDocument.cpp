@@ -1,8 +1,16 @@
 #include <header.h>
 #include "ImageDocument.h"
 #include <libPicture.h>
+
 #include <EditorFrame.h>
 using namespace Regards::Picture;
+
+
+// --- Valeurs de zoom partagées ---
+const std::vector<int> zoomValues = {
+    1, 2, 3, 4, 5, 6, 8, 12, 16, 25, 33, 50, 66, 75, 100,
+    133, 150, 166, 200, 300, 400, 500, 600, 700, 800, 1200, 1600
+};
 
 ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename)
@@ -12,11 +20,6 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     CLibPicture libPicture;
     CImageLoadingFormat* pictureLocal = libPicture.LoadPicture(filename);
 
-    // --- Valeurs de zoom partagées ---
-    const std::vector<int> zoomValues = {
-        1, 2, 3, 4, 5, 6, 8, 12, 16, 25, 33, 50, 66, 75, 100,
-        133, 150, 166, 200, 300, 400, 500, 600, 700, 800, 1200, 1600
-    };
 
     CThemeBitmapWindow themeBitmap;
     if (config)
@@ -48,10 +51,150 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocument::OnIdle));
     Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
     // --- CORRECTION : Création manuelle de la Status Bar ---
-  // En passant 'this' en parent, le wxStatusBar se place automatiquement tout en bas du dialogue
     m_statusBar = new wxStatusBar(this, wxID_ANY);
-    m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
-    m_statusBar->SetStatusText("Prêt.");
+     
+    // En passant 'this' en parent, le wxStatusBar se place automatiquement tout en bas du dialogue
+    // Définition de 3 champs : 
+    // Champ 0 (texte libre/chemin/etc.) -> Taille variable (-1)
+    // Champ 1 (Dimensions de l'image)  -> Taille fixe (120px)
+    // Champ 2 (Emplacement du Slider)  -> Taille fixe (200px)
+    int widths[] = { -1, 120, 200 };
+    m_statusBar->SetFieldsCount(3);
+    m_statusBar->SetStatusWidths(3, widths);
+
+    // Création du Slider sur le Champ index 2 de la StatusBar
+    // On prend la plage d'index du vecteur zoomValues (de 0 à zoomValues.size() - 1)
+    int maxZoomIndex = static_cast<int>(zoomValues.size()) - 1;
+    m_zoomSlider = new wxCustomSlider(m_statusBar, wxID_ANY, zoomValues.size(), 0, zoomValues.size());
+
+    // Initialiser le slider à la position actuelle (ex: 100%)
+    // Si 100% est la 15ème valeur (index 14) :
+    m_zoomSlider->SetValue(14);
+
+    // Connexion de l'événement de défilement du Slider
+    m_zoomSlider->Bind(wxEVT_CUSTOM_SLIDER_CHANGED, &ImageDocument::OnSliderScroll, this);
+
+
+    // Mettre à jour les textes pour la première fois
+    UpdateStatusText();
+}
+
+void ImageDocument::OnCrop()
+{
+
+}
+
+void ImageDocument::OnResize()
+{
+
+}
+
+void ImageDocument::OnCanvas()
+{
+
+}
+
+void ImageDocument::OnFlipVertical()
+{
+    if (bitmapWindow)
+        bitmapWindow->FlipVertical();
+}
+
+void ImageDocument::OnFlipHorizontal()
+{
+    if (bitmapWindow)
+        bitmapWindow->FlipHorizontal();
+}
+
+void ImageDocument::OnRotate90()
+{
+    if (bitmapWindow)
+        bitmapWindow->Rotate90();
+}
+
+void ImageDocument::OnRotate180()
+{
+    if (bitmapWindow)
+        bitmapWindow->Rotate180();
+}
+
+void ImageDocument::OnRotate270()
+{
+    if (bitmapWindow)
+        bitmapWindow->Rotate270();
+}
+
+void ImageDocument::UpdateStatusText()
+{
+    if (!m_statusBar || !bitmapWindow) return;
+
+    // 1. Récupération de la taille de l'image depuis votre interface
+    int imgW = 0, imgH = 0, zoomPos = 0;
+    if (bitmapWindow)
+    {
+        imgW = bitmapWindow->GetBitmapWidth();
+        imgH = bitmapWindow->GetBitmapHeight();
+		zoomPos = bitmapWindow->GetPosRatio(); // Récupère la position du zoom
+    }
+
+    wxString sizeText = wxString::Format("%dx%d", imgW, imgH);
+    m_statusBar->SetStatusText(sizeText, 0); // Écrit dans le champ index 1
+
+    sizeText = wxString::Format("Zoom : %d", zoomValues[zoomPos]);
+    m_statusBar->SetStatusText(sizeText, 1); // Écrit dans le champ index 2
+
+    // 2. Récupération du facteur de zoom pour l'afficher au début du statut
+    // (Ajustez selon les méthodes réelles de CBitmapEditor pour obtenir le zoom actuel)
+    // Exemple : m_statusBar->SetStatusText("Zoom actuel: 100%", 0);
+   // m_statusBar->SetStatusText("Prêt.", 0);
+}
+
+void ImageDocument::OnSliderScroll(wxCommandEvent& event)
+{
+    if (!bitmapWindow) return;
+
+    // Récupérer l'index sélectionné sur le slider (0 à 26)
+    int zoomIndex = event.GetInt();
+
+    // Appliquer le niveau de zoom correspondant à l'index via votre CBitmapEditor
+    // Note : Votre bitmapWindow possède déjà 'SetTabValue(zoomValues)'
+    // Vérifiez si votre classe possède une méthode semblable à SetZoomIndex(int index)
+    // bitmapWindow->SetZoomIndex(zoomIndex); 
+
+    // Forcer le rafraîchissement de l'affichage
+    needToRefresh = true;
+
+    bitmapWindow->SetZoomPosition(zoomIndex);
+
+    // Mettre à jour le texte du statut si nécessaire
+    UpdateStatusText();
+}
+
+
+void ImageDocument::ZoomIn()
+{
+    bitmapWindow->ZoomOn();
+}
+
+void ImageDocument::ZoomOut()
+{
+    bitmapWindow->ZoomOut();
+}
+void ImageDocument::Shrink()
+{
+    bool shrink = bitmapWindow->GetShrinkImage();
+    if (!shrink)
+    {
+        bitmapWindow->SetShrinkImage(!shrink);
+        bitmapWindow->ShrinkImage(true);
+    }
+    else
+	    bitmapWindow->SetShrinkImage(!shrink);
+}
+
+void ImageDocument::RealSize()
+{
+	bitmapWindow->SetRealSize();
 }
 
 // Implémentation de la fonction OnActivate
@@ -113,19 +256,26 @@ void ImageDocument::OnSize(wxSizeEvent& event)
     {
         return;
     }
-
-    // --- CORRECTION : Repositionner la barre et soustraire sa hauteur ---
     if (m_statusBar)
     {
-        // Récupérer la hauteur idéale/par défaut de la barre de statut
         int statusHeight = m_statusBar->GetSize().GetHeight();
-
-        // Positionner manuellement la barre tout en bas du dialogue sur toute la largeur
         m_statusBar->SetSize(0, _height - statusHeight, _width, statusHeight);
 
-        // Réduire la hauteur disponible pour l'image afin de ne pas masquer la scrollbar
+        // --- REPOSITIONNEMENT DU SLIDER DANS LE CHAMP 2 ---
+        if (m_zoomSlider)
+        {
+            wxRect rect;
+            // Récupère les coordonnées exactes du champ d'index 2
+            if (m_statusBar->GetFieldRect(2, rect))
+            {
+                // On ajuste légèrement pour centrer verticalement et laisser des marges
+                m_zoomSlider->SetSize(rect.x + 5, rect.y + 2, rect.width - 10, rect.height - 4);
+            }
+        }
+
         _height -= statusHeight;
     }
+
 
     ResizeImage(_width, _height);
     

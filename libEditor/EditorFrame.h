@@ -46,6 +46,20 @@ private:
 	void OnWindowParameter(wxCommandEvent& event);
 	void OnWindowLayer(wxCommandEvent& event);
 	void OnWindowHistory(wxCommandEvent& event);
+	void OnWindowZoomIn(wxCommandEvent& event);
+	void OnWindowZoomOut(wxCommandEvent& event);
+	void OnWindowShrink(wxCommandEvent& event);
+	void OnWindowRealSize(wxCommandEvent& event);
+
+	void OnWindowCrop(wxCommandEvent& event);
+	void OnWindowResize(wxCommandEvent& event);
+	void OnWindowCanvas(wxCommandEvent& event);
+	void OnWindowFlipVertical(wxCommandEvent& event);
+	void OnWindowFlipHorizontal(wxCommandEvent& event);
+	void OnWindowRotate90(wxCommandEvent& event);
+	void OnWindowRotate180(wxCommandEvent& event);
+	void OnWindowRotate270(wxCommandEvent& event);
+
 	std::vector<ImageDocument*> m_openedDocuments;
    
 	Regards::Editor::CMainParam * viewerParam;

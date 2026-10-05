@@ -821,6 +821,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\header.h" />
     <ClInclude Include="checktree.h" />
+    <ClInclude Include="CustomSlider.h" />
     <ClInclude Include="directoryctrl.h" />
   </ItemGroup>
   <ItemGroup>
@@ -835,6 +836,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_cuda|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="checktree.cpp" />
+    <ClCompile Include="CustomSlider.cpp" />
     <ClCompile Include="directoryctrl.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

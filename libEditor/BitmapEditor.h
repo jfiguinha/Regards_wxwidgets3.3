@@ -9,5 +9,5 @@ public:
 		CBitmapInterface* bitmapInterface);
 	~CBitmapEditor(void);
 
-	
+	void SetRealSize();
 };
