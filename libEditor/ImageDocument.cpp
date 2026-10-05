@@ -5,6 +5,7 @@
 #include <FileUtility.h>
 #include <EditorFrame.h>
 #include <LibResource.h>
+#include <ImageLoadingFormat.h>
 using namespace Regards::Picture;
 
 
@@ -13,6 +14,7 @@ const std::vector<int> zoomValues = {
     1, 2, 3, 4, 5, 6, 8, 12, 16, 25, 33, 50, 66, 75, 100,
     133, 150, 166, 200, 300, 400, 500, 600, 700, 800, 1200, 1600
 };
+
 
 ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename)
@@ -84,6 +86,82 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, filename);
 
     historyEffect->Init(pictureLocal, filename, historyLibelle);
+    // Mettre à jour les textes pour la première fois
+    UpdateStatusText();
+}
+
+
+
+ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
+    wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, CImageLoadingFormat* pictureLocal)
+    : wxDialog(parent, wxID_ANY, pictureLocal->GetFilename(), wxDefaultPosition, wxSize(600, 450),
+        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX)
+{
+    CLibPicture libPicture;
+
+
+    id = bitmapViewerId;
+    this->mainviewerid = bitmapViewerId;
+
+    CThemeBitmapWindow themeBitmap;
+    if (config)
+    {
+        config->GetBitmapWindowTheme(&themeBitmap);
+    }
+
+    m_filename = pictureLocal->GetFilename();
+
+    this->bitmapInterface = bitmapInterfaceIn;
+
+    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface);
+    bitmapWindow->SetTabValue(zoomValues);
+
+    bitmapWindowRender = new CBitmapWnd3D(this, bitmapViewerId);
+    bitmapWindowRender->SetBitmapRenderInterface(bitmapWindow);
+
+    scrollbar = new CScrollbarWnd(this, bitmapWindowRender, wxID_ANY, "BitmapScroll");
+
+    scrollbar->Show(true);
+    bitmapWindowRender->Show(true);
+
+    bitmapWindow->SetBitmap(pictureLocal);
+
+    Connect(wxEVT_SIZE, wxSizeEventHandler(ImageDocument::OnSize));
+    Connect(wxEVENT_REFRESH, wxCommandEventHandler(ImageDocument::OnRefresh));
+    Connect(wxEVENT_RESIZE, wxCommandEventHandler(ImageDocument::OnResize));
+    Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocument::OnEraseBackground));
+    Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocument::OnIdle));
+    Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
+    // --- CORRECTION : Création manuelle de la Status Bar ---
+    m_statusBar = new wxStatusBar(this, wxID_ANY);
+
+    // En passant 'this' en parent, le wxStatusBar se place automatiquement tout en bas du dialogue
+    // Définition de 3 champs : 
+    // Champ 0 (texte libre/chemin/etc.) -> Taille variable (-1)
+    // Champ 1 (Dimensions de l'image)  -> Taille fixe (120px)
+    // Champ 2 (Emplacement du Slider)  -> Taille fixe (200px)
+    int widths[] = { -1, 120, 200 };
+    m_statusBar->SetFieldsCount(3);
+    m_statusBar->SetStatusWidths(3, widths);
+
+    // Création du Slider sur le Champ index 2 de la StatusBar
+    // On prend la plage d'index du vecteur zoomValues (de 0 à zoomValues.size() - 1)
+    int maxZoomIndex = static_cast<int>(zoomValues.size()) - 1;
+    m_zoomSlider = new wxCustomSlider(m_statusBar, wxID_ANY, zoomValues.size(), 0, zoomValues.size());
+
+    // Initialiser le slider à la position actuelle (ex: 100%)
+    // Si 100% est la 15ème valeur (index 14) :
+    m_zoomSlider->SetValue(14);
+
+    // Connexion de l'événement de défilement du Slider
+    m_zoomSlider->Bind(wxEVT_CUSTOM_SLIDER_CHANGED, &ImageDocument::OnSliderScroll, this);
+
+    wxString historyLibelle = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1);
+    wxString folder = CFileUtility::GetDocumentFolderPath();
+    modificationManager = std::make_unique<CModificationManager>(folder);
+    historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, m_filename);
+
+    historyEffect->Init(pictureLocal, m_filename, historyLibelle);
     // Mettre à jour les textes pour la première fois
     UpdateStatusText();
 }

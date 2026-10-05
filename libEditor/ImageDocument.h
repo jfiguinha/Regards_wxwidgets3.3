@@ -17,6 +17,9 @@ public:
     ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
         wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename);
 
+    ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
+        wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, CImageLoadingFormat* pictureLocal);
+
     CInfoEffect * GetHistoryPt();
 	wxString GetFileName() const { return m_filename; }
 

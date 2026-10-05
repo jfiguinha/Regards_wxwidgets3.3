@@ -68,6 +68,7 @@ private:
 	void OnWindowRotate180(wxCommandEvent& event);
 	void OnWindowRotate270(wxCommandEvent& event);
 	void OnSelectEffect(wxCommandEvent& event);
+	void OnOpenImage(wxCommandEvent& event);
 
 	std::map<int, STImageDoc> m_openedDocuments;
    

@@ -19,6 +19,10 @@
 #define SHOWBITMAPVIEWERID 0x01000
 #define BITMAPWINDOWVIEWERID 0x00100
 
+
+static int imageCount = 1;
+
+
 // --- Énumération locale pour les IDs du menu Window ---
 enum {
     ID_WINDOW_EFFECTS = wxID_HIGHEST + 1,
@@ -85,7 +89,8 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     // 1. Configuration de la barre de menus
     wxMenu* menuFile = new wxMenu;
-    menuFile->Append(wxID_NEW, "Nouvelle Image...\tCtrl+N");
+    menuFile->Append(wxID_NEW, "New ..\tCtrl+N");
+    menuFile->Append(wxID_OPEN, "Open...\tCtrl+O");
     menuFile->Append(wxID_EXIT, "Quitter\tCtrl+Q");
 
     // --- NOUVEAU : Création du menu Window ---
@@ -198,6 +203,8 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     // Liaison des événements de base
     Bind(wxEVT_MENU, &CEditorFrame::OnNewImage, this, wxID_NEW);
+    Bind(wxEVT_MENU, &CEditorFrame::OnOpenImage, this, wxID_OPEN);
+    
     Bind(wxEVT_MENU, &CEditorFrame::OnQuit, this, wxID_EXIT);
 
     // --- NOUVEAU : Liaison des événements du menu Window ---
@@ -379,7 +386,6 @@ void CEditorFrame::OnOpen()
     wxFileName filename(openFileDialog.GetPath());
     lastFolder = filename.GetPath();
 
-    static int imageCount = 1;
     imageCount++;
 
 
@@ -485,5 +491,55 @@ void CEditorFrame::OnAbout(wxCommandEvent& WXUNUSED(event))
 }
 
 void CEditorFrame::OnNewImage(wxCommandEvent& event) {
+    wxDialog dlg;
+    // Chargement de l'interface depuis le fichier XRC
+    if (wxXmlResource::Get()->LoadDialog(&dlg, this, "OpenDialog"))
+    {
+        wxSize screenSize = wxGetDisplaySize();
+        int largeur = screenSize.GetWidth();
+        int hauteur = screenSize.GetHeight();
+
+
+        // Récupération des contrôles par leur nom XRC
+        wxSpinCtrl* spinPixelWidth = XRCCTRL(dlg, "m_spinPixelWidth", wxSpinCtrl);
+        wxSpinCtrl* spinPixelHeight = XRCCTRL(dlg, "m_spinPixelHeight", wxSpinCtrl);
+
+        // Initialisation des valeurs par défaut
+        if (spinPixelWidth) spinPixelWidth->SetValue(largeur);
+        if (spinPixelHeight) spinPixelHeight->SetValue(hauteur);
+
+
+        // Liaison dynamique des fonctions sur modification (Bind)
+        // dlg.Bind(wxEVT_SPINCTRL, &ImageDocument::OnPixelWidthChange, this...);
+
+        if (dlg.ShowModal() == wxID_OK)
+        {
+            int width = spinPixelWidth->GetValue();
+            int height = spinPixelHeight->GetValue();
+
+            cv::Mat matRGBA(hauteur, largeur, CV_8UC4);
+            CImageLoadingFormat* pictureLocal = new CImageLoadingFormat();
+            pictureLocal->SetFilename("Test 1");
+            pictureLocal->SetPicture(matRGBA);
+
+
+            imageCount++;
+
+
+            CMainTheme* viewerTheme = CMainThemeInit::getInstance();
+            ImageDocument* imgDoc = new ImageDocument(this, SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, pictureLocal);
+            imgDoc->Show(true);
+
+            STImageDoc imageDoc;
+            imageDoc.doc = imgDoc;
+            imageDoc.mainId = SHOWBITMAPVIEWERID + imageCount;
+            imageDoc.bitmapId = BITMAPWINDOWVIEWERID + imageCount;
+            m_openedDocuments[imageDoc.mainId] = imageDoc;
+        }
+    }
+}
+
+void CEditorFrame::OnOpenImage(wxCommandEvent& event)
+{
     OnOpen();
 }
