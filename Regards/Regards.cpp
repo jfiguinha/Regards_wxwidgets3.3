@@ -497,6 +497,8 @@ void MyApp::LaunchApplication()
 			// Clean up and exit
 			delete m_checker;
 			m_checker = nullptr;
+
+			exit(0);
 			return;
 		}
 
