@@ -49,10 +49,15 @@ void ParameterDialog::SetTypeFiltre(const int& typeFiltre)
 	this->typeFiltre = typeFiltre;
 }
 
-void ParameterDialog::SetColour(const wxColour& color1, const wxColour& color2)
+void ParameterDialog::SetColor(const wxColour& color1, const wxColour& color2)
 {
 	this->color1 = color1;
 	this->color2 = color2;
+
+	if (filtreEffectWnd)
+	{
+		filtreEffectWnd->SetColor(color1, color2);
+	}
 }
 
 void ParameterDialog::OnFiltreOk(wxCommandEvent& event)
@@ -79,9 +84,10 @@ void ParameterDialog::SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEff
 		this->numFiltre = numFiltre;
 		filtreToolbar->SetNumFiltre(numFiltre);
 		filtreEffectWnd->SetParentBitmapId(mainViewerId);
+		
 		filtreEffectWnd->ApplyEffect(numFiltre, historyEffectWnd, filename, false, PANELINFOSWNDID,
 			bitmapViewerId);
-		
+
 		filtreEffectWnd->Show(true);
 	}
 }

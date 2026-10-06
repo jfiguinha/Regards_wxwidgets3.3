@@ -42,9 +42,9 @@ void ToolDialog::OnColorChanged(wxCommandEvent& event)
 	CColorSelectorWidget* selector = decltype(selector)(event.GetEventObject());
 	if (selector)
 	{
-		wxColour c1 = selector->GetColor1();
-		wxColour c2 = selector->GetColor2();
-		// Faites ce que vous voulez avec vos nouvelles couleurs !
+		wxCommandEvent evt(wxEVENT_COLORCHANGE, GetId());
+		evt.SetEventObject(this);
+		this->GetParent()->ProcessWindowEvent(evt);
 	}
 }
 

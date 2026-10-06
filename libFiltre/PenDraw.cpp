@@ -22,7 +22,7 @@ void CPenDraw::MouseDown(CEffectParameter* effect) {
     CPenFilterParameter* penEffect = (CPenFilterParameter*)effect;
 
     SLineStyleDraw nouvelleLigne;
-    nouvelleLigne.color = penEffect->ConvertScalarToWxColour();
+    nouvelleLigne.color = penEffect->GetColor1();
     nouvelleLigne.penSize = penEffect->penSize;
     nouvelleLigne.typeBrush = penEffect->typeBrush;
     nouvelleLigne.opacity = penEffect->opacity; // <-- On fige l'opacité pour ce trait

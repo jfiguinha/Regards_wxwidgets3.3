@@ -29,6 +29,9 @@ CColorSelectorWidget::CColorSelectorWidget(wxWindow* parent,
         SetMinSize(wxSize(idealWidth, idealHeight));
         SetSize(wxSize(idealWidth, idealHeight));
     }
+
+    m_color1 = wxColor(0, 0, 0);
+    m_color2 = wxColor(255, 255, 255);
 }
 
 wxRect CColorSelectorWidget::GetRectSquare1() const

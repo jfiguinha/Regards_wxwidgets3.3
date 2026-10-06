@@ -31,6 +31,7 @@ namespace Regards::Control
 		CFiltreEffect* GetFiltreEffect();
 		int GetNumFiltre();
 		void SetParentBitmapId(const int& bitmapWindowId);
+		void SetColor(const wxColour& color1, const wxColour& color2);
 
 	private:
 		void OnUpdateFilter(wxCommandEvent& event);

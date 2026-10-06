@@ -42,7 +42,7 @@ public:
 
 private:
 
-	
+	void OnColorChange(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& WXUNUSED(event));
 	void OnToolsEffect(wxCommandEvent& event);
 	void OnNewImage(wxCommandEvent& event);

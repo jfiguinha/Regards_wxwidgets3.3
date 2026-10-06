@@ -39,15 +39,7 @@ class CPenFilterParameter : public CEffectParameter
 {
 public:
 
-	wxColour ConvertScalarToWxColour()
-	{
-		// Extraction des canaux OpenCV (Indices standard : 0 = Blue, 1 = Green, 2 = Red, 3 = Alpha)
-		int blue = static_cast<int>(color[0]);
-		int green = static_cast<int>(color[1]);
-		int red = static_cast<int>(color[2]);
 
-		return wxColour(red, green, blue, opacity);
-	}
 
 	bool IfNeedTransparence() override
 	{
@@ -64,7 +56,7 @@ public:
 	bool apply = false;
 	std::vector<SLineTrace> listLines;
 	int penSize = 4;
-	cv::Scalar color;
+	
 	int typeBrush = 0;
 	bool rgba = true;
    // <-- Ajout de l'opacité globale courante (255 = 100% opaque)

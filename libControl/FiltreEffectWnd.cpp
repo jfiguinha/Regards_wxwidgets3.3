@@ -39,6 +39,16 @@ void CFiltreEffectScrollWnd::SetParentBitmapId(const int& bitmapWindowId)
 	this->bitmapWindowId = bitmapWindowId;
 }
 
+void CFiltreEffectScrollWnd::SetColor(const wxColour& color1, const wxColour& color2)
+{
+	if (effectParameter != nullptr)
+	{
+		effectParameter->color1 = CEffectParameter::ConvertwxColourToScalar(color1, color1.Alpha());
+		effectParameter->opacity = color1.GetAlpha();
+		effectParameter->color2 = CEffectParameter::ConvertwxColourToScalar(color2, color2.Alpha());
+	}
+}
+
 void CFiltreEffectScrollWnd::SetBitmapToViewer(CImageLoadingFormat* bitmap)
 {
 	auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);

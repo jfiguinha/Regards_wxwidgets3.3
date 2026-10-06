@@ -251,7 +251,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
 
     Connect(wxEVENT_TOOLCHOOSE, wxCommandEventHandler(CEditorFrame::OnToolsEffect));
-
+    Connect(wxEVENT_COLORCHANGE, wxCommandEventHandler(CEditorFrame::OnColorChange));
     this->Maximize();
 }
 
@@ -263,14 +263,29 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
         {
             int numEffect = event.GetId() - wxID_HIGHEST - 100;
             parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
-            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+           
             parameterDialog->SetTypeFiltre(TYPE_EFFECT);
             parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+           
+            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
             parameterDialog->Show(true);
         }
         //m_activeDocument->Crop();
     }
 }
+
+void CEditorFrame::OnColorChange(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        if (parameterDialog)
+        {
+            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+        }
+        //m_activeDocument->Crop();
+    }
+}
+
 
 void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
 {
@@ -280,9 +295,11 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
         {
             int numEffect = event.GetInt();
             parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
-            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+            
             parameterDialog->SetTypeFiltre(TYPE_DRAWING);
             parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+           
+            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
             parameterDialog->Show(true);
         }
         //m_activeDocument->Crop();

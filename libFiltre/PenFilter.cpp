@@ -77,11 +77,10 @@ void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 
 	filtreInterface->AddTreeInfos(libellePenSize,
 		new CTreeElementValueInt(penParam->penSize), &elementSize);
-	filtreInterface->AddTreeInfos(libelleColor,
-		new CTreeElementValueColor(ConvertScalarToWxColour(penParam->color, effectParameter->opacity)), &elementSize, TYPE_COLOR, TYPE_COLOR);
 	// Appel de AddTreeInfos en spécifiant TYPE_COMBOBOX (type = 4) pour l'affichage d'une liste déroulante
 	filtreInterface->AddTreeInfos(libelleTypeBrush, new CTreeElementValueInt(penParam->typeBrush), &brushOptions, 3, TYPE_COMBOBOX);
 
+	/*
 	// Remplissage des valeurs du curseur de 0 à 255
 	vector<int> elementOpacity;
 	for (auto i = 0; i <= 255; i++)
@@ -90,7 +89,7 @@ void CPenFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 	// Ajout du curseur d'opacité dans l'arbre
 	filtreInterface->AddTreeInfos(libelleOpacity, new CTreeElementValueInt(penParam->opacity), &elementOpacity);
 
-
+	*/
 }
 
 void CPenFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData,
@@ -102,12 +101,6 @@ void CPenFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeEleme
 	{
 		auto intValue = static_cast<CTreeElementValueInt*>(valueData);
 		penParameter->penSize = intValue->GetValue();
-	}
-	else if (key == libelleColor && valueData->GetType() == 4) // TYPE_ELEMENT_COLOR
-	{
-		auto colorValue = static_cast<CTreeElementValueColor*>(valueData);
-		wxColour c = colorValue->GetValue();
-		penParameter->color = cv::Scalar(c.Red(), c.Green(), c.Blue(), effectParameter->opacity);
 	}
 	// --- INTERCEPTION DU CHANGEMENT DE LA COMBOBOX ---
 	else if (key == libelleTypeBrush && valueData->GetType() == TYPE_ELEMENT_INT)
@@ -228,7 +221,7 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 
 	if (penParameter->listLines.empty()) {
 		SLineTrace premierTrace;
-		premierTrace.color = penParameter->color;
+		premierTrace.color = penParameter->color1;
 		premierTrace.penSize = penParameter->penSize;
 		premierTrace.typeBrush = penParameter->typeBrush; // <--- AJOUT CRUCIAL : On applique le type de brush courant
 		penParameter->listLines.push_back(premierTrace);
