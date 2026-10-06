@@ -1,6 +1,5 @@
 #pragma once
 #include <MainInterface.h>
-#include "ColorPickerDialog.h"
 #include <ViewerParam.h>
 #include <ViewerParamInit.h>
 #include <ViewerTheme.h>
@@ -45,7 +44,7 @@ private:
 
 	
 	void OnAbout(wxCommandEvent& WXUNUSED(event));
-
+	void OnToolsEffect(wxCommandEvent& event);
 	void OnNewImage(wxCommandEvent& event);
 	void OnOpenImage(wxCommandEvent& event);
 	void OnCloseImage(wxCommandEvent& event);
@@ -57,7 +56,7 @@ private:
 	void OnWindowEffects(wxCommandEvent& event);
 	void OnWindowTools(wxCommandEvent& event);
 	void OnWindowInfos(wxCommandEvent& event);
-	void OnWindowColor(wxCommandEvent& event);
+
 	void OnWindowParameter(wxCommandEvent& event);
 	void OnWindowLayer(wxCommandEvent& event);
 	void OnWindowHistory(wxCommandEvent& event);
@@ -83,7 +82,7 @@ private:
 	Regards::Viewer::CMainTheme * viewerTheme;
 
 	ImageDocument* m_activeDocument = nullptr; 
-	CColorPickerDialog * colorDialog = nullptr;
+
 	LayerDialog* layerDialog = nullptr;
 	ToolDialog* toolDialog = nullptr;
 	EffectsDialog* effectsDialog = nullptr;

@@ -12,12 +12,12 @@ using namespace Regards::Editor;
 #define WM_SELECTZOOM FILTER_DRAWING_END + 2
 #define WM_MOVEPICTURE FILTER_DRAWING_END + 3
 
-CToolbarTools::CToolbarTools(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical)
+CToolbarTools::CToolbarTools(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, wxWindow* frameToSend, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical)
 {
 
 	saveLastPush = true;
-
+	this->frameToSend = frameToSend;
 
 	selection = CreateButton("IDB_SELECTFILTER", "IDM_SELECTFILTER", IDM_SELECTFILTER, false);
 	selectionCrop = CreateButton("IDB_CROP", "IDM_PAINTCROP", IDM_PAINTCROP, false);
@@ -35,41 +35,17 @@ CToolbarTools::CToolbarTools(wxWindow* parent, wxWindowID id, const CThemeToolba
 
 void CToolbarTools::Resize()
 {
-	/*
-	int nbElement = static_cast<int>(navElement.size());
-	themeToolbar..SetTailleX(GetWindowWidth() / nbElement);
-
-	for (auto& nav : navElement)
-	{
-		nav->Resize(themeToolbar.texte.GetTailleX(), themeToolbar.texte.GetTailleY());
-	}
-	*/
 	needToRefresh = true;
 }
 
 void CToolbarTools::EventManager(const int& id)
 {
-	switch (id)
+	if (frameToSend)
 	{
-	case IDM_SELECTFILTER:
-		break;
-	case IDM_PAINTCROP:
-		break;
-	case WM_SELECTMOVE:
-		break;
-	case IDM_PENFILTER:
-		break;
-	case IDM_RECTANGLEFILTER:
-		break;
-	case IDM_TEXTFILTER:
-		break;
-	case WM_SELECTZOOM:
-		break;
-	case WM_MOVEPICTURE:
-		break;
-	case IDM_PAINTBUCKETFILTER:
-		break;
-	case IDM_GRADIENTFILTER:
-		break;
+		wxCommandEvent evt(wxEVENT_TOOLCHOOSE);
+		evt.SetInt(id);
+		frameToSend->GetEventHandler()->AddPendingEvent(evt);
 	}
+
+
 }

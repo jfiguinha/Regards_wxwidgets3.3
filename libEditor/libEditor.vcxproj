@@ -218,6 +218,7 @@
   <ItemGroup>
     <ClInclude Include="BitmapEditor.h" />
     <ClInclude Include="ColorPickerDialog.h" />
+    <ClInclude Include="ColorSelectorWidget.h" />
     <ClInclude Include="ColorSLPickerCtrl.h" />
     <ClInclude Include="ColorWheelCtrl.h" />
     <ClInclude Include="EditorFrame.h" />
@@ -232,6 +233,7 @@
   <ItemGroup>
     <ClCompile Include="BitmapEditor.cpp" />
     <ClCompile Include="ColorPickerDialog.cpp" />
+    <ClCompile Include="ColorSelectorWidget.cpp" />
     <ClCompile Include="ColorSLPickerCtrl.cpp" />
     <ClCompile Include="ColorWheelCtrl.cpp" />
     <ClCompile Include="EditorFrame.cpp" />

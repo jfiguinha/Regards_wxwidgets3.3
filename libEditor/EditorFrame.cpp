@@ -85,16 +85,15 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     CFiltreData::CreateFilterList();
 
-    colorDialog = new CColorPickerDialog(this);
+
     layerDialog = new LayerDialog(this);
     infoDialog = new InfoDialog(this);
     parameterDialog = new ParameterDialog(this);
 	historyDialog = new HistoryDialog(this);
     toolDialog = new ToolDialog(this);
 
-    toolDialog->Show(false);
+    toolDialog->Show(true);
     historyDialog->Show(false);
-    colorDialog->Show(false);
     layerDialog->Show(false);
 	infoDialog->Show(false);    
     parameterDialog->Show(false);
@@ -119,7 +118,6 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     wxMenu* menuWindow = new wxMenu;
     menuWindow->Append(ID_WINDOW_TOOLS, "Tools");
     menuWindow->Append(ID_WINDOW_INFOS, "Infos");
-    menuWindow->Append(ID_WINDOW_COLOR, "Color");
     menuWindow->Append(ID_WINDOW_PARAMETER, "Parameter");
     menuWindow->Append(ID_WINDOW_LAYER, "Layer");
     menuWindow->Append(ID_WINDOW_HISTORY, "History");
@@ -232,7 +230,6 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     // --- NOUVEAU : Liaison des événements du menu Window ---
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowTools, this, ID_WINDOW_TOOLS);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowInfos, this, ID_WINDOW_INFOS);
-    Bind(wxEVT_MENU, &CEditorFrame::OnWindowColor, this, ID_WINDOW_COLOR);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowParameter, this, ID_WINDOW_PARAMETER);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowLayer, this, ID_WINDOW_LAYER);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowHistory, this, ID_WINDOW_HISTORY);
@@ -252,6 +249,9 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate180, this, wxID_ROTATE180);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate270, this, wxID_ROTATE270);
 
+
+    Connect(wxEVENT_TOOLCHOOSE, wxCommandEventHandler(CEditorFrame::OnToolsEffect));
+
     this->Maximize();
 }
 
@@ -270,7 +270,20 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
     }
 }
 
-
+void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        if (parameterDialog)
+        {
+            int numEffect = event.GetInt();
+            parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+            parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+            parameterDialog->Show(true);
+        }
+        //m_activeDocument->Crop();
+    }
+}
 
 void CEditorFrame::OnWindowCrop(wxCommandEvent& event)
 {
@@ -465,16 +478,6 @@ void CEditorFrame::OnWindowInfos(wxCommandEvent& event)
        // infoDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");  
     }
     infoDialog->Show(true); 
-}
-
-void CEditorFrame::OnWindowColor(wxCommandEvent& event)
-{
-    SetStatusText("Ouverture de la palette de Couleurs...");
-	if (!colorDialog)
-	{
-        colorDialog = new CColorPickerDialog(this, wxColour(255, 128, 0, 255));
-	}
-	colorDialog->Show(true);
 }
 
 void CEditorFrame::OnWindowLayer(wxCommandEvent& event)

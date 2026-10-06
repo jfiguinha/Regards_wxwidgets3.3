@@ -118,8 +118,8 @@ EVT_COMMAND(wxID_ANY, wxEVT_COMMAND_SLIDER_UPDATED,
         const wxString& title,
         const wxPoint& pos,
         const wxSize& size)
-    : wxDialog(parent, id, title, pos, size,
-        wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER) {
+    : wxDialog(parent, id, title, pos, wxSize(600, 550),
+        wxDEFAULT_DIALOG_STYLE) {
     CreateControls();
 
     SetColour(colour);

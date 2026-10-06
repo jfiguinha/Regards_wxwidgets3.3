@@ -11,13 +11,15 @@ namespace Regards::Editor
 	class CToolbarTools : public CToolbarWindow
 	{
 	public:
-		CToolbarTools(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical);
+		CToolbarTools(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, wxWindow* frameToSend, const bool& vertical);
 		~CToolbarTools() = default;
 
 	private:
 
 		void Resize() override;
 		void EventManager(const int& id) override;
+
+		wxWindow* frameToSend;
 
 		std::unique_ptr<CToolbarButton> selection = nullptr;
 		std::unique_ptr<CToolbarButton> selectionCrop = nullptr;
