@@ -44,6 +44,17 @@ ParameterDialog::ParameterDialog(wxWindow* parent)
 }
 
 
+void ParameterDialog::SetTypeFiltre(const int& typeFiltre)
+{
+	this->typeFiltre = typeFiltre;
+}
+
+void ParameterDialog::SetColour(const wxColour& color1, const wxColour& color2)
+{
+	this->color1 = color1;
+	this->color2 = color2;
+}
+
 void ParameterDialog::OnFiltreOk(wxCommandEvent& event)
 {
 	if(filtreEffectWnd)
@@ -93,9 +104,13 @@ void ParameterDialog::OnSize(wxSizeEvent& event)
 		m_statusBar->SetSize(0, _height - statusHeight, _width, statusHeight);
 		_height -= statusHeight;
 
-		statusHeight = filtreToolbar->GetHeight();
-		filtreToolbar->SetSize(0, _height - statusHeight, _width, statusHeight);
-		_height -= statusHeight;
+		if (typeFiltre == TYPE_EFFECT)
+		{
+			statusHeight = filtreToolbar->GetHeight();
+			filtreToolbar->SetSize(0, _height - statusHeight, _width, statusHeight);
+			_height -= statusHeight;
+		}
+
 	}
 
 	filtreEffectWnd->SetSize(0, 0, _width, _height);

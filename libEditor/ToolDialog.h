@@ -7,7 +7,8 @@ class CColorSelectorWidget;
 class ToolDialog : public wxDialog {
 public:
     ToolDialog(wxWindow* parent);
-
+    wxColour GetColor1();
+    wxColour GetColor2();
 private:
     void OnColorChanged(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);

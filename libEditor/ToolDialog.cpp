@@ -26,6 +26,16 @@ ToolDialog::ToolDialog(wxWindow* parent)
 	Bind(wxEVT_COLOR_SELECTOR_CHANGED, &ToolDialog::OnColorChanged, this, colorSelector->GetId());
 }
 
+wxColour ToolDialog::GetColor1()
+{
+	return colorSelector->GetColor1();
+}
+
+wxColour ToolDialog::GetColor2()
+{
+	return colorSelector->GetColor2();
+}
+
 // Méthode de callback :
 void ToolDialog::OnColorChanged(wxCommandEvent& event)
 {

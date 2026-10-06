@@ -25,6 +25,8 @@ LayerDialog::LayerDialog(wxWindow* parent)
 	m_statusBar->SetStatusText("");
 }
 
+
+
 void LayerDialog::OnSize(wxSizeEvent& event)
 {
 	const wxSize clientSize = this->GetClientSize();

@@ -263,6 +263,8 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
         {
             int numEffect = event.GetId() - wxID_HIGHEST - 100;
             parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+            parameterDialog->SetTypeFiltre(TYPE_EFFECT);
             parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
             parameterDialog->Show(true);
         }
@@ -278,6 +280,8 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
         {
             int numEffect = event.GetInt();
             parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+            parameterDialog->SetTypeFiltre(TYPE_DRAWING);
             parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
             parameterDialog->Show(true);
         }
