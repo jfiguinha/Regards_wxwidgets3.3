@@ -7,6 +7,9 @@
 #include <LibResource.h>
 #include <ImageLoadingFormat.h>
 #include <SavePicture.h>
+#include <ViewerTheme.h>
+#include <ViewerThemeInit.h>
+using namespace Regards::Viewer;
 using namespace Regards::Picture;
 
 

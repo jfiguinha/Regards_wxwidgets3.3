@@ -387,7 +387,158 @@ void CToolbarWindow::GenerateNavigatorButton(wxDC* deviceContext)
 // ---------------------------------------------------------------------------
 // Layout recalculation (separated from paint so it runs only when needed)
 // ---------------------------------------------------------------------------
+void CToolbarWindow::RecalcLayout()
+{
+	int maxRows = themeToolbar.GetNbRow();
+	int maxCols = themeToolbar.GetNbCol();
 
+	// Filtrer la liste pour n'avoir que les éléments visibles
+	std::vector<CToolbarElement*> visibleElements;
+	for (auto& nav : navElement)
+	{
+		if (nav && nav->IsVisible())
+			visibleElements.push_back(nav);
+	}
+
+	if (visibleElements.empty()) return;
+
+	// Détermination du mode de rendu (Grille vs Linéaire classique)
+	bool useGrid = (maxRows != -1 || maxCols != -1);
+
+	if (useGrid)
+	{
+		int totalElements = static_cast<int>(visibleElements.size());
+
+		// 1. Ajustement automatique des dimensions manquantes (-1)
+		if (maxRows == -1 && maxCols != -1)
+		{
+			maxRows = (totalElements + maxCols - 1) / maxCols;
+		}
+		else if (maxCols == -1 && maxRows != -1)
+		{
+			maxCols = (totalElements + maxRows - 1) / maxRows;
+		}
+
+		// Sécurité : éviter les divisions par zéro
+		if (maxRows <= 0) maxRows = 1;
+		if (maxCols <= 0) maxCols = 1;
+
+		// 2. Calcul des dimensions maximales d'une cellule de la grille
+		int cellWidth = 0;
+		int cellHeight = 0;
+		for (auto* nav : visibleElements)
+		{
+			if (nav->GetWidth() > cellWidth)   cellWidth = nav->GetWidth();
+			if (nav->GetHeight() > cellHeight) cellHeight = nav->GetHeight();
+		}
+
+		// Taille totale occupée par la grille complète
+		int gridWidth = maxCols * cellWidth + (maxCols - 1) * themeToolbar.GetMargeX();
+		int gridHeight = maxRows * cellHeight + (maxRows - 1) * themeToolbar.GetMargeY();
+
+		// 3. Alignement global de la grille dans la fenêtre
+		int gridXStart = 0;
+		int gridYStart = 0;
+
+		switch (themeToolbar.position)
+		{
+		case NAVIGATOR_CENTER:
+			gridXStart = (GetWindowWidth() - gridWidth) / 2;
+			gridYStart = (GetWindowHeight() - gridHeight) / 2;
+			break;
+		case NAVIGATOR_RIGHT:
+			gridXStart = GetWindowWidth() - gridWidth;
+			gridYStart = GetWindowHeight() - gridHeight;
+			break;
+		default: // NAVIGATOR_LEFT
+			gridXStart = 0;
+			gridYStart = 0;
+			break;
+		}
+
+		// 4. Placement des éléments selon l'axe principal (isVertical)
+		for (int i = 0; i < totalElements; ++i)
+		{
+			int row = 0;
+			int col = 0;
+
+			if (isVertical)
+			{
+				// Remplissage par colonne : on remplit d'abord l'axe Y (les lignes)
+				row = i % maxRows;
+				col = i / maxRows;
+
+				// Si le nombre d'éléments dépasse la grille maximale allouée
+				if (col >= maxCols) break;
+			}
+			else
+			{
+				// Remplissage par ligne : on remplit d'abord l'axe X (les colonnes)
+				row = i / maxCols;
+				col = i % maxCols;
+
+				// Si le nombre d'éléments dépasse la grille maximale allouée
+				if (row >= maxRows) break;
+			}
+
+			// Calcul des coordonnées de la cellule
+			int xPos = gridXStart + col * (cellWidth + themeToolbar.GetMargeX());
+			int yPos = gridYStart + row * (cellHeight + themeToolbar.GetMargeY());
+
+			// Centrage de l'élément à l'intérieur de sa cellule individuelle
+			xPos += (cellWidth - visibleElements[i]->GetWidth()) / 2;
+			yPos += (cellHeight - visibleElements[i]->GetHeight()) / 2;
+
+			visibleElements[i]->SetPosition(xPos, yPos);
+		}
+	}
+	else
+	{
+		// 5. Comportement linéaire d'origine (si nbRow == -1 && nbCol == -1)
+		const int navW = GetNavigatorWidth();
+		const int navH = GetNavigatorHeight();
+
+		if (isVertical)
+		{
+			int xStart = (GetWindowWidth() - navW) / 2;
+			int yStart = 0;
+
+			switch (themeToolbar.position)
+			{
+			case NAVIGATOR_CENTER: yStart = (GetWindowHeight() - navH) / 2; break;
+			case NAVIGATOR_RIGHT:  yStart = GetWindowHeight() - navH;        break;
+			default:               yStart = 0;                               break;
+			}
+
+			for (auto* nav : visibleElements)
+			{
+				nav->SetPosition(xStart, yStart);
+				yStart += themeToolbar.GetMargeY() + nav->GetHeight();
+			}
+		}
+		else
+		{
+			int xStart = 0;
+			int yStart = (GetWindowHeight() - navH) / 2;
+
+			switch (themeToolbar.position)
+			{
+			case NAVIGATOR_CENTER: xStart = (GetWindowWidth() - navW) / 2; break;
+			case NAVIGATOR_RIGHT:  xStart = GetWindowWidth() - navW;        break;
+			default:               xStart = 0;                              break;
+			}
+
+			for (auto* nav : visibleElements)
+			{
+				nav->SetPosition(xStart, yStart);
+				xStart += themeToolbar.GetMargeX() + nav->GetWidth();
+			}
+		}
+	}
+}
+
+
+/*
 void CToolbarWindow::RecalcLayout()
 {
 	const int navW = GetNavigatorWidth();   // also fills m_cachedNavHeight
@@ -432,7 +583,7 @@ void CToolbarWindow::RecalcLayout()
 		}
 	}
 }
-
+*/
 
 void CToolbarWindow::on_paint(wxPaintEvent& event)
 {

@@ -2,12 +2,12 @@
 #include "ThumbnailSelection.h"
 #include "MainTheme.h"
 #include "MainThemeInit.h"
-#include "ScannerParam.h"
-#include "ScannerParamInit.h"
+#include "ViewerParam.h"
+#include "ViewerParamInit.h"
 #include <ScrollbarWnd.h>
 using namespace Regards::Window;
 using namespace Regards::Scanner;
-
+using namespace Regards::Viewer;
 CThumbnailSelection::CThumbnailSelection(wxWindow* parent, wxWindowID id, wxString filename)
 	: CWindowMain("ThumbnailSelection", parent, id)
 {

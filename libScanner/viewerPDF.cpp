@@ -8,8 +8,8 @@
 #include <LibResource.h>
 #include "MainTheme.h"
 #include "MainThemeInit.h"
-#include "ScannerParam.h"
-#include "ScannerParamInit.h"
+#include "ViewerParam.h"
+#include "ViewerParamInit.h"
 #include <libPicture.h>
 #include <ShowElement.h>
 #include "ThumbnailMultiPage.h"
@@ -23,6 +23,7 @@
 using namespace Regards::Picture;
 using namespace Regards::Window;
 using namespace Regards::Scanner;
+using namespace Regards::Viewer;
 #define PANE_PICTURETHUMBNAIL 1
 #define PANE_VIDEOTHUMBNAIL 2
 #define DELAY_ANIMATION 20

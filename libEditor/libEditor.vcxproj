@@ -226,6 +226,7 @@
     <ClInclude Include="InfoDialog.h" />
     <ClInclude Include="LayerDialog.h" />
     <ClInclude Include="ParameterDialog.h" />
+    <ClInclude Include="ToolbarTools.h" />
     <ClInclude Include="ToolDialog.h" />
   </ItemGroup>
   <ItemGroup>
@@ -239,6 +240,7 @@
     <ClCompile Include="InfoDialog.cpp" />
     <ClCompile Include="LayerDialog.cpp" />
     <ClCompile Include="ParameterDialog.cpp" />
+    <ClCompile Include="ToolbarTools.cpp" />
     <ClCompile Include="ToolDialog.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

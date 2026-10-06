@@ -16,17 +16,8 @@
     <Filter Include="header">
       <UniqueIdentifier>{4b367ac2-0ccf-485b-b0d4-2228eab9b7ae}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Scanner">
-      <UniqueIdentifier>{d22f1120-0298-44bc-9051-9a6a927f4b01}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Viewer">
-      <UniqueIdentifier>{99fe96c4-1a4c-426a-b41f-d24ff3e18bf1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Main">
       <UniqueIdentifier>{36df1b97-1044-4c51-b786-20de8dfbb6be}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Editor">
-      <UniqueIdentifier>{e298c751-95b4-43b8-ad69-41991f4ccd7d}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,29 +33,17 @@
     <ClInclude Include="..\include\header.h">
       <Filter>header</Filter>
     </ClInclude>
-    <ClInclude Include="ScannerTheme.h">
-      <Filter>Scanner</Filter>
-    </ClInclude>
-    <ClInclude Include="ScannerThemeInit.h">
-      <Filter>Scanner</Filter>
-    </ClInclude>
-    <ClInclude Include="ViewerTheme.h">
-      <Filter>Viewer</Filter>
-    </ClInclude>
-    <ClInclude Include="ViewerThemeInit.h">
-      <Filter>Viewer</Filter>
-    </ClInclude>
     <ClInclude Include="MainTheme.h">
       <Filter>Main</Filter>
     </ClInclude>
     <ClInclude Include="MainThemeInit.h">
       <Filter>Main</Filter>
     </ClInclude>
-    <ClInclude Include="EditorTheme.h">
-      <Filter>Editor</Filter>
+    <ClInclude Include="ViewerTheme.h">
+      <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="EditorThemeInit.h">
-      <Filter>Editor</Filter>
+    <ClInclude Include="ViewerThemeInit.h">
+      <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -74,26 +53,14 @@
     <ClCompile Include="ThemeParam.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="ScannerTheme.cpp">
-      <Filter>Scanner</Filter>
-    </ClCompile>
-    <ClCompile Include="ScannerThemeInit.cpp">
-      <Filter>Scanner</Filter>
-    </ClCompile>
-    <ClCompile Include="ViewerTheme.cpp">
-      <Filter>Viewer</Filter>
-    </ClCompile>
-    <ClCompile Include="ViewerThemeInit.cpp">
-      <Filter>Viewer</Filter>
-    </ClCompile>
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
     </ClCompile>
-    <ClCompile Include="EditorTheme.cpp">
-      <Filter>Editor</Filter>
+    <ClCompile Include="ViewerTheme.cpp">
+      <Filter>Fichiers sources</Filter>
     </ClCompile>
-    <ClCompile Include="EditorThemeInit.cpp">
-      <Filter>Editor</Filter>
+    <ClCompile Include="ViewerThemeInit.cpp">
+      <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

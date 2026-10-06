@@ -1,9 +1,9 @@
 #include <header.h>
 #include "HistoryDialog.h"
 
-#include <EditorTheme.h>
-#include <EditorThemeInit.h>
-using namespace Regards::Editor;
+#include <ViewerTheme.h>
+#include <ViewerThemeInit.h>
+using namespace Regards::Viewer;
 using namespace Regards::Control;
 
 HistoryDialog::HistoryDialog(wxWindow* parent)

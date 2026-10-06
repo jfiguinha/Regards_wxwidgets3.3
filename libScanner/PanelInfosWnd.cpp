@@ -15,14 +15,15 @@
 #include "ThumbnailViewerEffectWnd.h"
 #include <ImageLoadingFormat.h>
 #include <ShowElement.h>
-#include "ScannerParam.h"
-#include "ScannerParamInit.h"
+#include "ViewerParam.h"
+#include "ViewerParamInit.h"
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
 using namespace Regards::Internet;
 using namespace Regards::Window;
 using namespace Regards::Scanner;
 using namespace Regards::Control;
+using namespace Regards::Viewer;
 #define WM_UPDATEINFOS 1
 
 CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)

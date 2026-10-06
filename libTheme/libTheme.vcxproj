@@ -836,12 +836,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\header.h" />
-    <ClInclude Include="EditorTheme.h" />
-    <ClInclude Include="EditorThemeInit.h" />
     <ClInclude Include="MainTheme.h" />
     <ClInclude Include="MainThemeInit.h" />
-    <ClInclude Include="ScannerTheme.h" />
-    <ClInclude Include="ScannerThemeInit.h" />
     <ClInclude Include="theme.h" />
     <ClInclude Include="ThemeParam.h" />
     <ClInclude Include="ViewerTheme.h" />
@@ -858,10 +854,6 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_cuda|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="EditorTheme.cpp" />
-    <ClCompile Include="EditorThemeInit.cpp" />
-    <ClCompile Include="ScannerTheme.cpp" />
-    <ClCompile Include="ScannerThemeInit.cpp" />
     <ClCompile Include="theme.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug_cuda|x64'">Use</PrecompiledHeader>

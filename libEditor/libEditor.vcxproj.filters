@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Toolbar">
+      <UniqueIdentifier>{5c8ed67c-390f-4007-958e-4e9c8b5f4d27}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EditorFrame.h">
@@ -48,6 +51,9 @@
     <ClInclude Include="HistoryDialog.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="ToolbarTools.h">
+      <Filter>Toolbar</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EditorFrame.cpp">
@@ -82,6 +88,9 @@
     </ClCompile>
     <ClCompile Include="HistoryDialog.cpp">
       <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarTools.cpp">
+      <Filter>Toolbar</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

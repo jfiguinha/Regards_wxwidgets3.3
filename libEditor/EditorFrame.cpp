@@ -10,9 +10,11 @@
 #include <LayerDialog.h>
 #include <ParameterDialog.h>
 #include <HistoryDialog.h>
+#include <ToolDialog.h>
 #include <wx/spinctrl.h>
 #include <effect_id.h>
 #include <FilterData.h>
+
 #define MAX_ZOOM	10.0
 #define MIN_ZOOM	0.1
 
@@ -81,12 +83,16 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     SetIcon(wxICON(sample));
 
+    CFiltreData::CreateFilterList();
+
     colorDialog = new CColorPickerDialog(this);
     layerDialog = new LayerDialog(this);
     infoDialog = new InfoDialog(this);
     parameterDialog = new ParameterDialog(this);
 	historyDialog = new HistoryDialog(this);
+    toolDialog = new ToolDialog(this);
 
+    toolDialog->Show(false);
     historyDialog->Show(false);
     colorDialog->Show(false);
     layerDialog->Show(false);
@@ -111,7 +117,6 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     // --- NOUVEAU : Création du menu Window ---
     wxMenu* menuWindow = new wxMenu;
-    menuWindow->Append(ID_WINDOW_EFFECTS, "Effets");
     menuWindow->Append(ID_WINDOW_TOOLS, "Tools");
     menuWindow->Append(ID_WINDOW_INFOS, "Infos");
     menuWindow->Append(ID_WINDOW_COLOR, "Color");
@@ -443,7 +448,12 @@ void CEditorFrame::OnWindowHistory(wxCommandEvent& event)
 void CEditorFrame::OnWindowTools(wxCommandEvent& event)
 {
     SetStatusText("Ouverture des Outils...");
-    // TODO: Instancier et afficher le dialogue de sélection d'outils ici
+    if (!toolDialog)
+    {
+        toolDialog = new ToolDialog(this);
+        // infoDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");  
+    }
+    toolDialog->Show(true);
 }
 
 void CEditorFrame::OnWindowInfos(wxCommandEvent& event)

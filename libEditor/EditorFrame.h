@@ -1,10 +1,11 @@
 #pragma once
 #include <MainInterface.h>
-#include <EditorTheme.h>
-#include <EditorThemeInit.h>
-#include <EditorParamInit.h>
-// IDs for the controls and the menu commands
 #include "ColorPickerDialog.h"
+#include <ViewerParam.h>
+#include <ViewerParamInit.h>
+#include <ViewerTheme.h>
+#include <ViewerThemeInit.h>
+using namespace Regards::Viewer;
 
 class LayerDialog;
 class EffectsDialog;
@@ -12,7 +13,7 @@ class InfoDialog;
 class ParameterDialog;
 class ImageDocument;
 class HistoryDialog;
-
+class ToolDialog;
 
 struct STImageDoc
 {
@@ -78,12 +79,13 @@ private:
 
 	std::map<int, STImageDoc> m_openedDocuments;
    
-	Regards::Editor::CMainParam * viewerParam;
-	Regards::Editor::CMainTheme * viewerTheme;
+	Regards::Viewer::CMainParam * viewerParam;
+	Regards::Viewer::CMainTheme * viewerTheme;
 
 	ImageDocument* m_activeDocument = nullptr; 
 	CColorPickerDialog * colorDialog = nullptr;
 	LayerDialog* layerDialog = nullptr;
+	ToolDialog* toolDialog = nullptr;
 	EffectsDialog* effectsDialog = nullptr;
 	InfoDialog* infoDialog = nullptr;	
 	ParameterDialog* parameterDialog = nullptr;

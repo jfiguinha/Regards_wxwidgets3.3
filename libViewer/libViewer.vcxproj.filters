@@ -198,9 +198,6 @@
     <ClInclude Include="ViewerNavigationController.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="ViewerTheme.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="MediaLoader.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>

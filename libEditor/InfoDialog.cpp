@@ -1,9 +1,9 @@
 #include <header.h>
 #include "InfoDialog.h"
 
-#include <EditorTheme.h>
-#include <EditorThemeInit.h>
-using namespace Regards::Editor;
+#include <ViewerTheme.h>
+#include <ViewerThemeInit.h>
+using namespace Regards::Viewer;
 
 
 InfoDialog::InfoDialog(wxWindow* parent)

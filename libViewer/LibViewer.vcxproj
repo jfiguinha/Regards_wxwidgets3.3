@@ -937,7 +937,6 @@
     <ClInclude Include="ViewerController.h" />
     <ClInclude Include="ViewerFrame.h" />
     <ClInclude Include="ViewerNavigationController.h" />
-    <ClInclude Include="ViewerTheme.h" />
     <ClInclude Include="WaitingWindow.h" />
     <ClInclude Include="WindowModeController.h" />
     <ClInclude Include="window_mode_id.h" />

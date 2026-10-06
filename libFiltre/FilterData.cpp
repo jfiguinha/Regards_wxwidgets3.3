@@ -145,6 +145,12 @@ void CFiltreData::CreateFilterList()
 		filterList[numEffect] = CreateEffectPointer(numEffect);
 	}
 
+	for (int numEffect = FILTER_DRAWING_START; numEffect < FILTER_DRAWING_END; numEffect++)
+	{
+		filterList[numEffect] = CreateEffectPointer(numEffect);
+	}
+
+
 	//Add Raw Filter
 	filterList[IDM_DECODE_RAW] = CreateEffectPointer(IDM_DECODE_RAW);
 	filterList[IDM_FILTRE_VIDEO] = CreateEffectPointer(IDM_FILTRE_VIDEO);

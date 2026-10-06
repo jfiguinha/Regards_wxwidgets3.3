@@ -1,8 +1,8 @@
 #include <header.h>
 #include "ParameterDialog.h"
-#include <EditorTheme.h>
-#include <EditorThemeInit.h>
-using namespace Regards::Editor;
+#include <ViewerTheme.h>
+#include <ViewerThemeInit.h>
+using namespace Regards::Viewer;
 using namespace Regards::Control;
 
 ParameterDialog::ParameterDialog(wxWindow* parent)

@@ -1493,7 +1493,30 @@ public:
 		this->height = height;
 	}
 
+	void SetNbCol(const int& nbCol)
+	{
+		this->nbCol = nbCol;
+	}
+
+	void SetNbRow(const int& nbRow)
+	{
+		this->nbRow = nbRow;
+	}
+
+	int GetNbRow()
+	{
+		return nbRow;
+	}
+
+	int GetNbCol()
+	{
+		return nbCol;
+	}
+
 private:
+
+	int nbRow = -1;
+	int nbCol = -1;
 	int height;
 	int width;
 	int margeX;

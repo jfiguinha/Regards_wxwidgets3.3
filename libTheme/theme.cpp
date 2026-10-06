@@ -2641,6 +2641,8 @@ CThemeToolbar& CThemeToolbar::operator=(const CThemeToolbar& other)
 	this->texte = other.texte;
 	this->slider = other.slider;
 	this->replaceColor = other.replaceColor;
+	this->nbCol = other.nbCol;
+	this->nbRow = other.nbRow;
 	return *this;
 }
 
