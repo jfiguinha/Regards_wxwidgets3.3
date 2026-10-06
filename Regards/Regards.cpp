@@ -480,6 +480,27 @@ void MyApp::LaunchApplication()
 	}
 	else
 	{
+		// Create a unique name for your app instance, usually using the app name and your username
+		const wxString name = wxString::Format(wxT("RegardsViewer3%s"), wxGetUserId());
+
+		// Initialize the checker
+		m_checker = new wxSingleInstanceChecker(name);
+
+		// Check if another instance is already running
+		if (m_checker->IsAnotherRunning()) {
+			wxMessageBox(
+				wxT("Another instance of this application is already running."),
+				wxT("Application Error"),
+				wxOK | wxICON_INFORMATION
+			);
+
+			// Clean up and exit
+			delete m_checker;
+			m_checker = nullptr;
+			return;
+		}
+
+
 		ShowViewer();
 
 		CViewerFrame::SetViewerMode(true);
@@ -495,25 +516,8 @@ bool MyApp::OnInit()
 		return false;
 
 
-	// Create a unique name for your app instance, usually using the app name and your username
-	const wxString name = wxString::Format(wxT("RegardsViewer3%s"), wxGetUserId());
 
-	// Initialize the checker
-	m_checker = new wxSingleInstanceChecker(name);
 
-	// Check if another instance is already running
-	if (m_checker->IsAnotherRunning()) {
-		wxMessageBox(
-			wxT("Another instance of this application is already running."),
-			wxT("Application Error"),
-			wxOK | wxICON_INFORMATION
-		);
-
-		// Clean up and exit
-		delete m_checker;
-		m_checker = nullptr;
-		return false;
-	}
 
 
 
