@@ -1,72 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CodeLite_Project Name="libTheme" InternalType="Library" Version="11000">
-  <VirtualDirectory Name="Editor">
-    <File Name="MainThemeInit.h"/>
-    <File Name="MainTheme.h"/>
-    <File Name="EditorThemeInit.h"/>
-    <File Name="EditorTheme.h"/>
-    <File Name="EditorThemeInit.cpp"/>
-    <File Name="EditorTheme.cpp"/>
-  </VirtualDirectory>
-  <Plugins>
-    <Plugin Name="qmake">
-      <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
-    </Plugin>
-    <Plugin Name="CMakePlugin">
-      <![CDATA[[{
-  "name": "Debug",
-  "enabled": false,
-  "buildDirectory": "build",
-  "sourceDirectory": "$(ProjectPath)",
-  "generator": "",
-  "buildType": "",
-  "arguments": [],
-  "parentProject": ""
- }, {
-  "name": "Release",
-  "enabled": false,
-  "buildDirectory": "build",
-  "sourceDirectory": "$(ProjectPath)",
-  "generator": "",
-  "buildType": "",
-  "arguments": [],
-  "parentProject": ""
- }]]]>
-    </Plugin>
-  </Plugins>
-  <VirtualDirectory Name="Viewer">
-    <File Name="ViewerThemeInit.h"/>
-    <File Name="ViewerThemeInit.cpp"/>
-    <File Name="ViewerTheme.h"/>
-    <File Name="ViewerTheme.cpp"/>
-  </VirtualDirectory>
-  <VirtualDirectory Name="Scanner">
-    <File Name="ScannerThemeInit.h"/>
-    <File Name="ScannerThemeInit.cpp"/>
-    <File Name="ScannerTheme.h"/>
-    <File Name="ScannerTheme.cpp"/>
-  </VirtualDirectory>
+<CodeLite_Project Name="libEditor" Version="11000" InternalType="Library">
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
-    <File Name="ThemeParam.cpp"/>
-    <File Name="theme.cpp"/>
+    <File Name="ToolDialog.cpp"/>
+    <File Name="ParameterDialog.cpp"/>
+    <File Name="LayerDialog.cpp"/>
+    <File Name="InfoDialog.cpp"/>
+    <File Name="ImageDocument.cpp"/>
+    <File Name="HistoryDialog.cpp"/>
+    <File Name="EditorFrame.cpp"/>
+    <File Name="ColorWheelCtrl.cpp"/>
+    <File Name="ColorSLPickerCtrl.cpp"/>
+    <File Name="ColorPickerDialog.cpp"/>
+    <File Name="BitmapEditor.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
-    <File Name="ThemeParam.h"/>
-    <File Name="theme.h"/>
+    <File Name="ToolDialog.h"/>
+    <File Name="ParameterDialog.h"/>
+    <File Name="LayerDialog.h"/>
+    <File Name="InfoDialog.h"/>
+    <File Name="ImageDocument.h"/>
+    <File Name="HistoryDialog.h"/>
+    <File Name="EditorFrame.h"/>
+    <File Name="ColorWheelCtrl.h"/>
+    <File Name="ColorSLPickerCtrl.h"/>
+    <File Name="ColorPickerDialog.h"/>
+    <File Name="BitmapEditor.h"/>
   </VirtualDirectory>
-  <Dependencies Name="Debug"/>
-  <Dependencies Name="Release"/>
   <Settings Type="Static Library">
     <GlobalSettings>
-      <Compiler Options="$(shell ../libextern/wxconfig_cpp.sh);-Wall;-pthread;-std=gnu++17;-Wall" C_Options=";-Wall" Assembler="">
+      <Compiler Options="$(shell ../libextern/wxconfig_cpp.sh);-Wall;-pthread;-std=gnu++17" C_Options="" Assembler="">
         <IncludePath Value="."/>
-        <IncludePath Value="../include"/>
-        <IncludePath Value="../libFiltreInterface"/>
-        <IncludePath Value="../libextern/libRapidXML"/>
-        <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../libVideoEffect"/>
+        <IncludePath Value="../libVideoThumbnail"/>
+        <IncludePath Value="../libWindow"/>
+        <IncludePath Value="../libOpenGL"/>
+        <IncludePath Value="../libPicture"/>
+        <IncludePath Value="../libDialog"/>
+        <IncludePath Value="../libTheme"/>
+        <IncludePath Value="../libFiltre"/>
+        <IncludePath Value="../libControl"/>
+        <IncludePath Value="../libWindowMain"/>
         <IncludePath Value="../libUtility"/>
+        <IncludePath Value="../libResource"/>
+        <IncludePath Value="../libOpenCL"/>
+        <IncludePath Value="../libOpenCLEngine"/>
+        <IncludePath Value="../libPicture"/>
+        <IncludePath Value="../libParameter"/>
+        <IncludePath Value="../include"/>
+        <IncludePath Value="../libSqlData"/>
+        <IncludePath Value="../libSqlEngine"/>
+        <IncludePath Value="../libAppleFunction"/>
+        <IncludePath Value="../include"/>
+        <IncludePath Value="../libVideoConverter"/>
+        <IncludePath Value="../wxCheckTree"/>
+        <IncludePath Value="../libFiltreInterface"/>
+        <IncludePath Value="../libDeepLearning"/>
+        <IncludePath Value="../libGeolocalisation"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>
@@ -74,10 +65,12 @@
       <ResourceCompiler Options=""/>
     </GlobalSettings>
     <Configuration Name="Debug" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
-      <Compiler Options="-ggdb;-O0" C_Options="-ggdb;-O0" Assembler="" Required="yes" PreCompiledHeader="../include/Debug/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="1"/>
+      <Compiler Options="-ggdb;-O0" C_Options="-ggdb;-O0" Assembler="" Required="yes" PreCompiledHeader="../include/Debug/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
+        <IncludePath Value="."/>
+      </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -112,16 +105,17 @@
     </Configuration>
     <Configuration Name="Release" CompilerType="Intel" DebuggerType="GNU gdb debugger" Type="Static Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-O3" C_Options="-O3" Assembler="" Required="yes" PreCompiledHeader="../include/Release/header.h" PCHInCommandLine="yes" PCHFlags="" PCHFlagsPolicy="2">
+        <IncludePath Value="."/>
         <Preprocessor Value="NDEBUG"/>
       </Compiler>
-      <Linker Options="-s;" Required="yes"/>
+      <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName).a" IntermediateDirectory="$(ConfigurationName)" Command="$(OutputFile)" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
       </Environment>
-      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="yes">
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
         <DebuggerSearchPaths/>
         <PostConnectCommands/>
         <StartupCommands/>

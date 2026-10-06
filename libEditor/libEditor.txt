@@ -1,0 +1,1 @@
+Release/ToolDialog.cpp.o Release/ParameterDialog.cpp.o Release/LayerDialog.cpp.o Release/InfoDialog.cpp.o Release/EditorFrame.cpp.o Release/HistoryDialog.cpp.o Release/ColorWheelCtrl.cpp.o Release/ColorPickerDialog.cpp.o Release/BitmapEditor.cpp.o Release/ImageDocument.cpp.o Release/ColorSLPickerCtrl.cpp.o

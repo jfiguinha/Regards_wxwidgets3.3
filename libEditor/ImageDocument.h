@@ -3,7 +3,7 @@
 #include <BitmapWnd3d.h>
 #include "BitmapEditor.h"
 #include <ThemeParam.h>
-#include <customslider.h>
+#include <CustomSlider.h>
 #include <InfoEffect.h>
 #include <InfoEffectWnd.h>
 using namespace Regards::Window;

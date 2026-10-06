@@ -20,6 +20,17 @@
 #define BITMAPWINDOWVIEWERID 0x00100
 
 
+#ifndef wxHAS_IMAGES_IN_RESOURCES
+#ifdef __WXGTK__
+#include "../Resource/sample.xpm"
+#elif defined(__APPLE__)
+#include "../Resource/sample.xpm"
+#else
+#include "../../Resource/sample.xpm"
+#endif
+#endif
+
+
 static int imageCount = 1;
 
 
