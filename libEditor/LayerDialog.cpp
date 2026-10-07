@@ -26,6 +26,15 @@ LayerDialog::LayerDialog(wxWindow* parent)
 }
 
 
+void LayerDialog::SetFile(const wxString& filename)
+{
+	if (listLayer)
+	{
+		listLayer->SetFilename(filename);
+		listLayer->Show(true);
+	}
+}
+
 
 void LayerDialog::OnSize(wxSizeEvent& event)
 {
