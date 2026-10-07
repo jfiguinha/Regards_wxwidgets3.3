@@ -21,6 +21,7 @@ namespace Regards::Control
 		                     int panelInfosId, bool checkValidity);
 		~CThumbnailCalqueWnd(void) = default;
 
+		void SetLayer(CLayerList * listOfLayer);
 		void UpdateScreenRatio() override;
 		void Resize() override;
 		wxString GetFilename();

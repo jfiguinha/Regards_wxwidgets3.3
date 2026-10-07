@@ -465,6 +465,7 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
         historyDialog->SetHistoryControl(doc->GetHistoryPt());
         infoDialog->SetFilename(m_activeDocument->GetFileName());
         layerDialog->SetFile(m_activeDocument->GetFileName());
+        layerDialog->SetBitmapEditor(m_activeDocument->GetBitmapEditor());
     }
 }
 

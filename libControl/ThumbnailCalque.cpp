@@ -43,6 +43,11 @@ void CThumbnailCalque::OnPictureClick(const int& numPhotoId)
 
 }
 
+void CThumbnailCalque::SetLayer(CLayerList * listOfLayer)
+{
+    this->listOfLayer = listOfLayer;
+}
+
 CThumbnailCalque::~CThumbnailCalque(void) { }
 
 wxString CThumbnailCalque::GetFilename() { return filename; }

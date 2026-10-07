@@ -1,3 +1,4 @@
+#include <header.h>
 #include <wx/dcbuffer.h>
 #include <wx/image.h>
 

@@ -1,5 +1,7 @@
 #pragma once
 #include <BitmapWndViewer.h>
+#include "LayerElement.h"
+
 
 
 class CBitmapEditor : public Regards::Control::CBitmapWndViewer
@@ -12,4 +14,12 @@ public:
 	void Resize(const int& widthOut, const int& heightOut, const int& method);
 	void SetFilename(const wxString& filename);
 	void SetRealSize();
+
+	CLayerList* GetListOfLayer()
+	{
+		return &listOfLayer;
+	}
+
+private:
+
 };

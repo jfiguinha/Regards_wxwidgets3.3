@@ -1,6 +1,13 @@
 #pragma once
-#include <InfosFileWnd.h>
 
+
+namespace Regards
+{
+    namespace Control
+    {
+        class CInfosFileWnd;
+    }
+}
 
 class InfoDialog : public wxDialog {
 public:

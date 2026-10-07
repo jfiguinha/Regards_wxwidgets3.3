@@ -876,6 +876,7 @@
     <ClInclude Include="FiltreEffectWnd.h" />
     <ClInclude Include="FiltreToolbar.h" />
     <ClInclude Include="GlassLensFilter.h" />
+    <ClInclude Include="LayerElement.h" />
     <ClInclude Include="LayerIcone.h" />
     <ClInclude Include="InfoEffect.h" />
     <ClInclude Include="InfoEffectWnd.h" />

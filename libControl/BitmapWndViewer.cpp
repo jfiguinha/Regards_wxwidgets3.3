@@ -124,10 +124,10 @@ void CBitmapWndViewer::RemoveListener(const bool& applyCancel)
 	{
 		mouseUpdate->CancelPreview(this);
 		updateFilter = true;
-		if (source != nullptr)
+		if (listOfLayer.size() > 0)
 		{
-			bitmapwidth = source->GetWidth();
-			bitmapheight = source->GetHeight();
+			bitmapwidth = listOfLayer.GetWidth();
+			bitmapheight = listOfLayer.GetHeight();
 			ShrinkImage();
 		}
 	}
@@ -221,7 +221,7 @@ void CBitmapWndViewer::PrintPicture()
 
 bool CBitmapWndViewer::IsPictureLoad()
 {
-	if (source != nullptr)
+	if (listOfLayer.size() > 0)
 		return true;
 	return false;
 }
@@ -763,6 +763,8 @@ void CBitmapWndViewer::AfterRender()
 
 void CBitmapWndViewer::RenderTexture(const bool& invertPos)
 {
+	CImageLoadingFormat* source = listOfLayer.GetPictureToShow();
+
 	if (glTexture != nullptr)
 	{
 		int x = (GetWidth() * scale_factor - glTexture->GetWidth()) / 2;
@@ -781,7 +783,7 @@ void CBitmapWndViewer::RenderTexture(const bool& invertPos)
 
 		bool isValid = false;
 		if (afterEffect != nullptr)
-			isValid = afterEffect->RenderTexture(nextPicture, source.get(), this, renderBitmapOpenGL.get(), scale_factor, etape);
+			isValid = afterEffect->RenderTexture(nextPicture, source, this, renderBitmapOpenGL.get(), scale_factor, etape);
 
 		if (!isValid)
 			renderOpenGL->RenderToScreen(mouseUpdate, effectParameter, x, y, invertPos);

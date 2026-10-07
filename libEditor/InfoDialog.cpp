@@ -1,6 +1,6 @@
 #include <header.h>
 #include "InfoDialog.h"
-
+#include <InfosFileWnd.h>
 #include <ViewerTheme.h>
 #include <ViewerThemeInit.h>
 using namespace Regards::Viewer;

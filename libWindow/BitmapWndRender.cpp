@@ -74,10 +74,13 @@ CBitmapWndRender::CBitmapWndRender(CSliderInterface* slider, wxWindowID idMain, 
 	bitmapwidth = 0;
 	bitmapheight = 0;
 	bitmapUpdate = false;
-	source = nullptr;
+	//source = nullptr;
 	bitmapLoad = false;
 	themeBitmap.colorBack = themeBitmap.colorScreen;
 	parentRender = nullptr;
+
+	LayerElement * layerElement = new LayerElement();
+	listOfLayer.push_back(layerElement);
 }
 
 //-----------------------------------------------------------------
@@ -86,10 +89,12 @@ CBitmapWndRender::CBitmapWndRender(CSliderInterface* slider, wxWindowID idMain, 
 CImageLoadingFormat* CBitmapWndRender::GetBitmap(const bool& source)
 {
 	//
-	if (filtreEffet != nullptr && bitmapLoad && this->source != nullptr)
+	CImageLoadingFormat* sourceBitmap = listOfLayer[numActifLayer]->GetPicture();
+
+	if (filtreEffet != nullptr && bitmapLoad && sourceBitmap != nullptr)
 	{
 		CImageLoadingFormat* bitmap = new CImageLoadingFormat();
-		cv::Mat mat = this->source->GetMatrix().getMat();
+		cv::Mat mat = sourceBitmap->GetMatrix().getMat();
 		bitmap->SetPicture(mat);
 		bitmap->SetOrientation(orientation);
 		bitmap->SetFilename(this->filename);
@@ -713,6 +718,8 @@ void CBitmapWndRender::SetIsBitmapThumbnail(const bool& isThumbnail)
 
 void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& updateAll)
 {
+	//CImageLoadingFormat* source = listOfLayer[numActifLayer].picture;
+
 	if (bitmapIn != nullptr)
 	{
 		if (bitmapIn->IsOk())
@@ -725,7 +732,7 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				flipVertical = 0;
 				flipHorizontal = 0;
 				angle = 0;
-				source.reset(bitmapIn);
+				listOfLayer[numActifLayer]->SetPicture(bitmapIn);
 				bitmapwidth = bitmapIn->GetWidth();
 				bitmapheight = bitmapIn->GetHeight();
 				orientation = bitmapIn->GetOrientation();
@@ -739,7 +746,7 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				bitmapwidth = bitmapIn->GetWidth();
 				bitmapheight = bitmapIn->GetHeight();
 				bitmapUpdate = true;
-				source.reset(bitmapIn);
+				listOfLayer[numActifLayer]->SetPicture(bitmapIn);
 				if (shrinkImage)
 					ShrinkImage(false);
 			}
@@ -793,7 +800,7 @@ void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn)
 			flipVertical = 0;
 			flipHorizontal = 0;
 			angle = 0;
-			source.reset(bitmapIn);
+			listOfLayer[numActifLayer]->SetPicture(bitmapIn);
 			toolOption = MOVEPICTURE;
 			bitmapwidth = bitmapIn->GetWidth();
 			bitmapheight = bitmapIn->GetHeight();
@@ -1600,7 +1607,7 @@ void CBitmapWndRender::SetOpenGLOutput(const bool& value)
 void CBitmapWndRender::OnPaint2D(wxWindow* gdi)
 {
 	wxBufferedPaintDC dc(gdi);
-
+	CImageLoadingFormat * source = listOfLayer.GetPictureToShow();
 	if (source != nullptr)
 	{
 		CRegardsConfigParam* regardsParam = CParamInit::getInstance();
@@ -1613,10 +1620,10 @@ void CBitmapWndRender::OnPaint2D(wxWindow* gdi)
 
 		if (filtreEffet == nullptr)
 		{
-			filtreEffet = std::make_unique<CFiltreEffet>(color, nullptr, source.get());
+			filtreEffet = std::make_unique<CFiltreEffet>(color, nullptr, source);
 		}
 		else
-			filtreEffet->SetBitmap(source.get());
+			filtreEffet->SetBitmap(source);
 
 		if (updateFilter)
 		{
@@ -1662,6 +1669,8 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 	scale_factor = parentRender->GetContentScaleFactor();
 #endif
 
+	CImageLoadingFormat* source = listOfLayer.GetPictureToShow();
+
 	isOpenGLShow = true;
 
 	if (renderBitmapOpenGL == nullptr)
@@ -1690,10 +1699,10 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 		if (loadBitmap)
 		{
 			if (filtreEffet == nullptr)
-				filtreEffet = std::make_unique<CFiltreEffet>(color, renderOpenGL->GetOpenCLContext(), source.get());
+				filtreEffet = std::make_unique<CFiltreEffet>(color, renderOpenGL->GetOpenCLContext(), source);
 			else
 			{
-				filtreEffet->SetBitmap(source.get());
+				filtreEffet->SetBitmap(source);
 			}
 
 			loadBitmap = false;
@@ -1721,7 +1730,7 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 			if (updateFilter)// || mouseUpdate != nullptr)
 			{
 				if (!bitmapIsLoad)
-					filtreEffet->SetBitmap(source.get());
+					filtreEffet->SetBitmap(source);
 				BeforeInterpolationBitmap();
 				updateFilter = true;
 			}

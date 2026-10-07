@@ -1,10 +1,11 @@
 #include <header.h>
 #include "ToolDialog.h"
+#include "ToolbarTools.h"
 #include "ColorSelectorWidget.h"
 #include <ViewerTheme.h>
 #include <ViewerThemeInit.h>
 using namespace Regards::Viewer;
-
+using namespace Regards::Editor;
 ToolDialog::ToolDialog(wxWindow* parent)
     : wxDialog(parent, wxID_ANY, "Tools", wxDefaultPosition, wxSize(140, 400),
         wxDEFAULT_DIALOG_STYLE |  wxSTAY_ON_TOP) // wxSTAY_ON_TOP la garde visible au-dessus des images

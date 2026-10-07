@@ -29,9 +29,10 @@ void CBitmapEditor::SetFilename(const wxString& filename)
 
 void CBitmapEditor::Resize(const int& widthOut, const int& heightOut, const int& method)
 {
+	CImageLoadingFormat* source = listOfLayer.GetPictureToShow();
 
 	CRgbaquad color;
-	CFiltreEffet filtreEffet(color, nullptr, source.get());
+	CFiltreEffet filtreEffet(color, nullptr, source);
 	cv::Mat output = filtreEffet.Resize(widthOut, heightOut, method);
 
 	source->SetPicture(output);

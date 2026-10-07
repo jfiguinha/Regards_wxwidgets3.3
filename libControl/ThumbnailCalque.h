@@ -2,6 +2,7 @@
 #include "ThumbnailVertical.h"
 #include <memory>
 #include <thread>
+#include "LayerElement.h"
 
 class CImageLoadingFormat;
 class CRegardsConfigParam;
@@ -17,6 +18,7 @@ namespace Regards::Control
 			const CThemeThumbnail& themeThumbnail);
 		~CThumbnailCalque(void) override;
 
+		void SetLayer(CLayerList * listOfLayer);
 		void SetFile(const wxString& filename, CImageLoadingFormat* imageLoading);
 		wxString GetFilename();
 
@@ -32,7 +34,7 @@ namespace Regards::Control
 
 		void ProcessIdle() override;
 
-
+		CLayerList * listOfLayer = nullptr;
 		CRegardsConfigParam* config;
 		wxString calqueLibelle;
 		wxString filename;

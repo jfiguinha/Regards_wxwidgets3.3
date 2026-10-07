@@ -1,5 +1,7 @@
 #include <header.h>
 #include "LayerDialog.h"
+#include <ListLayer.h>
+#include "BitmapEditor.h"
 #include <ViewerTheme.h>
 #include <ViewerThemeInit.h>
 using namespace Regards::Viewer;
@@ -11,10 +13,11 @@ LayerDialog::LayerDialog(wxWindow* parent)
 {
 
 	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
+	
 
 	if (viewerTheme != nullptr)
 	{
-		listLayer = new CListLayer(this, LISTLAYERID);
+		listLayer = new Regards::Control::CListLayer(this, LISTLAYERID);
 		listLayer->Show(true);
 	}
 
@@ -23,6 +26,16 @@ LayerDialog::LayerDialog(wxWindow* parent)
 	m_statusBar = new wxStatusBar(this, wxID_ANY);
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
 	m_statusBar->SetStatusText("");
+}
+
+void LayerDialog::SetBitmapEditor(CBitmapEditor* bitmapEditor)
+{
+	this->bitmapEditor = bitmapEditor;
+	if (listLayer)
+	{
+		listLayer->SetLayer(bitmapEditor->GetListOfLayer());
+		listLayer->Show(true);
+	}
 }
 
 

@@ -72,6 +72,11 @@ CListLayer::~CListLayer()
 {
 }
 
+void CListLayer::SetLayer(CLayerList* listOfLayer)
+{
+	thumbnailCalqueWnd->SetLayer(listOfLayer);
+}
+
 void CListLayer::UpdateScreenRatio()
 {
 	if (windowManager)

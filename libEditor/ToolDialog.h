@@ -1,6 +1,12 @@
 #pragma once
-#include "ToolbarTools.h"
-using namespace Regards::Editor;
+
+namespace Regards
+{
+    namespace Editor
+    {
+        class CToolbarTools;
+    }
+}
 
 class CColorSelectorWidget;
 
@@ -12,6 +18,6 @@ public:
 private:
     void OnColorChanged(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
-    CToolbarTools* toolbarTools = nullptr;
+    Regards::Editor::CToolbarTools* toolbarTools = nullptr;
     CColorSelectorWidget* colorSelector = nullptr;
 };

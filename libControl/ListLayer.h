@@ -1,5 +1,6 @@
 #pragma once
 #include <WindowMain.h>
+#include "LayerElement.h"
 using namespace Regards::Window;
 
 
@@ -25,7 +26,7 @@ namespace Regards
 			int GetNumItem();
 			void SetActifItem(const int& numItem, const bool& move);
 			void SetFilename(const wxString& filename);
-
+			void SetLayer(CLayerList * listOfLayer);
 			void Resize() override;
 
 		private:

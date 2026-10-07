@@ -24,6 +24,12 @@ CThumbnailCalqueWnd::CThumbnailCalqueWnd(wxWindow* parent, wxWindowID id,
 	thumbnailEffectScroll = new CScrollbarWnd(this, thumbnailCalque, wxID_ANY);
 }
 
+void CThumbnailCalqueWnd::SetLayer(CLayerList * listOfLayer)
+{
+	if (thumbnailCalque != nullptr)
+		thumbnailCalque->SetLayer(listOfLayer);
+}
+
 void CThumbnailCalqueWnd::UpdateScreenRatio()
 {
 	if (thumbnailEffectScroll != nullptr)

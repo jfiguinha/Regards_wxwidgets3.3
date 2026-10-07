@@ -22,6 +22,10 @@ public:
 
     CInfoEffect * GetHistoryPt();
 	wxString GetFileName() const { return m_filename; }
+    CBitmapEditor* GetBitmapEditor()
+    {
+        return bitmapWindow;
+    }
 
 	int GetBitmapViewerId() const { return id; }
 	int GetMainViewerId() const { return mainviewerid; }

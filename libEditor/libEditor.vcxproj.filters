@@ -16,6 +16,9 @@
     <Filter Include="Toolbar">
       <UniqueIdentifier>{5c8ed67c-390f-4007-958e-4e9c8b5f4d27}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header">
+      <UniqueIdentifier>{0ac3eef2-a566-4885-a4d9-fd80fea957ff}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EditorFrame.h">
@@ -57,6 +60,9 @@
     <ClInclude Include="ColorSelectorWidget.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\header.h">
+      <Filter>Header</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EditorFrame.cpp">
@@ -97,6 +103,9 @@
     </ClCompile>
     <ClCompile Include="ColorSelectorWidget.cpp">
       <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\header.cpp">
+      <Filter>Header</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

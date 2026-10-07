@@ -6,6 +6,7 @@
 #include "IBitmapRenderInterface.h"
 #include "SliderInterface.h"
 #include <BitmapDisplay.h>
+#include <LayerElement.h>
 using namespace std;
 using namespace std::chrono;
 ;
@@ -317,7 +318,7 @@ namespace Regards::Window
 
 		std::unique_ptr<CRenderBitmapOpenGL> renderBitmapOpenGL = nullptr;
 		std::unique_ptr<CFiltreEffet> filtreEffet = nullptr;
-		std::unique_ptr<CImageLoadingFormat> source = nullptr;
+		//std::unique_ptr<CImageLoadingFormat> source = nullptr;
 		//Preview Parameter
 		int preview = 0;
 
@@ -355,5 +356,9 @@ namespace Regards::Window
 		int heightOutputOld = 0;
 
 		bool forceUpdateFilter = false;
+
+
+		CLayerList listOfLayer;
+		int numActifLayer = 0;
 	};
 }
