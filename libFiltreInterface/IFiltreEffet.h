@@ -48,6 +48,7 @@ public:
 	virtual int OilPaintingEffect(const int& size, const int& dynRatio) = 0;
 	virtual void Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method,
 	                           int flipH, int flipV, int angle, int ratio, bool bgraOutput = false) = 0;
+	virtual cv::Mat Resize(const int& widthOut, const int& heightOut, const int& method) = 0;
 	virtual int WaveFilter(int x, int y, short height, int scale, int radius) = 0;
 	virtual int BilateralFilter(const int& fSize, const int& sigmaX, const int& sigmaP) = 0;
 	virtual int NlmeansFilter(const int& h, const int& hColor, const int& templateWindowSize,

@@ -83,6 +83,9 @@ int COpenCLEffect::GetHeight()
 	return height;
 }
 
+
+
+
 int COpenCLEffect::HQDn3D(const double& LumSpac, const double& temporalLumaDefault, const double& temporalSpatialLumaDefault)
 {
 	ExecuteSafe([&](cv::UMat& image)
@@ -576,6 +579,28 @@ int COpenCLEffect::GaussianBlur(const int& radius, const int& boxSize)
 		openclFilter->GaussianBlur(radius, boxSize, image);
 		});
 	return 0;
+}
+
+
+cv::Mat COpenCLEffect::Resize(const int& widthOut, const int& heightOut, const int& method)
+{
+
+	cv::UMat output;
+	cv::Mat outputMat;
+	wxRect rc;
+	rc.width = input.size().width;
+	rc.height = input.size().height;
+
+	if (widthOut <= 0 || heightOut <= 0)
+		return outputMat;
+
+	ExecuteSafe([&](cv::UMat& image)
+		{
+			output = openclFilter->Interpolation(widthOut, heightOut, rc, method, input, 0, 0, 0, 1);
+			output.copyTo(outputMat);
+		});
+
+	return outputMat;
 }
 
 void COpenCLEffect::Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method,

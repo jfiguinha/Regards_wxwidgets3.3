@@ -46,6 +46,9 @@ namespace Regards::FiltreEffet
 		{
 			return -1;
 		};
+
+		cv::Mat Resize(const int& widthOut, const int& heightOut, const int& method);
+
 		int VignetteEffect(const double& radius = 1.0, const double& power = 0.8) override { return -1; };
 		int MeanShift(const float& fSpatialRadius, const float& fColorRadius) override { return -1; };
 		int BilateralFilter(const int& fSize, const int& sigmaX, const int& sigmaP) override;

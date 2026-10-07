@@ -78,6 +78,9 @@ public:
 	int BilateralFilter(const int& fSize, const int& sigmaX, const int& sigmaP);
 	int NlmeansFilter(const int& h, const int& hColor, const int& templateWindowSize, const int& searchWindowSize);
 
+
+	cv::Mat Resize(const int& widthOut, const int& heightOut, const int& method);
+
 	void Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method, int flipH,
 	                   int flipV, int angle, int ratio, bool bgraOutput = false);
 	int MeanShift(const float& fSpatialRadius, const float& fColorRadius);

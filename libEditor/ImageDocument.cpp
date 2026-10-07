@@ -170,7 +170,6 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     UpdateStatusText();
 }
 
-
 CInfoEffect* ImageDocument::GetHistoryPt()
 {
     return historyEffect.get();
@@ -306,7 +305,7 @@ void ImageDocument::Resize(int newWidth, int newHeight, int interpolation)
 {
     if (bitmapWindow)
     {
-       // return bitmapWindow->GetBitmapHeight();
+        bitmapWindow->Resize(newWidth, newHeight, interpolation);
     }
 }
 

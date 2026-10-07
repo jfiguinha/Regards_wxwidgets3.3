@@ -337,8 +337,7 @@ void CEditorFrame::OnWindowResize(wxCommandEvent& event)
 
             if (dlg.ShowModal() == wxID_OK)
             {
-                // Récupérer les valeurs finales saisies par l'utilisateur
-                // Appliquer le redimensionnement...
+                m_activeDocument->Resize(spinPixelWidth->GetValue(), spinPixelHeight->GetValue(), comboInterpolation->GetSelection());
             }
         }
     }

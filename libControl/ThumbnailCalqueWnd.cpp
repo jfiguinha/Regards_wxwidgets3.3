@@ -54,6 +54,6 @@ void CThumbnailCalqueWnd::SetFile(const wxString& filename)
 		CLibPicture libPicture;
 		CImageLoadingFormat* load = libPicture.LoadThumbnail(filename);
 		thumbnailCalque->SetFile(filename, load);
-		//thumbnailEffect->UpdateScroll();
+		delete load;
 	}
 }

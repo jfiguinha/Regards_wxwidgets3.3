@@ -30,7 +30,6 @@ public:
 	int GetBitmapHeight() const;
 
     void Save();
-
 	void ZoomIn();
 	void ZoomOut();
 	void Shrink();

@@ -17,10 +17,12 @@ public:
 		return TYPE_CPU;
 	}
 
+	cv::Mat Resize(const int& widthOut, const int& heightOut, const int& method)  override;
+	int RedEye() override;
 	int HistogramNormalize() override;
 	int HistogramEqualize() override;
 	Regards::Picture::CPictureArray GetMatrix() override;
-	int RedEye() override;
+
 	int BokehEffect(const int& radius, const int& boxsize, const int& nbFace, const wxRect& listFace) override;
 	int HQDn3D(const double& LumSpac = 4, const double& temporalLumaDefault = 6.0, const double& temporalSpatialLumaDefault = 4.0) override;
 	int BilateralFilter(const int& fSize, const int& sigmaX, const int& sigmaP) override;
@@ -64,7 +66,7 @@ public:
 	int Rotate180() override;
 	int BrightnessAndContrast(const double& brightness, const double& contrast) override;
 	int RGBFilter(const int& red, const int& green, const int& blue) override;
-	int Resize(const int& imageWidth, const int& imageHeight, const int& interpolation);
+
 	int CloudsFilter(const CRgbaquad& color1, const CRgbaquad& color2, const float& amplitude, const float& frequence,
 	                 const int& octave, const int& intensity) override;
 	int Swirl(const float& radius, const float& angle) override;

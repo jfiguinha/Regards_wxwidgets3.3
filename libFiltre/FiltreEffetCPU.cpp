@@ -1185,6 +1185,31 @@ wxImage CFiltreEffetCPU::GetwxImage()
 }
 
 
+cv::Mat CFiltreEffetCPU::Resize(const int& width, const int& height, const int& method)
+{
+	cv::Mat output;
+	wxRect rc;
+	rc.width = input.size().width;
+	rc.height = input.size().height;
+
+	if (width <= 0 || height <= 0)
+		return output;
+
+	try
+	{
+		if (input.empty())
+			return output;
+
+		output = Interpolation(input, width, height, rc, method, 0, 0, 0, 1);
+	}
+	catch (const cv::Exception& e)
+	{
+		LogError(e.what());
+	}
+
+	return output;
+}
+
 Mat CFiltreEffetCPU::Interpolation(const Mat& inputData, const int& widthOut, const int& heightOut, const wxRect& rc,
 	const int& method, int flipH, int flipV, int angle, int ratio)
 {
@@ -1949,6 +1974,7 @@ int CFiltreEffetCPU::Rotate270()
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
+/*
 int CFiltreEffetCPU::Resize(const int& imageWidth, const int& imageHeight, const int& interpolation)
 {
 	if (imageWidth <= 0 || imageHeight <= 0)
@@ -1969,6 +1995,7 @@ int CFiltreEffetCPU::Resize(const int& imageWidth, const int& imageHeight, const
 
 	return 0;
 }
+*/
 
 int CFiltreEffetCPU::Fusion(Mat& bitmapSecond, const float& pourcentage)
 {

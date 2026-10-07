@@ -244,6 +244,12 @@ int CFiltreEffet::SharpenMasking(const float& sharpness)
 }
 
 
+cv::Mat CFiltreEffet::Resize(const int& widthOut, const int& heightOut, const int& method)
+{
+	return filtreEffet->Resize(widthOut, heightOut, method);
+}
+
+
 void CFiltreEffet::Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method,
                                  int flipH, int flipV, int angle, int ratio, bool bgraOutput)
 {

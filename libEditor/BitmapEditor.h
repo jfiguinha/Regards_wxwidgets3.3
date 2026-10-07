@@ -9,6 +9,7 @@ public:
 		CBitmapInterface* bitmapInterface);
 	~CBitmapEditor(void);
 
+	void Resize(const int& widthOut, const int& heightOut, const int& method);
 	void SetFilename(const wxString& filename);
 	void SetRealSize();
 };

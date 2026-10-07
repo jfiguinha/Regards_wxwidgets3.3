@@ -75,7 +75,9 @@ void CThumbnailCalque::SetFile(const wxString& filename,
     this->filename = filename;
     InitScrollingPos();
 
-
+    CRgbaquad color;
+    CFiltreEffet filtreEffet(color, nullptr, imageLoading);
+    cv::Mat output = filtreEffet.Resize(640, 480, 1);
 
     CLibPicture picture;
     int format = picture.TestImageFormat(filename);
@@ -86,7 +88,7 @@ void CThumbnailCalque::SetFile(const wxString& filename,
     auto* thumbnailData = new CThumbnailDataStorage(
         CFiltreData::GetFilterLabel(IDM_FILTRE_VIDEO));
     thumbnailData->SetNumPhotoId(IDM_FILTRE_VIDEO);
-    thumbnailData->SetBitmap(CLibPicture::mat_from_wx(pBitmap));
+    thumbnailData->SetBitmap(output);
 
     auto* pBitmapIcone = new CLayerIcone(thumbnailData);
     pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
