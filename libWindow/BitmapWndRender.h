@@ -189,7 +189,7 @@ namespace Regards::Window
 		virtual void SetTransitionBitmap(CImageLoadingFormat* bmpSecond) {};
 		//int GetExifOrientation(const int& angle);
 		virtual bool ApplyPreviewEffect(int& widthOutput, int& heightOutput) { return false; };
-
+		virtual bool ApplySelectEffect(int& widthOutput, int& heightOutput) { return false; };
 		virtual void AfterRender()
 		{
 		};

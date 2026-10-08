@@ -13,6 +13,11 @@ CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId, 
 	fixArrow = false;
 }
 
+bool CBitmapEditor::ApplySelectEffect(int& widthOutput, int& heightOutput)
+{ 
+	return false; 
+}
+
 CBitmapEditor::~CBitmapEditor(void)
 {}
 

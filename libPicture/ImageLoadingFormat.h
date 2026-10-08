@@ -47,10 +47,12 @@ public:
 	FIBITMAP* GetFreeImage();
 	void ReadFile(const wxString& filename);
 	void WriteFile(const wxString& filename);
-
-protected:
 	CRgbaquad* GetPtColorValue(const int& x, const int& y);
 	CRgbaquad GetColorValue(const int& x, const int& y);
+
+protected:
+	
+	
 	float CalculPictureRatio(const int& pictureWidth, const int& pictureHeight);
 	int GetPosition(const int& x, const int& y);
 	cv::Mat _image;

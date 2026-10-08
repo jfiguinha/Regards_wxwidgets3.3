@@ -800,7 +800,7 @@ void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn)
 			flipVertical = 0;
 			flipHorizontal = 0;
 			angle = 0;
-			listOfLayer[numActifLayer]->SetPicture(bitmapIn);
+			listOfLayer.SetPicture(bitmapIn);
 			toolOption = MOVEPICTURE;
 			bitmapwidth = bitmapIn->GetWidth();
 			bitmapheight = bitmapIn->GetHeight();
@@ -1742,6 +1742,8 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 				GenerateScreenBitmap(filtreEffet.get(), widthOutput, heightOutput);
 
 				ApplyPreviewEffect(widthOutput, heightOutput);
+
+				ApplySelectEffect(widthOutput, heightOutput);
 
 				glTexture = renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
 

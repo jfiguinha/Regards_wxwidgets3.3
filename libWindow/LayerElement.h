@@ -40,12 +40,12 @@ class CLayerList
 {
 public:
 	CLayerList() = default;
-    ~CLayerList() = default;
+    ~CLayerList();
 
     // --- Fonctions simulant le comportement d'un std::vector ---
 
     // Ajouter un élément à la liste
-    void push_back(LayerElement * element) { m_layers.push_back(element); }
+	void push_back(LayerElement* element);
 
     // Obtenir le nombre de calques
     int size_back() const { return m_layers.size(); }
@@ -63,6 +63,8 @@ public:
     auto end() const { return m_layers.end(); }
 
     // --- Vos fonctions personnalisées (Logique métier) ---
+	void SetCanvasSize(const int &width, const int &height);
+	void SetPicture(CImageLoadingFormat* bitmapIn);
 
 	CImageLoadingFormat* GetPictureToShow();
 
@@ -71,4 +73,12 @@ public:
 
 private:
     std::vector<LayerElement *> m_layers;
+
+
+	std::vector<wxPoint> points;
+	int selectType;
+	CImageLoadingFormat* finalImage = nullptr;
+	bool isChanged = false;
+	int canvasWidth = 0;
+	int canvasHeight = 0;
 };

@@ -21,5 +21,5 @@ public:
 	}
 
 private:
-
+	bool ApplySelectEffect(int& widthOutput, int& heightOutput)  override;
 };
