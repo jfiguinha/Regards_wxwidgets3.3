@@ -327,7 +327,8 @@ void CEditorFrame::OnWindowResize(wxCommandEvent& event)
         resizeParam.interpolation = 0;
 
         CResizeDialog resizeDlg(this, resizeParam);
-        if (resizeDlg.ShowModal() == wxID_OK)
+        resizeDlg.ShowModal();
+        if (resizeDlg.IsOk())
         {
             resizeParam = resizeDlg.GetParameter();
             m_activeDocument->Resize(resizeParam.width, resizeParam.height, resizeParam.interpolation);
@@ -343,7 +344,8 @@ void CEditorFrame::OnWindowCanvas(wxCommandEvent& event)
         canvasSize.height = m_activeDocument->GetBitmapHeight();
         canvasSize.width = m_activeDocument->GetBitmapWidth();
         CCanvasSizeDialog canvasDlg(this, canvasSize);
-        if (canvasDlg.ShowModal() == wxID_OK)
+        canvasDlg.ShowModal();
+        if (canvasDlg.IsOk())
         {
             canvasSize = canvasDlg.GetParameter();
             //m_activeDocument->Resize(resizeParam.width, resizeParam.height, resizeParam.interpolation);

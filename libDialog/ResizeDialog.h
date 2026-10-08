@@ -1,4 +1,9 @@
 #pragma once
+#include <wx/dialog.h>
+#include <wx/spinctrl.h>
+#include <wx/combobox.h>
+#include <wx/checkbox.h>
+#include <wx/notebook.h>
 
 struct ResizeParameter
 {
@@ -14,32 +19,43 @@ namespace Regards
         class CResizeDialog : public wxDialog
         {
         public:
-
             CResizeDialog(
                 wxWindow* parent,
                 const ResizeParameter& parameter);
 
             ResizeParameter GetParameter() const;
+            bool IsOk();
 
         private:
+            void OnbtnOkClick(wxCommandEvent& event);
+            void OnBtnCancelClick(wxCommandEvent& event);
 
-            void OnWidthChanged(wxSpinEvent& event);
-            void OnHeightChanged(wxSpinEvent& event);
+            // Événements de changement de valeurs
+            void OnPixelWidthChanged(wxSpinEvent& event);
+            void OnPixelHeightChanged(wxSpinEvent& event);
+            void OnPercentWidthChanged(wxSpinEvent& event);
+            void OnPercentHeightChanged(wxSpinEvent& event);
+            void OnNotebookPageChanged(wxBookCtrlEvent& event);
 
         private:
-
+            // Éléments Pixels
             wxSpinCtrl* spinPixelWidth = nullptr;
             wxSpinCtrl* spinPixelHeight = nullptr;
 
-            wxComboBox* comboInterpolation = nullptr;
+            // Éléments Pourcentage
+            wxSpinCtrl* spinPercentWidth = nullptr;
+            wxSpinCtrl* spinPercentHeight = nullptr;
 
-            //wxRadioBox* m_position = nullptr;
+            // Options et structure
+            wxCheckBox* checkKeepRatio = nullptr;
+            wxComboBox* comboInterpolation = nullptr;
+            wxNotebook* notebook = nullptr;
 
             int m_originalWidth = 0;
             int m_originalHeight = 0;
+            bool isOk = false;
 
             wxDECLARE_EVENT_TABLE();
         };
     }
 }
-

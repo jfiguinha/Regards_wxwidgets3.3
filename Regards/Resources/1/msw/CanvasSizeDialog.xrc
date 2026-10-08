@@ -110,14 +110,12 @@
                     <object class="sizeritem">
                         <flag>wxRIGHT</flag>
                         <border>8</border>
-                        <object class="wxButton">
-                            <id>wxID_CANCEL</id>
+                        <object class="wxButton" name="wxID_CANCEL">
                             <label>Annuler</label>
                         </object>
                     </object>
                     <object class="sizeritem">
-                        <object class="wxButton">
-                            <id>wxID_OK</id>
+                        <object class="wxButton" name="wxID_OK">
                             <label>OK</label>
                             <default>1</default>
                         </object>

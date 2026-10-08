@@ -34,9 +34,11 @@ namespace Regards
                 const CanvasSizeParameter& parameter);
 
             CanvasSizeParameter GetParameter() const;
+            bool IsOk();
 
         private:
-
+            void OnbtnOkClick(wxCommandEvent& event);
+            void OnBtnCancelClick(wxCommandEvent& event);
             void OnWidthChanged(wxSpinEvent& event);
             void OnHeightChanged(wxSpinEvent& event);
 
@@ -48,7 +50,7 @@ namespace Regards
             wxCheckBox* m_keepRatio = nullptr;
 
             wxRadioBox* m_position = nullptr;
-
+            bool isOk = false;
             int m_originalWidth = 0;
             int m_originalHeight = 0;
 
