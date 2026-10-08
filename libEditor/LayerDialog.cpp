@@ -34,6 +34,16 @@ void LayerDialog::SetLayerList(CLayerList* listOfLayer)
 		listLayer->SetLayer(listOfLayer);
 }
 
+void LayerDialog::SetFile(const wxString& filename)
+{
+	this->filename = filename;
+}
+
+wxString LayerDialog::GetFilename()
+{
+	return filename;
+}
+
 void LayerDialog::OnSize(wxSizeEvent& event)
 {
 	const wxSize clientSize = this->GetClientSize();

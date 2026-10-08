@@ -32,6 +32,12 @@ InfoDialog::InfoDialog(wxWindow* parent)
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
 	m_statusBar->SetStatusText("");
 }
+
+wxString InfoDialog::GetFilename()
+{
+	return m_filename;
+}
+
 void InfoDialog::SetFilename(const wxString& filename)
 {
     m_filename = filename;

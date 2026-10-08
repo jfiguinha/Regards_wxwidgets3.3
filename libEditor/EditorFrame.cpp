@@ -462,9 +462,15 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
     if (doc)
     {
         m_activeDocument = doc;
-        historyDialog->SetHistoryControl(doc->GetHistoryPt());
-        infoDialog->SetFilename(m_activeDocument->GetFileName());
-        layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
+        wxString filename = m_activeDocument->GetFileName();
+        if(filename != historyDialog->GetFilename())
+            historyDialog->SetHistoryControl(doc->GetHistoryPt());
+
+        if (filename != infoDialog->GetFilename())
+            infoDialog->SetFilename(m_activeDocument->GetFileName());
+
+        if (filename != layerDialog->GetFilename())
+            layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
        // layerDialog->SetBitmapEditor(m_activeDocument->GetBitmapEditor());
     }
 }

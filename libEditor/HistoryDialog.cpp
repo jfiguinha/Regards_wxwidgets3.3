@@ -37,6 +37,16 @@ void HistoryDialog::SetHistoryControl(CInfoEffect* infoEffect)
 	historyEffectWnd->Refresh();
 }
 
+wxString HistoryDialog::GetFilename()
+{
+	return filename;
+}
+
+void HistoryDialog::SetFilename(const wxString &filename)
+{
+	this->filename = filename;
+}
+
 void HistoryDialog::OnSize(wxSizeEvent& event)
 {
 	const wxSize clientSize = this->GetClientSize();
