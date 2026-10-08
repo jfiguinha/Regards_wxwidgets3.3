@@ -63,13 +63,14 @@ public:
     auto end() const { return m_layers.end(); }
 
     // --- Vos fonctions personnalisées (Logique métier) ---
-	void SetCanvasSize(const int &width, const int &height);
 	void SetPicture(CImageLoadingFormat* bitmapIn);
 
 	CImageLoadingFormat* GetPictureToShow();
 
 	int GetWidth();
 	int GetHeight();
+
+	void IsChanged(bool isChanged);
 
 private:
     std::vector<LayerElement *> m_layers;

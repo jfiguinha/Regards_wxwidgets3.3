@@ -135,6 +135,12 @@
     <ClCompile Include="LayerPropertiesDialog.cpp">
       <Filter>Layer</Filter>
     </ClCompile>
+    <ClCompile Include="CanvasSizeDialog.cpp">
+      <Filter>Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="ResizeDialog.cpp">
+      <Filter>Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigRegards.h">
@@ -207,6 +213,12 @@
       <Filter>CompressionVideo\Preview</Filter>
     </ClInclude>
     <ClInclude Include="LayerPropertiesDialog.h">
+      <Filter>Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="CanvasSizeDialog.h">
+      <Filter>Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="ResizeDialog.h">
       <Filter>Layer</Filter>
     </ClInclude>
   </ItemGroup>

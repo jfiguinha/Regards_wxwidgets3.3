@@ -317,6 +317,14 @@ void ImageDocument::Resize(int newWidth, int newHeight, int interpolation)
     }
 }
 
+void ImageDocument::CanvasResize(CanvasSizeParameter canvasSize)
+{
+    if (bitmapWindow)
+    {
+        bitmapWindow->CanvasResize(canvasSize);
+    }
+}
+
 void ImageDocument::ZoomIn()
 {
     bitmapWindow->ZoomOn();

@@ -107,11 +107,6 @@ CImageLoadingFormat* CLayerList::GetPictureToShow()
 }
 
 
-void CLayerList::SetCanvasSize(const int& width, const int& height)
-{
-
-}
-
 void CLayerList::SetPicture(CImageLoadingFormat* bitmapIn)
 {
     if (!bitmapIn)
@@ -177,4 +172,9 @@ int CLayerList::GetWidth()
 int CLayerList::GetHeight()
 {
 	return canvasHeight;
+}
+
+void CLayerList::IsChanged(bool isChanged)
+{
+    this->isChanged = isChanged;
 }

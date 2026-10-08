@@ -6,6 +6,7 @@
 #include <CustomSlider.h>
 #include <InfoEffect.h>
 #include <InfoEffectWnd.h>
+#include <CanvasSizeDialog.h>
 using namespace Regards::Window;
 using namespace Regards::Control;
 
@@ -40,6 +41,7 @@ public:
 	void RealSize();
 
 	void Resize(int newWidth, int newHeight, int interpolation);
+    void CanvasResize(CanvasSizeParameter canvasSize);
 
     void OnCrop();
     void OnResize();

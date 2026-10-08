@@ -14,6 +14,9 @@
 #include <wx/spinctrl.h>
 #include <effect_id.h>
 #include <FilterData.h>
+#include <ResizeDialog.h>
+#include <CanvasSizeDialog.h>
+using namespace Regards::Dialog;
 
 #define MAX_ZOOM	10.0
 #define MIN_ZOOM	0.1
@@ -318,27 +321,16 @@ void CEditorFrame::OnWindowResize(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        wxDialog dlg;
-        // Chargement de l'interface depuis le fichier XRC
-        if (wxXmlResource::Get()->LoadDialog(&dlg, this, "ResizeDialog"))
+        ResizeParameter resizeParam;
+        resizeParam.height = m_activeDocument->GetBitmapHeight();
+        resizeParam.width = m_activeDocument->GetBitmapWidth();
+        resizeParam.interpolation = 0;
+
+        CResizeDialog resizeDlg(this, resizeParam);
+        if (resizeDlg.ShowModal() == wxID_OK)
         {
-            // Récupération des contrôles par leur nom XRC
-            wxSpinCtrl* spinPixelWidth = XRCCTRL(dlg, "m_spinPixelWidth", wxSpinCtrl);
-            wxSpinCtrl* spinPixelHeight = XRCCTRL(dlg, "m_spinPixelHeight", wxSpinCtrl);
-            wxComboBox* comboInterpolation = XRCCTRL(dlg, "m_comboInterpolation", wxComboBox);
-
-            // Initialisation des valeurs par défaut
-            if (spinPixelWidth) spinPixelWidth->SetValue(m_activeDocument->GetBitmapWidth());
-            if (spinPixelHeight) spinPixelHeight->SetValue(m_activeDocument->GetBitmapHeight());
-            if (comboInterpolation) comboInterpolation->SetSelection(1); // Bilinéaire par défaut
-
-            // Liaison dynamique des fonctions sur modification (Bind)
-            // dlg.Bind(wxEVT_SPINCTRL, &ImageDocument::OnPixelWidthChange, this...);
-
-            if (dlg.ShowModal() == wxID_OK)
-            {
-                m_activeDocument->Resize(spinPixelWidth->GetValue(), spinPixelHeight->GetValue(), comboInterpolation->GetSelection());
-            }
+            resizeParam = resizeDlg.GetParameter();
+            m_activeDocument->Resize(resizeParam.width, resizeParam.height, resizeParam.interpolation);
         }
     }
 }
@@ -347,7 +339,15 @@ void CEditorFrame::OnWindowCanvas(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        //m_activeDocument->Canvas();
+        CanvasSizeParameter canvasSize;
+        canvasSize.height = m_activeDocument->GetBitmapHeight();
+        canvasSize.width = m_activeDocument->GetBitmapWidth();
+        CCanvasSizeDialog canvasDlg(this, canvasSize);
+        if (canvasDlg.ShowModal() == wxID_OK)
+        {
+            canvasSize = canvasDlg.GetParameter();
+            //m_activeDocument->Resize(resizeParam.width, resizeParam.height, resizeParam.interpolation);
+        }
     }
 }
 
@@ -469,7 +469,7 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
         if (filename != infoDialog->GetFilename())
             infoDialog->SetFilename(m_activeDocument->GetFileName());
 
-        if (filename != layerDialog->GetFilename())
+        if (filename != infoDialog->GetFilename())
             layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
        // layerDialog->SetBitmapEditor(m_activeDocument->GetBitmapEditor());
     }

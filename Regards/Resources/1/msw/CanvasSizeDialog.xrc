@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource xmlns="http://www.wxwidgets.org/wxxrc">
+    <object class="wxDialog" name="ID_CANVAS_SIZE_DIALOG">
+        <title>Taille de la zone de travail</title>
+        <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+            <!-- ================================================= -->
+            <!-- Taille -->
+            <!-- ================================================= -->
+            <object class="sizeritem">
+                <flag>wxEXPAND|wxALL</flag>
+                <border>10</border>
+                <object class="wxStaticBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <label>Dimensions du canvas</label>
+                    <object class="sizeritem">
+                        <flag>wxEXPAND|wxALL</flag>
+                        <border>8</border>
+                        <object class="wxFlexGridSizer">
+                            <cols>2</cols>
+                            <rows>0</rows>
+                            <vgap>8</vgap>
+                            <hgap>10</hgap>
+                            <growablecols>1</growablecols>
+                            <!-- Largeur -->
+                            <object class="sizeritem">
+                                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                                <object class="wxStaticText">
+                                    <label>Largeur :</label>
+                                </object>
+                            </object>
+                            <object class="sizeritem">
+                                <flag>wxEXPAND</flag>
+                                <object class="wxSpinCtrl"
+                                        name="ID_CANVAS_WIDTH">
+                                    <min>1</min>
+                                    <max>100000</max>
+                                    <value>1920</value>
+                                </object>
+                            </object>
+                            <!-- Hauteur -->
+                            <object class="sizeritem">
+                                <flag>wxALIGN_CENTER_VERTICAL</flag>
+                                <object class="wxStaticText">
+                                    <label>Hauteur :</label>
+                                </object>
+                            </object>
+                            <object class="sizeritem">
+                                <flag>wxEXPAND</flag>
+                                <object class="wxSpinCtrl"
+                                        name="ID_CANVAS_HEIGHT">
+                                    <min>1</min>
+                                    <max>100000</max>
+                                    <value>1080</value>
+                                </object>
+                            </object>
+                        </object>
+                    </object>
+                    <!-- Conserver proportions -->
+                    <object class="sizeritem">
+                        <flag>wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                        <border>8</border>
+                        <object class="wxCheckBox"
+                                name="ID_KEEP_RATIO">
+                            <label>Conserver les proportions</label>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <!-- ================================================= -->
+            <!-- Position -->
+            <!-- ================================================= -->
+            <object class="sizeritem">
+                <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                <border>10</border>
+                <object class="wxStaticBoxSizer">
+                    <orient>wxVERTICAL</orient>
+                    <label>Position de l'image</label>
+                    <object class="sizeritem">
+                        <flag>wxEXPAND|wxALL</flag>
+                        <border>8</border>
+                        <object class="wxRadioBox"
+                                name="ID_CANVAS_POSITION">
+                            <label>Position</label>
+                            <dimension>1</dimension>
+                            <content>
+                                <item>Haut gauche</item>
+                                <item>Centré</item>
+                                <item>Haut droit</item>
+                                <item>Bas gauche</item>
+                                <item>Bas droit</item>
+                            </content>
+                            <selection>1</selection>
+                        </object>
+                    </object>
+                </object>
+            </object>
+            <!-- ================================================= -->
+            <!-- Boutons -->
+            <!-- ================================================= -->
+            <object class="sizeritem">
+                <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                <border>10</border>
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+                    <object class="spacer">
+                        <option>1</option>
+                    </object>
+                    <object class="sizeritem">
+                        <flag>wxRIGHT</flag>
+                        <border>8</border>
+                        <object class="wxButton">
+                            <id>wxID_CANCEL</id>
+                            <label>Annuler</label>
+                        </object>
+                    </object>
+                    <object class="sizeritem">
+                        <object class="wxButton">
+                            <id>wxID_OK</id>
+                            <label>OK</label>
+                            <default>1</default>
+                        </object>
+                    </object>
+                </object>
+            </object>
+        </object>
+    </object>
+</resource>

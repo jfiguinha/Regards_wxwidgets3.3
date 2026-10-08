@@ -1,7 +1,7 @@
 #pragma once
 #include <BitmapWndViewer.h>
 #include "LayerElement.h"
-
+#include <CanvasSizeDialog.h>
 
 
 class CBitmapEditor : public Regards::Control::CBitmapWndViewer
@@ -14,6 +14,7 @@ public:
 	void Resize(const int& widthOut, const int& heightOut, const int& method);
 	void SetFilename(const wxString& filename);
 	void SetRealSize();
+	void CanvasResize(CanvasSizeParameter canvasSize);
 
 	CLayerList* GetListOfLayer()
 	{

@@ -856,6 +856,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release_cuda|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="CanvasSizeDialog.cpp" />
     <ClCompile Include="ChangeLabel.cpp" />
     <ClCompile Include="CompressionAudioVideoOption.cpp" />
     <ClCompile Include="CompressVideo.cpp" />
@@ -870,6 +871,7 @@
     <ClCompile Include="MyFrameIntro.cpp" />
     <ClCompile Include="PertinenceValue.cpp" />
     <ClCompile Include="PreviewToolbar.cpp" />
+    <ClCompile Include="ResizeDialog.cpp" />
     <ClCompile Include="SavePicture.cpp" />
     <ClCompile Include="SelectPage.cpp" />
     <ClCompile Include="ShowPreview.cpp" />
@@ -882,6 +884,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\header.h" />
+    <ClInclude Include="CanvasSizeDialog.h" />
     <ClInclude Include="ChangeLabel.h" />
     <ClInclude Include="CompressionAudioVideoOption.h" />
     <ClInclude Include="CompressVideo.h" />
@@ -896,6 +899,7 @@
     <ClInclude Include="MyFrameIntro.h" />
     <ClInclude Include="PertinenceValue.h" />
     <ClInclude Include="PreviewToolbar.h" />
+    <ClInclude Include="ResizeDialog.h" />
     <ClInclude Include="SavePicture.h" />
     <ClInclude Include="SelectPage.h" />
     <ClInclude Include="ShowPreview.h" />
