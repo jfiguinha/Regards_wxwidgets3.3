@@ -54,7 +54,7 @@ namespace Regards::Window
 		int GetNumElement() { return numElement; };
 
 		void SetWindowPos(int x, int y);
-		int OnClick(int x, int y, int posLargeur, int posHauteur);
+		virtual int OnClick(int x, int y, int posLargeur, int posHauteur);
 
 		int GetXPos() const;
 		int GetYPos() const;

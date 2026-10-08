@@ -19,11 +19,11 @@ namespace Regards::Control
 		~CThumbnailCalque(void) override;
 
 		void SetLayer(CLayerList * listOfLayer);
-		void SetFile(const wxString& filename, CImageLoadingFormat* imageLoading);
-		wxString GetFilename();
+		//void SetFile(const wxString& filename, CImageLoadingFormat* imageLoading);
+		//wxString GetFilename();
 
 		void Resize();
-
+		int GetSelectLayer();
 		void OnPictureClick(const int& numPhotoId) override;
 
 	private:

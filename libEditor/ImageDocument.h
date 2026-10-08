@@ -49,6 +49,8 @@ public:
     void OnRotate90();
     void OnRotate180();
     void OnRotate270();
+
+    CLayerList* GetListOfLayer();
 private:
 
     void ResizeImage(int w, int h);

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<resource>
+
+    <object class="wxDialog" name="ID_LAYER_PROPERTIES_DIALOG">
+
+        <title>Propriétés du calque</title>
+        <style>wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER</style>
+
+        <object class="wxBoxSizer">
+            <orient>wxVERTICAL</orient>
+
+            <!-- Nom du calque -->
+            <object class="wxStaticBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <label>Calque</label>
+
+                <object class="wxTextCtrl" name="ID_LAYER_NAME">
+                    <size>350,-1</size>
+                </object>
+
+                <flag>wxEXPAND|wxALL</flag>
+                <border>8</border>
+            </object>
+
+            <!-- Mode de fusion -->
+            <object class="wxStaticBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <label>Mode de fusion</label>
+
+                <object class="wxComboBox" name="ID_BLEND_MODE">
+                    <style>wxCB_READONLY</style>
+                </object>
+
+                <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                <border>8</border>
+            </object>
+
+            <!-- Opacité -->
+            <object class="wxStaticBoxSizer">
+                <orient>wxVERTICAL</orient>
+                <label>Opacité</label>
+
+                <object class="wxBoxSizer">
+                    <orient>wxHORIZONTAL</orient>
+
+                    <object class="wxSlider" name="ID_OPACITY_SLIDER">
+                        <value>100</value>
+                        <min>0</min>
+                        <max>100</max>
+                        <style>wxSL_HORIZONTAL|wxSL_AUTOTICKS</style>
+
+                        <flag>wxEXPAND|wxRIGHT</flag>
+                        <border>10</border>
+                        <proportion>1</proportion>
+                    </object>
+
+                    <object class="wxStaticText" name="ID_OPACITY_VALUE">
+                        <label>100 %</label>
+                        <size>50,-1</size>
+                        <style>wxALIGN_RIGHT</style>
+                    </object>
+
+                </object>
+
+                <flag>wxEXPAND|wxLEFT|wxRIGHT|wxBOTTOM</flag>
+                <border>8</border>
+            </object>
+
+            <!-- Boutons -->
+            <object class="wxStdDialogButtonSizer">
+
+                <object class="wxButton">
+                    <id>wxID_CANCEL</id>
+                    <label>Annuler</label>
+                </object>
+
+                <object class="wxButton">
+                    <id>wxID_OK</id>
+                    <label>OK</label>
+                    <default>1</default>
+                </object>
+
+                <flag>wxEXPAND</flag>
+            </object>
+
+            <flag>wxEXPAND</flag>
+            <border>8</border>
+
+        </object>
+
+    </object>
+
+</resource>

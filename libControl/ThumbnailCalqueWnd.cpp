@@ -46,13 +46,21 @@ void CThumbnailCalqueWnd::Resize()
 	thumbnailCalque->Resize();
 }
 
+/*
 wxString CThumbnailCalqueWnd::GetFilename()
 {
 	if (thumbnailCalque != nullptr)
 		return thumbnailCalque->GetFilename();
 	return "";
-}
+}*/
 
+int CThumbnailCalqueWnd::GetSelectLayer()
+{
+	if (thumbnailCalque != nullptr)
+		return thumbnailCalque->GetSelectLayer();
+	return -1;
+}
+/*
 void CThumbnailCalqueWnd::SetFile(const wxString& filename)
 {
 	if (thumbnailCalque != nullptr)
@@ -63,3 +71,4 @@ void CThumbnailCalqueWnd::SetFile(const wxString& filename)
 		delete load;
 	}
 }
+*/

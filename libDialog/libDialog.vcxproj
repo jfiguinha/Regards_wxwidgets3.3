@@ -864,6 +864,7 @@
     <ClCompile Include="IndexGenerator.cpp" />
     <ClCompile Include="infoAbout.cpp" />
     <ClCompile Include="IntroTheme.cpp" />
+    <ClCompile Include="LayerPropertiesDialog.cpp" />
     <ClCompile Include="MoveFaceDialog.cpp" />
     <ClCompile Include="MyCentralWindowIntro.cpp" />
     <ClCompile Include="MyFrameIntro.cpp" />
@@ -889,6 +890,7 @@
     <ClInclude Include="IndexGenerator.h" />
     <ClInclude Include="infoAbout.h" />
     <ClInclude Include="IntroTheme.h" />
+    <ClInclude Include="LayerPropertiesDialog.h" />
     <ClInclude Include="MoveFaceDialog.h" />
     <ClInclude Include="MyCentralWindowIntro.h" />
     <ClInclude Include="MyFrameIntro.h" />

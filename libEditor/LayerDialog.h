@@ -9,19 +9,16 @@ namespace Regards
 };
 
 class CBitmapEditor;
-class CListLayer;
+class CLayerList;
 
 class LayerDialog : public wxDialog {
 public:
     LayerDialog(wxWindow* parent);
-    void SetBitmapEditor(CBitmapEditor* bitmapEditor);
-    void SetFile(const wxString& filename);
+    void SetLayerList(CLayerList* listOfLayer);
+   //void SetFile(const wxString& filename);
 
 private:
     void OnSize(wxSizeEvent& event);
-
-    CBitmapEditor* bitmapEditor = nullptr;
-    wxString filename;
     wxStatusBar* m_statusBar;
     Regards::Control::CListLayer* listLayer;
 };

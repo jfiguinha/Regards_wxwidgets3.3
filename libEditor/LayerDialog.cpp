@@ -28,26 +28,11 @@ LayerDialog::LayerDialog(wxWindow* parent)
 	m_statusBar->SetStatusText("");
 }
 
-void LayerDialog::SetBitmapEditor(CBitmapEditor* bitmapEditor)
-{
-	this->bitmapEditor = bitmapEditor;
-	if (listLayer)
-	{
-		listLayer->SetLayer(bitmapEditor->GetListOfLayer());
-		listLayer->Show(true);
-	}
-}
-
-
-void LayerDialog::SetFile(const wxString& filename)
+void LayerDialog::SetLayerList(CLayerList* listOfLayer)
 {
 	if (listLayer)
-	{
-		listLayer->SetFilename(filename);
-		listLayer->Show(true);
-	}
+		listLayer->SetLayer(listOfLayer);
 }
-
 
 void LayerDialog::OnSize(wxSizeEvent& event)
 {

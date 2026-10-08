@@ -46,11 +46,46 @@ void CThumbnailCalque::OnPictureClick(const int& numPhotoId)
 void CThumbnailCalque::SetLayer(CLayerList * listOfLayer)
 {
     this->listOfLayer = listOfLayer;
+    auto* iconeListLocal = new CIconeList();
+    int numElement = 0;
+    InitScrollingPos();
+
+    for (LayerElement* layerElement : *listOfLayer)
+    {
+        CImageLoadingFormat* picture = layerElement->GetPicture();
+        auto* thumbnailData = new CThumbnailDataStorage(
+            layerElement->layerName);
+        thumbnailData->SetNumPhotoId(numElement);
+        thumbnailData->SetBitmap(picture->GetMatImage().clone());
+
+        auto* pBitmapIcone = new CLayerIcone(thumbnailData);
+        pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+        pBitmapIcone->SetLibelle(layerElement->layerName);
+        iconeListLocal->AddElement(pBitmapIcone);
+
+        numElement++;
+    }
+
+
+    isAllProcess = true;
+
+
+    auto old = std::move(iconeList);
+    iconeList.reset(iconeListLocal);
+    nbElementInIconeList = iconeList->GetNbElement();
+    old->EraseThumbnailListWithIcon();
+
+    threadDataProcess = true;
+    processIdle = true;
+
+    UpdateScroll();
+    ResizeThumbnail();
+    needToRefresh = true;
 }
 
 CThumbnailCalque::~CThumbnailCalque(void) { }
 
-wxString CThumbnailCalque::GetFilename() { return filename; }
+//wxString CThumbnailCalque::GetFilename() { return filename; }
 
 bool CThumbnailCalque::ItemCompFonct(int x, int y, CIcone* icone,
     CWindowMain* parent) {
@@ -68,52 +103,9 @@ CIcone* CThumbnailCalque::FindElement(const int& xPos, const int& yPos) {
 }
 
 
-
-void CThumbnailCalque::SetFile(const wxString& filename,
-    CImageLoadingFormat* imageLoading) {
-    auto* iconeListLocal = new CIconeList();
-    threadDataProcess = false;
-    processIdle = false;
-
-
-    CLoadingResource loadingResource;
-    this->filename = filename;
-    InitScrollingPos();
-
-    CRgbaquad color;
-    CFiltreEffet filtreEffet(color, nullptr, imageLoading);
-    cv::Mat output = filtreEffet.Resize(640, 480, 1);
-
-    CLibPicture picture;
-    int format = picture.TestImageFormat(filename);
-
-    int numElement = iconeListLocal->GetNbElement();
-
-    wxImage pBitmap = loadingResource.LoadImageResource("IDB_BLACKROOM");
-    auto* thumbnailData = new CThumbnailDataStorage(
-        CFiltreData::GetFilterLabel(IDM_FILTRE_VIDEO));
-    thumbnailData->SetNumPhotoId(IDM_FILTRE_VIDEO);
-    thumbnailData->SetBitmap(output);
-
-    auto* pBitmapIcone = new CLayerIcone(thumbnailData);
-    pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-    pBitmapIcone->SetLibelle("First Layer");
-    iconeListLocal->AddElement(pBitmapIcone);
-
-    isAllProcess = true;
-
-
-    auto old = std::move(iconeList);
-    iconeList.reset(iconeListLocal);
-    nbElementInIconeList = iconeList->GetNbElement();
-    old->EraseThumbnailListWithIcon();
-
-    threadDataProcess = true;
-    processIdle = true;
-
-    UpdateScroll();
-    ResizeThumbnail();
-    needToRefresh = true;
+int CThumbnailCalque::GetSelectLayer()
+{
+    return numClickIcone;
 }
 
 void CThumbnailCalque::Resize()

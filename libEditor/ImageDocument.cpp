@@ -95,6 +95,14 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
 }
 
 
+CLayerList* ImageDocument::GetListOfLayer()
+{
+    if (bitmapWindow)
+        return bitmapWindow->GetListOfLayer();
+       
+    return nullptr;
+}
+
 
 ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, CImageLoadingFormat* pictureLocal)

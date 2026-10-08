@@ -19,6 +19,8 @@ namespace Regards::Window
             return m_libelle;
         }
 
+        int OnClick(int x, int y, int posLargeur, int posHauteur) override;
+
     private:
         // Surcharge de la méthode de rendu de la classe mère
         void RenderPictureBitmap(wxDC* memDC, wxImage& bitmapScale, const int& type);

@@ -15,11 +15,13 @@ namespace Regards::Control
 
 	private:
 		void EventManager(const int& id) override;
-		void PostEvent(wxEventType type);
-
 	
-		std::unique_ptr<CToolbarButton> deleteButton = nullptr;
-		std::unique_ptr<CToolbarButton> copy = nullptr;
-		std::unique_ptr<CToolbarButton> plus = nullptr;
+		std::unique_ptr<CToolbarButton> newlayer = nullptr;
+		std::unique_ptr<CToolbarButton> deleteLayer = nullptr;
+		std::unique_ptr<CToolbarButton> copyLayer = nullptr;
+		std::unique_ptr<CToolbarButton> fusionLayer = nullptr;
+		std::unique_ptr<CToolbarButton> moveupLayer = nullptr;
+		std::unique_ptr<CToolbarButton> movedownLayer = nullptr;
+		std::unique_ptr<CToolbarButton> propertiesLayer = nullptr;
 	};
 }

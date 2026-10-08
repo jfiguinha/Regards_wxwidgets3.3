@@ -55,6 +55,9 @@
     <Filter Include="header">
       <UniqueIdentifier>{0d07b559-183a-4edc-92ab-5b4ba56b1f7b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Layer">
+      <UniqueIdentifier>{b1f135f2-2d66-43a9-bc08-bd54a3c0b33c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -129,6 +132,9 @@
     <ClCompile Include="..\include\header.cpp">
       <Filter>header</Filter>
     </ClCompile>
+    <ClCompile Include="LayerPropertiesDialog.cpp">
+      <Filter>Layer</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigRegards.h">
@@ -199,6 +205,9 @@
     </ClInclude>
     <ClInclude Include="SliderVideoPreview.h">
       <Filter>CompressionVideo\Preview</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerPropertiesDialog.h">
+      <Filter>Layer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

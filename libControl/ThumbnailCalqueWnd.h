@@ -24,9 +24,9 @@ namespace Regards::Control
 		void SetLayer(CLayerList * listOfLayer);
 		void UpdateScreenRatio() override;
 		void Resize() override;
-		wxString GetFilename();
-		void SetFile(const wxString& filename);
-
+		//wxString GetFilename();
+		//void SetFile(const wxString& filename);
+		int GetSelectLayer();
 
 	private:
 		CScrollbarWnd * thumbnailEffectScroll;

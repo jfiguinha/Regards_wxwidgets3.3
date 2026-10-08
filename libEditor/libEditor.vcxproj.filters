@@ -19,6 +19,9 @@
     <Filter Include="Header">
       <UniqueIdentifier>{0ac3eef2-a566-4885-a4d9-fd80fea957ff}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Dialog">
+      <UniqueIdentifier>{0c975852-d741-4c69-8898-73206a7e33c8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EditorFrame.h">

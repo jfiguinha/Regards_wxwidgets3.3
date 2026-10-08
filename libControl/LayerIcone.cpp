@@ -15,6 +15,26 @@ CLayerIcone::CLayerIcone(CThumbnailData* data, bool deleteData)
     ShowSelectButton(true);
 }
 
+
+int CLayerIcone::OnClick(int x, int y, int posLargeur, int posHauteur)
+{
+    wxRect checkPos;
+    int xPos = (x + posLargeur) - this->x;
+    int yPos = (y + posHauteur) - this->y;
+    checkPos.x = themeIcone.GetMarge();
+    checkPos.width = checkPos.x + themeIcone.GetCheckboxWidth();
+    checkPos.y = (themeIcone.GetHeight() - themeIcone.GetCheckboxHeight()) / 2;
+    checkPos.height = checkPos.y + themeIcone.GetCheckboxHeight();
+    if ((checkPos.x < xPos && xPos < checkPos.width) && (checkPos.y < yPos && yPos < checkPos.height))
+    {
+        isChecked = !isChecked;
+        SetChecked(isChecked);
+        return 1;
+    }
+
+    return 0;
+}
+
 CLayerIcone::~CLayerIcone(void)
 {}
 

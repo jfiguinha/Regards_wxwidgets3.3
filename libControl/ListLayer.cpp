@@ -11,9 +11,12 @@
 #include <WindowManager.h>
 #include "ThumbnailCalqueWnd.h"
 #include "LayerToolBar.h"
+#include <LayerPropertiesDialog.h>
 using namespace Regards::Picture;
 using namespace Regards::Window;
 using namespace Regards::Control;
+using namespace Regards::Dialog;
+
 
 CListLayer::CListLayer(wxWindow* parent, wxWindowID id)
 	: CWindowMain("CListLayer", parent, id)
@@ -62,10 +65,13 @@ CListLayer::CListLayer(wxWindow* parent, wxWindowID id)
 		}
 
 	}
+	Connect(wxEVENT_CREATELAYER, wxCommandEventHandler(CListLayer::CreateLayer));
 	Connect(wxEVENT_DELETELAYER, wxCommandEventHandler(CListLayer::DeleteLayer));
 	Connect(wxEVENT_COPYLAYER, wxCommandEventHandler(CListLayer::CopyLayer));
-	Connect(wxEVENT_CREATELAYER, wxCommandEventHandler(CListLayer::CreateLayer));
-
+	Connect(wxEVENT_FUSIONLAYER, wxCommandEventHandler(CListLayer::FusionLayer));
+	Connect(wxEVENT_MOVEUPLAYER, wxCommandEventHandler(CListLayer::MoveUpLayer));
+	Connect(wxEVENT_MOVEDOWNLAYER, wxCommandEventHandler(CListLayer::MoveDownLayer));
+	Connect(wxEVENT_PROPERTIESLAYER, wxCommandEventHandler(CListLayer::PropertiesLayer));
 }
 
 CListLayer::~CListLayer()
@@ -74,6 +80,7 @@ CListLayer::~CListLayer()
 
 void CListLayer::SetLayer(CLayerList* listOfLayer)
 {
+	this->listOfLayer = listOfLayer;
 	thumbnailCalqueWnd->SetLayer(listOfLayer);
 }
 
@@ -83,14 +90,24 @@ void CListLayer::UpdateScreenRatio()
 		windowManager->UpdateScreenRatio();
 }
 
+/*
 void CListLayer::SetFilename(const wxString& filename)
 {
 	thumbnailCalqueWnd->SetFile(filename);
 }
-
+*/
 void CListLayer::DeleteLayer(wxCommandEvent& event)
 {
+	int numSelect = thumbnailCalqueWnd->GetSelectLayer();
+	if (numSelect != -1)
+	{
+		const wxString msg = "Do you want delete this layer ?";
+		const wxString info = CLibResource::LoadStringFromResource(L"labelInformations", 1);
+		if (wxMessageBox(msg, info, wxYES_NO | wxICON_WARNING) == wxYES)
+		{
 
+		}
+	}
 }
 
 void CListLayer::CopyLayer(wxCommandEvent& event)
@@ -100,7 +117,43 @@ void CListLayer::CopyLayer(wxCommandEvent& event)
 
 void CListLayer::CreateLayer(wxCommandEvent& event)
 {
+	int width = listOfLayer->GetWidth();
+	int height = listOfLayer->GetHeight();
+}
 
+void CListLayer::FusionLayer(wxCommandEvent& event)
+{
+
+}
+
+void CListLayer::MoveUpLayer(wxCommandEvent& event)
+{
+
+}
+
+void CListLayer::MoveDownLayer(wxCommandEvent& event)
+{
+
+}
+
+void CListLayer::PropertiesLayer(wxCommandEvent& event)
+{
+	CLayerPropertiesDialog dialog(
+		this,
+		"Mon calque",
+		Regards::Dialog::LayerBlendMode::Normal,
+		80);
+
+	if (dialog.ShowModal() == wxID_OK)
+	{
+		const wxString layerName = dialog.GetLayerName();
+
+		const auto blendMode = dialog.GetBlendMode();
+
+		const int opacity = dialog.GetOpacity();
+
+		// Utilisation des paramètres...
+	}
 }
 
 void CListLayer::SetActifItem(const int& numItem, const bool& move)

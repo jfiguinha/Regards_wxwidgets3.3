@@ -25,7 +25,7 @@ namespace Regards
 			void UpdateScreenRatio() override;
 			int GetNumItem();
 			void SetActifItem(const int& numItem, const bool& move);
-			void SetFilename(const wxString& filename);
+			//void SetFilename(const wxString& filename);
 			void SetLayer(CLayerList * listOfLayer);
 			void Resize() override;
 
@@ -34,8 +34,13 @@ namespace Regards
 			void DeleteLayer(wxCommandEvent& event);
 			void CopyLayer(wxCommandEvent& event);
 			void CreateLayer(wxCommandEvent& event);
+			void FusionLayer(wxCommandEvent& event);
+			void MoveUpLayer(wxCommandEvent& event);
+			void MoveDownLayer(wxCommandEvent& event);
+			void PropertiesLayer(wxCommandEvent& event);
 
 
+			CLayerList* listOfLayer = nullptr;
 			CWindowManager* windowManager;
 			CLayerToolBar* layerToolbar;
 			CThumbnailCalqueWnd * thumbnailCalqueWnd;
