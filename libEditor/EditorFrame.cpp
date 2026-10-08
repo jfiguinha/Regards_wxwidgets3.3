@@ -59,7 +59,9 @@ enum {
     wxID_FLIPHORIZONTAL,
     wxID_ROTATE90,
     wxID_ROTATE180,
-    wxID_ROTATE270
+    wxID_ROTATE270,
+    wxID_INVERSESELECT,
+    wxID_CANCELSELECT
 };
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
@@ -128,6 +130,14 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     wxMenu* menuEdit = new wxMenu;
     menuEdit->Append(wxID_UNDO, "Cancel\tCtrl+Z");
     menuEdit->Append(wxID_REDO, "Redo\tCtrl+Y");
+    menuEdit->AppendSeparator();
+    menuEdit->Append(wxID_COPY, "Copy\tCtrl+C");
+    menuEdit->Append(wxID_CUT, "Cut\tCtrl+Z");
+    menuEdit->Append(wxID_PASTE, "Paste\tCtrl+V");
+    menuEdit->AppendSeparator();
+    menuEdit->Append(wxID_SELECTALL, "Select All");
+    menuEdit->Append(wxID_INVERSESELECT, "Inverse Selection");
+    menuEdit->Append(wxID_CANCELSELECT, "Cancel Selection");
 
     wxMenu* menuDisplay = new wxMenu;
     menuDisplay->Append(wxID_ZOOMIN, "Zoom In\tCtrl++");
@@ -182,6 +192,18 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
         case HISTOGRAM_EFFECT:
             menuHistogramEffect->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
             break;
+        default:
+            switch (numEffect) {
+            case IDM_WAVE_EFFECT:
+                menuSpecialEffect->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
+                break;
+            case IDM_FILTRELENSFLARE:
+                menuSpecialEffect->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
+                break;
+            case IDM_FILTRELENSCORRECTION:
+                menuSpecialEffect->Append(numMenu, CFiltreData::GetFilterLabel(numEffect));
+                break;
+            }
         }
 
         Bind(wxEVT_MENU, &CEditorFrame::OnSelectEffect, this, numMenu);
