@@ -45,7 +45,7 @@ CListLayer::CListLayer(wxWindow* parent, wxWindowID id, wxWindowID frameId)
 			if (main_param != nullptr)
 				checkValidity = main_param->GetCheckThumbnailValidity();
 
-			thumbnailCalqueWnd = new CThumbnailCalqueWnd(this, wxID_ANY, themeScroll, themeThumbnail, PANELINFOSWNDID,
+			thumbnailCalqueWnd = new CThumbnailCalqueWnd(this, wxID_ANY, frameId, themeScroll, themeThumbnail, PANELINFOSWNDID,
 				checkValidity);
 
 			thumbnailCalqueWnd->Show(true);

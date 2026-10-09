@@ -117,8 +117,6 @@ public:
 
 private:
 
-	cv::Mat CreateCheckerboardBackground(int width, int height, int sizeSquare = 16);
-
 	std::vector<LayerElement*> m_layers;
 	std::vector<wxPoint> points;
 	int selectType;

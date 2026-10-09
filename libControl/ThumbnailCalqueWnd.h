@@ -17,7 +17,7 @@ namespace Regards::Control
 	{
 	public:
 		CThumbnailCalqueWnd(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface,
-		                     const CThemeScrollBar& themeScroll, const CThemeThumbnail& themeThumbnail,
+			const wxWindowID frameId, const CThemeScrollBar& themeScroll, const CThemeThumbnail& themeThumbnail,
 		                     int panelInfosId, bool checkValidity);
 		~CThumbnailCalqueWnd(void) = default;
 

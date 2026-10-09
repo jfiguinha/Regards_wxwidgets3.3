@@ -12,6 +12,7 @@ using namespace Regards::Control;
 using namespace Regards::Picture;
 
 CThumbnailCalqueWnd::CThumbnailCalqueWnd(wxWindow* parent, wxWindowID id,
+													const wxWindowID frameId,
                                                      const CThemeScrollBar& themeScroll,
                                                      const CThemeThumbnail& themeThumbnail, int panelInfosId,
                                                      bool checkValidity)
@@ -20,7 +21,7 @@ CThumbnailCalqueWnd::CThumbnailCalqueWnd(wxWindow* parent, wxWindowID id,
 	thumbnailEffectScroll = nullptr;
 	thumbnailCalque = nullptr;
 
-	thumbnailCalque = new CThumbnailCalque(this, wxID_ANY, themeThumbnail);
+	thumbnailCalque = new CThumbnailCalque(this, wxID_ANY, frameId, themeThumbnail);
 	thumbnailEffectScroll = new CScrollbarWnd(this, thumbnailCalque, wxID_ANY);
 }
 

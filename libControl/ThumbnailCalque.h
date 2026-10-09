@@ -14,7 +14,7 @@ namespace Regards::Control
 	class CThumbnailCalque : public CThumbnailVertical
 	{
 	public:
-		CThumbnailCalque(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface,
+		CThumbnailCalque(wxWindow* parent, wxWindowID idCTreeWithScrollbarInterface, const wxWindowID frameId,
 			const CThemeThumbnail& themeThumbnail);
 		~CThumbnailCalque(void) override;
 
@@ -28,13 +28,14 @@ namespace Regards::Control
 
 	private:
 
-		
+		cv::Mat OverlayImage(const cv::Mat& background, const cv::Mat& foreground);
 		static bool ItemCompFonct(int x, int y, CIcone* icone, CWindowMain* parent);
 		CIcone* FindElement(const int& xPos, const int& yPos) override;
 
 		void ProcessIdle() override;
 
-		
+		wxWindowID frameId;
+		cv::Mat background;
 		CLayerList * listOfLayer = nullptr;
 		CRegardsConfigParam* config;
 		wxString calqueLibelle;

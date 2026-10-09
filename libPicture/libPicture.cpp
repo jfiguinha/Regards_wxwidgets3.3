@@ -44,6 +44,40 @@ CImageLoadingFormat* CLibPicture::LoadPicture(const wxString& szFileName,
     return loader_->Load(szFileName, isThumbnail, numPicture);
 }
 
+
+cv::Mat CLibPicture::CreateCheckerboardBackground(int width, int height, int sizeSquare)
+{
+    if (width <= 0 || height <= 0 || sizeSquare <= 0)
+        return {};
+
+    // Crée une image de base blanche et opaque (Alpha = 255)
+    cv::Mat checkerboard(height, width, CV_8UC4, cv::Scalar(255, 255, 255, 255));
+
+    // Couleur des carrés gris (Gris clair en BGRA)
+    cv::Scalar grayColor(220, 220, 220, 255);
+
+    // Dessiner les carrés gris en alternance
+    for (int y = 0; y < height; y += sizeSquare)
+    {
+        for (int x = 0; x < width; x += sizeSquare)
+        {
+            // Condition mathématique pour alterner les cases comme un échiquier
+            if (((x / sizeSquare) + (y / sizeSquare)) % 2 == 1)
+            {
+                // Définir la zone du carré gris, en s'assurant de ne pas dépasser l'image
+                int w = std::min(sizeSquare, width - x);
+                int h = std::min(sizeSquare, height - y);
+
+                cv::Rect roi(x, y, w, h);
+                checkerboard(roi).setTo(grayColor);
+            }
+        }
+    }
+
+    return checkerboard;
+}
+
+
 CImageLoadingFormat* CLibPicture::LoadPictureToBGRA(const wxString& filename,
                                                      bool& pictureOK,
                                                      const int& resizeWidth,

@@ -43,6 +43,8 @@ namespace Regards
             CLibPicture();
             virtual ~CLibPicture() = default;
 
+            static cv::Mat CreateCheckerboardBackground(int width, int height, int sizeSquare = 16);
+
             // -----------------------------------------------------------------
             // Chargement
             // -----------------------------------------------------------------
