@@ -53,14 +53,14 @@ wxString LayerDialog::GetFilename()
 int LayerDialog::GetActifLayer()
 {
 	if (listLayer)
-		listLayer->GetActifLayer();
+		return listLayer->GetActifLayer();
 	return -1;
 }
 
 vector<int> LayerDialog::GetSelectLayer()
 {
 	if (listLayer)
-		listLayer->GetSelectLayer();
+		return listLayer->GetSelectLayer();
 	return vector<int>();
 }
 
