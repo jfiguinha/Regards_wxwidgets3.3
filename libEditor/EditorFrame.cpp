@@ -589,7 +589,10 @@ void CEditorFrame::OnOpen()
 	imageDoc.bitmapId = BITMAPWINDOWVIEWERID + imageCount;
     m_openedDocuments[imageDoc.mainId] = imageDoc;
 
-    
+    m_activeDocument = imgDoc;
+    historyDialog->SetHistoryControl(m_activeDocument->GetHistoryPt());
+    infoDialog->SetFilename(m_activeDocument->GetFileName());
+    layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
 }
 
 void CEditorFrame::SetActiveDocument(ImageDocument* doc)

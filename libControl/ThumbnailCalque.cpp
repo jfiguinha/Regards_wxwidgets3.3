@@ -33,7 +33,7 @@ CThumbnailCalque::CThumbnailCalque(wxWindow* parent, const wxWindowID id,
 
     processIdle = false;
     moveOnPaint = false;
-
+    inverse = true;
     config = CParamInit::getInstance();
 
 }
@@ -59,6 +59,7 @@ void CThumbnailCalque::RefreshList()
         thumbnailData->SetBitmap(picture->GetMatImage().clone());
 
         auto* pBitmapIcone = new CLayerIcone(thumbnailData);
+        pBitmapIcone->SetNumElement(numElement);
         pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
         pBitmapIcone->SetLibelle(layerElement->layerName);
         iconeListLocal->AddElement(pBitmapIcone);
@@ -87,41 +88,7 @@ void CThumbnailCalque::RefreshList()
 void CThumbnailCalque::SetLayer(CLayerList * listOfLayer)
 {
     this->listOfLayer = listOfLayer;
-    auto* iconeListLocal = new CIconeList();
-    int numElement = 0;
-    InitScrollingPos();
-
-    for (LayerElement* layerElement : *listOfLayer)
-    {
-        CImageLoadingFormat* picture = layerElement->GetPicture();
-        auto* thumbnailData = new CThumbnailDataStorage(
-            layerElement->layerName);
-        thumbnailData->SetNumPhotoId(numElement);
-        thumbnailData->SetBitmap(picture->GetMatImage().clone());
-
-        auto* pBitmapIcone = new CLayerIcone(thumbnailData);
-        pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-        pBitmapIcone->SetLibelle(layerElement->layerName);
-        iconeListLocal->AddElement(pBitmapIcone);
-
-        numElement++;
-    }
-
-
-    isAllProcess = true;
-
-
-    auto old = std::move(iconeList);
-    iconeList.reset(iconeListLocal);
-    nbElementInIconeList = iconeList->GetNbElement();
-    old->EraseThumbnailListWithIcon();
-
-    threadDataProcess = true;
-    processIdle = true;
-
-    UpdateScroll();
-    ResizeThumbnail();
-    needToRefresh = true;
+    RefreshList();
 }
 
 CThumbnailCalque::~CThumbnailCalque(void) { }

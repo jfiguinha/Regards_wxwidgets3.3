@@ -31,5 +31,7 @@ namespace Regards::Control
 		const bool& test_validity_;
 		const CThemeThumbnail& theme_thumbnail_;
 		const wxWindowID id_;
+
+		bool inverse = false;
 	};
 }

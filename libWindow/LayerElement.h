@@ -55,9 +55,9 @@ public:
 	}
 
 	LayerBlendMode blendMode = LayerBlendMode::Normal;
-	int numLayer;
-	bool isVisible;
-	int opacity;
+	int numLayer = 0;
+	bool isVisible = true;
+	int opacity = 100;
 	wxString layerName;
 
 private:
@@ -72,7 +72,7 @@ public:
 	~CLayerList();
 
 	void push_back(LayerElement* element);
-	int size_back() const { return m_layers.size(); }
+	int size_back() const { return static_cast<int>(m_layers.size()); }
 	size_t size() const { return m_layers.size(); }
 	bool empty() const { return m_layers.empty(); }
 
@@ -86,9 +86,9 @@ public:
 
 	void SetPicture(CImageLoadingFormat* bitmapIn);
 	CImageLoadingFormat* GetPictureToShow();
-	int GetWidth();
-	int GetHeight();
-	void IsChanged(bool isChanged);
+	int GetWidth() const;
+	int GetHeight() const;
+	void IsChanged(bool changed);
 
 	void UpdatePictureToShow();
 
@@ -103,7 +103,7 @@ public:
 
 // Fusionne les calques dont les indices sont fournis dans le vecteur.
 // Les calques fusionnés sont supprimés et remplacés par un calque unique contenant le résultat.
-	bool FusionLayers(std::vector<int> * listLayer);
+	bool FusionLayers(std::vector<int>* listLayer);
 
 	// Monte d'un niveau (index - 1 dans le vecteur, donc un plan plus haut visuellement)
 	bool MoveUpLayer(size_t index);

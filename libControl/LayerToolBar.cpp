@@ -23,7 +23,7 @@ CLayerToolBar::CLayerToolBar(wxWindow* parent, wxWindowID id, wxWindowID frameId
 
 void CLayerToolBar::EventManager(const int& id)
 {
-	wxWindow * frameWindow = FindWindow(frameId);
+	wxWindow * frameWindow = FindWindowById(frameId);
 	if (frameWindow)
 	{
 		wxCommandEvent evt(id);

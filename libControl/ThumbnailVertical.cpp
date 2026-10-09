@@ -145,8 +145,13 @@ void CThumbnailVertical::RenderIconeWithVScroll(wxDC* deviceContext)
 			int absY = row * iconeHeight;
 
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-			pBitmapIcone->SetPos(absX, absY);
-			pBitmapIcone->SetWindowPos(-posLargeur, -posHauteur);
+
+			if(inverse)
+				pBitmapIcone->SetPos(absX, (posHauteur + windowHeight - iconeHeight) - absY);
+			else
+				pBitmapIcone->SetPos(absX, absY);
+
+			//pBitmapIcone->SetWindowPos(-posLargeur, -posHauteur);
 			pBitmapIcone->SetSizeIcone(realWidth, realHeight);
 			pBitmapIcone->SetVisibility(true);
 
@@ -182,7 +187,7 @@ void CThumbnailVertical::RenderIconeWithoutVScroll(wxDC* deviceContext)
 		{
 			pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 			pBitmapIcone->SetPos(i * iconeWidth, 0);
-			pBitmapIcone->SetWindowPos(-posLargeur, 0);
+			//pBitmapIcone->SetWindowPos(-posLargeur, 0);
 			pBitmapIcone->SetVisibility(true);
 
 			RenderBitmap(deviceContext, pBitmapIcone, 0, 0);

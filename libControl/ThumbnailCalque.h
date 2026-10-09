@@ -33,6 +33,7 @@ namespace Regards::Control
 
 		void ProcessIdle() override;
 
+		
 		CLayerList * listOfLayer = nullptr;
 		CRegardsConfigParam* config;
 		wxString calqueLibelle;

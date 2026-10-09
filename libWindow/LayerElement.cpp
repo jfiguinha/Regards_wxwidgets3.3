@@ -2,131 +2,193 @@
 #include "LayerElement.h"
 #include <ImageLoadingFormat.h>
 #include <RGBAQuad.h>
+#include <opencv2/imgproc.hpp>
+#include <algorithm>
+#include <cmath>
+#include <cstdint>
+#include <limits>
+#include <unordered_set>
+
+namespace
+{
+    inline float Clamp01(float value)
+    {
+        return std::max(0.0f, std::min(1.0f, value));
+    }
+
+    inline float BlendChannel(float source, float destination, LayerBlendMode mode)
+    {
+        switch (mode)
+        {
+        case LayerBlendMode::Multiply:
+            return source * destination;
+        case LayerBlendMode::Screen:
+            return source + destination - source * destination;
+        case LayerBlendMode::Overlay:
+            return destination <= 0.5f
+                ? 2.0f * source * destination
+                : 1.0f - 2.0f * (1.0f - source) * (1.0f - destination);
+        case LayerBlendMode::Darken:
+            return std::min(source, destination);
+        case LayerBlendMode::Lighten:
+            return std::max(source, destination);
+        case LayerBlendMode::Add:
+            return std::min(1.0f, source + destination);
+        case LayerBlendMode::Subtract:
+            return std::max(0.0f, destination - source);
+        case LayerBlendMode::Normal:
+        default:
+            return source;
+        }
+    }
+
+    // Normalise les images source en BGRA 8 bits. Les données d'entrée ne sont
+    // converties/redimensionnées qu'une seule fois par calque et par composition.
+    cv::Mat PrepareLayerImage(const cv::Mat& input, int width, int height)
+    {
+        if (input.empty() || width <= 0 || height <= 0)
+            return {};
+
+        cv::Mat eightBit;
+        if (input.depth() == CV_8U)
+            eightBit = input;
+        else
+            input.convertTo(eightBit, CV_MAKETYPE(CV_8U, input.channels()));
+
+        cv::Mat bgra;
+        if (eightBit.channels() == 4)
+            bgra = eightBit;
+        else if (eightBit.channels() == 3)
+            cv::cvtColor(eightBit, bgra, cv::COLOR_BGR2BGRA);
+        else if (eightBit.channels() == 1)
+            cv::cvtColor(eightBit, bgra, cv::COLOR_GRAY2BGRA);
+        else
+            return {};
+
+        if (bgra.cols != width || bgra.rows != height)
+        {
+            cv::Mat resized;
+            const int interpolation =
+                (bgra.cols > width || bgra.rows > height) ? cv::INTER_AREA : cv::INTER_LINEAR;
+            cv::resize(bgra, resized, cv::Size(width, height), 0.0, 0.0, interpolation);
+            return resized;
+        }
+        return bgra;
+    }
+
+    // Composition source-over avec alpha droit (straight alpha), et mode de
+    // fusion appliqué aux couleurs. Aucun split/merge ni Mat flottant temporaire.
+    void CompositeLayer(cv::Mat& destination, const cv::Mat& source,
+                        float layerOpacity, LayerBlendMode mode)
+    {
+        if (destination.empty() || source.empty() || layerOpacity <= 0.0f)
+            return;
+
+        CV_Assert(destination.type() == CV_8UC4 && source.type() == CV_8UC4);
+        const int width = destination.cols;
+
+        for (int y = 0; y < destination.rows; ++y)
+        {
+            auto* dst = destination.ptr<cv::Vec4b>(y);
+            const auto* src = source.ptr<cv::Vec4b>(y);
+
+            for (int x = 0; x < width; ++x)
+            {
+                const float sourceAlpha = (src[x][3] / 255.0f) * layerOpacity;
+                if (sourceAlpha <= 0.0f)
+                    continue;
+
+                const float destinationAlpha = dst[x][3] / 255.0f;
+                const float outputAlpha = sourceAlpha + destinationAlpha * (1.0f - sourceAlpha);
+
+                for (int c = 0; c < 3; ++c)
+                {
+                    const float sourceColor = src[x][c] / 255.0f;
+                    const float destinationColor = dst[x][c] / 255.0f;
+                    const float blendedColor = BlendChannel(sourceColor, destinationColor, mode);
+
+                    // Formule W3C de composition avec mode de fusion :
+                    // Co = (1-as)*ad*Cd + (1-ad)*as*Cs + as*ad*B(Cs,Cd)
+                    const float premultiplied =
+                        (1.0f - sourceAlpha) * destinationAlpha * destinationColor +
+                        (1.0f - destinationAlpha) * sourceAlpha * sourceColor +
+                        sourceAlpha * destinationAlpha * blendedColor;
+
+                    const float outputColor = outputAlpha > 0.0f
+                        ? premultiplied / outputAlpha
+                        : 0.0f;
+                    dst[x][c] = cv::saturate_cast<uchar>(Clamp01(outputColor) * 255.0f);
+                }
+
+                dst[x][3] = cv::saturate_cast<uchar>(Clamp01(outputAlpha) * 255.0f);
+            }
+        }
+    }
+
+    bool CompositeOneLayer(cv::Mat& canvas, LayerElement* layer,
+                           int width, int height)
+    {
+        if (!layer || !layer->isVisible || !layer->GetPicture() ||
+            !layer->GetPicture()->IsOk())
+            return false;
+
+        const float opacity = Clamp01(layer->opacity / 100.0f);
+        if (opacity <= 0.0f)
+            return false;
+
+        cv::Mat source = PrepareLayerImage(layer->GetPicture()->GetMatImage(), width, height);
+        if (source.empty())
+            return false;
+
+        CompositeLayer(canvas, source, opacity, layer->blendMode);
+        return true;
+    }
+}
 
 CImageLoadingFormat* CLayerList::GetPictureToShow()
 {
-    // S'il n'y a aucun calque, on ne renvoie rien
     if (m_layers.empty())
         return nullptr;
 
-    if (m_layers.size() == 1)
-        return m_layers[0]->GetPicture();
+    if (m_layers.size() == 1 && m_layers.front())
+        return m_layers.front()->GetPicture();
+
+    if (canvasWidth <= 0 || canvasHeight <= 0)
+        return nullptr;
 
     if (!finalImage)
-    {
         finalImage = new CImageLoadingFormat();
-        // Initialiser le canevas avec une image transparente au format BGRA aux bonnes dimensions
-        cv::Mat canvas = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
-        finalImage->SetPicture(canvas);
-        isChanged = true;
-    }
 
-    if (finalImage && !isChanged)
-        return finalImage;
-
-    UpdatePictureToShow();
+    if (isChanged)
+        UpdatePictureToShow();
 
     return finalImage;
 }
 
 void CLayerList::UpdatePictureToShow()
 {
-    // S'il n'y a aucun calque, on ne renvoie rien
-    if (m_layers.empty())
+    if (m_layers.empty() || canvasWidth <= 0 || canvasHeight <= 0)
         return;
 
     if (m_layers.size() == 1)
-        return;
-
-    if (!finalImage)
     {
-        finalImage = new CImageLoadingFormat();
-        // Initialiser le canevas avec une image transparente au format BGRA aux bonnes dimensions
-        cv::Mat canvas = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
-        finalImage->SetPicture(canvas);
-        isChanged = true;
+        isChanged = false;
+        return;
     }
 
-    // Réinitialiser le canevas sous forme de matrice transparente
     cv::Mat canvas = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
 
-    // 2. Parcourir la liste des calques À L'ENVERS (du fond vers le premier plan)
+    // Le vecteur est ordonné du premier plan (index 0) vers l'arrière-plan.
+    // La composition se fait donc du fond vers le premier plan.
     for (auto it = m_layers.rbegin(); it != m_layers.rend(); ++it)
-    {
-        LayerElement* layer = *it;
+        CompositeOneLayer(canvas, *it, canvasWidth, canvasHeight);
 
-        // Condition stricte : le calque doit exister, ÊTRE VISIBLE, et posséder une image valide
-        if (layer && layer->isVisible && layer->GetPicture() && layer->GetPicture()->IsOk())
-        {
-            // Calcul du facteur d'opacité globale du calque (sur une base de 100)
-            float layerOpacityFactor = layer->opacity / 100.0f;
-            if (layerOpacityFactor < 0.0f) layerOpacityFactor = 0.0f;
-            if (layerOpacityFactor > 1.0f) layerOpacityFactor = 1.0f;
+    if (!finalImage)
+        finalImage = new CImageLoadingFormat();
 
-            if (layerOpacityFactor == 0.0f)
-                continue;
-
-            // Récupération de la matrice OpenCV source du calque (BGRA)
-            cv::Mat srcImg = layer->GetPicture()->GetMatImage();
-
-            // Ajuster la taille de la source si elle diffère du canevas
-            if (srcImg.cols != canvasWidth || srcImg.rows != canvasHeight)
-            {
-                cv::resize(srcImg, srcImg, cv::Size(canvasWidth, canvasHeight));
-            }
-
-            // ----------------------------------------------------------------
-            // FUSION OPTIMISÉE AVEC OPENCV (Formule Alpha Blending Vectorielle)
-            // ----------------------------------------------------------------
-
-            // 1. Conversion des matrices en flottants (0.0 à 255.0) pour éviter les débordements d'octets
-            cv::Mat srcF, dstF;
-            srcImg.convertTo(srcF, CV_32FC4);
-            canvas.convertTo(dstF, CV_32FC4);
-
-            // 2. Séparation des canaux (B, G, R, A) pour la source et la destination
-            std::vector<cv::Mat> srcChannels(4);
-            std::vector<cv::Mat> dstChannels(4);
-            cv::split(srcF, srcChannels);
-            cv::split(dstF, dstChannels);
-
-            // 3. Calcul des masques d'alpha normalisés (0.0 à 1.0)
-            // L'alpha de la source prend en compte l'opacité globale du calque
-            cv::Mat alphaSrc = (srcChannels[3] / 255.0f) * layerOpacityFactor;
-            cv::Mat alphaDst = dstChannels[3] / 255.0f;
-
-            // 4. Calcul de l'alpha de sortie : outAlpha = alphaSrc + alphaDst * (1.0 - alphaSrc)
-            cv::Mat outAlpha = alphaSrc + alphaDst.mul(1.0f - alphaSrc);
-
-            // Éviter la division par zéro sur les pixels entièrement transparents
-            cv::Mat mask = (outAlpha > 0.0f);
-            cv::Mat safeOutAlpha = cv::Mat::ones(outAlpha.size(), outAlpha.type());
-            outAlpha.copyTo(safeOutAlpha, mask);
-
-            // 5. Fusion des canaux de couleur (B, G, R)
-            std::vector<cv::Mat> outChannels(4);
-            for (int i = 0; i < 3; ++i)
-            {
-                // Formule : (srcColor * alphaSrc + dstColor * alphaDst * (1.0 - alphaSrc)) / outAlpha
-                cv::Mat blendedColor = srcChannels[i].mul(alphaSrc) + dstChannels[i].mul(alphaDst).mul(1.0f - alphaSrc);
-                cv::divide(blendedColor, safeOutAlpha, outChannels[i]);
-            }
-
-            // Réassigner l'alpha final mis à l'échelle (0.0 à 255.0)
-            outChannels[3] = outAlpha * 255.0f;
-
-            // 6. Fusionner les canaux isolés et reconvertir en format 8 bits (CV_8UC4)
-            cv::Mat blendedF;
-            cv::merge(outChannels, blendedF);
-            blendedF.convertTo(canvas, CV_8UC4);
-        }
-    }
-
-    // Mettre à jour l'image finale avec le résultat de la fusion OpenCV
     finalImage->SetPicture(canvas);
     isChanged = false;
 }
-
 
 void CLayerList::SetPicture(CImageLoadingFormat* bitmapIn)
 {
@@ -141,7 +203,7 @@ void CLayerList::SetPicture(CImageLoadingFormat* bitmapIn)
         LayerElement* element = new LayerElement();
         element->isVisible = true;
         element->numLayer = m_layers.size();
-        element->opacity = 255;
+        element->opacity = 100;
         element->layerName = bitmapIn->GetFilename();
         element->SetPicture(bitmapIn);
 
@@ -159,6 +221,8 @@ void CLayerList::SetPicture(CImageLoadingFormat* bitmapIn)
 
 CLayerList::~CLayerList()
 {
+    delete finalImage;
+    finalImage = nullptr;
     for (LayerElement* layerElement : m_layers)
     {
         if (layerElement)
@@ -185,19 +249,19 @@ void CLayerList::push_back(LayerElement* element)
 	m_layers.push_back(element); 
 }
 
-int CLayerList::GetWidth()
+int CLayerList::GetWidth() const
 {
 	return canvasWidth;
 }
 
-int CLayerList::GetHeight()
+int CLayerList::GetHeight() const
 {
 	return canvasHeight;
 }
 
-void CLayerList::IsChanged(bool isChanged)
+void CLayerList::IsChanged(bool changed)
 {
-    this->isChanged = isChanged;
+    this->isChanged = changed;
 }
 
 // ==================== Complément de LayerList.cpp ====================
@@ -267,111 +331,55 @@ bool CLayerList::copy(size_t index)
  * Fusionne une liste d'indices de calques en un seul calque unique.
  * Le calque final est placé à la position du calque le plus haut de la sélection.
  */
-bool CLayerList::FusionLayers(std::vector<int> * listLayer)
+bool CLayerList::FusionLayers(std::vector<int>* listLayer)
 {
-    // 1. Validations de base
-    if (listLayer->size() < 2)
-        return false; // Il faut au moins 2 calques pour fusionner
+    if (!listLayer || listLayer->size() < 2 || canvasWidth <= 0 || canvasHeight <= 0)
+        return false;
 
-    // Trier les indices par ordre croissant pour faciliter la gestion
-    std::vector<int> sortedIndices = *listLayer;
-    std::sort(sortedIndices.begin(), sortedIndices.end());
+    std::vector<int> indices = *listLayer;
+    std::sort(indices.begin(), indices.end());
 
-    // Vérifier que tous les indices sont valides
-    for (int idx : sortedIndices)
+    // Refuser les doublons et tous les indices invalides avant de modifier la liste.
+    if (std::adjacent_find(indices.begin(), indices.end()) != indices.end())
+        return false;
+
+    for (const int index : indices)
     {
-        if (idx < 0 || static_cast<size_t>(idx) >= m_layers.size() || !m_layers[idx])
+        if (index < 0 || static_cast<size_t>(index) >= m_layers.size() || !m_layers[index])
             return false;
     }
 
-    // 2. Créer temporairement un mini-canevas pour fusionner uniquement les calques sélectionnés
-    // On initialise une matrice transparente aux dimensions globales
-    cv::Mat fusionCanvas = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
+    cv::Mat merged = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
 
-    // Parcourir à l'envers (du fond vers le haut) par rapport à l'affichage
-    // Note : sortedIndices contient les indices du premier plan (petits index) vers l'arrière plan (grands index).
-    // On parcourt donc sortedIndices de la fin vers le début.
-    for (auto it = sortedIndices.rbegin(); it != sortedIndices.rend(); ++it)
+    // Même ordre que l'aperçu : fond vers premier plan, en conservant
+    // visibilité, opacité et mode de fusion de chaque calque sélectionné.
+    for (auto it = indices.rbegin(); it != indices.rend(); ++it)
+        CompositeOneLayer(merged, m_layers[*it], canvasWidth, canvasHeight);
+
+    auto* fusedPicture = new CImageLoadingFormat();
+    fusedPicture->SetPicture(merged);
+
+    const size_t targetIndex = static_cast<size_t>(indices.front());
+    LayerElement* target = m_layers[targetIndex];
+    target->SetPicture(fusedPicture);
+    target->layerName = "Merged Layers";
+    target->opacity = 100;
+    target->blendMode = LayerBlendMode::Normal;
+    target->isVisible = true;
+
+    // Suppression en ordre décroissant pour ne pas décaler les indices restants.
+    for (auto it = indices.rbegin(); it != indices.rend(); ++it)
     {
-        int idx = *it;
-        LayerElement* layer = m_layers[idx];
+        if (static_cast<size_t>(*it) == targetIndex)
+            continue;
 
-        if (layer->isVisible && layer->GetPicture() && layer->GetPicture()->IsOk())
-        {
-            float opacityFactor = layer->opacity / 100.0f;
-            if (opacityFactor <= 0.0f) continue;
-            if (opacityFactor > 1.0f) opacityFactor = 1.0f;
-
-            cv::Mat srcImg = layer->GetPicture()->GetMatImage();
-            if (srcImg.cols != canvasWidth || srcImg.rows != canvasHeight)
-            {
-                cv::resize(srcImg, srcImg, cv::Size(canvasWidth, canvasHeight));
-            }
-
-            // --- Algorithme d'Alpha Blending (Similaire à votre GetPictureToShow) ---
-            cv::Mat srcF, dstF;
-            srcImg.convertTo(srcF, CV_32FC4);
-            fusionCanvas.convertTo(dstF, CV_32FC4);
-
-            std::vector<cv::Mat> srcChannels(4), dstChannels(4);
-            cv::split(srcF, srcChannels);
-            cv::split(dstF, dstChannels);
-
-            cv::Mat alphaSrc = (srcChannels[3] / 255.0f) * opacityFactor;
-            cv::Mat alphaDst = dstChannels[3] / 255.0f;
-            cv::Mat outAlpha = alphaSrc + alphaDst.mul(1.0f - alphaSrc);
-
-            cv::Mat mask = (outAlpha > 0.0f);
-            cv::Mat safeOutAlpha = cv::Mat::ones(outAlpha.size(), outAlpha.type());
-            outAlpha.copyTo(safeOutAlpha, mask);
-
-            std::vector<cv::Mat> outChannels(4);
-            for (int i = 0; i < 3; ++i)
-            {
-                cv::Mat blendedColor = srcChannels[i].mul(alphaSrc) + dstChannels[i].mul(alphaDst).mul(1.0f - alphaSrc);
-                cv::divide(blendedColor, safeOutAlpha, outChannels[i]);
-            }
-            outChannels[3] = outAlpha * 255.0f;
-
-            cv::Mat blendedF;
-            cv::merge(outChannels, blendedF);
-            blendedF.convertTo(fusionCanvas, CV_8UC4);
-        }
+        delete m_layers[static_cast<size_t>(*it)];
+        m_layers.erase(m_layers.begin() + *it);
     }
 
-    // 3. Remplacement dans la liste des calques
-    // On conserve le calque le plus "haut" (le plus petit index de la sélection) pour y mettre le résultat
-    int targetIndex = sortedIndices[0];
-
-    // Créer le nouveau format d'image pour stocker la matrice fusionnée
-    CImageLoadingFormat* fusedFormat = new CImageLoadingFormat();
-    fusedFormat->SetPicture(fusionCanvas);
-
-    // Configurer le calque cible qui va accueillir le résultat
-    m_layers[targetIndex]->SetPicture(fusedFormat);
-    m_layers[targetIndex]->layerName = "Merged Layers";
-    m_layers[targetIndex]->opacity = 100; // La transparence est maintenant intégrée à la matrice
-    m_layers[targetIndex]->isVisible = true;
-
-    // 4. Supprimer les autres calques fusionnés (en partant de la fin pour ne pas décaler les indices restants)
-    for (size_t i = sortedIndices.size() - 1; i > 0; --i)
-    {
-        int idxToDelete = sortedIndices[i];
-        if (m_layers[idxToDelete])
-        {
-            delete m_layers[idxToDelete];
-        }
-        m_layers.erase(m_layers.begin() + idxToDelete);
-    }
-
-    // 5. Réindexer proprement le membre 'numLayer' de chaque calque restant
     for (size_t i = 0; i < m_layers.size(); ++i)
-    {
         if (m_layers[i])
-        {
-            m_layers[i]->numLayer = i;
-        }
-    }
+            m_layers[i]->numLayer = static_cast<int>(i);
 
     isChanged = true;
     return true;
@@ -403,7 +411,7 @@ bool CLayerList::MoveUpLayer(size_t index)
 bool CLayerList::MoveDownLayer(size_t index)
 {
     // Le dernier index est déjà tout au fond
-    if (index >= m_layers.size() - 1)
+    if (m_layers.empty() || index >= m_layers.size() - 1)
         return false;
 
     // Échanger le calque avec celui du dessous (index + 1)
@@ -419,6 +427,9 @@ bool CLayerList::MoveDownLayer(size_t index)
 
 cv::Mat CLayerList::CreateCheckerboardBackground(int width, int height, int sizeSquare)
 {
+    if (width <= 0 || height <= 0 || sizeSquare <= 0)
+        return {};
+
     // Crée une image de base blanche et opaque (Alpha = 255)
     cv::Mat checkerboard(height, width, CV_8UC4, cv::Scalar(255, 255, 255, 255));
 
