@@ -43,6 +43,9 @@
     <Filter Include="Fichiers de ressources\Datastructure">
       <UniqueIdentifier>{b4a78db2-1d2f-4333-9726-03360137dcea}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Layer">
+      <UniqueIdentifier>{4b83082d-bd16-4af2-a9c0-5a419352789e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -298,7 +301,7 @@
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="LayerElement.h">
-      <Filter>Fichiers d%27en-tête</Filter>
+      <Filter>Layer</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -495,7 +498,7 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="LayerElement.cpp">
-      <Filter>Fichiers sources</Filter>
+      <Filter>Layer</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

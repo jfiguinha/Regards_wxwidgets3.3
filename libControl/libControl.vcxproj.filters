@@ -291,9 +291,6 @@
     <ClInclude Include="LayerIcone.h">
       <Filter>Layer\Include</Filter>
     </ClInclude>
-    <ClInclude Include="LayerElement.h">
-      <Filter>Layer\Include</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
