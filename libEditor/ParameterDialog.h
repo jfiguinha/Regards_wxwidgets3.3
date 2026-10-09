@@ -14,6 +14,8 @@ public:
     void SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString& filename, const int& bitmapViewerId, const int& mainViewerId);
     void SetTypeFiltre(const int& typeFiltre);
     void SetColor(const wxColour& color1, const wxColour& color2);
+    void SetActifLayer(const int& numLayer);
+
 private:
     void OnSize(wxSizeEvent& event);
     void OnFiltreOk(wxCommandEvent& event);
@@ -23,6 +25,7 @@ private:
     CFiltreEffectScrollWnd* filtreEffectWnd = nullptr;
     CFiltreToolbar* filtreToolbar = nullptr;
     
+    int numLayer = 0;
     int numFiltre = 0;
     wxStatusBar* m_statusBar;
     int typeFiltre = 0;

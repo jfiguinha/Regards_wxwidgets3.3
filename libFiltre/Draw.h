@@ -16,6 +16,11 @@ namespace Regards::FiltreEffet
 		CDraw();
 		virtual ~CDraw();
 
+		bool ApplyEffectOnMouseRelease()
+		{
+			return applyEffectOnMouseRelease;
+		}
+
 		wxColour WithOpacity(const wxColour& colour, unsigned char opacity)
 		{
 			return wxColour(
@@ -175,6 +180,8 @@ namespace Regards::FiltreEffet
 		float YRealPosition(const float& m_ly, const long& m_lVScroll, const float& ratio);
 
 	protected:
+
+		bool applyEffectOnMouseRelease = false;
 		wxRect m_rcAffichage;
 		float m_fRatioValue;
 		wxPoint pt;

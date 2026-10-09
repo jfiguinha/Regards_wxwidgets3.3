@@ -26,7 +26,7 @@ namespace Regards::Control
 
 		void ApplyEffect(const int& numItem, CInfoEffectWnd* historyEffectWnd, const wxString& filename,
 		                 const int& isVideo, int panelId, int previewId);
-		void OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd);
+		void OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, int numLayer = -1);
 		void OnFiltreCancel();
 		CFiltreEffect* GetFiltreEffect();
 		int GetNumFiltre();
@@ -41,6 +41,7 @@ namespace Regards::Control
 		CEffectParameter * effectParameter;
 		std::unique_ptr<CFiltreEffect> filtreEffectOld;
 		int numFiltre;
+		int numLayer = 0;
 		int bitmapWindowId;
 	};
 }

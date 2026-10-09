@@ -61,6 +61,8 @@ public:
     void MoveUpLayer(int numLayer);
     void MoveDownLayer(int numLayer);
 
+    void SetActifLayer(const int& numLayer);
+
     CLayerList* GetListOfLayer();
 private:
 

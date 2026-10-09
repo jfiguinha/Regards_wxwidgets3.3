@@ -132,6 +132,7 @@ vector<int> CBitmapWndRender::GetListCommand()
 	list.push_back(wxEVENT_MOVEBOTTOM); //, wxCommandEventHandler(CBitmapWnd::OnMoveBottom));
 	list.push_back(wxEVENT_SCROLLMOVE); //, wxCommandEventHandler(CBitmapWnd::OnScrollMove));
 	list.push_back(wxEVENT_UPDATEEFFECTFILTER);
+	list.push_back(wxEVENT_UPDATELAYERBITMAP);
 	return list;
 }
 
@@ -144,6 +145,9 @@ void CBitmapWndRender::OnCommand(wxCommandEvent& event)
 	{
 	case wxEVENT_SETTRANSITIONBITMAP:
 		OnTransitionBitmap(event);
+		break;
+	case wxEVENT_UPDATELAYERBITMAP:
+		OnUpdateLayerBitmap(event);
 		break;
 	case wxEVENT_SETBITMAP:
 		OnSetBitmap(event);
@@ -286,6 +290,8 @@ void CBitmapWndRender::OnSetBitmap(wxCommandEvent& event)
 	if (picture != nullptr)
 		SetBitmap(picture);
 }
+
+
 
 void CBitmapWndRender::OnTransitionBitmap(wxCommandEvent& event)
 {

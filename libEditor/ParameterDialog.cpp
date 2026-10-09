@@ -19,8 +19,9 @@ ParameterDialog::ParameterDialog(wxWindow* parent)
 		CThemeTree themeTree;
 		viewerTheme->GetTreeTheme(&themeTree);
 
-		filtreEffectWnd = new CFiltreEffectScrollWnd(this, wxID_ANY, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
+		filtreEffectWnd = new CFiltreEffectScrollWnd(this, PARAMETERWINDOWID, themeScroll, themeTree, BITMAPWINDOWVIEWERID);
 		filtreEffectWnd->Show(true);
+
 	}
 
 	if (viewerTheme != nullptr)
@@ -43,6 +44,10 @@ ParameterDialog::ParameterDialog(wxWindow* parent)
 	m_statusBar->SetStatusText("");
 }
 
+void ParameterDialog::SetActifLayer(const int& numLayer)
+{
+	this->numLayer = numLayer;
+}
 
 void ParameterDialog::SetTypeFiltre(const int& typeFiltre)
 {
@@ -63,9 +68,10 @@ void ParameterDialog::SetColor(const wxColour& color1, const wxColour& color2)
 void ParameterDialog::OnFiltreOk(wxCommandEvent& event)
 {
 	if(filtreEffectWnd)
-		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
+		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd, numLayer);
 
-	this->Show(false);
+	if(typeFiltre == TYPE_EFFECT)
+		this->Show(false);
 }
 
 void ParameterDialog::OnFiltreCancel(wxCommandEvent& event)

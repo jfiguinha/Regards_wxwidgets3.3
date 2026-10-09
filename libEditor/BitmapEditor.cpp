@@ -5,6 +5,7 @@
 #include <ViewerThemeInit.h>
 #include <RGBAQuad.h>
 #include <ImageLoadingFormat.h>
+#include <Draw.h>
 using namespace Regards::Viewer;
 
 CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId, const CThemeBitmapWindow& theme,
@@ -32,6 +33,77 @@ void CBitmapEditor::SetFilename(const wxString& filename)
 	this->filename = filename;
 }
 
+void CBitmapEditor::ApplyEffectOnMouseRelease()
+{
+    wxWindow* parameterWindow = parentRender->FindWindowById(PARAMETERWINDOWID);
+    if (parameterWindow)
+    {
+        wxCommandEvent evt(wxEVENT_FILTREOK);
+        parameterWindow->GetEventHandler()->AddPendingEvent(evt);
+    }
+}
+
+void CBitmapEditor::RemoveListener(const bool& applyCancel)
+{
+    if (m_cDessin)
+        if (m_cDessin->ApplyEffectOnMouseRelease())
+            return;
+
+    if (mouseUpdate != nullptr && applyCancel)
+    {
+        mouseUpdate->CancelPreview(this);
+        updateFilter = true;
+        if (listOfLayer.size() > 0)
+        {
+            bitmapwidth = listOfLayer.GetWidth();
+            bitmapheight = listOfLayer.GetHeight();
+            ShrinkImage();
+        }
+    }
+
+    mouseUpdate = nullptr;
+    effectParameter = nullptr;
+
+    loadBitmap = true;
+    needToRefresh = true;
+}
+
+void CBitmapEditor::SetActifLayer(const int& numLayer)
+{
+    numActifLayer = numLayer;
+}
+
+void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event)
+{
+    int numLayer = event.GetInt();
+    auto picture = static_cast<CImageLoadingFormat*>(event.GetClientData());
+    if (picture != nullptr)
+    {
+        if (picture != nullptr)
+        {
+            if (picture->IsOk())
+            {
+
+                loadBitmap = true;
+                bitmapLoad = true;
+
+                bitmapUpdate = true;
+                flipVertical = 0;
+                flipHorizontal = 0;
+                angle = 0;
+                listOfLayer[numLayer]->SetPicture(picture);
+                listOfLayer.UpdatePictureToShow();
+
+                wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
+                if (mainWindow)
+                {
+                    wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
+                    mainWindow->GetEventHandler()->AddPendingEvent(evt);
+                }
+            }
+        }
+    }
+}
 
 void CBitmapEditor::CanvasResize(CanvasSizeParameter canvasSize)
 {

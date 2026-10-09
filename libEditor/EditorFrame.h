@@ -84,6 +84,8 @@ private:
 	void MoveDownLayer(wxCommandEvent& event);
 	void PropertiesLayer(wxCommandEvent& event);
 
+	void UpdateLayerPicture(wxCommandEvent& event);
+
 	std::map<int, STImageDoc> m_openedDocuments;
    
 	Regards::Viewer::CMainParam * viewerParam;

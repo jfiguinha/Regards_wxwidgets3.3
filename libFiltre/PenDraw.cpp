@@ -7,6 +7,7 @@ using namespace Regards::FiltreEffet;
 
 CPenDraw::CPenDraw() : m_isDrawing(false) {
     m_tousLesTraces.clear();
+    applyEffectOnMouseRelease = true;
 }
 
 void CPenDraw::Reset() {
@@ -34,6 +35,7 @@ void CPenDraw::MouseDown(CEffectParameter* effect) {
 
 void CPenDraw::MouseUp() {
     m_isDrawing = false;
+    //Active the modification
 }
 
 void CPenDraw::GetPoint(wxPoint& pt) {

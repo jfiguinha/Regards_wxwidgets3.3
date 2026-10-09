@@ -51,10 +51,21 @@ void CFiltreEffectScrollWnd::SetColor(const wxColour& color1, const wxColour& co
 
 void CFiltreEffectScrollWnd::SetBitmapToViewer(CImageLoadingFormat* bitmap)
 {
-	auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);
-	auto event = new wxCommandEvent(wxEVENT_SETBITMAP);
-	event->SetClientData(bitmap);
-	wxQueueEvent(bitmapWindow, event);
+	if (numLayer == -1)
+	{
+		auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);
+		auto event = new wxCommandEvent(wxEVENT_SETBITMAP);
+		event->SetClientData(bitmap);
+		wxQueueEvent(bitmapWindow, event);
+	}
+	else
+	{
+		auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);
+		auto event = new wxCommandEvent(wxEVENT_UPDATELAYERBITMAP);
+		event->SetClientData(bitmap);
+		event->SetInt(numLayer);
+		wxQueueEvent(bitmapWindow, event);
+	}
 }
 
 void CFiltreEffectScrollWnd::OnFiltreCancel()
@@ -75,8 +86,9 @@ void CFiltreEffectScrollWnd::OnFiltreCancel()
 
 }
 
-void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd)
+void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, int numLayer)
 {
+	this->numLayer = numLayer;
 	//auto bitmapViewer = static_cast<CBitmapWndViewer*>(this->FindWindowById(bitmapWindowId));
 	CBitmapWndViewer* bitmapViewer = nullptr;
 	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(FindWindowById(bitmapWindowId));

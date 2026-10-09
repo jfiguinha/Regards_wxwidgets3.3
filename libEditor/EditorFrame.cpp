@@ -282,12 +282,20 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Connect(wxEVENT_MOVEUPLAYER, wxCommandEventHandler(CEditorFrame::MoveUpLayer));
     Connect(wxEVENT_MOVEDOWNLAYER, wxCommandEventHandler(CEditorFrame::MoveDownLayer));
     Connect(wxEVENT_PROPERTIESLAYER, wxCommandEventHandler(CEditorFrame::PropertiesLayer));
-
+    Connect(wxEVENT_UPDATELAYERPICTURE, wxCommandEventHandler(CEditorFrame::UpdateLayerPicture));
     Connect(wxEVENT_TOOLCHOOSE, wxCommandEventHandler(CEditorFrame::OnToolsEffect));
     Connect(wxEVENT_COLORCHANGE, wxCommandEventHandler(CEditorFrame::OnColorChange));
     this->Maximize();
 }
 
+void CEditorFrame::UpdateLayerPicture(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        layerDialog->RefreshList();
+
+    }
+}
 
 void CEditorFrame::DeleteLayer(wxCommandEvent& event)
 {
@@ -435,14 +443,21 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
     {
         if (parameterDialog)
         {
-            int numEffect = event.GetInt();
-            parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
-            
-            parameterDialog->SetTypeFiltre(TYPE_DRAWING);
-            parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
-           
-            parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
-            parameterDialog->Show(true);
+            int numLayer = layerDialog->GetActifLayer();
+            if (numLayer != -1)
+            {
+                int numEffect = event.GetInt();
+
+                m_activeDocument->SetActifLayer(numLayer);
+
+                parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+                parameterDialog->SetActifLayer(numLayer);
+                parameterDialog->SetTypeFiltre(TYPE_DRAWING);
+                parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+
+                parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+                parameterDialog->Show(true);
+            }
         }
         //m_activeDocument->Crop();
     }
@@ -737,6 +752,11 @@ void CEditorFrame::OnNewImage(wxCommandEvent& event) {
             imageDoc.mainId = SHOWBITMAPVIEWERID + imageCount;
             imageDoc.bitmapId = BITMAPWINDOWVIEWERID + imageCount;
             m_openedDocuments[imageDoc.mainId] = imageDoc;
+
+            m_activeDocument = imgDoc;
+            historyDialog->SetHistoryControl(m_activeDocument->GetHistoryPt());
+            infoDialog->SetFilename(m_activeDocument->GetFileName());
+            layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
         }
     }
 }

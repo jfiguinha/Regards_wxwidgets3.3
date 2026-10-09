@@ -104,6 +104,12 @@ void ImageDocument::SetPropertiesLayer(int numLayer, wxString layerName, LayerBl
     }
 }
 
+void ImageDocument::SetActifLayer(const int& numLayer)
+{
+    if (bitmapWindow)
+        bitmapWindow->SetActifLayer(numLayer);
+}
+
 void ImageDocument::DeleteLayer(int numLayer)
 {
     if (bitmapWindow)

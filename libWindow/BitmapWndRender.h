@@ -158,6 +158,8 @@ namespace Regards::Window
 
 		void SetBitmap(CImageLoadingFormat* bitmap);
 
+		virtual void ApplyEffectOnMouseRelease() {};
+
 	protected:
 
 		void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
@@ -184,6 +186,9 @@ namespace Regards::Window
 		virtual void OnMoveBottom(wxCommandEvent& event);
 		virtual void OnScrollMove(wxCommandEvent& event);
 		virtual void OnUpdateFiltre(wxCommandEvent& event);
+		virtual void OnUpdateLayerBitmap(wxCommandEvent& event) {};
+
+
 		int IsSupportCuda();
 
 		virtual void SetTransitionBitmap(CImageLoadingFormat* bmpSecond) {};

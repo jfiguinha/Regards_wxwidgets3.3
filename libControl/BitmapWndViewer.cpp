@@ -633,6 +633,11 @@ void CBitmapWndViewer::MouseRelease(const int& xPos, const int& yPos)
 
 		m_cDessin->MouseUp();
 
+		if (m_cDessin->ApplyEffectOnMouseRelease())
+		{
+			ApplyEffectOnMouseRelease();
+			
+		}
 				// Forcer la régénération depuis la source originale
 		updateFilter = true; 
 		needToRefresh = true;
