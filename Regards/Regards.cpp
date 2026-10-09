@@ -16,7 +16,7 @@
 #include <libPicture.h>
 #include <wx/webview.h>
 #include <LibResource.h>
-
+#include <wx/xrc/xh_sizer.h>
 #include <FileUtility.h>
 #include <ParamInit.h>
 #include <FilterWindowParam.h>
@@ -401,7 +401,7 @@ bool MyApp::InitializeResources()
 
 	//Chargement des ressources
 	wxXmlResource::Get()->InitAllHandlers();
-
+	wxXmlResource::Get()->AddHandler(new wxSizerXmlHandler);
 	CFiltreData::CreateFilterList();
 
 	bool configFileExist = CParamInit::IsConfigFileExist();

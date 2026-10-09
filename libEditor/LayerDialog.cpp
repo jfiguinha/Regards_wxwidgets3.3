@@ -85,7 +85,7 @@ void LayerDialog::OnSize(wxSizeEvent& event)
 	}
 
 
-	listLayer->SetSize(0, 0, _width, _height - m_statusBar->GetClientSize().GetHeight());
+	listLayer->SetSize(0, 0, _width, _height);
 	listLayer->Refresh();
 	// scrollbar->Refresh();
 

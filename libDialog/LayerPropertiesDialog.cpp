@@ -24,11 +24,10 @@ namespace Regards
                 int opacity)
             : wxDialog()
         {
-            wxXmlResource::Get()->LoadDialog(
-                this,
-                parent,
-                "ID_LAYER_PROPERTIES_DIALOG");
 
+            wxXmlResource::Get()->LoadDialog(this, parent, "ID_LAYER_PROPERTIES_DIALOG");
+
+            // Désormais, les pointeurs s'associeront correctement sans planter
             m_layerName = XRCCTRL(*this, "ID_LAYER_NAME", wxTextCtrl);
             m_blendMode = XRCCTRL(*this, "ID_BLEND_MODE", wxComboBox);
             m_opacitySlider = XRCCTRL(*this, "ID_OPACITY_SLIDER", wxSlider);

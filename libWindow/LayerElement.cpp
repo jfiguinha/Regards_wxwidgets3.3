@@ -439,9 +439,7 @@ void CLayerList::CreateLayer(wxString layerName)
     {
         // Création d'une matrice OpenCV transparente (4 canaux : BGRA)
         cv::Mat transparentMat = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
-        transparentMat.setTo(cv::Scalar(255, 255, 255, 255));
-        //cv::Mat transparentMat = CreateCheckerboardBackground(canvasHeight, canvasWidth);
-
+        transparentMat.setTo(cv::Scalar(255, 255, 255, 0));
 
         CImageLoadingFormat* newPicture = new CImageLoadingFormat();
         newPicture->SetPicture(transparentMat);

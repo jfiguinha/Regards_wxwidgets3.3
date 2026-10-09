@@ -66,7 +66,7 @@ void CLayerIcone::RenderPictureBitmap(wxDC* memDC, wxImage& bitmapScale, const i
     if(bitmapScale.IsOk())
         if (bitmapScale.GetWidth() != background.GetWidth() || background.GetHeight() != bitmapScale.GetHeight())
         {
-            cv::Mat picture = CLibPicture::CreateCheckerboardBackground(bitmapScale.GetWidth(), bitmapScale.GetHeight());
+            cv::Mat picture = CLibPicture::CreateCheckerboardBackground(bitmapScale.GetWidth(), bitmapScale.GetHeight(), 4);
             background = CLibPicture::ConvertRegardsBitmapToWXImage(picture);
         }
 
