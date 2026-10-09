@@ -115,7 +115,7 @@ void CInpaintFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* e
 	const wxString libelle =
 		CLibResource::LoadStringFromResource(L"LBLBUSYINFO", 1);
 
-	wxBusyInfo wait(libelle, nullptr);
+	//wxBusyInfo wait(libelle, nullptr);
 
 	CImageLoadingFormat* imageLoad = nullptr;
 	auto videoEffectParameter = static_cast<CInpaintFilterParameter*>(effectParameter);

@@ -21,6 +21,11 @@ namespace Regards::Filter
 		int TypeApplyFilter() override;
 		int GetNameFilter() override;
 
+		bool IsOpenCLCompatible() override
+		{
+			return false;
+		}
+
 		void Filter(CEffectParameter* effectParameter, const wxString& filename,
 		            IFiltreEffectInterface* filtreInterface) override
 		{

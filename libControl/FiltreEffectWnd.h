@@ -41,7 +41,7 @@ namespace Regards::Control
 		CEffectParameter * effectParameter;
 		std::unique_ptr<CFiltreEffect> filtreEffectOld;
 		int numFiltre;
-		int numLayer = 0;
+		int numLayer = -1;
 		int bitmapWindowId;
 	};
 }

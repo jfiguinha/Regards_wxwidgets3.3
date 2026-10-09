@@ -27,6 +27,15 @@ void COpenCLEffect::ExecuteSafe(F&& func)
 			convert = input;
 		}
 		func(convert);
+
+		if (preview && !paramOutput.empty())
+		{
+			convert.copyTo(paramOutput);
+		}
+		else
+		{
+			convert.copyTo(input);
+		}
 	}
 	catch (const cv::Exception& e)
 	{

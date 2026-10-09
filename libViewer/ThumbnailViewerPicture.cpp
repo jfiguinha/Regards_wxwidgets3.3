@@ -102,7 +102,7 @@ void CThumbnailViewerPicture::PregenerateList(const bool& isDeleteFolder, const 
                             thumbnailData->SetNumPhotoId(photo.GetId());
 
                             auto pBitmapIcone = new CIcone(thumbnailData);
-                            pBitmapIcone->ShowSelectButton(true);
+                            pBitmapIcone->ShowSelectButton(false);
                             pBitmapIcone->SetFilename(filename);
                             pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
 
