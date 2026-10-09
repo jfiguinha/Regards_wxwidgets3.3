@@ -15,7 +15,7 @@
 #include <ParamInit.h>
 #include <RegardsConfigParam.h>
 #include <GLCharacter.h>
-
+#include <libPicture.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
@@ -690,8 +690,19 @@ void CRenderOpenGL::RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* e
 	const int& top, const bool& inverted)
 {
 
-	textureDisplay->Enable();
 
+	//Generate Background Texture
+	if (textureBackground == nullptr)
+		textureBackground = std::make_unique<GLTexture>();
+
+	if (textureBackground->GetHeight() != textureDisplay->GetHeight() || textureBackground->GetWidth() != textureDisplay->GetWidth())
+	{
+		Regards::Picture::CPictureArray mat = Regards::Picture::CLibPicture::CreateCheckerboardBackground(textureDisplay->GetWidth(), textureDisplay->GetHeight());
+		textureBackground->SetData(mat, nullptr);
+	}
+
+	textureDisplay->Enable();
+	textureBackground->Enable();
 
 	// 1. On cherche et on active le shader par défaut pour le Core Profile
 	COpenGLShader* defaultShader = FindShader(L"IDR_GLSL_TEXTURE");
@@ -700,6 +711,7 @@ void CRenderOpenGL::RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* e
 		defaultShader->EnableShader(projectionMatrix); // On injecte la matrice de projection
 
 		// 2. On lie la texture à l'uniform "textureScreen" du shader
+		defaultShader->m_pShader->SetTexture("textureBackground", textureBackground->GetTextureID(), 0);
 		defaultShader->m_pShader->SetTexture("textureScreen", textureDisplay->GetTextureID(), 0);
 	}
 
@@ -714,6 +726,7 @@ void CRenderOpenGL::RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* e
 	
 
 	textureDisplay->Disable();
+	textureBackground->Disable();
 }
 
 GLTexture* CRenderOpenGL::GetGLTexture()

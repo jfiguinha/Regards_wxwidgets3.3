@@ -18,7 +18,7 @@
 #include "RenderBitmapOpenGL.h"
 #include <WindowUtility.h>
 #include <appcontext.h>
-
+#include <libPicture.h>
 using namespace Regards::Sqlite;
 using namespace Regards::FiltreEffet;
 using namespace Regards::Window;
@@ -1533,6 +1533,7 @@ void CBitmapWndRender::GenerateScreenBitmap(CFiltreEffet* filtreEffet, int& widt
 	int localflipHorizontal = flipHorizontal;
 	int localflipVertical = flipVertical;
 	int filterInterpolation = 0;
+
 
 
 	if (regardsParam != nullptr)

@@ -166,6 +166,6 @@ namespace Regards::OpenGL
 
 		// Méthode d'initialisation privée
 		void InitQuadBuffers();
-
+		std::unique_ptr<GLTexture> textureBackground;
 	};
 }

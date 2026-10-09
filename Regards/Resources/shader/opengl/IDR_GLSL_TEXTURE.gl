@@ -3,14 +3,23 @@
 //
 
 #version 330 core
-
 in vec2 TexCoord;
 
-uniform sampler2D sourceTex;
-
+uniform sampler2D textureBackground;
+uniform sampler2D textureScreen;
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = texture(sourceTex, TexCoord);
+    // Récupération des couleurs des deux textures
+    vec4 background = texture(textureBackground, TexCoord);
+    vec4 screen = texture(textureScreen, TexCoord);
+
+    // Mélange (Lerp) : si screen.a = 0.0 -> background, si screen.a = 1.0 -> screen
+    vec3 mixedColor = mix(background.rgb, screen.rgb, screen.a);
+
+    // Calcul de la couche alpha finale (généralement on garde l'alpha maximal de la composition)
+    float finalAlpha = max(background.a, screen.a);
+
+    FragColor = vec4(mixedColor, finalAlpha);
 }

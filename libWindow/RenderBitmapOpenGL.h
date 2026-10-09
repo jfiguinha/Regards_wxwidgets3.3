@@ -30,6 +30,7 @@ namespace Regards::OpenGL
 	private:
 		std::unique_ptr<GLTexture> textureArrowRight;
 		std::unique_ptr<GLTexture> textureArrowLeft;
+		
 		CRenderOpenGL* renderOpenGL = nullptr;
 	};
 }
