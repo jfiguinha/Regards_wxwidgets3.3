@@ -28,14 +28,13 @@ namespace Regards::Control
 
 	private:
 
-		cv::Mat OverlayImage(const cv::Mat& background, const cv::Mat& foreground);
 		static bool ItemCompFonct(int x, int y, CIcone* icone, CWindowMain* parent);
 		CIcone* FindElement(const int& xPos, const int& yPos) override;
 
 		void ProcessIdle() override;
 
 		wxWindowID frameId;
-		cv::Mat background;
+		
 		CLayerList * listOfLayer = nullptr;
 		CRegardsConfigParam* config;
 		wxString calqueLibelle;

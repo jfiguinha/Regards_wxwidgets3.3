@@ -36,52 +36,13 @@ CThumbnailCalque::CThumbnailCalque(wxWindow* parent, const wxWindowID id, const 
     moveOnPaint = false;
     inverse = true;
     config = CParamInit::getInstance();
-    background = CLibPicture::CreateCheckerboardBackground(640, 480);
+    
 
 }
 
 void CThumbnailCalque::OnPictureClick(const int& numPhotoId)
 {
 
-}
-
-cv::Mat CThumbnailCalque::OverlayImage(const cv::Mat& background, const cv::Mat& foreground) {
-    cv::Mat output;
-    background.copyTo(output);
-    // Séparer les canaux de l'image de premier plan (BGRA)
-    std::vector<cv::Mat> fgChannels;
-    cv::split(foreground, fgChannels); // 0:B, 1:G, 2:R, 3:Alpha
-
-    cv::Mat alpha = fgChannels[3];
-    cv::Mat alphaF, alphaInvF;
-
-    // Convertir l'alpha en float entre 0.0 et 1.0
-    alpha.convertTo(alphaF, CV_32F, 1.0 / 255.0);
-    alphaInvF = 1.0 - alphaF;
-
-    // Traiter chaque canal B, G, R
-    for (int i = 0; i < 3; ++i) {
-        cv::Mat fgChannelsF, bgChannelsF, blendedF;
-
-        fgChannels[i].convertTo(fgChannelsF, CV_32F);
-        background.channels() == 3 ? background.convertTo(bgChannelsF, CV_32F) : bgChannelsF = cv::Mat::zeros(background.size(), CV_32F); // Sécurité type
-
-        // Extraction du canal i de l'arrière-plan si c'est du multi-canal
-        std::vector<cv::Mat> bgSubChannels;
-        cv::split(background, bgSubChannels);
-        bgSubChannels[i].convertTo(bgChannelsF, CV_32F);
-
-        // Formule mathématique : I = alpha * Foreground + (1 - alpha) * Background
-        cv::multiply(fgChannelsF, alphaF, fgChannelsF);
-        cv::multiply(bgChannelsF, alphaInvF, bgChannelsF);
-        cv::add(fgChannelsF, bgChannelsF, blendedF);
-
-        // Réinsertion du canal fusionné
-        blendedF.convertTo(bgSubChannels[i], CV_8U);
-        cv::merge(bgSubChannels, background);
-    }
-
-    return output;
 }
 
 
@@ -103,10 +64,8 @@ void CThumbnailCalque::RefreshList()
 
         cv::Mat output;
         cv::Mat matrixPicture = picture->GetMatImage();
-        cv::resize(matrixPicture, output, cv::Size(640, 480));
-
-        output = OverlayImage(output, background);
-        thumbnailData->SetBitmap(output);
+        cv::resize(matrixPicture, output, cv::Size(themeThumbnail.themeIcone.GetWidth(), themeThumbnail.themeIcone.GetHeight()));
+        thumbnailData->SetBitmap(matrixPicture);
 
         auto* pBitmapIcone = new CLayerIcone(thumbnailData);
         pBitmapIcone->SetNumElement(numElement);

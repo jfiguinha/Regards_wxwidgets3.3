@@ -33,5 +33,7 @@ namespace Regards::Window
         // Bitmaps locales pour éviter de toucher au scope private de CIcone
         wxImage m_bitmapCheckOn;
         wxImage m_bitmapCheckOff;
+
+       wxImage background;
     };
 }

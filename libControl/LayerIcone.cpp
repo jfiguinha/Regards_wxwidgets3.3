@@ -5,14 +5,17 @@
 #include "LibResource.h"
 #include "FileUtility.h"
 #include "theme.h"
-
+#include "libPicture.h"
 using namespace Regards::Window;
+using namespace Regards::Picture;
 
 CLayerIcone::CLayerIcone(CThumbnailData* data, bool deleteData)
     : CIcone(data, deleteData)
 {
     // Forcer l'affichage de la checkbox par défaut pour la gestion des calques (visibilité)
     ShowSelectButton(true);
+    cv::Mat picture = CLibPicture::CreateCheckerboardBackground(themeIcone.GetWidth(), themeIcone.GetHeight());
+    background = CLibPicture::ConvertRegardsBitmapToWXImage(picture);
 }
 
 
@@ -59,7 +62,14 @@ void CLayerIcone::RenderPictureBitmap(wxDC* memDC, wxImage& bitmapScale, const i
     wxRect rc(0, 0, themeIcone.GetWidth(), themeIcone.GetHeight());
     themeIcone.colorActifTop = wxColour(117, 165, 255);
     themeIcone.colorActifBottom = wxColour(117, 165, 255);
-    // 1. Dessin du fond selon l'état (Sélectionné / Inactif)
+
+    if(bitmapScale.IsOk())
+        if (bitmapScale.GetWidth() != background.GetWidth() || background.GetHeight() != bitmapScale.GetHeight())
+        {
+            cv::Mat picture = CLibPicture::CreateCheckerboardBackground(bitmapScale.GetWidth(), bitmapScale.GetHeight());
+            background = CLibPicture::ConvertRegardsBitmapToWXImage(picture);
+        }
+
     switch (type)
     {
     case INACTIFICONE:
@@ -77,6 +87,8 @@ void CLayerIcone::RenderPictureBitmap(wxDC* memDC, wxImage& bitmapScale, const i
         memDC->GradientFillLinear(rc, themeIcone.colorBack, themeIcone.colorBack);
         break;
     }
+
+    
 
     CThumbnailData* pThumbnailData = GetPtData();
     if (pThumbnailData != nullptr)
@@ -99,8 +111,11 @@ void CLayerIcone::RenderPictureBitmap(wxDC* memDC, wxImage& bitmapScale, const i
         int xThumbnail = 0, yThumbnail = 0;
         CalculPositionHorizontale(bitmapScale, xThumbnail, yThumbnail);
 
+        if (background.IsOk())
+            memDC->DrawBitmap(background, xThumbnail, yThumbnail, false);
         if (bitmapScale.IsOk())
-            memDC->DrawBitmap(bitmapScale, xThumbnail, yThumbnail);
+            memDC->DrawBitmap(bitmapScale, xThumbnail, yThumbnail, true);
+        
 
         // 4. Détermination du libellé à afficher
         wxString txtAffichage = m_libelle;
