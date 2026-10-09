@@ -9,7 +9,7 @@ namespace Regards::Control
 	class CLayerToolBar : public CToolbarWindow
 	{
 	public:
-		CLayerToolBar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical);
+		CLayerToolBar(wxWindow* parent, wxWindowID id, wxWindowID frameId, const CThemeToolbar& theme, const bool& vertical);
 		~CLayerToolBar() = default;
 
 
@@ -23,5 +23,7 @@ namespace Regards::Control
 		std::unique_ptr<CToolbarButton> moveupLayer = nullptr;
 		std::unique_ptr<CToolbarButton> movedownLayer = nullptr;
 		std::unique_ptr<CToolbarButton> propertiesLayer = nullptr;
+
+		wxWindowID frameId;
 	};
 }

@@ -19,8 +19,7 @@ namespace Regards::Control
 		~CThumbnailCalque(void) override;
 
 		void SetLayer(CLayerList * listOfLayer);
-		//void SetFile(const wxString& filename, CImageLoadingFormat* imageLoading);
-		//wxString GetFilename();
+		void RefreshList();
 
 		void Resize();
 		int GetSelectLayer();

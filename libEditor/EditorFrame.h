@@ -76,6 +76,14 @@ private:
 	void OnSelectEffect(wxCommandEvent& event);
 
 
+	void DeleteLayer(wxCommandEvent& event);
+	void CopyLayer(wxCommandEvent& event);
+	void CreateLayer(wxCommandEvent& event);
+	void FusionLayer(wxCommandEvent& event);
+	void MoveUpLayer(wxCommandEvent& event);
+	void MoveDownLayer(wxCommandEvent& event);
+	void PropertiesLayer(wxCommandEvent& event);
+
 	std::map<int, STImageDoc> m_openedDocuments;
    
 	Regards::Viewer::CMainParam * viewerParam;

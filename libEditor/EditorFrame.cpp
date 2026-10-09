@@ -15,6 +15,7 @@
 #include <effect_id.h>
 #include <FilterData.h>
 #include <ResizeDialog.h>
+#include <LayerPropertiesDialog.h>
 #include <CanvasSizeDialog.h>
 using namespace Regards::Dialog;
 
@@ -274,10 +275,120 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate180, this, wxID_ROTATE180);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate270, this, wxID_ROTATE270);
 
+    Connect(wxEVENT_CREATELAYER, wxCommandEventHandler(CEditorFrame::CreateLayer));
+    Connect(wxEVENT_DELETELAYER, wxCommandEventHandler(CEditorFrame::DeleteLayer));
+    Connect(wxEVENT_COPYLAYER, wxCommandEventHandler(CEditorFrame::CopyLayer));
+    Connect(wxEVENT_FUSIONLAYER, wxCommandEventHandler(CEditorFrame::FusionLayer));
+    Connect(wxEVENT_MOVEUPLAYER, wxCommandEventHandler(CEditorFrame::MoveUpLayer));
+    Connect(wxEVENT_MOVEDOWNLAYER, wxCommandEventHandler(CEditorFrame::MoveDownLayer));
+    Connect(wxEVENT_PROPERTIESLAYER, wxCommandEventHandler(CEditorFrame::PropertiesLayer));
 
     Connect(wxEVENT_TOOLCHOOSE, wxCommandEventHandler(CEditorFrame::OnToolsEffect));
     Connect(wxEVENT_COLORCHANGE, wxCommandEventHandler(CEditorFrame::OnColorChange));
     this->Maximize();
+}
+
+
+void CEditorFrame::DeleteLayer(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        int numSelect = event.GetInt();
+        if (numSelect != -1)
+        {
+            const wxString msg = "Do you want delete this layer ?";
+            const wxString info = CLibResource::LoadStringFromResource(L"labelInformations", 1);
+            if (wxMessageBox(msg, info, wxYES_NO | wxICON_WARNING) == wxYES)
+            {
+                m_activeDocument->DeleteLayer(numSelect);
+                layerDialog->RefreshList();
+            }
+        }
+    }
+
+
+}
+
+void CEditorFrame::CopyLayer(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        int numSelect = event.GetInt();
+        if (numSelect != -1)
+        {
+            m_activeDocument->CopyLayer(numSelect);
+            layerDialog->RefreshList();
+        }
+    }
+}
+
+void CEditorFrame::CreateLayer(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->CreateLayer("");
+        layerDialog->RefreshList();
+    }
+}
+
+void CEditorFrame::FusionLayer(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        vector<int>* listLayer = (vector<int> *)event.GetClientData();
+        m_activeDocument->FusionLayer(listLayer);
+        layerDialog->RefreshList();
+    }
+}
+
+void CEditorFrame::MoveUpLayer(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        int numSelect = event.GetInt();
+        if (numSelect != -1)
+        {
+            m_activeDocument->MoveUpLayer(numSelect);
+            layerDialog->RefreshList();
+        }
+    }
+}
+
+void CEditorFrame::MoveDownLayer(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        int numSelect = event.GetInt();
+        if (numSelect != -1)
+        {
+            m_activeDocument->MoveDownLayer(numSelect);
+            layerDialog->RefreshList();
+        }
+    }
+}
+
+void CEditorFrame::PropertiesLayer(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        int numLayer = event.GetInt();
+
+        CLayerPropertiesDialog dialog(
+            this,
+            "Mon calque",
+            LayerBlendMode::Normal,
+            80);
+
+        if (dialog.ShowModal() == wxID_OK)
+        {
+            const wxString layerName = dialog.GetLayerName();
+            const auto blendMode = dialog.GetBlendMode();
+            const int opacity = dialog.GetOpacity();
+
+            m_activeDocument->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
+            layerDialog->RefreshList();
+        }
+    }
 }
 
 void CEditorFrame::OnSelectEffect(wxCommandEvent& event)

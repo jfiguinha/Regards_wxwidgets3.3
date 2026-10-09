@@ -17,7 +17,7 @@ LayerDialog::LayerDialog(wxWindow* parent)
 
 	if (viewerTheme != nullptr)
 	{
-		listLayer = new Regards::Control::CListLayer(this, LISTLAYERID);
+		listLayer = new Regards::Control::CListLayer(this, LISTLAYERID, parent->GetId());
 		listLayer->Show(true);
 	}
 
@@ -37,6 +37,12 @@ void LayerDialog::SetLayerList(CLayerList* listOfLayer)
 void LayerDialog::SetFile(const wxString& filename)
 {
 	this->filename = filename;
+}
+
+void LayerDialog::RefreshList()
+{
+	if (listLayer)
+		listLayer->RefreshList();
 }
 
 wxString LayerDialog::GetFilename()

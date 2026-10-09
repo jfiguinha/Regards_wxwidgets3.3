@@ -7,6 +7,7 @@
 #include <InfoEffect.h>
 #include <InfoEffectWnd.h>
 #include <CanvasSizeDialog.h>
+#include <LayerPropertiesDialog.h>
 using namespace Regards::Window;
 using namespace Regards::Control;
 
@@ -51,6 +52,14 @@ public:
     void OnRotate90();
     void OnRotate180();
     void OnRotate270();
+
+    void SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode,int opacity);
+    void DeleteLayer(int numLayer);
+    void CopyLayer(int numLayer);
+    void CreateLayer(wxString layerName);
+    void FusionLayer(vector<int> * listLayer);
+    void MoveUpLayer(int numLayer);
+    void MoveDownLayer(int numLayer);
 
     CLayerList* GetListOfLayer();
 private:

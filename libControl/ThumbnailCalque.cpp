@@ -43,6 +43,47 @@ void CThumbnailCalque::OnPictureClick(const int& numPhotoId)
 
 }
 
+
+void CThumbnailCalque::RefreshList()
+{
+    auto* iconeListLocal = new CIconeList();
+    int numElement = 0;
+    InitScrollingPos();
+
+    for (LayerElement* layerElement : *listOfLayer)
+    {
+        CImageLoadingFormat* picture = layerElement->GetPicture();
+        auto* thumbnailData = new CThumbnailDataStorage(
+            layerElement->layerName);
+        thumbnailData->SetNumPhotoId(numElement);
+        thumbnailData->SetBitmap(picture->GetMatImage().clone());
+
+        auto* pBitmapIcone = new CLayerIcone(thumbnailData);
+        pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+        pBitmapIcone->SetLibelle(layerElement->layerName);
+        iconeListLocal->AddElement(pBitmapIcone);
+
+        numElement++;
+    }
+
+
+    isAllProcess = true;
+
+
+    auto old = std::move(iconeList);
+    iconeList.reset(iconeListLocal);
+    nbElementInIconeList = iconeList->GetNbElement();
+    old->EraseThumbnailListWithIcon();
+
+    threadDataProcess = true;
+    processIdle = true;
+
+    UpdateScroll();
+    ResizeThumbnail();
+    needToRefresh = true;
+
+}
+
 void CThumbnailCalque::SetLayer(CLayerList * listOfLayer)
 {
     this->listOfLayer = listOfLayer;

@@ -27,10 +27,10 @@ namespace Regards::Control
 		//wxString GetFilename();
 		//void SetFile(const wxString& filename);
 		int GetSelectLayer();
+		void RefreshList();
 
 	private:
 		CScrollbarWnd * thumbnailEffectScroll;
-		
 		CThumbnailCalque * thumbnailCalque;
 	};
 }

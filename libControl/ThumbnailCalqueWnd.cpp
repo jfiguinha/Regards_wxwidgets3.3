@@ -46,13 +46,11 @@ void CThumbnailCalqueWnd::Resize()
 	thumbnailCalque->Resize();
 }
 
-/*
-wxString CThumbnailCalqueWnd::GetFilename()
+void CThumbnailCalqueWnd::RefreshList()
 {
 	if (thumbnailCalque != nullptr)
-		return thumbnailCalque->GetFilename();
-	return "";
-}*/
+		return thumbnailCalque->RefreshList();
+}
 
 int CThumbnailCalqueWnd::GetSelectLayer()
 {
@@ -60,15 +58,3 @@ int CThumbnailCalqueWnd::GetSelectLayer()
 		return thumbnailCalque->GetSelectLayer();
 	return -1;
 }
-/*
-void CThumbnailCalqueWnd::SetFile(const wxString& filename)
-{
-	if (thumbnailCalque != nullptr)
-	{
-		CLibPicture libPicture;
-		CImageLoadingFormat* load = libPicture.LoadThumbnail(filename);
-		thumbnailCalque->SetFile(filename, load);
-		delete load;
-	}
-}
-*/

@@ -17,6 +17,7 @@ public:
     void SetLayerList(CLayerList* listOfLayer);
     void SetFile(const wxString& filename);
     wxString GetFilename();
+    void RefreshList();
 
 private:
     void OnSize(wxSizeEvent& event);

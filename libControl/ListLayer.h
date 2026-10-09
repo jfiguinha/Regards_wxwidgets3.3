@@ -20,7 +20,7 @@ namespace Regards
 		class CListLayer : public CWindowMain
 		{
 		public:
-			CListLayer(wxWindow* parent, wxWindowID id);
+			CListLayer(wxWindow* parent, wxWindowID id, wxWindowID frameId);
 			~CListLayer() override;
 			void UpdateScreenRatio() override;
 			int GetNumItem();
@@ -28,17 +28,9 @@ namespace Regards
 			//void SetFilename(const wxString& filename);
 			void SetLayer(CLayerList * listOfLayer);
 			void Resize() override;
+			void RefreshList();
 
 		private:
-
-			void DeleteLayer(wxCommandEvent& event);
-			void CopyLayer(wxCommandEvent& event);
-			void CreateLayer(wxCommandEvent& event);
-			void FusionLayer(wxCommandEvent& event);
-			void MoveUpLayer(wxCommandEvent& event);
-			void MoveDownLayer(wxCommandEvent& event);
-			void PropertiesLayer(wxCommandEvent& event);
-
 
 			CLayerList* listOfLayer = nullptr;
 			CWindowManager* windowManager;

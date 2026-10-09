@@ -1,22 +1,9 @@
 #pragma once
-
+#include <LayerElement.h>
 namespace Regards
 {
     namespace Dialog
     {
-
-        enum class LayerBlendMode
-        {
-            Normal = 0,
-            Multiply,
-            Screen,
-            Overlay,
-            Darken,
-            Lighten,
-            Add,
-            Subtract
-        };
-
 
         class CLayerPropertiesDialog : public wxDialog
         {

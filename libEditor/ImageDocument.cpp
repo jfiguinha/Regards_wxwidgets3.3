@@ -94,6 +94,75 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     UpdateStatusText();
 }
 
+void ImageDocument::SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity)
+{
+    if (bitmapWindow)
+    {
+        CLayerList* listLayer = bitmapWindow->GetListOfLayer();
+        listLayer->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
+        listLayer->UpdatePictureToShow();
+    }
+}
+
+void ImageDocument::DeleteLayer(int numLayer)
+{
+    if (bitmapWindow)
+    {
+        CLayerList* listLayer = bitmapWindow->GetListOfLayer();
+        listLayer->erase(numLayer);
+        listLayer->UpdatePictureToShow();
+    }
+}
+
+void ImageDocument::CopyLayer(int numLayer)
+{
+    if (bitmapWindow)
+    {
+        CLayerList* listLayer = bitmapWindow->GetListOfLayer();
+        listLayer->copy(numLayer);
+        listLayer->UpdatePictureToShow();
+    }
+}
+
+void ImageDocument::CreateLayer(wxString layerName)
+{
+    if (bitmapWindow)
+    {
+        CLayerList* listLayer = bitmapWindow->GetListOfLayer();
+        listLayer->CreateLayer(layerName);
+        listLayer->UpdatePictureToShow();
+    }
+}
+
+void ImageDocument::FusionLayer(vector<int> * listLayers)
+{
+    if (bitmapWindow)
+    {
+        CLayerList* listLayer = bitmapWindow->GetListOfLayer();
+        listLayer->FusionLayers(listLayers);
+        listLayer->UpdatePictureToShow();
+    }
+}
+
+void ImageDocument::MoveUpLayer(int numLayer)
+{
+    if (bitmapWindow)
+    {
+        CLayerList* listLayer = bitmapWindow->GetListOfLayer();
+        listLayer->MoveUpLayer(numLayer);
+        listLayer->UpdatePictureToShow();
+    }
+}
+
+void ImageDocument::MoveDownLayer(int numLayer)
+{
+    if (bitmapWindow)
+    {
+        CLayerList* listLayer = bitmapWindow->GetListOfLayer();
+        listLayer->MoveDownLayer(numLayer);
+        listLayer->UpdatePictureToShow();
+    }
+}
 
 CLayerList* ImageDocument::GetListOfLayer()
 {

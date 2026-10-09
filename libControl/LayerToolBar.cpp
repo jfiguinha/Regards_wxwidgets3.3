@@ -5,9 +5,10 @@
 using namespace Regards::Control;
 
 
-CLayerToolBar::CLayerToolBar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, const bool& vertical)
+CLayerToolBar::CLayerToolBar(wxWindow* parent, wxWindowID id, wxWindowID frameId, const CThemeToolbar& theme, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical)
 {
+	this->frameId = frameId;
 	themeToolbar = theme;
 	themeToolbar.position = NAVIGATOR_LEFT;
 	
@@ -22,6 +23,10 @@ CLayerToolBar::CLayerToolBar(wxWindow* parent, wxWindowID id, const CThemeToolba
 
 void CLayerToolBar::EventManager(const int& id)
 {
-	wxCommandEvent evt(id);
-	this->GetParent()->GetEventHandler()->AddPendingEvent(evt);
+	wxWindow * frameWindow = FindWindow(frameId);
+	if (frameWindow)
+	{
+		wxCommandEvent evt(id);
+		frameWindow->GetEventHandler()->AddPendingEvent(evt);
+	}
 }
