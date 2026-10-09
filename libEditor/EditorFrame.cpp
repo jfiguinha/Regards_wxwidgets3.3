@@ -291,9 +291,9 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
 void CEditorFrame::DeleteLayer(wxCommandEvent& event)
 {
-    if (m_activeDocument)
+    if (m_activeDocument && layerDialog)
     {
-        int numSelect = event.GetInt();
+        int numSelect = layerDialog->GetActifLayer();
         if (numSelect != -1)
         {
             const wxString msg = "Do you want delete this layer ?";
@@ -313,7 +313,7 @@ void CEditorFrame::CopyLayer(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        int numSelect = event.GetInt();
+        int numSelect = layerDialog->GetActifLayer();
         if (numSelect != -1)
         {
             m_activeDocument->CopyLayer(numSelect);
@@ -335,9 +335,13 @@ void CEditorFrame::FusionLayer(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        vector<int>* listLayer = (vector<int> *)event.GetClientData();
-        m_activeDocument->FusionLayer(listLayer);
-        layerDialog->RefreshList();
+        vector<int> listLayer = layerDialog->GetSelectLayer();
+        if (listLayer.size() > 0)
+        {
+            m_activeDocument->FusionLayer(&listLayer);
+            layerDialog->RefreshList();
+        }
+
     }
 }
 
@@ -345,7 +349,7 @@ void CEditorFrame::MoveUpLayer(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        int numSelect = event.GetInt();
+        int numSelect = layerDialog->GetActifLayer();
         if (numSelect != -1)
         {
             m_activeDocument->MoveUpLayer(numSelect);
@@ -358,7 +362,7 @@ void CEditorFrame::MoveDownLayer(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        int numSelect = event.GetInt();
+        int numSelect = layerDialog->GetActifLayer();
         if (numSelect != -1)
         {
             m_activeDocument->MoveDownLayer(numSelect);
@@ -371,22 +375,24 @@ void CEditorFrame::PropertiesLayer(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        int numLayer = event.GetInt();
-
-        CLayerPropertiesDialog dialog(
-            this,
-            "Mon calque",
-            LayerBlendMode::Normal,
-            80);
-
-        if (dialog.ShowModal() == wxID_OK)
+        int numLayer = layerDialog->GetActifLayer();
+        if (numLayer != -1)
         {
-            const wxString layerName = dialog.GetLayerName();
-            const auto blendMode = dialog.GetBlendMode();
-            const int opacity = dialog.GetOpacity();
+            CLayerPropertiesDialog dialog(
+                this,
+                "Mon calque",
+                LayerBlendMode::Normal,
+                80);
 
-            m_activeDocument->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
-            layerDialog->RefreshList();
+            if (dialog.ShowModal() == wxID_OK)
+            {
+                const wxString layerName = dialog.GetLayerName();
+                const auto blendMode = dialog.GetBlendMode();
+                const int opacity = dialog.GetOpacity();
+
+                m_activeDocument->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
+                layerDialog->RefreshList();
+            }
         }
     }
 }

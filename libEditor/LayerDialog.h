@@ -18,6 +18,8 @@ public:
     void SetFile(const wxString& filename);
     wxString GetFilename();
     void RefreshList();
+    int GetActifLayer();
+    vector<int> GetSelectLayer();
 
 private:
     void OnSize(wxSizeEvent& event);

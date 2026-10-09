@@ -50,6 +50,20 @@ wxString LayerDialog::GetFilename()
 	return filename;
 }
 
+int LayerDialog::GetActifLayer()
+{
+	if (listLayer)
+		listLayer->GetActifLayer();
+	return -1;
+}
+
+vector<int> LayerDialog::GetSelectLayer()
+{
+	if (listLayer)
+		listLayer->GetSelectLayer();
+	return vector<int>();
+}
+
 void LayerDialog::OnSize(wxSizeEvent& event)
 {
 	const wxSize clientSize = this->GetClientSize();

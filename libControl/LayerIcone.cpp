@@ -57,22 +57,21 @@ void CLayerIcone::CalculPositionHorizontale(const wxImage& render, int& xThumbna
 void CLayerIcone::RenderPictureBitmap(wxDC* memDC, wxImage& bitmapScale, const int& type)
 {
     wxRect rc(0, 0, themeIcone.GetWidth(), themeIcone.GetHeight());
-
+    themeIcone.colorActifTop = wxColour(117, 165, 255);
+    themeIcone.colorActifBottom = wxColour(117, 165, 255);
     // 1. Dessin du fond selon l'état (Sélectionné / Inactif)
     switch (type)
     {
     case INACTIFICONE:
-        if (IsChecked())
-            memDC->GradientFillLinear(rc, themeIcone.colorSelectTop, themeIcone.colorSelectBottom);
-        else
-            memDC->GradientFillLinear(rc, themeIcone.colorBack, themeIcone.colorBack);
+        memDC->GradientFillLinear(rc, themeIcone.colorBack, themeIcone.colorBack);
         break;
     case SELECTEDICONE:
+        memDC->GradientFillLinear(rc, themeIcone.colorActifTop, themeIcone.colorActifBottom);
+       
+        break;
+
     case ACTIFICONE:
-        if (IsChecked())
-            memDC->GradientFillLinear(rc, themeIcone.colorSelectTop, themeIcone.colorSelectBottom);
-        else
-            memDC->GradientFillLinear(rc, themeIcone.colorTop, themeIcone.colorBottom);
+        memDC->GradientFillLinear(rc, themeIcone.colorSelectTop, themeIcone.colorSelectBottom);
         break;
     default:
         memDC->GradientFillLinear(rc, themeIcone.colorBack, themeIcone.colorBack);

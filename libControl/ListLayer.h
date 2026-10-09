@@ -23,12 +23,11 @@ namespace Regards
 			CListLayer(wxWindow* parent, wxWindowID id, wxWindowID frameId);
 			~CListLayer() override;
 			void UpdateScreenRatio() override;
-			int GetNumItem();
-			void SetActifItem(const int& numItem, const bool& move);
-			//void SetFilename(const wxString& filename);
 			void SetLayer(CLayerList * listOfLayer);
 			void Resize() override;
 			void RefreshList();
+			int GetActifLayer();
+			vector<int> GetSelectLayer();
 
 		private:
 

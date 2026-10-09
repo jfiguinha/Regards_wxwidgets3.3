@@ -90,18 +90,18 @@ void CListLayer::RefreshList()
 		thumbnailCalqueWnd->RefreshList();
 }
 
-
-void CListLayer::SetActifItem(const int& numItem, const bool& move)
+int CListLayer::GetActifLayer()
 {
-
+	if (thumbnailCalqueWnd)
+		return thumbnailCalqueWnd->GetActifLayer();
+	return -1;
 }
 
-
-int CListLayer::GetNumItem()
+vector<int> CListLayer::GetSelectLayer()
 {
-
-
-	return 0;
+	if (thumbnailCalqueWnd)
+		return thumbnailCalqueWnd->GetSelectLayer();
+	return vector<int>();
 }
 
 

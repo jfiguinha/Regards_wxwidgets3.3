@@ -22,8 +22,9 @@ namespace Regards::Control
 		void RefreshList();
 
 		void Resize();
-		int GetSelectLayer();
+		int GetActifLayer();
 		void OnPictureClick(const int& numPhotoId) override;
+		vector<int> GetSelectLayer();
 
 	private:
 

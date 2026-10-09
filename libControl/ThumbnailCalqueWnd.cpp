@@ -52,9 +52,16 @@ void CThumbnailCalqueWnd::RefreshList()
 		return thumbnailCalque->RefreshList();
 }
 
-int CThumbnailCalqueWnd::GetSelectLayer()
+int CThumbnailCalqueWnd::GetActifLayer()
+{
+	if (thumbnailCalque != nullptr)
+		return thumbnailCalque->GetActifLayer();
+	return -1;
+}
+
+vector<int> CThumbnailCalqueWnd::GetSelectLayer()
 {
 	if (thumbnailCalque != nullptr)
 		return thumbnailCalque->GetSelectLayer();
-	return -1;
+	return vector<int>();
 }

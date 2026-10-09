@@ -50,6 +50,8 @@ void CThumbnailCalque::RefreshList()
     int numElement = 0;
     InitScrollingPos();
 
+
+
     for (LayerElement* layerElement : *listOfLayer)
     {
         CImageLoadingFormat* picture = layerElement->GetPicture();
@@ -62,6 +64,7 @@ void CThumbnailCalque::RefreshList()
         pBitmapIcone->SetNumElement(numElement);
         pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
         pBitmapIcone->SetLibelle(layerElement->layerName);
+        pBitmapIcone->SetChecked(true);
         iconeListLocal->AddElement(pBitmapIcone);
 
         numElement++;
@@ -111,7 +114,22 @@ CIcone* CThumbnailCalque::FindElement(const int& xPos, const int& yPos) {
 }
 
 
-int CThumbnailCalque::GetSelectLayer()
+vector<int> CThumbnailCalque::GetSelectLayer()
+{
+    vector<int> listCheck;
+    int nbCheck = 0;
+    int nbElement = nbElementInIconeList;
+    for (int i = 0; i < nbElement; i++)
+    {
+        CIcone* icone = iconeList->GetElement(i);
+        if (icone->IsChecked())
+            listCheck.push_back(icone->GetNumElement());
+    }
+    return listCheck;
+}
+
+
+int CThumbnailCalque::GetActifLayer()
 {
     return numClickIcone;
 }

@@ -1147,6 +1147,8 @@ public:
 	wxColour colorBottom;
 	wxColour colorSelectTop;
 	wxColour colorSelectBottom;
+	wxColour colorActifTop;
+	wxColour colorActifBottom;
 
 private:
 	int width;
