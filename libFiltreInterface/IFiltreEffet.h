@@ -93,7 +93,7 @@ public:
 	virtual int RotateFree(const double& angle, const int& widthOut, const int& heightOut, const cv::Scalar& bgColor, const bool& preview) = 0;
 	virtual int BrightnessAndContrast(const double& brightness, const double& contrast) = 0;
 	virtual int RGBFilter(const int& red, const int& green, const int& blue) = 0;
-	virtual int CloudsFilter(const CRgbaquad& color1, const CRgbaquad& color2, const float& amplitude,
+	virtual int CloudsFilter(const cv::Scalar& color1, const cv::Scalar& color2, const float& amplitude,
 	                         const float& frequence, const int& octave, const int& intensity) = 0;
 	virtual int Swirl(const float& radius, const float& angle) = 0;
 	virtual int Posterize(const float& level, const float& gamma) = 0;

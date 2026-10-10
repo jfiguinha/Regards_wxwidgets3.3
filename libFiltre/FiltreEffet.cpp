@@ -289,7 +289,7 @@ int CFiltreEffet::Solarize(const long& threshold)
 //---------------------------------------------------------------------
 //Effet Clouds 
 //---------------------------------------------------------------------
-int CFiltreEffet::CloudsFilter(const CRgbaquad& color1, const CRgbaquad& color2, const float& amplitude,
+int CFiltreEffet::CloudsFilter(const cv::Scalar& color1, const cv::Scalar& color2, const float& amplitude,
                                const float& frequence, const int& octave, const int& intensity)
 {
 	int value = filtreEffet->CloudsFilter(color1, color2, amplitude, frequence, octave, intensity);

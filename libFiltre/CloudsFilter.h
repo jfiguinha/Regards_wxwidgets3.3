@@ -47,11 +47,7 @@ namespace Regards::Filter
 		wxString libelleCloudsFrequency;
 		wxString libelleCloudsAmplitude;
 		wxString libelleEffectIntensity;
-		wxString libelleCloudsColorFrontRed;
-		wxString libelleCloudsColorFrontGreen;
-		wxString libelleCloudsColorFrontBlue;
-		wxString libelleCloudsColorBackRed;
-		wxString libelleCloudsColorBackGreen;
-		wxString libelleCloudsColorBackBlue;
+		wxString libelleCloudsColorFront;
+		wxString libelleCloudsColorBack;
 	};
 }

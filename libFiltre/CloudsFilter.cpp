@@ -5,18 +5,15 @@
 #include <FiltreEffet.h>
 #include <ImageLoadingFormat.h>
 #include <BitmapDisplay.h>
+#include <treetypeid.h>
 using namespace Regards::Filter;
 
 CCloudsFilter::CCloudsFilter()
 {
 	libelleCloudsFrequency = CLibResource::LoadStringFromResource(L"LBLCLOUDSFREQUENCY", 1);
 	libelleCloudsAmplitude = CLibResource::LoadStringFromResource(L"LBLCLOUDSAMPLITUDE", 1);
-	libelleCloudsColorFrontRed = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORFRONTRED", 1);
-	libelleCloudsColorFrontGreen = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORFRONTGREEN", 1);
-	libelleCloudsColorFrontBlue = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORFRONTBLUE", 1);
-	libelleCloudsColorBackRed = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORBACKRED", 1);
-	libelleCloudsColorBackGreen = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORBACKGREEN", 1);
-	libelleCloudsColorBackBlue = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORBACKBLUE", 1);
+	libelleCloudsColorFront = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORFRONT", 1);
+	libelleCloudsColorBack = CLibResource::LoadStringFromResource(L"LBLCLOUDSCOLORBACK", 1);
 	libelleEffectIntensity = CLibResource::LoadStringFromResource(L"LBLEFFECTINTENSITY", 1);
 }
 
@@ -70,19 +67,9 @@ void CCloudsFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, c
 	                              &elementFreq);
 	filtreInterface->AddTreeInfos(libelleCloudsAmplitude, new CTreeElementValueInt(cloudsEffectParameter->amplitude),
 	                              &elementFreq);
-	filtreInterface->AddTreeInfos(libelleCloudsColorFrontRed,
-	                              new CTreeElementValueInt(cloudsEffectParameter->colorFront.GetRed()), &elementColor);
-	filtreInterface->AddTreeInfos(libelleCloudsColorFrontGreen,
-	                              new CTreeElementValueInt(cloudsEffectParameter->colorFront.GetGreen()),
-	                              &elementColor);
-	filtreInterface->AddTreeInfos(libelleCloudsColorFrontBlue,
-	                              new CTreeElementValueInt(cloudsEffectParameter->colorFront.GetBlue()), &elementColor);
-	filtreInterface->AddTreeInfos(libelleCloudsColorBackRed,
-	                              new CTreeElementValueInt(cloudsEffectParameter->colorBack.GetRed()), &elementColor);
-	filtreInterface->AddTreeInfos(libelleCloudsColorBackGreen,
-	                              new CTreeElementValueInt(cloudsEffectParameter->colorBack.GetGreen()), &elementColor);
-	filtreInterface->AddTreeInfos(libelleCloudsColorBackBlue,
-	                              new CTreeElementValueInt(cloudsEffectParameter->colorBack.GetBlue()), &elementColor);
+
+	filtreInterface->AddTreeInfos(libelleCloudsColorFront, new CTreeElementValueColor(cloudsEffectParameter->ConvertScalarToWxColour(cloudsEffectParameter->colorFront, effectParameter->opacity)), nullptr, 5, TYPE_COLOR);
+	filtreInterface->AddTreeInfos(libelleCloudsColorBack, new CTreeElementValueColor(cloudsEffectParameter->ConvertScalarToWxColour(cloudsEffectParameter->colorBack, effectParameter->opacity)), nullptr, 5, TYPE_COLOR);
 }
 
 void CCloudsFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData,
@@ -108,35 +95,13 @@ void CCloudsFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeEl
 	{
 		cloudsEffectParameter->octave = value->GetValue();
 	}
-	else if (key == libelleCloudsColorFrontRed)
-	{
-		cloudsEffectParameter->colorFront = CRgbaquad(value->GetValue(), cloudsEffectParameter->colorFront.GetGreen(),
-		                                              cloudsEffectParameter->colorFront.GetBlue());
+	else if (key == libelleCloudsColorFront && valueData->GetType() == 4) {
+		wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
+		cloudsEffectParameter->colorFront = cv::Scalar(c.Blue(), c.Green(), c.Red(), effectParameter->opacity);
 	}
-	else if (key == libelleCloudsColorFrontGreen)
-	{
-		cloudsEffectParameter->colorFront = CRgbaquad(cloudsEffectParameter->colorFront.GetRed(), value->GetValue(),
-		                                              cloudsEffectParameter->colorFront.GetBlue());
-	}
-	else if (key == libelleCloudsColorFrontBlue)
-	{
-		cloudsEffectParameter->colorFront = CRgbaquad(cloudsEffectParameter->colorFront.GetRed(),
-		                                              cloudsEffectParameter->colorFront.GetGreen(), value->GetValue());
-	}
-	else if (key == libelleCloudsColorBackRed)
-	{
-		cloudsEffectParameter->colorBack = CRgbaquad(value->GetValue(), cloudsEffectParameter->colorBack.GetGreen(),
-		                                             cloudsEffectParameter->colorBack.GetBlue());
-	}
-	else if (key == libelleCloudsColorBackGreen)
-	{
-		cloudsEffectParameter->colorBack = CRgbaquad(cloudsEffectParameter->colorBack.GetRed(), value->GetValue(),
-		                                             cloudsEffectParameter->colorBack.GetBlue());
-	}
-	else if (key == libelleCloudsColorBackBlue)
-	{
-		cloudsEffectParameter->colorBack = CRgbaquad(cloudsEffectParameter->colorBack.GetRed(),
-		                                             cloudsEffectParameter->colorBack.GetGreen(), value->GetValue());
+	else if (key == libelleCloudsColorBack && valueData->GetType() == 4) {
+		wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
+		cloudsEffectParameter->colorBack = cv::Scalar(c.Blue(), c.Green(), c.Red(), effectParameter->opacity);
 	}
 }
 
@@ -163,8 +128,8 @@ CEffectParameter* CCloudsFilter::GetEffectPointer()
 CEffectParameter* CCloudsFilter::GetDefaultEffectParameter()
 {
 	auto clouds = new CCloudsEffectParameter();
-	clouds->colorFront = CRgbaquad(0, 0, 0);
-	clouds->colorBack = CRgbaquad(255, 255, 255);
+	clouds->colorFront = cv::Scalar(0, 0, 0);
+	clouds->colorBack = cv::Scalar(255, 255, 255);
 	clouds->amplitude = 1;
 	clouds->frequence = 65;
 	clouds->octave = 8;

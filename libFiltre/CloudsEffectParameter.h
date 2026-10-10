@@ -7,8 +7,8 @@ class CCloudsEffectParameter : public CEffectParameter
 public:
 	CCloudsEffectParameter()
 	{
-		colorFront = CRgbaquad(0, 0, 0);
-		colorBack = CRgbaquad(255, 255, 255);
+		colorFront = cv::Scalar(0, 0, 0);
+		colorBack = cv::Scalar(255, 255, 255);
 
 		transparency = 0;
 		amplitude = 1;
@@ -16,8 +16,8 @@ public:
 		octave = 8;
 	};
 
-	CRgbaquad colorFront;
-	CRgbaquad colorBack;
+	cv::Scalar colorFront;
+	cv::Scalar colorBack;
 
 	int octave;
 	int amplitude;

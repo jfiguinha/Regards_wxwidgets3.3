@@ -11,7 +11,7 @@ namespace Regards::FiltreEffet
 
 		~CPerlinNoise();
 
-		void Clouds(cv::Mat& pBitmap, const CRgbaquad& color1, const CRgbaquad& color2, const float& freq,
+		void Clouds(cv::Mat& pBitmap, const cv::Scalar& color1, const cv::Scalar& color2, const float& freq,
 		            const float& pers, const int& octaves);
 
 	private:

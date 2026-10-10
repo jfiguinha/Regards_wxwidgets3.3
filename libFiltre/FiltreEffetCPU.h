@@ -67,7 +67,7 @@ public:
 	int BrightnessAndContrast(const double& brightness, const double& contrast) override;
 	int RGBFilter(const int& red, const int& green, const int& blue) override;
 
-	int CloudsFilter(const CRgbaquad& color1, const CRgbaquad& color2, const float& amplitude, const float& frequence,
+	int CloudsFilter(const cv::Scalar& color1, const cv::Scalar& color2, const float& amplitude, const float& frequence,
 	                 const int& octave, const int& intensity) override;
 	int Swirl(const float& radius, const float& angle) override;
 	int Posterize(const float& level, const float& gamma) override;

@@ -1496,7 +1496,7 @@ int CFiltreEffetCPU::Posterize(const float& level, const float& gamma)
 //---------------------------------------------------------------------
 //Effet Clouds 
 //---------------------------------------------------------------------
-int CFiltreEffetCPU::CloudsFilter(const CRgbaquad& color1, const CRgbaquad& color2, const float& amplitude,
+int CFiltreEffetCPU::CloudsFilter(const cv::Scalar& color1, const cv::Scalar& color2, const float& amplitude,
                                   const float& frequence, const int& octave, const int& intensity)
 {
 	ExecuteSafe([&](cv::Mat& image)

@@ -103,7 +103,7 @@ namespace Regards::FiltreEffet
 
 		int MotionBlur(const double& radius, const double& sigma, const double& angle) override;
 
-		int CloudsFilter(const CRgbaquad& color1, const CRgbaquad& color2, const float& amplitude,
+		int CloudsFilter(const cv::Scalar& color1, const cv::Scalar& color2, const float& amplitude,
 		                 const float& frequence, const int& octave, const int& intensity) override { return -1; };
 		int Contrast(const double& contrast, const uint8_t& offset) { return -1; };
 		int Lightness(const double& factor) { return -1; };

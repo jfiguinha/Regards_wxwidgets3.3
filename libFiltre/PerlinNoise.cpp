@@ -100,7 +100,7 @@ float CPerlinNoise::Smooth_Noise(int x, int y)
 }
 
 
-void CPerlinNoise::Clouds(cv::Mat& pBitmap, const CRgbaquad& color1, const CRgbaquad& color2, const float& freq,
+void CPerlinNoise::Clouds(cv::Mat& pBitmap, const cv::Scalar& color1, const cv::Scalar& color2, const float& freq,
                           const float& pers, const int& octaves)
 {
 	if (!pBitmap.empty())
@@ -148,9 +148,9 @@ void CPerlinNoise::Clouds(cv::Mat& pBitmap, const CRgbaquad& color1, const CRgba
 				if (total > 1.0f)
 					total = 1.0f;
 
-				*(pBitsSrc + l) = color1.GetFBlue() * total + color2.GetFBlue() * (1 - total);
-				*(pBitsSrc + l + 1) = color1.GetFGreen() * total + color2.GetFGreen() * (1 - total);
-				*(pBitsSrc + l + 2) = color1.GetFRed() * total + color2.GetFRed() * (1 - total);
+				*(pBitsSrc + l) = color1[0] * total + color2[0] * (1 - total);
+				*(pBitsSrc + l + 1) = color1[1] * total + color2[1] * (1 - total);
+				*(pBitsSrc + l + 2) = color1[2] * total + color2[2] * (1 - total);
 				*(pBitsSrc + l + 3) = 0;
 			}
 		}
