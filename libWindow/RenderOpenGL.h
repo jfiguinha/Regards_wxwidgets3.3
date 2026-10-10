@@ -72,7 +72,7 @@ namespace Regards::OpenGL
 
 		void Print(int x, int y, double scaleFactor, const char* string);
        // void PrintSubtitle(int x, int y, double scale_factor, wxString text);
-		void PrintSubtitle(int x, int y, double scale_factor, float red, float green, float blue, wxString text);
+		void PrintSubtitle(int x, int y, double scale_factor, cv::Scalar color, wxString text);
 		void Init(wxGLCanvas* canvas);
 		bool IsInit();
         int LoadFont(const wxString & fontName);

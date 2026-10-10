@@ -1,5 +1,7 @@
 #pragma once
 #include "EffectParameter.h"
+
+#include <format>
 //#include <ParamInit.h>
 //#include <RegardsConfigParam.h>
 //const float[] aspectRatio = { 1.1f,  1.33f, 1.66f, 1.85f, 2.35f };
@@ -100,6 +102,41 @@ public:
     
 	~CVideoEffectParameter() = default;
 
+	string GetColorString()
+	{
+		char buffer[9]; // Suffisant pour "#RRGGBB\0"
+		std::snprintf(buffer, sizeof(buffer), "#%02X%02X%02X",
+			static_cast<int>(subtitleColor[2]),   // R
+			static_cast<int>(subtitleColor[1]),   // G
+			static_cast<int>(subtitleColor[0]));  // B
+
+		std::string hexStr(buffer);
+		return hexStr;
+	}
+
+	void SetColorString(const std::string& hexStr) {
+		// Vérification du format minimal (ex: #RRGGBB)
+		if (hexStr.empty() || hexStr[0] != '#' || hexStr.length() < 7) {
+			subtitleColor = cv::Scalar(0, 0, 0); // Valeur par défaut en cas d'erreur
+			return;
+		}
+
+		// Extraction des composantes (en base 16)
+		int r = std::stoul(hexStr.substr(1, 2), nullptr, 16);
+		int g = std::stoul(hexStr.substr(3, 2), nullptr, 16);
+		int b = std::stoul(hexStr.substr(5, 2), nullptr, 16);
+
+		// Gestion optionnelle du canal Alpha (#RRGGBBAA)
+		int a = 255;
+		if (hexStr.length() >= 9) {
+			a = std::stoul(hexStr.substr(7, 2), nullptr, 16);
+		}
+
+		// OpenCV attend le format BGR ou BGRA
+		subtitleColor = cv::Scalar(b, g, r, a);
+	}
+
+
 	//Video Denoising Parameter
 	bool openglDenoise;
 	float uSigma;
@@ -160,7 +197,6 @@ public:
     float subtitleSize = 1.0f;
     
     //0.5, 0.8f, 0.2f
-    int subtitleRedColor = 128;
-    int subtitleGreenColor = 204;
-    int subtitleBlueColor = 51;
+	cv::Scalar subtitleColor = cv::Scalar(128, 204, 51);
+
 };

@@ -284,7 +284,7 @@ struct ASSSubSegment
 	bool isNewLine = false;
 };
 
-void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, float green, float blue, wxString text)
+void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, cv::Scalar color, wxString text)
 {
 	// ────────────────═══════════════════════════════════════════════════════
 	// ÉTAPE 0 : EXTRACTION DU DIALOGUE BRUT ASS
@@ -317,7 +317,7 @@ void CRenderOpenGL::PrintSubtitle(int x, int y, double scale_factor, float red, 
 	std::vector<ASSSubSegment> segments;
 
 	// États par défaut (fournis par les arguments de la fonction)
-	const vec3f defaultColor(red / 255.0f, green / 255.0f, blue / 255.0f);
+	const vec3f defaultColor(color[0] / 255.0f, color[1] / 255.0f, color[2] / 255.0f);
 	bool currentBold = false;
 	bool currentItalic = false;
 	vec3f currentColor = defaultColor;

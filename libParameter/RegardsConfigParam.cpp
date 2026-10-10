@@ -580,9 +580,8 @@ void CRegardsConfigParam::SetVideoEffectParameter(xml_node<>* sectionPosition)
 	sectionPosition->append_node(node("filmEnhance", to_string(videoEffectParameter->filmEnhance)));
 	sectionPosition->append_node(node("ratioSelect", to_string(videoEffectParameter->ratioSelect)));
 	sectionPosition->append_node(node("subtitleSize", to_string(videoEffectParameter->subtitleSize)));
-	sectionPosition->append_node(node("subtitleRedColor", to_string(videoEffectParameter->subtitleRedColor)));
-	sectionPosition->append_node(node("subtitleGreenColor", to_string(videoEffectParameter->subtitleGreenColor)));
-	sectionPosition->append_node(node("subtitleBlueColor", to_string(videoEffectParameter->subtitleBlueColor)));
+	sectionPosition->append_node(node("subtitleRedColor", videoEffectParameter->GetColorString()));
+
 }
 
 void CRegardsConfigParam::GetVideoEffectParameter(xml_node<>* position_node)
@@ -674,11 +673,7 @@ void CRegardsConfigParam::GetVideoEffectParameter(xml_node<>* position_node)
 			else if (listParam[i] == "subtitleSize")
 				videoEffectParameter->subtitleSize = atof(child_node->value());
 			else if (listParam[i] == "subtitleRedColor")
-				videoEffectParameter->subtitleRedColor = atoi(child_node->value());
-			else if (listParam[i] == "subtitleGreenColor")
-				videoEffectParameter->subtitleGreenColor = atoi(child_node->value());
-			else if (listParam[i] == "subtitleBlueColor")
-				videoEffectParameter->subtitleBlueColor = atoi(child_node->value());
+				videoEffectParameter->SetColorString(child_node->value());
         }
     }
 }

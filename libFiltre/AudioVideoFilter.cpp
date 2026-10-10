@@ -12,7 +12,7 @@
 #include <LibResource.h>
 #include <Metadata.h>
 #include "videostream.h"
-
+#include <treetypeid.h>
 #include <effect_id.h>
 #include "TreeElementValue.h"
 using namespace Regards::Filter;
@@ -25,9 +25,8 @@ CAudioVideoFilter::CAudioVideoFilter()
 	enableSubtitle = CLibResource::LoadStringFromResource(L"LBLSHOWSUBTITLE", 1); //"Parameter.Show Subtitle";
 	libelleSubtitle = CLibResource::LoadStringFromResource(L"LBLSUBTITLE", 1); //L"Parameter.Subtitle";
     libelleEffectSize = CLibResource::LoadStringFromResource(L"LBLEFFECTSIZE", 1); //"Effect.Size";
-    libelleEffectColorRed = CLibResource::LoadStringFromResource(L"LBLEFFECTCOLORRED", 1);
-	libelleEffectColorGreen = CLibResource::LoadStringFromResource(L"LBLEFFECTCOLORGREEN", 1);
-	libelleEffectColorBlue = CLibResource::LoadStringFromResource(L"LBLEFFECTCOLORBLUE", 1);
+    libelleEffectColor = CLibResource::LoadStringFromResource(L"LBLEFFECTCOLOR", 1);
+
 }
 
 CAudioVideoFilter::~CAudioVideoFilter()
@@ -113,16 +112,10 @@ void CAudioVideoFilter::Filter(CEffectParameter* effectParameter, const wxString
     	filtreInterface->AddTreeInfos(libelleEffectSize, new CTreeElementValueFloat(videoEffectParameter->subtitleSize, 2),
 	                              &vect, 4);
                                   
-    	vector<int> elementColor;
-        for (auto i = 0; i < 256; i++)
-            elementColor.push_back(i);
+		filtreInterface->AddTreeInfos(libelleEffectColor, 
+			new CTreeElementValueColor(videoEffectParameter->ConvertScalarToWxColour(videoEffectParameter->subtitleColor, effectParameter->opacity)),
+			nullptr, 5, TYPE_COLOR);
 
-        filtreInterface->AddTreeInfos(libelleEffectColorRed, new CTreeElementValueInt(videoEffectParameter->subtitleRedColor),
-                                      &elementColor);
-        filtreInterface->AddTreeInfos(libelleEffectColorGreen, new CTreeElementValueInt(videoEffectParameter->subtitleGreenColor),
-                                      &elementColor);
-        filtreInterface->AddTreeInfos(libelleEffectColorBlue, new CTreeElementValueInt(videoEffectParameter->subtitleBlueColor),
-                                      &elementColor);
 
     }
 
@@ -188,16 +181,8 @@ void CAudioVideoFilter::FilterChangeParam(CEffectParameter* effectParameter, CTr
     {
         videoEffectParameter->subtitleSize = value;
     }
-	else if (key == libelleEffectColorRed)
-    {
-        videoEffectParameter->subtitleRedColor = value;
-    }
-    else if (key == libelleEffectColorGreen)
-    {
-        videoEffectParameter->subtitleGreenColor = value;
-    }
-    else if (key == libelleEffectColorBlue)
-    {
-        videoEffectParameter->subtitleBlueColor = value;
-    }
+	else if (key == libelleEffectColor && valueData->GetType() == 4) {
+		wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
+		videoEffectParameter->subtitleColor = cv::Scalar(c.Blue(), c.Green(), c.Red(), effectParameter->opacity);
+	}
 }
