@@ -183,6 +183,6 @@ void CAudioVideoFilter::FilterChangeParam(CEffectParameter* effectParameter, CTr
     }
 	else if (key == libelleEffectColor && valueData->GetType() == 4) {
 		wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
-		videoEffectParameter->subtitleColor = cv::Scalar(c.Blue(), c.Green(), c.Red(), effectParameter->opacity);
+		videoEffectParameter->subtitleColor = cv::Scalar(c.Red(), c.Green(), c.Blue(), effectParameter->opacity);
 	}
 }
