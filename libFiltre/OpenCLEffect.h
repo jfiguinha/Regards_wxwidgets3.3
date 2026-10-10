@@ -91,7 +91,7 @@ namespace Regards::FiltreEffet
 		int GetWidth() override;
 		int GetHeight() override;
 
-		int RotateFree(const double& angle, const int& widthOut, const int& heightOut) override;
+		int RotateFree(const double& angle, const int& widthOut, const int& heightOut, const cv::Scalar& bgColor, const bool& preview) override;
 		int Posterize(const float& level, const float& gamma) override;
 		int Solarize(const long& threshold) override;
 		int PhotoFiltre(const CRgbaquad& clValue, const int& intensity) override;

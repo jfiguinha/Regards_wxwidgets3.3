@@ -1190,24 +1190,46 @@ void COpenCLFilter::HQDn3D(const double& LumSpac, const double& temporalLumaDefa
 }
 
 void COpenCLFilter::Rotate(const wxString& functionName, const int& widthOut, const int& heightOut, const double& angle,
-                           UMat& inputData)
+	UMat& inputData, const cv::Scalar& bgColor, const bool& preview)
 {
 	ExecuteSafe([&]
 		{
-			UMat cvDest;
-			// get rotation matrix for rotating the image around its center in pixel coordinates
+			// 1. Calculs communs (Centre, Boîte englobante et Matrice initiale)
 			const Point2f center((inputData.cols - 1) / 2.0, (inputData.rows - 1) / 2.0);
-			Mat rot = getRotationMatrix2D(center, angle, 1.0);
-			// determine bounding rectangle, center not relevant
-			Rect2f bbox = RotatedRect(Point2f(), inputData.size(), angle).boundingRect2f();
-			// adjust transformation matrix
-			rot.at<double>(0, 2) += bbox.width / 2.0 - inputData.cols / 2.0;
-			rot.at<double>(1, 2) += bbox.height / 2.0 - inputData.rows / 2.0;
+			const Rect2f bbox = RotatedRect(Point2f(), inputData.size(), angle).boundingRect2f();
 
-			warpAffine(inputData, cvDest, rot, bbox.size());
+			Mat rot;
+			Size targetSize;
+
+			if (preview)
+			{
+				// Mode Preview : Réduction de l'image pour qu'elle rentre dans le cadre d'origine
+				double scaleX = (bbox.width > 0) ? inputData.cols / static_cast<double>(bbox.width) : 1.0;
+				double scaleY = (bbox.height > 0) ? inputData.rows / static_cast<double>(bbox.height) : 1.0;
+				double scale = std::min({ 1.0, scaleX, scaleY });
+
+				rot = getRotationMatrix2D(center, angle, scale);
+				targetSize = inputData.size();
+			}
+			else
+			{
+				// Mode Normal : Agrandissement du cadre (boîte englobante complète)
+				rot = getRotationMatrix2D(center, angle, 1.0);
+				targetSize = bbox.size();
+
+				// Ajustement de la matrice de transformation pour le nouveau cadre
+				rot.at<double>(0, 2) += bbox.width / 2.0 - inputData.cols / 2.0;
+				rot.at<double>(1, 2) += bbox.height / 2.0 - inputData.rows / 2.0;
+			}
+
+			// 2. Application de la transformation affine commune
+			UMat cvDest;
+			warpAffine(inputData, cvDest, rot, targetSize, cv::INTER_LINEAR, cv::BORDER_CONSTANT, bgColor);
 			cvDest.copyTo(inputData);
 		});
 }
+
+
 
 Rect COpenCLFilter::CalculRect(int widthIn, int heightIn, int widthOut, int heightOut, int flipH, int flipV, int angle,
 	float ratioX, float ratioY, int x, int y, float left, float top)

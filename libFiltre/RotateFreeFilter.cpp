@@ -4,12 +4,14 @@
 #include <LibResource.h>
 #include <FiltreEffet.h>
 #include <ImageLoadingFormat.h>
+#include <treetypeid.h>
 #include <BitmapDisplay.h>
 using namespace Regards::Filter;
 
 CRotateFreeFilter::CRotateFreeFilter()
 {
 	libelleRotationAngle = CLibResource::LoadStringFromResource(L"LBLROTATIONANGLE", 1);
+	libelleBgColor = CLibResource::LoadStringFromResource(L"LBLEFFECTCOLOR", 1);
 }
 
 CRotateFreeFilter::~CRotateFreeFilter()
@@ -41,6 +43,7 @@ bool CRotateFreeFilter::NeedToShrink()
 	return true;
 }
 
+
 void CRotateFreeFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, const wxString& filename,
                                IFiltreEffectInterface* filtreInterface)
 {
@@ -55,6 +58,8 @@ void CRotateFreeFilter::Filter(CEffectParameter* effectParameter, cv::Mat& sourc
 
 	filtreInterface->AddTreeInfos(libelleRotationAngle, new CTreeElementValueInt(freeRotateEffectParameter->angle),
 	                              &elementColor);
+	filtreInterface->AddTreeInfos(libelleBgColor, new CTreeElementValueColor(freeRotateEffectParameter->ConvertScalarToWxColour(freeRotateEffectParameter->color, effectParameter->opacity)), nullptr, 5, TYPE_COLOR);
+
 }
 
 void CRotateFreeFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData,
@@ -69,7 +74,10 @@ void CRotateFreeFilter::FilterChangeParam(CEffectParameter* effectParameter, CTr
 	{
 		freeRotateEffectParameter->angle = value;
 	}
-
+	else if (key == libelleBgColor && valueData->GetType() == TYPE_COLOR) {
+		wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
+		freeRotateEffectParameter->color = cv::Scalar(c.Blue(), c.Green(), c.Red(), effectParameter->opacity);
+	}
 	freeRotateEffectParameter->updateEffect = true;
 }
 
@@ -78,7 +86,7 @@ void CRotateFreeFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter
 	if (effectParameter != nullptr && filtreEffet != nullptr)
 	{
 		auto freeRotate = static_cast<CFreeRotateEffectParameter*>(effectParameter);
-		filtreEffet->RotateFree(freeRotate->angle);
+		filtreEffet->RotateFree(freeRotate->angle, freeRotate->color);
 	}
 }
 
@@ -108,13 +116,6 @@ bool CRotateFreeFilter::IsSourcePreview()
 void CRotateFreeFilter::ApplyPreviewEffectSource(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
                                                  CFiltreEffet* filtreEffet, CDraw* dessing)
 {
-	/*
-	  if (effectParameter != nullptr && !source.empty())
-	  {
-	      CFreeRotateEffectParameter* rotate = (CFreeRotateEffectParameter*)effectParameter;
-	      filtreEffet->RotateFree(rotate->angle);
-	  }
-	  */
 }
 
 
@@ -125,7 +126,7 @@ void CRotateFreeFilter::ApplyPreviewEffect(CEffectParameter* effectParameter, IB
 	if (effectParameter != nullptr && !source.empty())
 	{
 		auto rotate = static_cast<CFreeRotateEffectParameter*>(effectParameter);
-		filtreEffet->RotateFree(rotate->angle);
+		filtreEffet->RotateFree(rotate->angle, rotate->color);
 		/*
 		cv::Mat preview = filtreEffet->GetBitmap(false);
 		widthOutput = preview.size().width;
@@ -149,7 +150,7 @@ CImageLoadingFormat* CRotateFreeFilter::ApplyEffect(CEffectParameter* effectPara
 
 			imageLoad = new CImageLoadingFormat();
 			auto rotate = static_cast<CFreeRotateEffectParameter*>(effectParameter);
-			filter->RotateFree(rotate->angle);
+			filter->RotateFree(rotate->angle, rotate->color, false);
 			cv::Mat bitmapOut = filter->GetBitmap(true);
 			imageLoad->SetPicture(bitmapOut);
 		}

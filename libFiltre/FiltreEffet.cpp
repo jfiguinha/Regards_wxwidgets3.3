@@ -570,67 +570,42 @@ int CFiltreEffet::MotionBlur(const double& radius, const double& sigma, const do
 	return value;
 }
 
-
-void CFiltreEffet::CalculNewSize(const int32_t& x, const int32_t& y, const double& angle, int& width, int& height)
+void CFiltreEffet::CalculNewSize(const int32_t& x, const int32_t& y, const double& angle, int& width, int& height, const bool preview)
 {
-	double dAngle = angle;
-	if (dAngle > 90.0 && dAngle < 180.0)
+	// 1. Calculs trigonométriques communs
+	double radians = angle * (3.14159265358979323846 / 180.0);
+	double cosine = std::abs(std::cos(radians));
+	double sine = std::abs(std::sin(radians));
+
+	// 2. Taille théorique maximale de la boîte englobante
+	double boundingWidth = x * cosine + y * sine;
+	double boundingHeight = x * sine + y * cosine;
+
+	double scale = 1.0;
+
+	if (preview)
 	{
-		dAngle = 180.0 - angle;
-	}
-	else if (dAngle > 180.0 && dAngle < 270.0)
-	{
-		dAngle = angle - 180.0;
-	}
-	else if (dAngle > 270.0 && dAngle < 360.0)
-	{
-		dAngle = 360.0 - angle;
-	}
-	else if (dAngle == 90.0 || dAngle == 270.0)
-	{
-		width = y;
-		height = x;
-		return;
-	}
-	else if (dAngle == 180.0 || dAngle == 360.0 || dAngle == 0.0)
-	{
-		width = x;
-		height = y;
-		return;
+		// Mode Preview : Trouver le facteur d'échelle limitant pour rentrer dans la boîte [x, y]
+		double scaleX = (boundingWidth > 0) ? x / boundingWidth : 1.0;
+		double scaleY = (boundingHeight > 0) ? y / boundingHeight : 1.0;
+		scale = std::min({ 1.0, scaleX, scaleY }); // On ne grossit jamais (max 1.0)
 	}
 
-
-	float radians = dAngle * 0.017453292519943;
-	float cosine = cos(radians);
-	float sine = sin(radians);
-	width = x * cosine + y * sine;
-	height = x * sine + y * cosine;
+	// 3. Application du facteur d'échelle et arrondi correct au plus proche
+	width = static_cast<int>(std::lround(boundingWidth * scale));
+	height = static_cast<int>(std::lround(boundingHeight * scale));
 }
 
 
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-int CFiltreEffet::RotateFree(const double& angle)
+int CFiltreEffet::RotateFree(const double& angle, const cv::Scalar & bgColor, const bool& preview)
 {
-	/*
-	if (angle == 180.0)
-	{
-		return filtreEffet->Rotate180();
-	}
-	else if (angle == 90.0)
-	{
-		return filtreEffet->Rotate90();
-	}
-	else if (angle == 270.0)
-	{
-		return filtreEffet->Rotate270();
-	}
-	*/
 	int widthOut;
 	int heightOut;
-	CalculNewSize(filtreEffet->GetWidth(), filtreEffet->GetHeight(), angle, widthOut, heightOut);
-	return filtreEffet->RotateFree(angle, widthOut, heightOut);
+	CalculNewSize(filtreEffet->GetWidth(), filtreEffet->GetHeight(), angle, widthOut, heightOut, preview);
+	return filtreEffet->RotateFree(angle, widthOut, heightOut, bgColor, preview);
 }
 
 //----------------------------------------------------------------------------

@@ -59,7 +59,7 @@ public:
 	int FlipHorizontal() override;
 	int CartoonifyImage(const int& mode) override;
 	int MotionBlur(const double& radius, const double& sigma, const double& angle) override;
-	int RotateFree(const double& angle, const int& widthOut, const int& heightOut) override;
+	int RotateFree(const double& angle, const int& widthOut, const int& heightOut, const cv::Scalar& bgColor, const bool& preview) override;
 	int PhotoFiltre(const CRgbaquad& clValue, const int& intensity) override;
 	int Rotate90() override;
 	int Rotate270() override;

@@ -1889,24 +1889,43 @@ int CFiltreEffetCPU::GroundGlassEffect(const double& radius)
 //----------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------
-int CFiltreEffetCPU::RotateFree(const double& angle, const int& widthOut, const int& heightOut)
+int CFiltreEffetCPU::RotateFree(const double& angle, const int& widthOut, const int& heightOut, const cv::Scalar& bgColor, const bool& preview)
 {
 	ExecuteSafe([&](cv::Mat& image)
 		{
 
-			Mat out;
-			// get rotation matrix for rotating the image around its center in pixel coordinates
+			// 1. Calculs communs (Centre, Boîte englobante et Matrice initiale)
 			const Point2f center((image.cols - 1) / 2.0, (image.rows - 1) / 2.0);
-			Mat rot = getRotationMatrix2D(center, angle, 1.0);
-			// determine bounding rectangle, center not relevant
-			Rect2f bbox = RotatedRect(Point2f(), image.size(), angle).boundingRect2f();
-			// adjust transformation matrix
-			rot.at<double>(0, 2) += bbox.width / 2.0 - image.cols / 2.0;
-			rot.at<double>(1, 2) += bbox.height / 2.0 - image.rows / 2.0;
+			const Rect2f bbox = RotatedRect(Point2f(), image.size(), angle).boundingRect2f();
 
-			warpAffine(image, out, rot, bbox.size());
+			Mat rot;
+			Size targetSize;
 
-			out.copyTo(image);
+			if (preview)
+			{
+				// Mode Preview : Réduction de l'image pour qu'elle rentre dans le cadre d'origine
+				double scaleX = (bbox.width > 0) ? image.cols / static_cast<double>(bbox.width) : 1.0;
+				double scaleY = (bbox.height > 0) ? image.rows / static_cast<double>(bbox.height) : 1.0;
+				double scale = std::min({ 1.0, scaleX, scaleY });
+
+				rot = getRotationMatrix2D(center, angle, scale);
+				targetSize = image.size();
+			}
+			else
+			{
+				// Mode Normal : Agrandissement du cadre (boîte englobante complète)
+				rot = getRotationMatrix2D(center, angle, 1.0);
+				targetSize = bbox.size();
+
+				// Ajustement de la matrice de transformation pour le nouveau cadre
+				rot.at<double>(0, 2) += bbox.width / 2.0 - image.cols / 2.0;
+				rot.at<double>(1, 2) += bbox.height / 2.0 - image.rows / 2.0;
+			}
+
+			// 2. Application de la transformation affine commune
+			Mat cvDest;
+			warpAffine(image, cvDest, rot, targetSize, cv::INTER_LINEAR, cv::BORDER_CONSTANT, bgColor);
+			cvDest.copyTo(image);
 		});
 
 	return 0;

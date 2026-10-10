@@ -403,7 +403,7 @@ int COpenCLEffect::Rotate90()
 {
 	ExecuteSafe([&](cv::UMat& image)
 		{
-			cv::rotate(image, image, cv::ROTATE_90_CLOCKWISE);
+			cv::rotate(image, image, cv::ROTATE_90_COUNTERCLOCKWISE);
 		});
 	return 0;
 }
@@ -422,18 +422,18 @@ int COpenCLEffect::Rotate270()
 {
 	ExecuteSafe([&](cv::UMat& image)
 		{
-			cv::rotate(image, image, cv::ROTATE_90_COUNTERCLOCKWISE);
+			cv::rotate(image, image, cv::ROTATE_90_CLOCKWISE);
 		});
 
 	return 0;
 }
 
 
-int COpenCLEffect::RotateFree(const double& angle, const int& widthOut, const int& heightOut)
+int COpenCLEffect::RotateFree(const double& angle, const int& widthOut, const int& heightOut, const cv::Scalar& bgColor, const bool& preview)
 {
 	ExecuteSafe([&](cv::UMat& image)
 		{
-			openclFilter->Rotate("RotateFree", widthOut, heightOut, angle, image);
+			openclFilter->Rotate("RotateFree", widthOut, heightOut, angle, image, bgColor, preview);
 		});
 	return 0;
 }

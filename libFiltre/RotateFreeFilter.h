@@ -51,5 +51,6 @@ namespace Regards::Filter
 
 	private:
 		wxString libelleRotationAngle;
+		wxString libelleBgColor;
 	};
 }
