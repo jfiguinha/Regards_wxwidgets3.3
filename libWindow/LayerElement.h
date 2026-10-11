@@ -1,6 +1,8 @@
 // ==================== LayerElement.h ====================
 #pragma once
 #include <ImageLoadingFormat.h>
+#include <cstdint>
+#include <vector>
 
 class LayerElement;
 
@@ -48,6 +50,9 @@ public:
     Regards::OpenGL::GLTexture * GetOpenGLTexture() const { return m_glTexture; }
     void SetOpenGLTexture(Regards::OpenGL::GLTexture * texture);
     void DeleteOpenGLTexture();
+    // Retire la texture du calque SANS la detruire (la destruction GL doit se faire
+    // contexte courant : voir CLayerList::FlushPendingTextureDeletes).
+    Regards::OpenGL::GLTexture * DetachOpenGLTexture();
 
 	// Constructeur de copie pour cloner proprement un calque
 	LayerElement(const LayerElement& other)
@@ -80,7 +85,16 @@ public:
 
 		picture = source;
 
+        pictureVersion++;
         needTextureUpdate = true;
+	}
+
+	// A appeler quand le contenu de l'image du calque a change sans passer par SetPicture
+	// (ex. modification directe de la matrice) : force le rechargement GPU.
+	void InvalidatePicture()
+	{
+		pictureVersion++;
+		needTextureUpdate = true;
 	}
 
 	CImageLoadingFormat* GetPicture()
@@ -94,6 +108,18 @@ public:
 	int opacity = 100;
 	wxString layerName;
     bool needTextureUpdate = true;
+
+    // Identifiant unique du calque (jamais reutilise, meme si l'adresse l'est).
+    uint64_t layerId = NextLayerId();
+    // Incremente a chaque changement de l'image : permet de detecter un changement
+    // de source sans comparer des pointeurs.
+    uint64_t pictureVersion = 0;
+    // Taille de l'image actuellement presente dans la texture GPU du calque.
+    int textureWidth = 0;
+    int textureHeight = 0;
+
+    static uint64_t NextLayerId();
+
 private:
 	CImageLoadingFormat* picture = nullptr;
     Regards::OpenGL::GLTexture * m_glTexture = nullptr;
@@ -150,6 +176,10 @@ public:
 
 	bool SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity);
 
+	// A appeler avec le contexte GL courant (debut de OnPaint3D) : detruit les textures
+	// des calques supprimes par erase() / FusionLayers().
+	void FlushPendingTextureDeletes();
+
     int GetActiveLayer()
     {
         return activeLayer;
@@ -158,6 +188,8 @@ public:
 private:
 
 	std::vector<LayerElement*> m_layers;
+	std::vector<Regards::OpenGL::GLTexture*> m_pendingTextureDelete;
+	void RetireTexture(LayerElement* layer);
 	std::vector<wxPoint> points;
 	int selectType;
 	CImageLoadingFormat* finalImage = nullptr;

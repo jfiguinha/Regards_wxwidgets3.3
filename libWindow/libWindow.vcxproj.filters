@@ -303,6 +303,9 @@
     <ClInclude Include="LayerElement.h">
       <Filter>Layer</Filter>
     </ClInclude>
+    <ClInclude Include="LayerCompositorGL.h">
+      <Filter>Layer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapInfos.cpp">
@@ -498,6 +501,9 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="LayerElement.cpp">
+      <Filter>Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="LayerCompositorGL.cpp">
       <Filter>Layer</Filter>
     </ClCompile>
   </ItemGroup>

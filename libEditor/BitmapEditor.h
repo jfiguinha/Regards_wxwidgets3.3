@@ -1,6 +1,9 @@
 #pragma once
 #include <BitmapWndViewer.h>
 #include "LayerElement.h"
+#include "LayerCompositorGL.h"
+#include <memory>
+#include <cstdint>
 #include <CanvasSizeDialog.h>
 
 
@@ -31,7 +34,26 @@ private:
 	bool ApplySelectEffect(int& widthOutput, int& heightOutput)  override;
 	void RenderTexture(GLTexture* textureDisplay, const bool& invertPos, int width, int height);
 
+	// Composition des calques : GPU (FBO + shader) avec repli CPU.
+	bool ComposeLayersGPU(GLTexture* textureDisplay, int width, int height, bool activeDirty);
+	void ComposeLayersCPU(GLTexture* textureDisplay, int width, int height);
+	GLTexture* GetLayerTexture(LayerElement* layer, int width, int height);
+	GLTexture* GetActiveLayerTexture(int width, int height, bool activeDirty);
+
 	Regards::Picture::CPictureArray pictureBackground;
+
+	std::unique_ptr<CLayerCompositorGL> layerCompositor;
+	std::unique_ptr<GLTexture> backgroundTexture;
+	int backgroundTextureWidth = 0;
+	int backgroundTextureHeight = 0;
+	std::unique_ptr<GLTexture> activeLayerTexture;
+	int activeLayerTextureWidth = 0;
+	int activeLayerTextureHeight = 0;
+
+	// Calque/version dont l'image a ete chargee dans filtreEffet.
+	uint64_t lastSourceLayerId = 0;
+	uint64_t lastSourceVersion = 0;
+	bool gpuComposeFallbackLogged = false;
 
 	wxWindowID parameterId;
 	wxWindowID mainViewerId;

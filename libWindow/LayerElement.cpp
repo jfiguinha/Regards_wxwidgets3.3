@@ -4,6 +4,7 @@
 #include <RGBAQuad.h>
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
+#include <atomic>
 #include <cmath>
 #include <cstdint>
 #include <limits>
@@ -28,6 +29,36 @@ void LayerElement::DeleteOpenGLTexture()
         delete m_glTexture;
         m_glTexture = nullptr;
     }
+}
+
+GLTexture* LayerElement::DetachOpenGLTexture()
+{
+    GLTexture* texture = m_glTexture;
+    m_glTexture = nullptr;
+    needTextureUpdate = true;
+    return texture;
+}
+
+uint64_t LayerElement::NextLayerId()
+{
+    static std::atomic<uint64_t> counter{ 0 };
+    return ++counter;
+}
+
+void CLayerList::RetireTexture(LayerElement* layer)
+{
+    if (!layer)
+        return;
+
+    if (GLTexture* texture = layer->DetachOpenGLTexture())
+        m_pendingTextureDelete.push_back(texture);
+}
+
+void CLayerList::FlushPendingTextureDeletes()
+{
+    for (GLTexture* texture : m_pendingTextureDelete)
+        delete texture;
+    m_pendingTextureDelete.clear();
 }
 
 CImageLoadingFormat* CLayerList::GetPictureToShow()
@@ -163,6 +194,7 @@ bool CLayerList::erase(size_t index)
     // 1. Libérer la mémoire du calque ciblé
     if (m_layers[index])
     {
+        RetireTexture(m_layers[index]);
         delete m_layers[index];
     }
 
@@ -257,6 +289,8 @@ bool CLayerList::FusionLayers(std::vector<int>* listLayer)
     {
         if (static_cast<size_t>(*it) == targetIndex)
             continue;
+
+        RetireTexture(m_layers[static_cast<size_t>(*it)]);
 
         delete m_layers[static_cast<size_t>(*it)];
         m_layers.erase(m_layers.begin() + *it);
