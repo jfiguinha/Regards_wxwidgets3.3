@@ -75,7 +75,7 @@ private:
 	void OnWindowRotate270(wxCommandEvent& event);
 	void OnSelectEffect(wxCommandEvent& event);
 
-
+	void OnLayerChange(wxCommandEvent& event);
 	void DeleteLayer(wxCommandEvent& event);
 	void CopyLayer(wxCommandEvent& event);
 	void CreateLayer(wxCommandEvent& event);

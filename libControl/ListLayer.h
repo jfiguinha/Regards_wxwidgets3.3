@@ -28,7 +28,7 @@ namespace Regards
 			void RefreshList();
 			int GetActifLayer();
 			vector<int> GetSelectLayer();
-
+			void UpdateLayerList();
 		private:
 
 			CLayerList* listOfLayer = nullptr;

@@ -45,6 +45,12 @@ void LayerDialog::RefreshList()
 		listLayer->RefreshList();
 }
 
+void LayerDialog::UpdateLayerList()
+{
+	if (listLayer)
+		listLayer->UpdateLayerList();
+}
+
 wxString LayerDialog::GetFilename()
 {
 	return filename;

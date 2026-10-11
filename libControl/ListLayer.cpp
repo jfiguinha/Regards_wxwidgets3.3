@@ -90,6 +90,12 @@ void CListLayer::RefreshList()
 		thumbnailCalqueWnd->RefreshList();
 }
 
+void CListLayer::UpdateLayerList()
+{
+	if (thumbnailCalqueWnd)
+		thumbnailCalqueWnd->UpdateLayerList();
+}
+
 int CListLayer::GetActifLayer()
 {
 	if (thumbnailCalqueWnd)

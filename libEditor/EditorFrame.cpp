@@ -285,6 +285,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Connect(wxEVENT_UPDATELAYERPICTURE, wxCommandEventHandler(CEditorFrame::UpdateLayerPicture));
     Connect(wxEVENT_TOOLCHOOSE, wxCommandEventHandler(CEditorFrame::OnToolsEffect));
     Connect(wxEVENT_COLORCHANGE, wxCommandEventHandler(CEditorFrame::OnColorChange));
+    Connect(wxEVENT_CHANGELAYERPICTURE, wxCommandEventHandler(CEditorFrame::OnLayerChange));
     this->Maximize();
 }
 
@@ -292,7 +293,7 @@ void CEditorFrame::UpdateLayerPicture(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        layerDialog->RefreshList();
+        layerDialog->UpdateLayerList();
 
     }
 }
@@ -309,7 +310,7 @@ void CEditorFrame::DeleteLayer(wxCommandEvent& event)
             if (wxMessageBox(msg, info, wxYES_NO | wxICON_WARNING) == wxYES)
             {
                 m_activeDocument->DeleteLayer(numSelect);
-                layerDialog->RefreshList();
+                layerDialog->UpdateLayerList();
             }
         }
     }
@@ -325,7 +326,7 @@ void CEditorFrame::CopyLayer(wxCommandEvent& event)
         if (numSelect != -1)
         {
             m_activeDocument->CopyLayer(numSelect);
-            layerDialog->RefreshList();
+            layerDialog->UpdateLayerList();
         }
     }
 }
@@ -335,7 +336,7 @@ void CEditorFrame::CreateLayer(wxCommandEvent& event)
     if (m_activeDocument)
     {
         m_activeDocument->CreateLayer("");
-        layerDialog->RefreshList();
+        layerDialog->UpdateLayerList();
     }
 }
 
@@ -347,7 +348,7 @@ void CEditorFrame::FusionLayer(wxCommandEvent& event)
         if (listLayer.size() > 0)
         {
             m_activeDocument->FusionLayer(&listLayer);
-            layerDialog->RefreshList();
+            layerDialog->UpdateLayerList();
         }
 
     }
@@ -361,7 +362,7 @@ void CEditorFrame::MoveUpLayer(wxCommandEvent& event)
         if (numSelect != -1)
         {
             m_activeDocument->MoveUpLayer(numSelect);
-            layerDialog->RefreshList();
+            layerDialog->UpdateLayerList();
         }
     }
 }
@@ -374,7 +375,7 @@ void CEditorFrame::MoveDownLayer(wxCommandEvent& event)
         if (numSelect != -1)
         {
             m_activeDocument->MoveDownLayer(numSelect);
-            layerDialog->RefreshList();
+            layerDialog->UpdateLayerList();
         }
     }
 }
@@ -399,7 +400,7 @@ void CEditorFrame::PropertiesLayer(wxCommandEvent& event)
                 const int opacity = dialog.GetOpacity();
 
                 m_activeDocument->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
-                layerDialog->RefreshList();
+                layerDialog->UpdateLayerList();
             }
         }
     }
@@ -423,6 +424,9 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
         //m_activeDocument->Crop();
     }
 }
+
+
+
 
 void CEditorFrame::OnColorChange(wxCommandEvent& event)
 {
@@ -506,6 +510,17 @@ void CEditorFrame::OnWindowCanvas(wxCommandEvent& event)
         }
     }
 }
+
+void CEditorFrame::OnLayerChange(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        int numLayer = event.GetInt();
+        m_activeDocument->SetActifLayer(numLayer);
+        parameterDialog->SetActifLayer(numLayer);
+    }
+}
+
 
 void CEditorFrame::OnWindowFlipVertical(wxCommandEvent& event)
 {

@@ -428,12 +428,13 @@ void CBitmapEditor::RemoveListener(const bool& applyCancel)
 
 void CBitmapEditor::SetActifLayer(const int& numLayer)
 {
-    numActifLayer = numLayer;
+    if(listOfLayer.size() > numLayer && numLayer != -1)
+        numActifLayer = numLayer;
 }
 
 void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event)
 {
-    int numLayer = event.GetInt();
+    //int numLayer = event.GetInt();
     auto picture = static_cast<CImageLoadingFormat*>(event.GetClientData());
     if (picture != nullptr)
     {
@@ -449,7 +450,7 @@ void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event)
                 flipVertical = 0;
                 flipHorizontal = 0;
                 angle = 0;
-                listOfLayer[numLayer]->SetPicture(picture);
+                listOfLayer[numActifLayer]->SetPicture(picture);
                 //listOfLayer.UpdatePictureToShow();
 
                 wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);

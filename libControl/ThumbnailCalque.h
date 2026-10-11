@@ -20,7 +20,7 @@ namespace Regards::Control
 
 		void SetLayer(CLayerList * listOfLayer);
 		void RefreshList();
-
+		void UpdateLayerList();
 		void Resize();
 		int GetActifLayer();
 		void OnPictureClick(const int& numPhotoId) override;
@@ -41,5 +41,6 @@ namespace Regards::Control
 		wxString filename;
 		CImageLoadingFormat* imageLoading;
 		bool isAllProcess = false;
+		int actifLayer = 0;
 	};
 }

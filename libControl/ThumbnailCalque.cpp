@@ -42,12 +42,65 @@ CThumbnailCalque::CThumbnailCalque(wxWindow* parent, const wxWindowID id, const 
 
 void CThumbnailCalque::OnPictureClick(const int& numPhotoId)
 {
+    if (actifLayer != numClickIcone)
+    {
+        actifLayer = numClickIcone;
+        wxWindow* mainWindow = FindWindowById(frameId);
+        if (mainWindow)
+        {
+            wxCommandEvent evt(wxEVENT_CHANGELAYERPICTURE);
+            evt.SetInt(actifLayer);
+            mainWindow->GetEventHandler()->AddPendingEvent(evt);
+        }
+    }
+        
+}
 
+void CThumbnailCalque::RefreshList()
+{
+    CIconeList* list = iconeList.get();
+    if (!list || !listOfLayer) return; // Sécurité anti-crash
+
+    // Parcourir la liste pour mettre à jour les vignettes
+    for (int element = 0; element < list->GetNbElement(); element++)
+    {
+        auto* pBitmapIcone = list->GetElement(element);
+        LayerElement* layerElement = (*listOfLayer)[element]; // Utilisation de l'opérateur [] de CLayerList
+
+        if (!pBitmapIcone || !layerElement) continue;
+
+        CImageLoadingFormat* picture = layerElement->GetPicture();
+        auto* thumbnailData = pBitmapIcone->GetPtData();
+
+        if (picture && picture->IsOk() && thumbnailData)
+        {
+            cv::Mat output;
+            cv::Mat matrixPicture = picture->GetMatImage();
+
+            // Correction : Utiliser la taille définie par le thème
+            int targetWidth = themeThumbnail.themeIcone.GetWidth();
+            int targetHeight = themeThumbnail.themeIcone.GetHeight();
+
+            if (targetWidth > 0 && targetHeight > 0 && !matrixPicture.empty())
+            {
+                cv::resize(matrixPicture, output, cv::Size(targetWidth, targetHeight));
+                // CORRECTION ICI : On passe la matrice redimensionnée 'output' et non 'matrixPicture'
+                thumbnailData->SetBitmap(output);
+            }
+        }
+    }
+
+    isAllProcess = true;
+    threadDataProcess = true;
+    processIdle = true;
+
+    UpdateScroll();
+    ResizeThumbnail();
+    needToRefresh = true;
 }
 
 
-
-void CThumbnailCalque::RefreshList()
+void CThumbnailCalque::UpdateLayerList()
 {
     auto* iconeListLocal = new CIconeList();
     int numElement = 0;
@@ -72,6 +125,8 @@ void CThumbnailCalque::RefreshList()
         pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
         pBitmapIcone->SetLibelle(layerElement->layerName);
         pBitmapIcone->SetChecked(true);
+        if (numElement == numClickIcone)
+            pBitmapIcone->SetSelected(true);
         iconeListLocal->AddElement(pBitmapIcone);
 
         numElement++;
@@ -92,13 +147,12 @@ void CThumbnailCalque::RefreshList()
     UpdateScroll();
     ResizeThumbnail();
     needToRefresh = true;
-
 }
 
 void CThumbnailCalque::SetLayer(CLayerList * listOfLayer)
 {
     this->listOfLayer = listOfLayer;
-    RefreshList();
+    UpdateLayerList();
 }
 
 CThumbnailCalque::~CThumbnailCalque(void) { }

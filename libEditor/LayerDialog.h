@@ -20,6 +20,7 @@ public:
     void RefreshList();
     int GetActifLayer();
     vector<int> GetSelectLayer();
+    void UpdateLayerList();
 
 private:
     void OnSize(wxSizeEvent& event);

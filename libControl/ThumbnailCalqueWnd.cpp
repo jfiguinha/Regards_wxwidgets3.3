@@ -53,6 +53,12 @@ void CThumbnailCalqueWnd::RefreshList()
 		return thumbnailCalque->RefreshList();
 }
 
+void CThumbnailCalqueWnd::UpdateLayerList()
+{
+	if (thumbnailCalque != nullptr)
+		return thumbnailCalque->UpdateLayerList();
+}
+
 int CThumbnailCalqueWnd::GetActifLayer()
 {
 	if (thumbnailCalque != nullptr)

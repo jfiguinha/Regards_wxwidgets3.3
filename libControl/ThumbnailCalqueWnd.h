@@ -24,7 +24,7 @@ namespace Regards::Control
 		void SetLayer(CLayerList * listOfLayer);
 		void UpdateScreenRatio() override;
 		void Resize() override;
-
+		void UpdateLayerList();
 		int GetActifLayer();
 		void RefreshList();
 		vector<int> GetSelectLayer();
