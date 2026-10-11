@@ -137,7 +137,7 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
                 ApplySelectEffect(widthOutput, heightOutput);
 
 
-                
+
             }
 
             updateFilter = false;
@@ -145,92 +145,173 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
             widthOutputOld = widthOutput;
             heightOutputOld = heightOutput;
 
+#ifdef RENDER_OPENGL
+
+            if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0)
+            {
+                // 1. Initialiser le fond de l'écran (votre damier ou couleur de fond)
+                renderOpenGL->CreateScreenRender(GetWidth() * scale_factor, GetHeight() * scale_factor,
+                    CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(), themeBitmap.colorBack.Blue()));
+
+                // Activer le Blending natif d'OpenGL pour la gestion de l'opacité et de l'alpha
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); // Formule standard Source-Over
+
+                // 2. Parcourir et afficher chaque calque directement sur le GPU
+                for (int index = 0; index < listOfLayer.size(); index++)
+                {
+                    LayerElement* layer = listOfLayer[static_cast<size_t>(index)];
+                    if (layer == nullptr || !layer->isVisible)
+                        continue;
+
+                    float opacity = static_cast<float>(layer->opacity) / 100.0f;
+                    if (opacity <= 0.0f)
+                        continue;
+
+                    // Récupérer ou créer la texture OpenGL propre à CE calque
+                    GLTexture* layerTexture = layer->GetOpenGLTexture();
+
+                    // Si le calque a été modifié (ou n'a pas encore de texture), on met à jour la texture GPU
+                    if (layerTexture == nullptr || layer->needTextureUpdate || index == numActifLayer)
+                    {
+                        cv::Mat sourceMat;
+                        if (index == numActifLayer) {
+                            Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
+                            sourceMat = activePicture.getMat();
+                        }
+                        else {
+                            sourceMat = layer->GetPicture()->GetMatImage();
+                        }
+
+                        if (sourceMat.empty()) continue;
+
+                        // Si la texture n'existe pas, demandez à votre RenderOpenGL de la créer
+                        if (layerTexture == nullptr) {
+                            layerTexture = new Regards::OpenGL::GLTexture();
+                            layer->SetOpenGLTexture(layerTexture);
+                        }
+
+                        // Convertir la matrice en texture GPU (Opération lourde, faite UNIQUEMENT au changement)
+                        Regards::Picture::CPictureArray picArray(sourceMat);
+                        layerTexture->SetData(picArray, renderOpenGL->GetOpenCLContext());
+
+                        layer->needTextureUpdate = false;
+                    }
+
+                    // 3. Configurer le mode de fusion (Blend Mode) sous OpenGL
+                    // Note: Pour des modes complexes (Overlay, Multiply), un Shader personnalisé (GLSL) sera requis.
+                    // Pour le mode normal / opacité simple :
+                    glBlendColor(1.0f, 1.0f, 1.0f, opacity);
+                    glBlendFunc(GL_CONSTANT_ALPHA, GL_ONE_MINUS_CONSTANT_ALPHA);
+
+                    // Rendre le calque directement à l'écran
+                    RenderTexture(layerTexture, invert, widthOutput, heightOutput);
+                }
+
+                glDisable(GL_BLEND);
+                AfterRender();
+            }
+        }
+    }
+
+#else
+
             // 1. Initialiser le fond de l'écran avec la couleur de thème
             renderOpenGL->CreateScreenRender(GetWidth()* scale_factor, GetHeight()* scale_factor,
                 CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
                     themeBitmap.colorBack.Blue()));
 
-            // ────────────── EXPLICATION ──────────────
-            // Activation globale du Blending pour cumuler les calques transparents
-            glEnable(GL_BLEND);
-            // Formule standard de transparence : gère le canal Alpha source et inverse de la destination
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            // Évite les artéfacts si les fonctions internes modifient l'équation de blend
-            glBlendEquation(GL_FUNC_ADD);
-
             GLTexture* textureDisplay = renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
-
-            if (pictureBackground.empty() || pictureBackground.getHeight() != textureDisplay->GetHeight() || pictureBackground.getWidth() != textureDisplay->GetWidth())
+            if (textureDisplay == nullptr)
+                return;
+            // Fond de previsualisation opaque (damier).
+            if (pictureBackground.empty() ||
+                pictureBackground.getWidth() != widthOutput ||
+                pictureBackground.getHeight() != heightOutput)
             {
-                pictureBackground.SetArray(Regards::Picture::CLibPicture::CreateCheckerboardBackground(textureDisplay->GetWidth(), textureDisplay->GetHeight()));
+                pictureBackground.SetArray(
+                    Regards::Picture::CLibPicture::CreateCheckerboardBackground(
+                        widthOutput, heightOutput));
             }
 
-            textureDisplay->SetData(pictureBackground, renderOpenGL->GetOpenCLContext());
+            cv::Mat composed = LayerFonction::PrepareLayerImage(
+                pictureBackground.getMat(), widthOutput, heightOutput);
 
-            // Désactivation temporaire du blending pour le fond opaque en damier afin d'optimiser les performances
-            glDisable(GL_BLEND);
-            RenderTexture(textureDisplay, invert, widthOutput, heightOutput);
-            glEnable(GL_BLEND); // Réactivation pour l'empilement des vrais calques
-
-                        // 2. Parcourir de l'arrière-plan vers le premier plan
-            for (int numLayer = 0; numLayer < listOfLayer.size(); numLayer++)
+            if (composed.empty())
             {
-                LayerElement* layer = listOfLayer[numLayer];
-                if (!layer || !layer->isVisible) continue;
-
-                GLTexture* textureToRender = nullptr;
-
-                if (numLayer == numActifLayer)
+                composed = cv::Mat(heightOutput, widthOutput, CV_8UC4,
+                    cv::Scalar(128, 128, 128, 255));
+            }
+            /*
+            else
+            {
+                // Le damier de previsualisation doit etre opaque.
+                for (int y = 0; y < composed.rows; ++y)
                 {
-                    Regards::Picture::CPictureArray mat(filtreEffet->GetMatrix());
-                    textureDisplay->SetData(mat, renderOpenGL->GetOpenCLContext());
-                    textureToRender = textureDisplay;
+                    auto* row = composed.ptr<cv::Vec4b>(y);
+                    for (int x = 0; x < composed.cols; ++x)
+                        row[x][3] = 255;
+                }
+            }
+            */
+
+
+            for (int index = 0;
+                index < listOfLayer.size(); index++)
+            {
+                LayerElement* layer = listOfLayer[static_cast<size_t>(index)];
+                if (layer == nullptr || !layer->isVisible)
+                    continue;
+
+                const float opacity = LayerFonction::Clamp01(
+                    static_cast<float>(layer->opacity) / 100.0f);
+                if (opacity <= 0.0f)
+                    continue;
+
+                cv::Mat sourceMat;
+                if (index == numActifLayer)
+                {
+                    Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
+                    const cv::Mat activeMat = activePicture.getMat().clone();
+
+                    // Le calque actif doit utiliser le resultat des filtres/preview.
+                    if (activeMat.empty())
+                        continue;
+                    sourceMat = activeMat;
                 }
                 else
                 {
-                    if (layer->GetPicture() && layer->GetPicture()->IsOk())
-                    {
-                        if (layer->GetOpenGLTexture() == nullptr || layer->needTextureUpdate)
-                        {
-                            cv::Mat layerMat = layer->GetPicture()->GetMatImage();
-                            GLTexture* newTex = renderOpenGL->GetDisplayTexture(layerMat.cols, layerMat.rows);
+                    CImageLoadingFormat* picture = layer->GetPicture();
+                    if (picture == nullptr || !picture->IsOk())
+                        continue;
 
-                            cv::Mat bgra;
-                            if (layerMat.channels() == 4)       bgra = layerMat;
-                            else if (layerMat.channels() == 3)  cv::cvtColor(layerMat, bgra, cv::COLOR_BGR2BGRA);
-                            else if (layerMat.channels() == 1)  cv::cvtColor(layerMat, bgra, cv::COLOR_GRAY2BGR);
-
-                            if (newTex && !bgra.empty())
-                            {
-                                Regards::Picture::CPictureArray pictureArray(bgra);
-                                newTex->SetData(pictureArray, renderOpenGL->GetOpenCLContext());
-                                layer->SetOpenGLTexture(newTex);
-                                layer->needTextureUpdate = false;
-                            }
-                        }
-
-                        textureToRender = layer->GetOpenGLTexture();
-                    }
+                    sourceMat = picture->GetMatImage();
                 }
 
-                if (textureToRender)
-                {
-                    // --- Prise en compte de l'opacité propre à chaque calque ---
-                    // Optionnel : Si votre shader accepte une variable d'opacité uniforme (ex: u_opacity)
-                    // float layerAlpha = layer->opacity / 100.0f;
-                    // defaultShader->SetUniform("u_opacity", layerAlpha);
+                cv::Mat layerImage = LayerFonction::PrepareLayerImage(
+                    sourceMat, widthOutput, heightOutput);
+                if (layerImage.empty())
+                    continue;
 
-                    RenderTexture(textureToRender, invert, widthOutput, heightOutput);
-                }
+                LayerFonction::CompositeLayer(
+                    composed, layerImage, opacity, layer->blendMode);
             }
 
-            // Désactivation propre après la boucle des calques
-            glDisable(GL_BLEND);
+            Regards::Picture::CPictureArray finalPicture(composed);
+            textureDisplay->SetData(finalPicture, renderOpenGL->GetOpenCLContext());
+
+            // RenderToScreen() affiche la texture partagee du renderer.
+            // On l'appelle une seule fois, apres la composition complete.
+            //glDisable(GL_BLEND);
+            RenderTexture(textureDisplay, invert, widthOutput, heightOutput);
             
         }
 
         AfterRender();
+
+
     }
+#endif
 
     canvas->SwapBuffers();
 }
