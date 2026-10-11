@@ -100,7 +100,7 @@ void ImageDocument::SetPropertiesLayer(int numLayer, wxString layerName, LayerBl
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
-        listLayer->UpdatePictureToShow();
+       // listLayer->UpdatePictureToShow();
     }
 }
 
@@ -116,7 +116,7 @@ void ImageDocument::DeleteLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->erase(numLayer);
-        listLayer->UpdatePictureToShow();
+        //listLayer->UpdatePictureToShow();
     }
 }
 
@@ -126,7 +126,7 @@ void ImageDocument::CopyLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->copy(numLayer);
-        listLayer->UpdatePictureToShow();
+        //listLayer->UpdatePictureToShow();
     }
 }
 
@@ -136,7 +136,7 @@ void ImageDocument::CreateLayer(wxString layerName)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->CreateLayer(layerName);
-        listLayer->UpdatePictureToShow();
+        //listLayer->UpdatePictureToShow();
     }
 }
 
@@ -146,7 +146,7 @@ void ImageDocument::FusionLayer(vector<int> * listLayers)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->FusionLayers(listLayers);
-        listLayer->UpdatePictureToShow();
+        //listLayer->UpdatePictureToShow();
     }
 }
 
@@ -156,7 +156,7 @@ void ImageDocument::MoveUpLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->MoveUpLayer(numLayer);
-        listLayer->UpdatePictureToShow();
+       // listLayer->UpdatePictureToShow();
     }
 }
 
@@ -166,7 +166,7 @@ void ImageDocument::MoveDownLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->MoveDownLayer(numLayer);
-        listLayer->UpdatePictureToShow();
+     //   listLayer->UpdatePictureToShow();
     }
 }
 

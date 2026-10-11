@@ -1078,10 +1078,13 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 			iconePhotoId = pBitmapIcone->GetPtData()->GetNumPhotoId();
 			filename = pBitmapIcone->GetPtData()->GetFilename();
 			isIconeSelected = pBitmapIcone->IsChecked();
+			numClickIcone = pBitmapIcone->GetNumElement();
+
 		}
 
 
-	numClickIcone = pBitmapIcone->GetNumElement();
+
+	
 
 	if (numSelectPhotoId != -1)
 	{

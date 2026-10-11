@@ -96,6 +96,7 @@ namespace Regards::OpenGL
 		void RenderQuad(GLTexture* texture, const bool& flipH, const bool& flipV, int left = 0, int top = 0,
 		                bool inverted = false);
 
+		COpenGLShader* GetTextureShader();
 		GLTexture* GetTextureDisplay();
 		COpenCLContext* GetOpenCLContext(){ return openCLContext.get(); };
 

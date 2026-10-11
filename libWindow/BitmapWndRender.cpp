@@ -1667,6 +1667,7 @@ void CBitmapWndRender::OnPaint2D(wxWindow* gdi)
 		winUtility.FillRect(&dc, gdi->GetRect(), themeBitmap.colorBack);
 	}
 }
+
 //-----------------------------------------------------------------
 //Dessin de l'image
 //-----------------------------------------------------------------

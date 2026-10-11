@@ -218,7 +218,7 @@ namespace Regards::Window
 		}
 
 		CRgbaquad GetBackColor() override;
-		std::unique_ptr<GLTexture> textureBackground;
+		//std::unique_ptr<GLTexture> textureBackground;
 #ifdef KeyPress
 #undef KeyPress
 #endif

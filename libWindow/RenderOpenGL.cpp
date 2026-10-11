@@ -689,30 +689,14 @@ void CRenderOpenGL::RenderQuad(GLTexture* texture, const bool& flipH, const bool
 void CRenderOpenGL::RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* effectParameter, const int& left,
 	const int& top, const bool& inverted)
 {
-
-
-	//Generate Background Texture
-	if (textureBackground == nullptr)
-		textureBackground = std::make_unique<GLTexture>();
-
-	if (textureBackground->GetHeight() != textureDisplay->GetHeight() || textureBackground->GetWidth() != textureDisplay->GetWidth())
-	{
-		Regards::Picture::CPictureArray mat = Regards::Picture::CLibPicture::CreateCheckerboardBackground(textureDisplay->GetWidth(), textureDisplay->GetHeight());
-		textureBackground->SetData(mat, nullptr);
-	}
-
 	textureDisplay->Enable();
-	textureBackground->Enable();
 
 	// 1. On cherche et on active le shader par défaut pour le Core Profile
 	COpenGLShader* defaultShader = FindShader(L"IDR_GLSL_TEXTURE");
 	if (defaultShader != nullptr)
 	{
 		defaultShader->EnableShader(projectionMatrix); // On injecte la matrice de projection
-
-		// 2. On lie la texture à l'uniform "textureScreen" du shader
-		defaultShader->m_pShader->SetTexture("textureBackground", textureBackground->GetTextureID(), 0);
-		defaultShader->m_pShader->SetTexture("textureScreen", textureDisplay->GetTextureID(), 0);
+		defaultShader->m_pShader->SetTexture("sourceTex", textureDisplay->GetTextureID(), 0);
 	}
 
 	// 3. On dessine le rectangle
@@ -726,7 +710,19 @@ void CRenderOpenGL::RenderToScreen(IMouseUpdate* mousUpdate, CEffectParameter* e
 	
 
 	textureDisplay->Disable();
-	textureBackground->Disable();
+	
+}
+
+COpenGLShader* CRenderOpenGL::GetTextureShader()
+{
+	// 1. On cherche et on active le shader par défaut pour le Core Profile
+	COpenGLShader* defaultShader = FindShader("IDR_GLSL_TEXTURE");
+	if (defaultShader != nullptr)
+	{
+		defaultShader->EnableShader(projectionMatrix); // On injecte la matrice de projection
+		defaultShader->m_pShader->SetTexture("sourceTex", textureDisplay->GetTextureID(), 0);
+	}
+	return defaultShader;
 }
 
 GLTexture* CRenderOpenGL::GetGLTexture()

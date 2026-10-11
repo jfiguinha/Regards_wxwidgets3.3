@@ -64,7 +64,30 @@ Regards::Picture::CPictureArray COpenCLEffect::GetMatrix()
 	Regards::Picture::CPictureArray pictureArray;
 	ExecuteSafe([&](cv::UMat& image)
 		{
-			pictureArray.SetArray(image);
+			if (nbChannels == 4)
+			{
+				// Conversion du flux de travail BGR vers BGRA et réinsertion de l'alpha
+				cv::Mat resultBGRA;
+				cv::cvtColor(image, resultBGRA, cv::COLOR_BGR2BGRA);
+				cv::ocl::finish();
+
+				if (alphaChannel.size().width != resultBGRA.size().width || alphaChannel.size().height != resultBGRA.size().height)
+				{
+					cv::resize(
+						alphaChannel,
+						alphaChannel,
+						resultBGRA.size(),
+						0.0,
+						0.0,
+						cv::INTER_LINEAR);
+				}
+				cv::insertChannel(alphaChannel, resultBGRA, 3);
+				cv::ocl::finish();
+
+				pictureArray.SetArray(resultBGRA);
+			}
+			else
+				pictureArray.SetArray(image);
 		});
 
 	return pictureArray;
@@ -118,13 +141,23 @@ void COpenCLEffect::SetBitmap(CImageLoadingFormat* bitmap)
 	if (bitmap != nullptr && bitmap->IsOk())
 	{
 		cv::UMat local = bitmap->GetMatrix().getUMat();
-
+		nbChannels = 3;
 		if (local.channels() == 4)
+		{
+			nbChannels = 4;
+			cv::extractChannel(local, alphaChannel, 3);
 			cvtColor(local, input, cv::COLOR_BGRA2BGR);
+		}
 		else if (local.channels() == 1)
+		{
+			alphaChannel.release();
 			cvtColor(local, input, cv::COLOR_GRAY2BGR);
+		}
 		else
+		{
 			local.copyTo(input);
+			alphaChannel.release();
+		}
 
 		filename = bitmap->GetFilename();
 

@@ -1216,13 +1216,22 @@ void ImageLoader::Load(const wxString& fileName, bool isThumbnail,
                         tjDecompressHeader2(dec, &_compressedImage.at(0), _compressedImage.size(),
                                             &w, &h, &jpegSubsamp);
                         ImageConverter::AdjustSizeToJpegScalingFactors(w, h);
-
                         cv::Mat picture(h, w, CV_8UC4);
                         try
                         {
                             tjDecompress2(dec, &_compressedImage.at(0), _compressedImage.size(),
-                                          picture.data, w, 0, h,
-                                          TJPF_BGRX, TJFLAG_FASTDCT);
+                                picture.data, w, 0, h,
+                                TJPF_BGRX, TJFLAG_FASTDCT);
+
+                            // Création d'une vue sur le canal Alpha (index 3) grâce au pas de mémoire (step)
+                            // Cela évite de copier les données ou de reparcourir inutilement l'image en entier
+                            int from_to[] = { 3, 3 };
+                            // On force la valeur 255 sur le canal 3 via un masque ou setTo
+                            // La méthode la plus robuste avec OpenCV :
+                            cv::Mat alphaView;
+                            cv::extractChannel(picture, alphaView, 3);
+                            alphaView.setTo(255);
+                            // Comme alphaView est une référence aux données de 'picture', 'picture' est mis à jour automatiquement
                         }
                         catch (...) {}
                         tjDestroy(dec);

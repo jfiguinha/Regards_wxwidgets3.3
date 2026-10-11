@@ -133,6 +133,7 @@ namespace Regards::FiltreEffet
 		std::unique_ptr<COpenCLFilter> openclFilter;
 		wxImage GetwxImage(cv::UMat& input);
 
+		int nbChannels = 3;
 		cl_mem_flags flag;
 		wxString filename;
 		cv::Mat alphaChannel;
