@@ -7,96 +7,12 @@ using namespace Regards::OpenGL;
 
 namespace
 {
-	const char* kVertexSource = R"GLSL(#version 330 core
-void main()
-{
-    // Triangle plein ecran genere depuis gl_VertexID (aucun VBO).
-    vec2 pos = vec2(float((gl_VertexID << 1) & 2), float(gl_VertexID & 2));
-    gl_Position = vec4(pos * 2.0 - 1.0, 0.0, 1.0);
-}
-)GLSL";
-
-	// Meme formule que LayerFonction::CompositeLayer / BlendChannel.
-	// texelFetch : les textures ont exactement la taille de la cible, pas de filtrage.
-	const char* kFragmentSource = R"GLSL(#version 330 core
-uniform sampler2D uSrc;
-uniform sampler2D uDst;
-uniform float uOpacity;
-uniform int uMode;
-uniform int uCopy;
-out vec4 FragColor;
-
-vec3 BlendColor(vec3 s, vec3 d, int mode)
-{
-    if (mode == 1) return s * d;                       // Multiply
-    if (mode == 2) return s + d - s * d;               // Screen
-    if (mode == 3)                                     // Overlay
-    {
-        vec3 low = step(d, vec3(0.5));                 // 1.0 si d <= 0.5
-        return low * (2.0 * s * d)
-             + (1.0 - low) * (1.0 - 2.0 * (1.0 - s) * (1.0 - d));
-    }
-    if (mode == 4) return min(s, d);                   // Darken
-    if (mode == 5) return max(s, d);                   // Lighten
-    if (mode == 6) return min(vec3(1.0), s + d);       // Add
-    if (mode == 7) return max(vec3(0.0), d - s);       // Subtract
-    return s;                                          // Normal
-}
-
-void main()
-{
-    ivec2 p = ivec2(gl_FragCoord.xy);
-    vec4 src = texelFetch(uSrc, p, 0);
-    if (uCopy != 0)
-    {
-        FragColor = src;
-        return;
-    }
-
-    vec4 dst = texelFetch(uDst, p, 0);
-    float sa = src.a * uOpacity;
-    if (sa <= 0.0)
-    {
-        FragColor = dst;
-        return;
-    }
-
-    float da = dst.a;
-    float oa = sa + da * (1.0 - sa);
-    vec3 blended = BlendColor(src.rgb, dst.rgb, uMode);
-    vec3 pm = (1.0 - sa) * da * dst.rgb
-            + (1.0 - da) * sa * src.rgb
-            + sa * da * blended;
-    vec3 oc = (oa > 0.0) ? pm / oa : vec3(0.0);
-    FragColor = vec4(clamp(oc, 0.0, 1.0), clamp(oa, 0.0, 1.0));
-}
-)GLSL";
-
-	GLuint CompileShader(GLenum type, const char* source)
-	{
-		GLuint shader = glCreateShader(type);
-		glShaderSource(shader, 1, &source, nullptr);
-		glCompileShader(shader);
-
-		GLint ok = GL_FALSE;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &ok);
-		if (!ok)
-		{
-			char log[1024] = {};
-			glGetShaderInfoLog(shader, sizeof(log), nullptr, log);
-			wxLogError("CLayerCompositorGL : echec de compilation du shader : %s", log);
-			glDeleteShader(shader);
-			return 0;
-		}
-		return shader;
-	}
-
 	// Sauvegarde / restaure l'etat GL modifie par la composition afin de ne pas
 	// perturber le rendu qui suit (CreateScreenRender, RenderToScreen...).
 	struct GLStateGuard
 	{
 		GLint drawFbo = 0, readFbo = 0, program = 0, vao = 0, activeTexture = 0, tex0 = 0, tex1 = 0;
-		GLint viewport[4] = {0, 0, 0, 0};
+		GLint viewport[4] = { 0, 0, 0, 0 };
 		GLboolean blend, depth, scissor, cull, stencil;
 		GLboolean colorMask[4];
 
@@ -173,44 +89,29 @@ CLayerCompositorGL::~CLayerCompositorGL()
 
 bool CLayerCompositorGL::BuildProgram()
 {
-	GLuint vs = CompileShader(GL_VERTEX_SHADER, kVertexSource);
-	GLuint fs = vs ? CompileShader(GL_FRAGMENT_SHADER, kFragmentSource) : 0;
-	if (!vs || !fs)
-	{
-		if (vs) glDeleteShader(vs);
-		if (fs) glDeleteShader(fs);
+	// Chargement des programmes via les ressources demandées
+	if (!shader.CreateProgram("IDR_GLSL_VERTEX_RENDER", GL_VERTEX_SHADER))
 		return false;
-	}
 
-	GLuint prog = glCreateProgram();
-	glAttachShader(prog, vs);
-	glAttachShader(prog, fs);
-	glLinkProgram(prog);
-	glDeleteShader(vs);
-	glDeleteShader(fs);
-
-	GLint ok = GL_FALSE;
-	glGetProgramiv(prog, GL_LINK_STATUS, &ok);
-	if (!ok)
-	{
-		char log[1024] = {};
-		glGetProgramInfoLog(prog, sizeof(log), nullptr, log);
-		wxLogError("CLayerCompositorGL : echec de l'edition de liens : %s", log);
-		glDeleteProgram(prog);
+	if (!shader.CreateProgram("IDR_GLSL_EDITOR_RENDER", GL_FRAGMENT_SHADER))
 		return false;
-	}
 
-	locSrc = glGetUniformLocation(prog, "uSrc");
-	locDst = glGetUniformLocation(prog, "uDst");
-	locOpacity = glGetUniformLocation(prog, "uOpacity");
-	locMode = glGetUniformLocation(prog, "uMode");
-	locCopy = glGetUniformLocation(prog, "uCopy");
+	// Génération du lien de shader (LinkProgram) et activation interne
+	if (!shader.EnableShader())
+		return false;
+
+	GLuint progId = shader.GetProgramId();
+
+	locSrc = glGetUniformLocation(progId, "uSrc");
+	locDst = glGetUniformLocation(progId, "uDst");
+	locOpacity = glGetUniformLocation(progId, "uOpacity");
+	locMode = glGetUniformLocation(progId, "uMode");
+	locCopy = glGetUniformLocation(progId, "uCopy");
 
 	glGenVertexArrays(1, &vao);
 	glGenFramebuffers(1, &fboTarget);
 	glGenFramebuffers(1, &fboTemp);
 
-	program = prog;
 	return true;
 }
 
@@ -249,7 +150,7 @@ bool CLayerCompositorGL::EnsureTemporary(int width, int height)
 }
 
 bool CLayerCompositorGL::Compose(GLTexture* background, const std::vector<LayerPass>& layers,
-                                 GLTexture* target, int width, int height)
+	GLTexture* target, int width, int height)
 {
 	if (!IsValid() || background == nullptr || target == nullptr || width <= 0 || height <= 0)
 		return false;
@@ -260,7 +161,6 @@ bool CLayerCompositorGL::Compose(GLTexture* background, const std::vector<LayerP
 
 	GLStateGuard guard;
 
-	// Taille reelle de la cible (ne pas se fier aux membres de GLTexture).
 	GLint targetWidth = 0, targetHeight = 0;
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, target->GetTextureID());
@@ -280,15 +180,14 @@ bool CLayerCompositorGL::Compose(GLTexture* background, const std::vector<LayerP
 		return false;
 	}
 
-	glUseProgram(program);
+	// Active le shader
+	shader.EnableShader();
+
 	glUniform1i(locSrc, 0);
 	glUniform1i(locDst, 1);
 	glBindVertexArray(vao);
 	glViewport(0, 0, width, height);
 
-	// Passe 0 = fond, passes 1..N = calques. Les ecritures alternent entre la
-	// cible et la texture temporaire, en sens inverse pour que la DERNIERE passe
-	// ecrive dans la cible : pas de copie finale.
 	const GLuint targetId = target->GetTextureID();
 	const size_t total = layers.size() + 1;
 	for (size_t i = 0; i < total; ++i)
@@ -318,7 +217,6 @@ bool CLayerCompositorGL::Compose(GLTexture* background, const std::vector<LayerP
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 	}
 
-	// Ne pas garder de reference sur la texture d'affichage dans notre FBO.
 	glBindFramebuffer(GL_FRAMEBUFFER, fboTarget);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, 0, 0);
 	return true;
@@ -330,7 +228,9 @@ void CLayerCompositorGL::Release()
 	if (fboTarget) glDeleteFramebuffers(1, &fboTarget);
 	if (fboTemp) glDeleteFramebuffers(1, &fboTemp);
 	if (vao) glDeleteVertexArrays(1, &vao);
-	if (program) glDeleteProgram(program);
-	tempTexture = fboTarget = fboTemp = vao = program = 0;
+
+	shader.DeleteShader(); // Demande de nettoyage des objets OpenGL internes au shader
+
+	tempTexture = fboTarget = fboTemp = vao = 0;
 	tempWidth = tempHeight = 0;
 }

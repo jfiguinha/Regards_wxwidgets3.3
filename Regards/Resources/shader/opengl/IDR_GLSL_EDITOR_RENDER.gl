@@ -1,0 +1,52 @@
+#version 330 core
+uniform sampler2D uSrc;
+uniform sampler2D uDst;
+uniform float uOpacity;
+uniform int uMode;
+uniform int uCopy;
+out vec4 FragColor;
+
+vec3 BlendColor(vec3 s, vec3 d, int mode)
+{
+    if (mode == 1) return s * d;                       // Multiply
+    if (mode == 2) return s + d - s * d;               // Screen
+    if (mode == 3)                                     // Overlay
+    {
+        vec3 low = step(d, vec3(0.5));                 // 1.0 si d <= 0.5
+        return low * (2.0 * s * d)
+             + (1.0 - low) * (1.0 - 2.0 * (1.0 - s) * (1.0 - d));
+    }
+    if (mode == 4) return min(s, d);                   // Darken
+    if (mode == 5) return max(s, d);                   // Lighten
+    if (mode == 6) return min(vec3(1.0), s + d);       // Add
+    if (mode == 7) return max(vec3(0.0), d - s);       // Subtract
+    return s;                                          // Normal
+}
+
+void main()
+{
+    ivec2 p = ivec2(gl_FragCoord.xy);
+    vec4 src = texelFetch(uSrc, p, 0);
+    if (uCopy != 0)
+    {
+        FragColor = src;
+        return;
+    }
+
+    vec4 dst = texelFetch(uDst, p, 0);
+    float sa = src.a * uOpacity;
+    if (sa <= 0.0)
+    {
+        FragColor = dst;
+        return;
+    }
+
+    float da = dst.a;
+    float oa = sa + da * (1.0 - sa);
+    vec3 blended = BlendColor(src.rgb, dst.rgb, uMode);
+    vec3 pm = (1.0 - sa) * da * dst.rgb
+            + (1.0 - da) * sa * src.rgb
+            + sa * da * blended;
+    vec3 oc = (oa > 0.0) ? pm / oa : vec3(0.0);
+    FragColor = vec4(clamp(oc, 0.0, 1.0), clamp(oa, 0.0, 1.0));
+}
