@@ -335,7 +335,8 @@ void CEditorFrame::CreateLayer(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        m_activeDocument->CreateLayer("");
+
+        m_activeDocument->CreateLayer("My New Layer ");
         layerDialog->UpdateLayerList();
     }
 }

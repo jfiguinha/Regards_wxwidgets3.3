@@ -145,141 +145,6 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
             widthOutputOld = widthOutput;
             heightOutputOld = heightOutput;
 
-#ifdef RENDER_CPU
-
-            glTexture = renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
-
-            // Matrice de rendu temporaire initialisée à zéro (transparente)
-            cv::Mat render = cv::Mat::zeros(heightOutput, widthOutput, CV_8UC4);
-
-            // Le vecteur de calques est ordonné du premier plan (index 0) vers l'arrière-plan (index size-1).
-            // Pour un rendu correct par empilement, on parcourt de l'arrière-plan vers le premier plan.
-            for (int numLayer = static_cast<int>(listOfLayer.size()) - 1; numLayer >= 0; numLayer--)
-            {
-                if (numLayer == numActifLayer)
-                {
-                    // Pour le calque actif, l'image est déjà traitée, filtrée et stockée 
-                    // dans la variable "mat" récupérée depuis le filtre d'effet.
-                    if (!mat.empty())
-                    {
-                        // On applique la logique de composition sur le canevas
-                        // "mat" est déjà au format RGBA/BGRA et aux dimensions (widthOutput, heightOutput)
-                        LayerElement* activeLayer = listOfLayer[numLayer];
-                        float opacity = std::max(0.0f, std::min(1.0f, activeLayer->opacity / 100.0f));
-
-                        if (activeLayer->isVisible && opacity > 0.0f)
-                        {
-                            // Appel direct à votre logique de fusion définie dans le namespace anonyme de LayerList
-                            // Note: Si CompositeLayer n'est pas accessible globalement, incluez sa logique de calcul alpha droit.
-                            LayerElement::CompositeLayer(render, mat.getMat(), opacity, activeLayer->blendMode);
-                        }
-                    }
-                }
-                else
-                {
-                    LayerElement* layer = listOfLayer[numLayer];
-                    if (layer && layer->isVisible && layer->GetPicture() && layer->GetPicture()->IsOk())
-                    {
-                        float opacity = std::max(0.0f, std::min(1.0f, layer->opacity / 100.0f));
-                        if (opacity > 0.0f)
-                        {
-                            // Récupération de l'image OpenCV brute du calque secondaire
-                            cv::Mat layerMat = layer->GetPicture()->GetMatImage();
-
-                            // Normalisation et redimensionnement aux dimensions de l'affichage OpenGL (widthOutput x heightOutput)
-                            // Reprise stricte de votre fonction "PrepareLayerImage"
-                            cv::Mat resizedLayer;
-                            if (layerMat.depth() != CV_8U)
-                            {
-                                layerMat.convertTo(resizedLayer, CV_MAKETYPE(CV_8U, layerMat.channels()));
-                            }
-                            else
-                            {
-                                resizedLayer = layerMat;
-                            }
-
-                            cv::Mat bgraLayer;
-                            if (resizedLayer.channels() == 4)
-                                bgraLayer = resizedLayer;
-                            else if (resizedLayer.channels() == 3)
-                                cv::cvtColor(resizedLayer, bgraLayer, cv::COLOR_BGR2BGRA);
-                            else if (resizedLayer.channels() == 1)
-                                cv::cvtColor(resizedLayer, bgraLayer, cv::COLOR_GRAY2BGRA);
-
-                            if (!bgraLayer.empty())
-                            {
-                                if (bgraLayer.cols != widthOutput || bgraLayer.rows != heightOutput)
-                                {
-                                    cv::Mat finalResized;
-                                    const int interpolation = (bgraLayer.cols > widthOutput || bgraLayer.rows > heightOutput) ? cv::INTER_AREA : cv::INTER_LINEAR;
-                                    cv::resize(bgraLayer, finalResized, cv::Size(widthOutput, heightOutput), 0.0, 0.0, interpolation);
-                                    bgraLayer = finalResized;
-                                }
-
-                                // Fusionner le calque secondaire sur notre canevas de rendu global
-                                LayerElement::CompositeLayer(render, bgraLayer, opacity, layer->blendMode);
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Réassignation du résultat fusionné à la matrice "mat" pour la texture OpenGL
-            mat = render;
-
-            glTexture->SetData(mat, renderOpenGL->GetOpenCLContext());
-
-            renderOpenGL->CreateScreenRender(GetWidth() * scale_factor, GetHeight() * scale_factor,
-                CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
-                    themeBitmap.colorBack.Blue()));
-
-            RenderTexture(invert);
-#endif
-
-#ifdef RENDER_OPENCL
-            
-            glTexture = renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
-
-            cv::UMat renderGPU = cv::UMat::zeros(heightOutput, widthOutput, CV_8UC4);
-
-            for (int numLayer = static_cast<int>(listOfLayer.size()) - 1; numLayer >= 0; numLayer--)
-            {
-                LayerElement* layer = listOfLayer[numLayer];
-                if (!layer || !layer->isVisible) continue;
-
-                cv::UMat currentLayerGPU;
-
-                if (numLayer == numActifLayer) {
-                    currentLayerGPU = mat.getUMat(cv::ACCESS_READ); // Déjà redimensionné
-                }
-                else {
-                    // Transfert de l'image du calque vers le GPU
-                    cv::UMat rawMat = layer->GetPicture()->GetMatImage().getUMat(cv::ACCESS_READ);
-
-                    // Redimensionnement matériel instantané via OpenCL sur le GPU
-                    cv::resize(rawMat, currentLayerGPU, cv::Size(widthOutput, heightOutput), 0, 0, cv::INTER_LINEAR);
-                }
-
-                // Fusion des calques sur le GPU 
-                // (Note: Pour les modes complexes comme Overlay/Screen, il faut utiliser des opérations arithmétiques OpenCV 
-                // plutôt qu'une boucle pixel, ex: cv::multiply, cv::addWeighted)
-                float alpha = layer->opacity / 100.0f;
-                cv::addWeighted(renderGPU, 1.0 - alpha, currentLayerGPU, alpha, 0.0, renderGPU);
-            }
-
-            // Récupération du résultat final pour OpenGL
-            mat = renderGPU.getMat(cv::ACCESS_READ);
-
-            glTexture->SetData(mat, renderOpenGL->GetOpenCLContext());
-
-            renderOpenGL->CreateScreenRender(GetWidth()* scale_factor, GetHeight()* scale_factor,
-                CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
-                    themeBitmap.colorBack.Blue()));
-
-            RenderTexture(invert);
-#endif
-
-#ifdef RENDER_OPENGL
             // 1. Initialiser le fond de l'écran avec la couleur de thème
             renderOpenGL->CreateScreenRender(GetWidth()* scale_factor, GetHeight()* scale_factor,
                 CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
@@ -307,9 +172,8 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
             RenderTexture(textureDisplay, invert, widthOutput, heightOutput);
             glEnable(GL_BLEND); // Réactivation pour l'empilement des vrais calques
 
-
-            // 2. Parcourir de l'arrière-plan vers le premier plan
-            for (int numLayer = listOfLayer.size() - 1; numLayer >= 0 ; numLayer--)
+                        // 2. Parcourir de l'arrière-plan vers le premier plan
+            for (int numLayer = 0; numLayer < listOfLayer.size(); numLayer++)
             {
                 LayerElement* layer = listOfLayer[numLayer];
                 if (!layer || !layer->isVisible) continue;
@@ -362,7 +226,6 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
 
             // Désactivation propre après la boucle des calques
             glDisable(GL_BLEND);
-#endif
             
         }
 
