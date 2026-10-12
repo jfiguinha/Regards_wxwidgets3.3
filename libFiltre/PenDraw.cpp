@@ -20,6 +20,7 @@ void CPenDraw::Reset() {
 void CPenDraw::MouseDown(CEffectParameter* effect) {
     m_isDrawing = true;
 
+    m_tousLesTraces.clear();
 
     CPenFilterParameter* penEffect = (CPenFilterParameter*)effect;
 

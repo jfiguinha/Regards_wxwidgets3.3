@@ -191,6 +191,9 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 	CImageLoadingFormat* imageLoad = nullptr;
 	auto penParameter = static_cast<CPenFilterParameter*>(effectParameter);
 
+
+	
+
 	if (penParameter->listLines.empty()) {
 		SLineTrace premierTrace;
 		premierTrace.color = penParameter->color1;
@@ -200,10 +203,13 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 	}
 
 
-	if (!source.empty())
+	CImageLoadingFormat * src = bitmapViewer->GetBitmap(true);
+
+	if (src->IsOk())
 	{
+
 		imageLoad = new CImageLoadingFormat();
-		imageLoad->SetPicture(source);
+		imageLoad->SetPicture(src->GetMatImage());
 		imageLoad->RotateExif(orientation);
 
 		try

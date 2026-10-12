@@ -106,6 +106,8 @@ void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* hi
 
 		if (imageLoad != nullptr)
 			SetBitmapToViewer(imageLoad);
+
+		//filtreEffectOld->UpdateSourceBitmap(imageLoad->GetMatImage());
 	}
 
 	if (bitmapViewer != nullptr && CFiltreData::NeedPreview(numFiltre))

@@ -25,6 +25,7 @@ namespace Regards::Window
 		CEffectParameter* GetEffectParameter();
 		void UpdateScreenRatio() override;
 		void UpdateMousePosition();
+		void UpdateSourceBitmap(cv::Mat & source);
 		void AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value,
 		                  const int& typeValue = 1, const int& type = TYPE_SLIDE) override;
 

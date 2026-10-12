@@ -103,6 +103,10 @@ CPositionElement* CFiltreEffect::RenderColor(
 	return posElement;
 }
 
+void CFiltreEffect::UpdateSourceBitmap(cv::Mat & source)
+{
+	this->source = source.clone();
+}
 
 void CFiltreEffect::Init(CEffectParameter* effectParameter, cv::Mat source, const wxString& filename,
                          const int& filtre)
@@ -152,6 +156,7 @@ void CFiltreEffect::UpdateScreenRatio()
 {
 	RenderElement(RenderMode::Update);
 }
+
 
 
 void CFiltreEffect::UpdateBitmapToViewer(CImageLoadingFormat* bitmap)
