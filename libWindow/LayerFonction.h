@@ -70,6 +70,41 @@ public:
         return bgra;
     }
 
+
+    // Normalise les images source en BGRA 8 bits. Les données d'entrée ne sont
+// converties/redimensionnées qu'une seule fois par calque et par composition.
+    static cv::UMat PrepareLayerImageOpenCL(const cv::UMat& input, int width, int height)
+    {
+        if (input.empty() || width <= 0 || height <= 0)
+            return {};
+
+        cv::UMat eightBit;
+        if (input.depth() == CV_8U)
+            eightBit = input;
+        else
+            input.convertTo(eightBit, CV_MAKETYPE(CV_8U, input.channels()));
+
+        cv::UMat bgra;
+        if (eightBit.channels() == 4)
+            bgra = eightBit;
+        else if (eightBit.channels() == 3)
+            cv::cvtColor(eightBit, bgra, cv::COLOR_BGR2BGRA);
+        else if (eightBit.channels() == 1)
+            cv::cvtColor(eightBit, bgra, cv::COLOR_GRAY2BGRA);
+        else
+            return {};
+
+        if (bgra.cols != width || bgra.rows != height)
+        {
+            cv::UMat resized;
+            const int interpolation =
+                (bgra.cols > width || bgra.rows > height) ? cv::INTER_AREA : cv::INTER_LINEAR;
+            cv::resize(bgra, resized, cv::Size(width, height), 0.0, 0.0, interpolation);
+            return resized;
+        }
+        return bgra;
+    }
+
     // Composition source-over avec alpha droit (straight alpha), et mode de
     // fusion appliqué aux couleurs. Aucun split/merge ni Mat flottant temporaire.
     static void CompositeLayer(cv::Mat& destination, const cv::Mat& source,

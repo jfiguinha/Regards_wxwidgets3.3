@@ -3,7 +3,7 @@
 #include <BitmapWndViewer.h>
 #include "LayerElement.h"
 #include "LayerCompositorGL.h"
-#include "LayerCompositorOpenCL.h" // Inclusion du compositeur OpenCL
+#include "LayerCompositorOpenCL.h"
 #include <memory>
 #include <cstdint>
 #include <CanvasSizeDialog.h>
@@ -24,6 +24,8 @@ public:
     void RemoveListener(const bool& applyCancel = true) override;
     void OnUpdateLayerBitmap(wxCommandEvent& event) override;
 
+    CRenderOpenGL* GetRenderOpenGL() const { return renderOpenGL; }
+
     CLayerList* GetListOfLayer()
     {
         return &listOfLayer;
@@ -33,8 +35,10 @@ private:
     // --- Rendu ---
     void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
     bool ApplySelectEffect(int& widthOutput, int& heightOutput)  override;
-    void RenderTexture(GLTexture* textureDisplay, const bool& invertPos, int width, int height);
-    void GenerateScreenBitmap(CFiltreEffet* filtreEffet, int& widthOutput, int& heightOutput) override;
+    void RenderTexture(GLTexture* textureDisplay, const bool& invertPos, int width, int height);        
+    void GenerateScreenBitmap(CFiltreEffet* filtreEffet, int& widthOutput, int& heightOutput);  
+    cv::UMat PrepareLayerSourceOpenCL(LayerElement* layer, int width,
+        int height, CFiltreEffet* filter);
     // Régénère le bitmap d'écran du calque actif si nécessaire. Retourne true si le calque actif a changé.
     bool UpdateScreenBitmap(LayerElement* activeLayer, int& widthOutput, int& heightOutput, bool bitmapIsLoad);
 
@@ -52,6 +56,8 @@ private:
         return static_cast<int>(index) == numActifLayer;
     }
     cv::Mat PrepareBackgroundMat(int width, int height);
+    cv::Mat PrepareLayerSource(LayerElement* layer, int width, int height,
+        CFiltreEffet* filter);
     cv::Mat PrepareActiveLayerImage(int width, int height);
     bool UploadToTexture(GLTexture& texture, const cv::Mat& image);
 
