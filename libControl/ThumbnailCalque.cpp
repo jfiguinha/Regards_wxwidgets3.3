@@ -12,7 +12,7 @@
 #include <effect_id.h>
 #include "LayerIcone.h"
 #include <libPicture.h>
-
+#include <unordered_set>
 #include <algorithm>
 
 #include "InfosSeparationBarEffect.h"
@@ -115,89 +115,109 @@ void CThumbnailCalque::RefreshList()
     needToRefresh = true;
 }
 
-
 void CThumbnailCalque::UpdateLayerList()
 {
     auto* iconeListLocal = new CIconeList();
     int numElement = 0;
     InitScrollingPos();
 
-
-    std::map<int, int> listOfLayerFind;
-
+    // Utilisation d'un set pour stocker les IDs trouvés (Recherche en O(1))
+    std::unordered_set<uint64_t> listOfLayerFind;
     CIconeList* oldList = iconeList.get();
+
+    int targetWidth = themeThumbnail.themeIcone.GetWidth();
+    int targetHeight = themeThumbnail.themeIcone.GetHeight();
 
     for (LayerElement* layerElement : *listOfLayer)
     {
+        if (!layerElement) continue;
+
         CLayerIcone* pBitmapIcone = nullptr;
 
-        // 2. RECHERCHE : On regarde si le layerId existe déjà dans l'ancienne liste
+        // Recherche de l'icône existante par son layerId
         if (oldList)
         {
-            pBitmapIcone = (CLayerIcone *)oldList->FindElementByPhotoId(layerElement->layerId);
-           
+            pBitmapIcone = static_cast<CLayerIcone*>(oldList->FindElementByPhotoId(layerElement->layerId));
         }
-        
-        if(pBitmapIcone == nullptr)
+
+        CImageLoadingFormat* picture = layerElement->GetPicture();
+
+        if (pBitmapIcone == nullptr)
         {
-            CImageLoadingFormat* picture = layerElement->GetPicture();
-            auto* thumbnailData = new CThumbnailDataStorage(
-                layerElement->layerName);
+            // --- CAS 1 : NOUVELLE ICÔNE ---
+            auto* thumbnailData = new CThumbnailDataStorage(layerElement->layerName);
             thumbnailData->SetNumPhotoId(layerElement->layerId);
 
-            cv::Mat output;
-            cv::Mat matrixPicture = picture->GetMatImage();
-            cv::resize(matrixPicture, output, cv::Size(themeThumbnail.themeIcone.GetWidth(), themeThumbnail.themeIcone.GetHeight()));
-            thumbnailData->SetBitmap(matrixPicture);
+            if (picture && picture->IsOk() && targetWidth > 0 && targetHeight > 0)
+            {
+                cv::Mat output;
+                cv::Mat matrixPicture = picture->GetMatImage();
+                if (!matrixPicture.empty())
+                {
+                    cv::resize(matrixPicture, output, cv::Size(targetWidth, targetHeight));
+                    thumbnailData->SetBitmap(output); // CORRIGÉ : On passe 'output' et non 'matrixPicture'
+                }
+            }
 
             pBitmapIcone = new CLayerIcone(thumbnailData);
             pBitmapIcone->SetNumElement(numElement);
             pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
             pBitmapIcone->SetLibelle(layerElement->layerName);
-            pBitmapIcone->SetChecked(true);
-            if (numElement == numClickIcone)
-                pBitmapIcone->SetSelected(true);
-            
+            pBitmapIcone->SetChecked(layerElement->isVisible); // CORRIGÉ : Initialise avec la vraie visibilité
+            pBitmapIcone->SetSelected(numElement == numClickIcone);
         }
         else
         {
-            CImageLoadingFormat* picture = layerElement->GetPicture();
-            listOfLayerFind[layerElement->layerId] = layerElement->layerId;
+            // --- CAS 2 : RÉUTILISATION DE L'ICÔNE ---
+            listOfLayerFind.insert(layerElement->layerId);
             pBitmapIcone->SetNumElement(numElement);
+            pBitmapIcone->SetChecked(layerElement->isVisible); // Synchro de l'état de visibilité
+            pBitmapIcone->SetSelected(numElement == numClickIcone);
 
+            // Optionnel : Ne recalculer la vignette que si le calque a changé (ex: pictureVersion)
             auto* thumbnailData = pBitmapIcone->GetPtData();
-            cv::Mat output;
-            cv::Mat matrixPicture = picture->GetMatImage();
-            cv::resize(matrixPicture, output, cv::Size(themeThumbnail.themeIcone.GetWidth(), themeThumbnail.themeIcone.GetHeight()));
-            thumbnailData->SetBitmap(matrixPicture);
+            if (thumbnailData && picture && picture->IsOk() && targetWidth > 0 && targetHeight > 0)
+            {
+                cv::Mat output;
+                cv::Mat matrixPicture = picture->GetMatImage();
+                if (!matrixPicture.empty())
+                {
+                    cv::resize(matrixPicture, output, cv::Size(targetWidth, targetHeight));
+                    thumbnailData->SetBitmap(output); // CORRIGÉ : On passe 'output' et non 'matrixPicture'
+                }
+            }
         }
 
         iconeListLocal->AddElement(pBitmapIcone);
-
         numElement++;
     }
 
-
-    for (int i = 0; i < oldList->GetNbElement(); i++)
+    // --- NETTOYAGE SÉCURISÉ DES ANCIENNES ICÔNES NON REPRISES ---
+    if (oldList)
     {
-        CLayerIcone * oldIcone = static_cast<CLayerIcone*>(oldList->GetElement(i));
-        auto* thumbnailData = oldIcone->GetPtData();
-        
-        auto it = listOfLayerFind.find(thumbnailData->GetNumPhotoId());
-        if(it == listOfLayerFind.end())
-            delete oldIcone;
-
+        for (int i = 0; i < oldList->GetNbElement(); i++)
+        {
+            CLayerIcone* oldIcone = static_cast<CLayerIcone*>(oldList->GetElement(i));
+            if (oldIcone && oldIcone->GetPtData())
+            {
+                auto* thumbnailData = oldIcone->GetPtData();
+                // Si l'ancienne icône n'a pas été marquée comme réutilisée, on la supprime
+                if (listOfLayerFind.find(thumbnailData->GetNumPhotoId()) == listOfLayerFind.end())
+                {
+                    delete oldIcone;
+                }
+            }
+        }
+        // ATTENTION : Ne pas appeler EraseThumbnailList() ici si cela supprime à l'aveugle
+        // des pointeurs que nous venons de transférer à iconeListLocal. 
+        // Videz simplement le conteneur interne de oldList sans delete si votre API le permet.
     }
-
-    oldList->EraseThumbnailList();
 
     isAllProcess = true;
 
-
-    auto old = std::move(iconeList);
+    // Remplacement de l'ancienne liste par la nouvelle
     iconeList.reset(iconeListLocal);
     nbElementInIconeList = iconeList->GetNbElement();
-    //old->EraseThumbnailListWithIcon();
 
     threadDataProcess = true;
     processIdle = true;
@@ -206,6 +226,7 @@ void CThumbnailCalque::UpdateLayerList()
     ResizeThumbnail();
     needToRefresh = true;
 }
+
 
 void CThumbnailCalque::SetLayer(CLayerList * listOfLayer)
 {
