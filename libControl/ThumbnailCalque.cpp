@@ -123,31 +123,73 @@ void CThumbnailCalque::UpdateLayerList()
     InitScrollingPos();
 
 
+    std::map<int, int> listOfLayerFind;
+
+    CIconeList* oldList = iconeList.get();
 
     for (LayerElement* layerElement : *listOfLayer)
     {
-        CImageLoadingFormat* picture = layerElement->GetPicture();
-        auto* thumbnailData = new CThumbnailDataStorage(
-            layerElement->layerName);
-        thumbnailData->SetNumPhotoId(numElement);
+        CLayerIcone* pBitmapIcone = nullptr;
 
-        cv::Mat output;
-        cv::Mat matrixPicture = picture->GetMatImage();
-        cv::resize(matrixPicture, output, cv::Size(themeThumbnail.themeIcone.GetWidth(), themeThumbnail.themeIcone.GetHeight()));
-        thumbnailData->SetBitmap(matrixPicture);
+        // 2. RECHERCHE : On regarde si le layerId existe déjà dans l'ancienne liste
+        if (oldList)
+        {
+            pBitmapIcone = (CLayerIcone *)oldList->FindElementByPhotoId(layerElement->layerId);
+           
+        }
+        
+        if(pBitmapIcone == nullptr)
+        {
+            CImageLoadingFormat* picture = layerElement->GetPicture();
+            auto* thumbnailData = new CThumbnailDataStorage(
+                layerElement->layerName);
+            thumbnailData->SetNumPhotoId(layerElement->layerId);
 
-        auto* pBitmapIcone = new CLayerIcone(thumbnailData);
-        pBitmapIcone->SetNumElement(numElement);
-        pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
-        pBitmapIcone->SetLibelle(layerElement->layerName);
-        pBitmapIcone->SetChecked(true);
-        if (numElement == numClickIcone)
-            pBitmapIcone->SetSelected(true);
+            cv::Mat output;
+            cv::Mat matrixPicture = picture->GetMatImage();
+            cv::resize(matrixPicture, output, cv::Size(themeThumbnail.themeIcone.GetWidth(), themeThumbnail.themeIcone.GetHeight()));
+            thumbnailData->SetBitmap(matrixPicture);
+
+            pBitmapIcone = new CLayerIcone(thumbnailData);
+            pBitmapIcone->SetNumElement(numElement);
+            pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
+            pBitmapIcone->SetLibelle(layerElement->layerName);
+            pBitmapIcone->SetChecked(true);
+            if (numElement == numClickIcone)
+                pBitmapIcone->SetSelected(true);
+            
+        }
+        else
+        {
+            CImageLoadingFormat* picture = layerElement->GetPicture();
+            listOfLayerFind[layerElement->layerId] = layerElement->layerId;
+            pBitmapIcone->SetNumElement(numElement);
+
+            auto* thumbnailData = pBitmapIcone->GetPtData();
+            cv::Mat output;
+            cv::Mat matrixPicture = picture->GetMatImage();
+            cv::resize(matrixPicture, output, cv::Size(themeThumbnail.themeIcone.GetWidth(), themeThumbnail.themeIcone.GetHeight()));
+            thumbnailData->SetBitmap(matrixPicture);
+        }
+
         iconeListLocal->AddElement(pBitmapIcone);
 
         numElement++;
     }
 
+
+    for (int i = 0; i < oldList->GetNbElement(); i++)
+    {
+        CLayerIcone * oldIcone = static_cast<CLayerIcone*>(oldList->GetElement(i));
+        auto* thumbnailData = oldIcone->GetPtData();
+        
+        auto it = listOfLayerFind.find(thumbnailData->GetNumPhotoId());
+        if(it == listOfLayerFind.end())
+            delete oldIcone;
+
+    }
+
+    oldList->EraseThumbnailList();
 
     isAllProcess = true;
 
@@ -155,7 +197,7 @@ void CThumbnailCalque::UpdateLayerList()
     auto old = std::move(iconeList);
     iconeList.reset(iconeListLocal);
     nbElementInIconeList = iconeList->GetNbElement();
-    old->EraseThumbnailListWithIcon();
+    //old->EraseThumbnailListWithIcon();
 
     threadDataProcess = true;
     processIdle = true;
