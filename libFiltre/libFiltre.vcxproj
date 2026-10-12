@@ -880,6 +880,7 @@
     <ClInclude Include="PenDrawInfo.h" />
     <ClInclude Include="PenEffectParameter.h" />
     <ClInclude Include="PenFilter.h" />
+    <ClInclude Include="PenStrokeRenderer.h" />
     <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="PhotoFiltreEffectParameter.h" />
     <ClInclude Include="PhotoFiltreFilter.h" />

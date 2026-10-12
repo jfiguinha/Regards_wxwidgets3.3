@@ -15,9 +15,32 @@
 // Inclusions indispensables
 #include <opencv2/imgproc.hpp>
 #include "PenDraw.h"
+#include "PenStrokeRenderer.h"
 
 using namespace Regards::Filter;
 using namespace cv;
+
+namespace
+{
+	// Applique tous les tracés sur l'image source (échelle 1, coordonnées image).
+	// Même rendu que la preview (RenderPenStroke).
+	template <typename Lines>
+	void DrawLinesOnSource(cv::Mat& matrix, Lines& lines)
+	{
+		const auto identity = [](const wxPoint& point) { return cv::Point(point.x, point.y); };
+
+		for (auto& ligne : lines)
+		{
+			if (ligne.points.empty()) continue;
+
+			ligne.rgba = false;
+			const cv::Scalar color = ligne.GetColorWithTransparancy();
+
+			Regards::FiltreEffet::RenderPenStroke(matrix, ligne.points, ligne.penSize, ligne.typeBrush,
+				ligne.opacity, color, 1.0f, identity);
+		}
+	}
+}
 
 CPenFilter::CPenFilter()
 {
@@ -150,58 +173,7 @@ void CPenFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effec
 		{
 			cv::Mat& matrix = imageLoad->GetMatImage();
 
-			for (auto& ligne : penParameter->listLines)
-			{
-				if (ligne.points.empty()) continue;
-
-				ligne.rgba = false;
-				cv::Scalar color = ligne.GetColorWithTransparancy();
-
-				// 1. Si le tracé est à 100% opaque, pas besoin de calculs complexes, rendu direct :
-				if (ligne.opacity >= 255)
-				{
-					if (ligne.points.size() == 1)
-						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
-					else
-					{
-						for (size_t i = 1; i < ligne.points.size(); ++i)
-						{
-							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
-							if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
-
-							cv::line(matrix, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
-						}
-					}
-				}
-				// 2. Si le tracé est semi-transparent (Opacité < 255) :
-				else if (ligne.opacity > 0)
-				{
-					// Création d'une copie du calque d'origine pour dessiner l'overlay dessus
-					cv::Mat overlay = matrix.clone();
-
-					if (ligne.points.size() == 1)
-						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
-					else
-					{
-						for (size_t i = 1; i < ligne.points.size(); ++i)
-						{
-							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
-							if (ligne.typeBrush == 2 && i % 2 != 0) continue;
-
-							cv::line(overlay, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
-						}
-					}
-
-					// Calcul des ratios d'opacité pour le mélange (Alpha Blending)
-					double alpha = ligne.opacity / 255.0;
-					double beta = 1.0 - alpha;
-
-					// Fusion mathématique de l'overlay transparent par-dessus la matrice d'origine
-					cv::addWeighted(overlay, alpha, matrix, beta, 0, matrix);
-				}
-			}
+			DrawLinesOnSource(matrix, penParameter->listLines);
 		}
 		catch (cv::Exception& e)
 		{
@@ -238,58 +210,7 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 		{
 			cv::Mat& matrix = imageLoad->GetMatImage();
 
-			for (auto& ligne : penParameter->listLines)
-			{
-				ligne.rgba = false;
-				cv::Scalar color = ligne.GetColorWithTransparancy();
-
-				if (ligne.points.empty()) continue;
-
-				// 1. Si le tracé est à 100% opaque, pas besoin de calculs complexes, rendu direct :
-				if (ligne.opacity >= 255)
-				{
-					if (ligne.points.size() == 1)
-						cv::circle(matrix, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
-					else
-					{
-						for (size_t i = 1; i < ligne.points.size(); ++i)
-						{
-							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
-							if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
-
-							cv::line(matrix, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
-						}
-					}
-				}
-				// 2. Si le tracé est semi-transparent (Opacité < 255) :
-				else if (ligne.opacity > 0)
-				{
-					// Création d'une copie du calque d'origine pour dessiner l'overlay dessus
-					cv::Mat overlay = matrix.clone();
-
-					if (ligne.points.size() == 1)
-						cv::circle(overlay, cv::Point(ligne.points[0].x, ligne.points[0].y), ligne.penSize, color, -1);
-					else
-					{
-						for (size_t i = 1; i < ligne.points.size(); ++i)
-						{
-							int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
-							if (ligne.typeBrush == 2 && i % 2 != 0) continue;
-
-							cv::line(overlay, cv::Point(ligne.points[i - 1].x, ligne.points[i - 1].y),
-								cv::Point(ligne.points[i].x, ligne.points[i].y), color, ligne.penSize * 2, lineStyle);
-						}
-					}
-
-					// Calcul des ratios d'opacité pour le mélange (Alpha Blending)
-					double alpha = ligne.opacity / 255.0;
-					double beta = 1.0 - alpha;
-
-					// Fusion mathématique de l'overlay transparent par-dessus la matrice d'origine
-					cv::addWeighted(overlay, alpha, matrix, beta, 0, matrix);
-				}
-			}
+			DrawLinesOnSource(matrix, penParameter->listLines);
 		}
 		catch (cv::Exception& e)
 		{
@@ -338,7 +259,7 @@ void CPenFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m
 				traceEcran.color.Blue(),
 				traceEcran.color.Green(),
 				traceEcran.color.Red(),
-				penParameter->opacity
+				traceEcran.opacity // Alpha figé du trait (et non l'opacité courante du paramètre)
 			);
 
 			// Stockage définitif pour le moteur OpenCV (RenderEffect / ApplyEffect)
@@ -346,4 +267,3 @@ void CPenFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m
 		}
 	}
 }
-

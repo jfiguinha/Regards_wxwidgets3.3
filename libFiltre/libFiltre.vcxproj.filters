@@ -426,6 +426,9 @@
     <ClInclude Include="PaintBucketFilter.h">
       <Filter>window\Drawing</Filter>
     </ClInclude>
+    <ClInclude Include="PenStrokeRenderer.h">
+      <Filter>Filter\include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="circle.cpp">

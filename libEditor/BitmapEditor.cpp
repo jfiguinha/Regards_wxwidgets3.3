@@ -145,6 +145,40 @@ void CBitmapEditor::SetFilename(const wxString& filename)
     this->filename = filename;
 }
 
+
+
+void CBitmapEditor::GenerateScreenBitmap(CFiltreEffet* filtreEffet, int& widthOutput, int& heightOutput)
+{
+    CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+    int localAngle = angle;
+    int localflipHorizontal = flipHorizontal;
+    int localflipVertical = flipVertical;
+    int filterInterpolation = 0;
+
+    if (regardsParam != nullptr)
+        filterInterpolation = regardsParam->GetInterpolationType();
+
+    int left = 0, top = 0;
+    int tailleAffichageWidth = widthOutput;
+    int tailleAffichageHeight = heightOutput;
+
+    if (GetWidth() * scale_factor > tailleAffichageWidth)
+        left = ((GetWidth() * scale_factor - tailleAffichageWidth) / 2);
+    else
+        left = 0;
+
+    if (GetHeight() * scale_factor > tailleAffichageHeight)
+        top = ((GetHeight() * scale_factor - tailleAffichageHeight) / 2);
+    else
+        top = 0;
+
+    wxRect rc(0, 0, 0, 0);
+    CalculRectPictureInterpolation(rc, widthOutput, heightOutput, left, top, false);
+    filtreEffet->Interpolation(widthOutput, heightOutput, rc, filterInterpolation, localflipHorizontal,
+        localflipVertical, localAngle, value[posRatio]);
+}
+
+
 //-----------------------------------------------------------------
 // Régénère le bitmap d'écran du calque actif (filtres / preview / redimensionnement).
 // Retourne true si le résultat du calque actif a été régénéré.

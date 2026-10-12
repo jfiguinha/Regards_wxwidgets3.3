@@ -34,7 +34,7 @@ private:
     void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
     bool ApplySelectEffect(int& widthOutput, int& heightOutput)  override;
     void RenderTexture(GLTexture* textureDisplay, const bool& invertPos, int width, int height);
-
+    void GenerateScreenBitmap(CFiltreEffet* filtreEffet, int& widthOutput, int& heightOutput) override;
     // Régénère le bitmap d'écran du calque actif si nécessaire. Retourne true si le calque actif a changé.
     bool UpdateScreenBitmap(LayerElement* activeLayer, int& widthOutput, int& heightOutput, bool bitmapIsLoad);
 

@@ -2,6 +2,7 @@
 #include "PenDraw.h"
 #include <algorithm>
 #include "PenEffectParameter.h"
+#include "PenStrokeRenderer.h"
 
 using namespace Regards::FiltreEffet;
 
@@ -117,76 +118,26 @@ void CPenDraw::DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& 
     if (matrix.empty()) return;
 
     // 1. Récupération des paramètres de défilement (Scroll) et de zoom (Ratio) depuis le viewer
-    int hpos = hScroll;
-    int vpos = vScroll;
+    const int hpos = hScroll;
+    const int vpos = vScroll;
 
     // 2. Sécurité : S'assurer que la matrice de rendu est au format 4 canaux (BGRA)
     if (matrix.channels() == 3)
         cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
 
-
-    try
-    {
-        // 4. Parcours de l'ensemble des tracés (issus de l'image réelle)
-        for (const auto& ligne : m_tousLesTraces)
+    // 3. Conversion image réelle -> coordonnées d'affichage (scroll + zoom)
+    const auto toScreen = [&](const wxPoint& point)
         {
-            if (ligne.points.empty()) continue;
+            return cv::Point(
+                static_cast<int>(XDrawingPosition(static_cast<float>(point.x), hpos, ratio)),
+                static_cast<int>(YDrawingPosition(static_cast<float>(point.y), vpos, ratio)));
+        };
 
-            int epaisseurAffichage = std::max<int>(1, static_cast<int>(ligne.penSize * ratio));
-            int lineStyle = (ligne.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
-
-            // Si le tracé est visible
-            if (ligne.opacity > 0)
-            {
-                // Pour gérer l'alpha blending (transparence), on utilise un overlay de la taille de la matrice d'affichage
-                cv::Mat overlay = matrix.clone();
-
-                if (ligne.points.size() == 1)
-                {
-                    // Conversion des coordonnées du point unique avec les fonctions de m_cDessin
-                    int screenX = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[0].x), hpos, ratio));
-                    int screenY = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[0].y), vpos, ratio));
-
-                    int rayon = std::max(1, epaisseurAffichage / 2);
-                    cv::circle(overlay, cv::Point(screenX, screenY), rayon, GetColorWithTransparancy(ligne.color, ligne.opacity), -1, lineStyle);
-                }
-                else
-                {
-                    for (size_t i = 1; i < ligne.points.size(); ++i)
-                    {
-                        if (ligne.typeBrush == 2 && i % 2 != 0) continue; // Pointillés
-
-                        // Conversion des coordonnées des points (i-1) et (i)
-                        int xPrecedent = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[i - 1].x), hpos, ratio));
-                        int yPrecedent = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[i - 1].y), vpos, ratio));
-
-                        int xActuel = static_cast<int>(XDrawingPosition(static_cast<float>(ligne.points[i].x), hpos, ratio));
-                        int yActuel = static_cast<int>(YDrawingPosition(static_cast<float>(ligne.points[i].y), vpos, ratio));
-
-                        cv::line(overlay, cv::Point(xPrecedent, yPrecedent), cv::Point(xActuel, yActuel), GetColorWithTransparancy(ligne.color, ligne.opacity), epaisseurAffichage, lineStyle);
-                    }
-                }
-
-                // Application de la transparence (Alpha Blending)
-                if (ligne.opacity >= 255)
-                {
-                    // Si opaque à 100%, on copie directement l'overlay modifié sur la matrice
-                    overlay.copyTo(matrix);
-                }
-                else
-                {
-                    // Sinon, fusion mathématique de l'overlay transparent par-dessus la matrice d'affichage d'origine
-                    double alpha = ligne.opacity / 255.0;
-                    double beta = 1.0 - alpha;
-                    cv::addWeighted(overlay, alpha, matrix, beta, 0, matrix);
-                }
-            }
-        }
-    }
-    catch (cv::Exception& e)
+    // 4. Parcours de l'ensemble des tracés (issus de l'image réelle).
+    //    Le rendu est le même que sur l'image source (RenderPenStroke), à l'échelle 'ratio'.
+    for (const auto& ligne : m_tousLesTraces)
     {
-        const char* err_msg = e.what();
-        std::cout << "CPenFilter::Drawing - exception caught: " << err_msg << std::endl;
+        RenderPenStroke(matrix, ligne.points, ligne.penSize, ligne.typeBrush, ligne.opacity,
+            GetColorWithTransparancy(ligne.color, ligne.opacity), ratio, toScreen);
     }
-
 }
