@@ -137,12 +137,22 @@ public:
     auto begin() const { return m_layers.begin(); }
     auto end() const { return m_layers.end(); }
 
-    void SetPicture(CImageLoadingFormat* bitmapIn);
     CImageLoadingFormat* GetPictureToShow();
     int GetWidth() const { return canvasWidth; }
     int GetHeight() const { return canvasHeight; }
     void IsChanged(bool changed) { this->isChanged = changed; }
 
+
+    void UpdateCanvasSize(const int& width, const int& height)
+    {
+        if (canvasWidth != width || canvasHeight != height)
+        {
+            canvasWidth = width;
+            canvasHeight = height;
+            isChanged = true;
+        }
+        
+    }
     void UpdatePictureToShow();
     bool erase(size_t index);
     bool copy(size_t index);
@@ -151,16 +161,13 @@ public:
     bool MoveDownLayer(size_t index);
 
     // Ajout d'un enum ou paramètre pour savoir quel type instancier par défaut
-    enum class BackendType { UMat, OpenGL };
+    
     void CreateLayer(wxString layerName, BackendType type = BackendType::UMat);
 
     bool SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity);
-    void FlushPendingTextureDeletes();
 
 private:
     std::vector<LayerElement*> m_layers;
-    std::vector<Regards::OpenGL::GLTexture*> m_pendingTextureDelete;
-    void RetireTexture(LayerElement* layer);
     CImageLoadingFormat* finalImage = nullptr;
     bool isChanged = false;
     int canvasWidth = 0;

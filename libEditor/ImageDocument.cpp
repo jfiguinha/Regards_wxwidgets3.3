@@ -8,6 +8,7 @@
 #include <ImageLoadingFormat.h>
 #include <SavePicture.h>
 #include <ViewerTheme.h>
+#include <ParamInit.h>
 #include <ViewerThemeInit.h>
 using namespace Regards::Viewer;
 using namespace Regards::Picture;
@@ -53,6 +54,8 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     bitmapWindowRender->Show(true);
 
 	bitmapWindow->SetBitmap(pictureLocal);
+
+
 
     Connect(wxEVT_SIZE, wxSizeEventHandler(ImageDocument::OnSize));
     Connect(wxEVENT_REFRESH, wxCommandEventHandler(ImageDocument::OnRefresh));
@@ -135,7 +138,13 @@ void ImageDocument::CreateLayer(wxString layerName)
     if (bitmapWindow)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
-        listLayer->CreateLayer(layerName);
+
+        CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+        const bool openCLAvailable = cv::ocl::haveOpenCL() && regardsParam->GetIsOpenCLSupport();
+        if(openCLAvailable)
+            listLayer->CreateLayer(layerName, BackendType::UMat);
+        else
+            listLayer->CreateLayer(layerName, BackendType::OpenGL);
         //listLayer->UpdatePictureToShow();
     }
 }

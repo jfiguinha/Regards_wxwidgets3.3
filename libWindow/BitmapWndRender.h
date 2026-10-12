@@ -188,7 +188,7 @@ namespace Regards::Window
 		virtual void OnUpdateFiltre(wxCommandEvent& event);
 		virtual void OnUpdateLayerBitmap(wxCommandEvent& event) {};
 
-
+		void UpdateLayer(CImageLoadingFormat* bitmapIn);
 		int IsSupportCuda();
 
 		virtual void SetTransitionBitmap(CImageLoadingFormat* bmpSecond) {};

@@ -119,35 +119,8 @@ CLayerList::~CLayerList()
     delete finalImage;
     for (LayerElement* layer : m_layers)
         delete layer; // Appelle le destructeur virtuel de la classe fille appropriée
-
-    FlushPendingTextureDeletes();
 }
 
-
-
-void CLayerList::RetireTexture(LayerElement* layer)
-{
-    if (!layer) return;
-
-    // Utilisation dynamique pour détecter si c'est un calque OpenGL
-    if (auto* glLayer = dynamic_cast<LayerElementGL*>(layer))
-    {
-        if (Regards::OpenGL::GLTexture* texture = glLayer->DetachOpenGLTexture())
-            m_pendingTextureDelete.push_back(texture);
-    }
-    else
-    {
-        // Pour UMat, l'appel à la méthode virtuelle suffit, pas besoin de différer
-        layer->DeleteTexture();
-    }
-}
-
-void CLayerList::FlushPendingTextureDeletes()
-{
-    for (Regards::OpenGL::GLTexture* texture : m_pendingTextureDelete)
-        delete texture;
-    m_pendingTextureDelete.clear();
-}
 
 bool CLayerList::erase(size_t index)
 {
@@ -155,7 +128,6 @@ bool CLayerList::erase(size_t index)
 
     if (m_layers[index])
     {
-        RetireTexture(m_layers[index]);
         delete m_layers[index]; // Destructeur virtuel appelé
     }
     m_layers.erase(m_layers.begin() + index);
@@ -316,8 +288,6 @@ bool CLayerList::FusionLayers(std::vector<int>* listLayer)
         if (static_cast<size_t>(*it) == targetIndex)
             continue;
 
-        RetireTexture(m_layers[static_cast<size_t>(*it)]);
-
         delete m_layers[static_cast<size_t>(*it)];
         m_layers.erase(m_layers.begin() + *it);
     }
@@ -368,36 +338,6 @@ bool CLayerList::MoveDownLayer(size_t index)
 
     isChanged = true;
     return true;
-}
-
-
-void CLayerList::SetPicture(CImageLoadingFormat* bitmapIn)
-{
-    if (!bitmapIn)
-        return;
-
-    if (m_layers.size() == 0 && bitmapIn)
-    {
-        canvasWidth = bitmapIn->GetWidth();
-        canvasHeight = bitmapIn->GetHeight();
-
-        LayerElementGL * element = new LayerElementGL();
-        element->isVisible = true;
-        element->numLayer = m_layers.size();
-        element->opacity = 100;
-        element->layerName = bitmapIn->GetFilename();
-        element->SetPicture(bitmapIn);
-
-        m_layers.push_back(element);
-    }
-    else
-    {
-        m_layers[0]->SetPicture(bitmapIn);
-    }
-    isChanged = true;
-
-
-
 }
 
 

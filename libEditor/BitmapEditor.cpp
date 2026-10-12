@@ -55,7 +55,6 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
     scale_factor = parentRender->GetContentScaleFactor();
 #endif
 
-    listOfLayer.FlushPendingTextureDeletes();
 
     if (numActifLayer < 0 || numActifLayer >= listOfLayer.size())
         return;
@@ -601,7 +600,6 @@ bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width, int h
 
     const bool composed = layerCompositor->Compose(backgroundTexture.get(), passes, textureDisplay, width, height);
 
-    listOfLayer.FlushPendingTextureDeletes();
     return composed;
 }
 

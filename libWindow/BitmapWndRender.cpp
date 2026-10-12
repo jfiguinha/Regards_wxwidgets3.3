@@ -77,10 +77,11 @@ CBitmapWndRender::CBitmapWndRender(CSliderInterface* slider, wxWindowID idMain, 
 	//source = nullptr;
 	bitmapLoad = false;
 	themeBitmap.colorBack = themeBitmap.colorScreen;
-	parentRender = nullptr;
+	
 
-	LayerElementGL * layerElement = new LayerElementGL();
-	listOfLayer.push_back(layerElement);
+
+
+	parentRender = nullptr;
 }
 
 //-----------------------------------------------------------------
@@ -738,7 +739,8 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				flipVertical = 0;
 				flipHorizontal = 0;
 				angle = 0;
-				listOfLayer[numActifLayer]->SetPicture(bitmapIn);
+				UpdateLayer(bitmapIn);
+
 				bitmapwidth = bitmapIn->GetWidth();
 				bitmapheight = bitmapIn->GetHeight();
 				orientation = bitmapIn->GetOrientation();
@@ -752,15 +754,49 @@ void CBitmapWndRender::UpdateBitmap(CImageLoadingFormat* bitmapIn, const bool& u
 				bitmapwidth = bitmapIn->GetWidth();
 				bitmapheight = bitmapIn->GetHeight();
 				bitmapUpdate = true;
-				listOfLayer[numActifLayer]->SetPicture(bitmapIn);
+				UpdateLayer(bitmapIn);
 				if (shrinkImage)
 					ShrinkImage(false);
 			}
-			//RefreshWindow();
+			
+
+			
 			updateFilter = true;
 			parentRender->Refresh();
 		}
 	}
+}
+
+
+void CBitmapWndRender::UpdateLayer(CImageLoadingFormat* bitmapIn)
+{
+	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+	const bool openCLAvailable = cv::ocl::haveOpenCL() && regardsParam->GetIsOpenCLSupport();
+	bool addElement = false;
+	LayerElement* element = nullptr;
+
+	if(listOfLayer.size() > numActifLayer)
+		element = listOfLayer[numActifLayer];
+
+	if (element == nullptr)
+	{
+		if (!openCLAvailable)
+			element = new LayerElementGL();
+		else
+			element = new LayerElementUMat();
+
+		addElement = true;
+	}
+	element->isVisible = true;
+	element->numLayer = 0;
+	element->opacity = 100;
+	element->layerName = bitmapIn->GetFilename();
+	element->SetPicture(bitmapIn);
+
+	if (addElement)
+		listOfLayer.push_back(element);
+	else
+		listOfLayer.UpdateCanvasSize(bitmapIn->GetWidth(), bitmapIn->GetHeight());
 }
 
 void CBitmapWndRender::ReinitPicture()
@@ -806,7 +842,8 @@ void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn)
 			flipVertical = 0;
 			flipHorizontal = 0;
 			angle = 0;
-			listOfLayer.SetPicture(bitmapIn);
+			UpdateLayer(bitmapIn);
+			
 			toolOption = MOVEPICTURE;
 			bitmapwidth = bitmapIn->GetWidth();
 			bitmapheight = bitmapIn->GetHeight();
