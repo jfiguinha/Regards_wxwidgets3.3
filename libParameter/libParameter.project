@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="libParameter" InternalType="Library" Version="11000">
-  <VirtualDirectory Name="Editor">
-    <File Name="MainParamInit.h"/>
-    <File Name="MainParam.h"/>
-    <File Name="EditorParamInit.h"/>
-    <File Name="EditorParam.h"/>
-    <File Name="EditorParamInit.cpp"/>
-    <File Name="EditorParam.cpp"/>
-  </VirtualDirectory>
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -34,17 +26,13 @@
  }]]]>
     </Plugin>
   </Plugins>
-  <VirtualDirectory Name="Scanner">
-    <File Name="ScannerParamInit.h"/>
-    <File Name="ScannerParamInit.cpp"/>
-    <File Name="ScannerParam.h"/>
-    <File Name="ScannerParam.cpp"/>
-  </VirtualDirectory>
   <VirtualDirectory Name="Viewer">
     <File Name="ViewerParamInit.h"/>
     <File Name="ViewerParamInit.cpp"/>
     <File Name="ViewerParam.h"/>
     <File Name="ViewerParam.cpp"/>
+    <File Name="MainParamInit.h"/>
+    <File Name="MainParam.h"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>

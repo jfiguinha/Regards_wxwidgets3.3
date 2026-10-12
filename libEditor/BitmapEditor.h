@@ -4,8 +4,7 @@
 #include "LayerElement.h"
 #include "LayerCompositorGL.h"
 #include "LayerCompositorOpenCL.h"
-#include <memory>
-#include <cstdint>
+
 #include <CanvasSizeDialog.h>
 
 class CBitmapEditor : public Regards::Control::CBitmapWndViewer

@@ -3,6 +3,8 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="ToolbarTools.cpp"/>
+    <File Name="ColorSelectorWidget.cpp"/>
     <File Name="ToolDialog.cpp"/>
     <File Name="ParameterDialog.cpp"/>
     <File Name="LayerDialog.cpp"/>
@@ -16,6 +18,8 @@
     <File Name="BitmapEditor.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="ToolbarTools.h"/>
+    <File Name="ColorSelectorWidget.h"/>
     <File Name="ToolDialog.h"/>
     <File Name="ParameterDialog.h"/>
     <File Name="LayerDialog.h"/>

@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="libTheme" InternalType="Library" Version="11000">
-  <VirtualDirectory Name="Editor">
-    <File Name="MainThemeInit.h"/>
-    <File Name="MainTheme.h"/>
-    <File Name="EditorThemeInit.h"/>
-    <File Name="EditorTheme.h"/>
-    <File Name="EditorThemeInit.cpp"/>
-    <File Name="EditorTheme.cpp"/>
-  </VirtualDirectory>
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -34,18 +26,17 @@
  }]]]>
     </Plugin>
   </Plugins>
+  <VirtualDirectory Name="Editor">
+    <File Name="MainThemeInit.h"/>
+    <File Name="MainTheme.h"/>
+  </VirtualDirectory>
   <VirtualDirectory Name="Viewer">
     <File Name="ViewerThemeInit.h"/>
     <File Name="ViewerThemeInit.cpp"/>
     <File Name="ViewerTheme.h"/>
     <File Name="ViewerTheme.cpp"/>
   </VirtualDirectory>
-  <VirtualDirectory Name="Scanner">
-    <File Name="ScannerThemeInit.h"/>
-    <File Name="ScannerThemeInit.cpp"/>
-    <File Name="ScannerTheme.h"/>
-    <File Name="ScannerTheme.cpp"/>
-  </VirtualDirectory>
+  <VirtualDirectory Name="Scanner"/>
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">

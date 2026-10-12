@@ -1,11 +1,5 @@
 #include <header.h>
 #include <CanvasSizeDialog.h>
-#include <wx/xrc/xmlres.h>
-#include <wx/slider.h>
-#include <wx/combobox.h>
-#include <wx/textctrl.h>
-#include <wx/stattext.h>
-#include <wx/spinctrl.h>
 using namespace Regards::Dialog;
 
 BEGIN_EVENT_TABLE(CCanvasSizeDialog, wxDialog)

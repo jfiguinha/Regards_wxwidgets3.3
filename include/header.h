@@ -97,6 +97,12 @@
 #include <opencv2/core/ocl.hpp>
 #include <opencv2/core/mat.hpp>
 #include <wx/mstream.h>
+#include <wx/xrc/xmlres.h>
+#include <wx/slider.h>
+#include <wx/combobox.h>
+#include <wx/textctrl.h>
+#include <wx/stattext.h>
+#include <wx/spinctrl.h>
 using namespace std;
 
 /*  check if the current version is at least major.minor.release */
