@@ -30,9 +30,30 @@ public:
     }
 
 private:
+    // --- Rendu ---
     void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
     bool ApplySelectEffect(int& widthOutput, int& heightOutput)  override;
     void RenderTexture(GLTexture* textureDisplay, const bool& invertPos, int width, int height);
+
+    // Régénère le bitmap d'écran du calque actif si nécessaire. Retourne true si le calque actif a changé.
+    bool UpdateScreenBitmap(LayerElement* activeLayer, int& widthOutput, int& heightOutput, bool bitmapIsLoad);
+
+    // --- Etat de la vue / géométrie (communs à Resize, CanvasResize, OnUpdateLayerBitmap) ---
+    void ResetViewState();
+    bool UpdateBitmapSizeFromLayers();
+    void ApplyGeometryChange();
+
+    // --- Composition : routage selon le backend du calque, avec repli CPU ---
+    void ComposeLayers(LayerElement* typeSource, GLTexture* textureDisplay, int width, int height, bool activeDirty);
+
+    // --- Briques communes aux backends ---
+    bool IsActiveLayer(size_t index) const
+    {
+        return static_cast<int>(index) == numActifLayer;
+    }
+    cv::Mat PrepareBackgroundMat(int width, int height);
+    cv::Mat PrepareActiveLayerImage(int width, int height);
+    bool UploadToTexture(GLTexture& texture, const cv::Mat& image);
 
     // --- Backend OpenGL ---
     bool ComposeLayersGPU(GLTexture* textureDisplay, int width, int height, bool activeDirty);
@@ -40,7 +61,7 @@ private:
     GLTexture* GetLayerTexture(LayerElement* layer, int width, int height);
     GLTexture* GetActiveLayerTexture(int width, int height, bool activeDirty);
 
-    // --- Nouveau Backend OpenCL ---
+    // --- Backend OpenCL ---
     bool ComposeLayersOpenCL(GLTexture* textureDisplay, int width, int height, bool activeDirty);
     cv::UMat GetLayerUMat(LayerElement* layer, int width, int height);
     cv::UMat GetActiveLayerUMat(int width, int height, bool activeDirty);
@@ -50,18 +71,16 @@ private:
     // Ressources OpenGL
     std::unique_ptr<CLayerCompositorGL> layerCompositor;
     std::unique_ptr<GLTexture> backgroundTexture;
-    int backgroundTextureWidth = 0;
-    int backgroundTextureHeight = 0;
+    cv::Size backgroundTextureSize;
     std::unique_ptr<GLTexture> activeLayerTexture;
-    int activeLayerTextureWidth = 0;
-    int activeLayerTextureHeight = 0;
+    cv::Size activeLayerTextureSize;
 
-    // Nouvelles ressources OpenCL
+    // Ressources OpenCL
     std::unique_ptr<CLayerCompositorOpenCL> layerCompositorOpenCL;
     cv::UMat backgroundUMat;
+    cv::Size backgroundUMatSize;
     cv::UMat activeLayerUMat;
-    int activeLayerUMatWidth = 0;
-    int activeLayerUMatHeight = 0;
+    cv::Size activeLayerUMatSize;
 
     uint64_t lastSourceLayerId = 0;
     uint64_t lastSourceVersion = 0;

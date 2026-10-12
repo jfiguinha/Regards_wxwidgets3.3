@@ -1,4 +1,4 @@
-// ==================== BitmapEditor.cpp (Extrait & Nouveautés) ====================
+// ==================== BitmapEditor.cpp ====================
 #include <header.h>
 #include "BitmapEditor.h"
 #include <libPicture.h>
@@ -6,7 +6,6 @@
 #include <opencv2/core/ocl.hpp>
 #include <RegardsConfigParam.h>
 #include <GLTexture.h>
-#include <LayerCompositorGL.h>
 #include <vector>
 #include <ViewerTheme.h>
 #include <FiltreEffet.h>
@@ -14,11 +13,112 @@
 #include <RGBAQuad.h>
 #include <ImageLoadingFormat.h>
 #include <Draw.h>
-#include <LayerElement.h>
 #include <LayerFonction.h>
 using namespace Regards::Viewer;
 
-#define RENDER_OPENGL
+//-----------------------------------------------------------------
+// Utilitaires locaux (partagés par les backends GL / OpenCL / CPU)
+//-----------------------------------------------------------------
+namespace
+{
+    // Parcourt les calques dans l'ordre (index 0 -> dernier) en sautant les calques
+    // nuls, invisibles ou d'opacité nulle. Opacité normalisée dans [0..1].
+    template <typename LayerList, typename Visitor>
+    void ForEachVisibleLayer(LayerList& layers, Visitor&& visit)
+    {
+        const size_t count = static_cast<size_t>(layers.size());
+        for (size_t index = 0; index < count; index++)
+        {
+            LayerElement* layer = layers[index];
+            if (layer == nullptr || !layer->isVisible)
+                continue;
+
+            const float opacity = LayerFonction::Clamp01(static_cast<float>(layer->opacity) / 100.0f);
+            if (opacity <= 0.0f)
+                continue;
+
+            visit(index, layer, opacity);
+        }
+    }
+
+    // Le cache GPU/UMat du calque est-il valide pour cette taille de sortie ?
+    bool IsLayerTextureCurrent(const LayerElement* layer, int width, int height)
+    {
+        return !layer->needTextureUpdate && layer->textureWidth == width && layer->textureHeight == height;
+    }
+
+    void MarkLayerTextureCurrent(LayerElement* layer, int width, int height)
+    {
+        layer->needTextureUpdate = false;
+        layer->textureWidth = width;
+        layer->textureHeight = height;
+    }
+
+    // Image d'un calque non actif, préparée à la taille de sortie (vide si invalide).
+    cv::Mat PrepareLayerSource(LayerElement* layer, int width, int height)
+    {
+        CImageLoadingFormat* picture = layer->GetPicture();
+        if (picture == nullptr || !picture->IsOk())
+            return cv::Mat();
+
+        return LayerFonction::PrepareLayerImage(picture->GetMatImage(), width, height);
+    }
+
+    void LogFallbackOnce(bool& alreadyLogged, const char* message)
+    {
+        if (!alreadyLogged)
+        {
+            wxLogDebug("%s", message);
+            alreadyLogged = true;
+        }
+    }
+
+    // Place l'image sur un nouveau canvas (noir/transparent) selon l'ancre choisie,
+    // avec recadrage si l'image dépasse du canvas.
+    cv::Mat PlaceOnCanvas(const cv::Mat& oldImage, const CanvasSizeParameter& canvasSize)
+    {
+        const int newWidth = canvasSize.width;
+        const int newHeight = canvasSize.height;
+        cv::Mat newCanvas = cv::Mat::zeros(newHeight, newWidth, oldImage.type());
+
+        int dstX = 0;
+        int dstY = 0;
+
+        switch (canvasSize.position)
+        {
+        case CanvasSizeParameter::Position::TopLeft:
+            break;
+
+        case CanvasSizeParameter::Position::Center:
+            dstX = (newWidth - oldImage.cols) / 2;
+            dstY = (newHeight - oldImage.rows) / 2;
+            break;
+
+        case CanvasSizeParameter::Position::TopRight:
+            dstX = newWidth - oldImage.cols;
+            break;
+
+        case CanvasSizeParameter::Position::BottomLeft:
+            dstY = newHeight - oldImage.rows;
+            break;
+
+        case CanvasSizeParameter::Position::BottomRight:
+            dstX = newWidth - oldImage.cols;
+            dstY = newHeight - oldImage.rows;
+            break;
+        }
+
+        // Zone de destination = intersection de l'ancienne image (positionnée) et du nouveau canvas
+        const cv::Rect dstROI = cv::Rect(dstX, dstY, oldImage.cols, oldImage.rows) & cv::Rect(0, 0, newWidth, newHeight);
+        if (!dstROI.empty())
+        {
+            const cv::Rect srcROI(dstROI.x - dstX, dstROI.y - dstY, dstROI.width, dstROI.height);
+            oldImage(srcROI).copyTo(newCanvas(dstROI));
+        }
+
+        return newCanvas;
+    }
+}
 
 CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId, const CThemeBitmapWindow& theme,
     CBitmapInterface* bitmapInterface) : Regards::Control::CBitmapWndViewer(slider, mainViewerId, theme, bitmapInterface)
@@ -45,16 +145,44 @@ void CBitmapEditor::SetFilename(const wxString& filename)
     this->filename = filename;
 }
 
+//-----------------------------------------------------------------
+// Régénère le bitmap d'écran du calque actif (filtres / preview / redimensionnement).
+// Retourne true si le résultat du calque actif a été régénéré.
+//-----------------------------------------------------------------
+bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer, int& widthOutput, int& heightOutput, bool bitmapIsLoad)
+{
+    updateFilter = forceUpdateFilter || preview > 0 || bitmapIsLoad;
+
+    if (updateFilter)
+    {
+        if (!bitmapIsLoad)
+            filtreEffet->SetBitmap(activeLayer->GetPicture());
+        BeforeInterpolationBitmap();
+        updateFilter = true; // BeforeInterpolationBitmap peut modifier le drapeau
+    }
+
+    const bool regenerate = updateFilter || widthOutputOld != widthOutput || heightOutputOld != heightOutput;
+    if (regenerate)
+    {
+        GenerateScreenBitmap(filtreEffet.get(), widthOutput, heightOutput);
+        ApplyPreviewEffect(widthOutput, heightOutput);
+        ApplySelectEffect(widthOutput, heightOutput);
+    }
+
+    updateFilter = false;
+    widthOutputOld = widthOutput;
+    heightOutputOld = heightOutput;
+    return regenerate;
+}
 
 //-----------------------------------------------------------------
-// Dessin de l'image (Mise à jour pour gérer TYPE_OPENCL)
+// Dessin de l'image
 //-----------------------------------------------------------------
 void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
 {
 #ifndef WIN32
     scale_factor = parentRender->GetContentScaleFactor();
 #endif
-
 
     if (numActifLayer < 0 || numActifLayer >= listOfLayer.size())
         return;
@@ -63,6 +191,7 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
     if (layerElement == nullptr)
         return;
 
+    // Changement de calque source ou de version -> rechargement du bitmap
     if (layerElement->layerId != lastSourceLayerId || layerElement->pictureVersion != lastSourceVersion)
     {
         loadBitmap = true;
@@ -80,98 +209,108 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
         renderBitmapOpenGL->LoadingResource(scale_factor, themeBitmap.colorArrow);
     }
 
-    if (renderBitmapOpenGL != nullptr)
+    int widthOutput = static_cast<int>(GetBitmapWidthWithRatio()) * scale_factor;
+    int heightOutput = static_cast<int>(GetBitmapHeightWithRatio()) * scale_factor;
+
+    bool bitmapIsLoad = false;
+
+    if (loadBitmap)
     {
-        CRgbaquad color;
-        int widthOutput = static_cast<int>(GetBitmapWidthWithRatio()) * scale_factor;
-        int heightOutput = static_cast<int>(GetBitmapHeightWithRatio()) * scale_factor;
-
-        bool invert = true;
-        bool bitmapIsLoad = false;
-        bool activeDirty = false;
-
-        if (loadBitmap)
+        if (filtreEffet == nullptr)
         {
-            if (filtreEffet == nullptr)
-                filtreEffet = std::make_unique<CFiltreEffet>(color, renderOpenGL->GetOpenCLContext(), source);
-            else
-                filtreEffet->SetBitmap(source);
-
-            loadBitmap = false;
-            bitmapIsLoad = true;
+            CRgbaquad color;
+            filtreEffet = std::make_unique<CFiltreEffet>(color, renderOpenGL->GetOpenCLContext(), source);
         }
+        else
+            filtreEffet->SetBitmap(source);
 
-        if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0)
-        {
-            if (widthOutput < 0 || heightOutput < 0)
-                return;
-
-            if (forceUpdateFilter || preview > 0 || bitmapIsLoad)
-                updateFilter = true;
-            else
-                updateFilter = false;
-
-            if (updateFilter)
-            {
-                if (!bitmapIsLoad)
-                    filtreEffet->SetBitmap(source);
-                BeforeInterpolationBitmap();
-                updateFilter = true;
-            }
-
-            if (updateFilter || widthOutputOld != widthOutput || heightOutputOld != heightOutput)
-            {
-                GenerateScreenBitmap(filtreEffet.get(), widthOutput, heightOutput);
-                ApplyPreviewEffect(widthOutput, heightOutput);
-                ApplySelectEffect(widthOutput, heightOutput);
-                activeDirty = true;
-            }
-
-            updateFilter = false;
-            widthOutputOld = widthOutput;
-            heightOutputOld = heightOutput;
-
-            // Initialiser le fond de l'écran avec la couleur de thème
-            renderOpenGL->CreateScreenRender(GetWidth() * scale_factor, GetHeight() * scale_factor,
-                CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
-                    themeBitmap.colorBack.Blue()));
-
-            GLTexture* textureDisplay = renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
-            if (textureDisplay == nullptr)
-                return;
-
-            // ROUTAGE DU MODE DE COMPOSITION SELON LE BACKEND DU CALQUE
-            if (layerElement->TypeLayer() == TYPE_OPENGL)
-            {
-                if (!ComposeLayersGPU(textureDisplay, widthOutput, heightOutput, activeDirty))
-                {
-                    if (!gpuComposeFallbackLogged)
-                    {
-                        wxLogDebug("CBitmapEditor : composition GPU des calques indisponible, repli CPU");
-                        gpuComposeFallbackLogged = true;
-                    }
-                    ComposeLayersCPU(textureDisplay, widthOutput, heightOutput);
-                }
-            }
-            else if (layerElement->TypeLayer() == TYPE_OPENCL)
-            {
-                // APPEL DU NOUVEAU LOGICIEL DE RENDU OPENCL
-                if (!ComposeLayersOpenCL(textureDisplay, widthOutput, heightOutput, activeDirty))
-                {
-                    if (!openclComposeFallbackLogged)
-                    {
-                        wxLogDebug("CBitmapEditor : composition OpenCL indisponible ou erreur, repli CPU");
-                        openclComposeFallbackLogged = true;
-                    }
-                    ComposeLayersCPU(textureDisplay, widthOutput, heightOutput);
-                }
-            }
-
-            RenderTexture(textureDisplay, invert, widthOutput, heightOutput);
-        }
-        AfterRender();
+        loadBitmap = false;
+        bitmapIsLoad = true;
     }
+
+    if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0)
+    {
+        if (widthOutput < 0 || heightOutput < 0)
+            return;
+
+        const bool activeDirty = UpdateScreenBitmap(layerElement, widthOutput, heightOutput, bitmapIsLoad);
+
+        // Initialiser le fond de l'écran avec la couleur de thème
+        renderOpenGL->CreateScreenRender(GetWidth() * scale_factor, GetHeight() * scale_factor,
+            CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
+                themeBitmap.colorBack.Blue()));
+
+        GLTexture* textureDisplay = renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
+        if (textureDisplay == nullptr)
+            return;
+
+        ComposeLayers(layerElement, textureDisplay, widthOutput, heightOutput, activeDirty);
+        RenderTexture(textureDisplay, true, widthOutput, heightOutput);
+    }
+
+    AfterRender();
     canvas->SwapBuffers();
+}
+
+//-----------------------------------------------------------------
+// Routage de la composition selon le backend du calque, repli CPU en cas d'échec
+//-----------------------------------------------------------------
+void CBitmapEditor::ComposeLayers(LayerElement* typeSource, GLTexture* textureDisplay, int width, int height, bool activeDirty)
+{
+    const auto typeLayer = typeSource->TypeLayer();
+
+    if (typeLayer == TYPE_OPENGL)
+    {
+        if (!ComposeLayersGPU(textureDisplay, width, height, activeDirty))
+        {
+            LogFallbackOnce(gpuComposeFallbackLogged, "CBitmapEditor : composition GPU des calques indisponible, repli CPU");
+            ComposeLayersCPU(textureDisplay, width, height);
+        }
+    }
+    else if (typeLayer == TYPE_OPENCL)
+    {
+        if (!ComposeLayersOpenCL(textureDisplay, width, height, activeDirty))
+        {
+            LogFallbackOnce(openclComposeFallbackLogged, "CBitmapEditor : composition OpenCL indisponible ou erreur, repli CPU");
+            ComposeLayersCPU(textureDisplay, width, height);
+        }
+    }
+}
+
+//-----------------------------------------------------------------
+// Briques communes aux backends
+//-----------------------------------------------------------------
+
+// Fond de prévisualisation opaque (damier) à la taille de sortie ; gris uni si la préparation échoue.
+cv::Mat CBitmapEditor::PrepareBackgroundMat(int width, int height)
+{
+    if (pictureBackground.empty() ||
+        pictureBackground.getWidth() != width ||
+        pictureBackground.getHeight() != height)
+    {
+        pictureBackground.SetArray(
+            Regards::Picture::CLibPicture::CreateCheckerboardBackground(width, height));
+    }
+
+    cv::Mat background = LayerFonction::PrepareLayerImage(pictureBackground.getMat(), width, height);
+    if (background.empty())
+        background = cv::Mat(height, width, CV_8UC4, cv::Scalar(128, 128, 128, 255));
+
+    return background;
+}
+
+// Résultat des filtres/preview du calque actif (filtreEffet), préparé à la taille de sortie.
+cv::Mat CBitmapEditor::PrepareActiveLayerImage(int width, int height)
+{
+    Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
+    return LayerFonction::PrepareLayerImage(activePicture.getMat(), width, height);
+}
+
+bool CBitmapEditor::UploadToTexture(GLTexture& texture, const cv::Mat& image)
+{
+    cv::Mat local = image;
+    Regards::Picture::CPictureArray array(local);
+    return texture.SetData(array, renderOpenGL->GetOpenCLContext());
 }
 
 //-----------------------------------------------------------------
@@ -179,30 +318,21 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL)
 //-----------------------------------------------------------------
 cv::UMat CBitmapEditor::GetLayerUMat(LayerElement* layer, int width, int height)
 {
-    LayerElementUMat* layerElement = (LayerElementUMat*)layer;
+    auto* layerUMat = static_cast<LayerElementUMat*>(layer);
 
-    cv::UMat texture = layerElement->GetUMatTexture();
-    if (!texture.empty() && !layerElement->needTextureUpdate &&
-        layerElement->textureWidth == width && layerElement->textureHeight == height)
+    cv::UMat texture = layerUMat->GetUMatTexture();
+    if (!texture.empty() && IsLayerTextureCurrent(layer, width, height))
         return texture;
 
-    CImageLoadingFormat* picture = layerElement->GetPicture();
-    if (picture == nullptr || !picture->IsOk())
-        return cv::UMat();
-
-    // Traitement et redimensionnement matériels sur le GPU via OpenCL
-    cv::Mat prepared = LayerFonction::PrepareLayerImage(picture->GetMatImage(), width, height);
+    cv::Mat prepared = PrepareLayerSource(layer, width, height);
     if (prepared.empty())
         return cv::UMat();
 
     // Transfert vers l'espace mémoire d'OpenCL
     cv::UMat newUMatTexture = prepared.getUMat(cv::ACCESS_READ);
 
-    layerElement->SetUMatTexture(newUMatTexture);
-    layerElement->needTextureUpdate = false;
-    layerElement->textureWidth = width;
-    layerElement->textureHeight = height;
-
+    layerUMat->SetUMatTexture(newUMatTexture);
+    MarkLayerTextureCurrent(layer, width, height);
     return newUMatTexture;
 }
 
@@ -211,20 +341,16 @@ cv::UMat CBitmapEditor::GetLayerUMat(LayerElement* layer, int width, int height)
 //-----------------------------------------------------------------
 cv::UMat CBitmapEditor::GetActiveLayerUMat(int width, int height, bool activeDirty)
 {
-    if (!activeLayerUMat.empty() && !activeDirty &&
-        activeLayerUMatWidth == width && activeLayerUMatHeight == height)
+    const cv::Size size(width, height);
+    if (!activeLayerUMat.empty() && !activeDirty && activeLayerUMatSize == size)
         return activeLayerUMat;
 
-    Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-    cv::Mat prepared = LayerFonction::PrepareLayerImage(activePicture.getMat(), width, height);
+    cv::Mat prepared = PrepareActiveLayerImage(width, height);
     if (prepared.empty())
         return cv::UMat();
 
-    // Allocation/mise à jour du conteneur global OpenCL
     activeLayerUMat = prepared.getUMat(cv::ACCESS_READ);
-    activeLayerUMatWidth = width;
-    activeLayerUMatHeight = height;
-
+    activeLayerUMatSize = size;
     return activeLayerUMat;
 }
 
@@ -241,68 +367,42 @@ bool CBitmapEditor::ComposeLayersOpenCL(GLTexture* textureDisplay, int width, in
     if (!layerCompositorOpenCL->IsValid())
         return false;
 
-    // 1. Gestion du fond en damier
-    if (pictureBackground.empty() ||
-        pictureBackground.getWidth() != width ||
-        pictureBackground.getHeight() != height)
+    // 1. Fond en damier (reconstruit uniquement si la taille de sortie change)
+    const cv::Size size(width, height);
+    if (backgroundUMat.empty() || backgroundUMatSize != size)
     {
-        pictureBackground.SetArray(
-            Regards::Picture::CLibPicture::CreateCheckerboardBackground(width, height));
-
-        cv::Mat background = LayerFonction::PrepareLayerImage(pictureBackground.getMat(), width, height);
-        if (background.empty())
-            background = cv::Mat(height, width, CV_8UC4, cv::Scalar(128, 128, 128, 255));
-
-        backgroundUMat = background.getUMat(cv::ACCESS_READ);
+        backgroundUMat = PrepareBackgroundMat(width, height).getUMat(cv::ACCESS_READ);
+        backgroundUMatSize = size;
     }
 
-    // 2. Remplissage du vecteur de passes OpenCL (LayerPassOpenCL)
+    // 2. Remplissage du vecteur de passes OpenCL
     std::vector<LayerPassOpenCL> passes;
     passes.reserve(listOfLayer.size());
 
-    for (size_t index = 0; index < listOfLayer.size(); index++)
-    {
-        LayerElement* layer = listOfLayer[index];
-        if (layer == nullptr || !layer->isVisible)
-            continue;
+    ForEachVisibleLayer(listOfLayer, [&](size_t index, LayerElement* layer, float opacity)
+        {
+            cv::UMat texture = IsActiveLayer(index)
+                ? GetActiveLayerUMat(width, height, activeDirty)
+                : GetLayerUMat(layer, width, height);
 
-        const float opacity = LayerFonction::Clamp01(static_cast<float>(layer->opacity) / 100.0f);
-        if (opacity <= 0.0f)
-            continue;
+            if (!texture.empty())
+                passes.push_back(LayerPassOpenCL{ texture, opacity, static_cast<int>(layer->blendMode) });
+        });
 
-        cv::UMat texture = (static_cast<int>(index) == numActifLayer)
-            ? GetActiveLayerUMat(width, height, activeDirty)
-            : GetLayerUMat(layer, width, height);
-
-        if (texture.empty())
-            continue;
-
-        passes.push_back(LayerPassOpenCL{ texture, opacity, static_cast<int>(layer->blendMode) });
-    }
-
-    // 3. Execution de la fusion matérielle OpenCL dans un conteneur UMat temporaire
+    // 3. Fusion matérielle OpenCL dans un UMat temporaire
     cv::UMat targetUMat;
-    bool composed = layerCompositorOpenCL->Compose(backgroundUMat, passes, targetUMat, width, height);
+    const bool composed = layerCompositorOpenCL->Compose(backgroundUMat, passes, targetUMat, width, height);
 
+    // 4. Copie du résultat vers la texture OpenGL d'affichage
     if (composed && !targetUMat.empty())
-    {
-        // 4. Copie du résultat de la mémoire OpenCL vers la texture OpenGL partagée pour l'affichage écran
-        cv::Mat normalMat = targetUMat.getMat(cv::ACCESS_READ);
-        Regards::Picture::CPictureArray finalPicture(normalMat);
-        textureDisplay->SetData(finalPicture, renderOpenGL->GetOpenCLContext());
-    }
+        UploadToTexture(*textureDisplay, targetUMat.getMat(cv::ACCESS_READ));
 
     return composed;
 }
 
-
 void CBitmapEditor::CanvasResize(CanvasSizeParameter canvasSize)
 {
-    // 1. Déterminer les nouvelles dimensions
-    int newWidth = canvasSize.width;
-    int newHeight = canvasSize.height;
-
-    // 2. Parcourir l'ensemble des calques (LayerElement) contenus dans listOfLayer
+    // Parcourir l'ensemble des calques
     for (size_t i = 0; i < listOfLayer.size(); ++i)
     {
         LayerElement* layer = listOfLayer[i];
@@ -311,102 +411,16 @@ void CBitmapEditor::CanvasResize(CanvasSizeParameter canvasSize)
         CImageLoadingFormat* pictureFormat = layer->GetPicture();
         if (!pictureFormat) continue;
 
-        // Récupérer la matrice OpenCV actuelle et ses dimensions
-        cv::Mat oldImage = pictureFormat->GetMatImage();
-        int oldWidth = oldImage.cols;
-        int oldHeight = oldImage.rows;
-
-        // Créer une nouvelle zone de travail transparente ou noire (selon votre type d'image, ici en RGBA/8UC4)
-        // Si vous utilisez du RVB simple, utilisez cv::Scalar(0, 0, 0) et le bon type.
-        cv::Mat newCanvas = cv::Mat::zeros(newHeight, newWidth, oldImage.type());
-
-        // 3. Calculer les coordonnées de destination (X, Y) basées sur l'ancre choisie
-        int dstX = 0;
-        int dstY = 0;
-
-        switch (canvasSize.position)
-        {
-        case CanvasSizeParameter::Position::TopLeft:
-            dstX = 0;
-            dstY = 0;
-            break;
-
-        case CanvasSizeParameter::Position::Center:
-            dstX = (newWidth - oldWidth) / 2;
-            dstY = (newHeight - oldHeight) / 2;
-            break;
-
-        case CanvasSizeParameter::Position::TopRight:
-            dstX = newWidth - oldWidth;
-            dstY = 0;
-            break;
-
-        case CanvasSizeParameter::Position::BottomLeft:
-            dstX = 0;
-            dstY = newHeight - oldHeight;
-            break;
-
-        case CanvasSizeParameter::Position::BottomRight:
-            dstX = newWidth - oldWidth;
-            dstY = newHeight - oldHeight;
-            break;
-        }
-
-        // 4. Gérer les cas de débordement ou de recadrage (clipping)
-        int srcX = 0;
-        int srcY = 0;
-        int copyWidth = oldWidth;
-        int copyHeight = oldHeight;
-
-        // Si l'ancienne image sort à gauche ou en haut du nouveau canvas
-        if (dstX < 0) { srcX = -dstX; copyWidth += dstX; dstX = 0; }
-        if (dstY < 0) { srcY = -dstY; copyHeight += dstY; dstY = 0; }
-
-        // Si l'ancienne image dépasse à droite ou en bas du nouveau canvas
-        if (dstX + copyWidth > newWidth) { copyWidth = newWidth - dstX; }
-        if (dstY + copyHeight > newHeight) { copyHeight = newHeight - dstY; }
-
-        // 5. Copier les pixels de l'ancienne image vers la nouvelle zone si une zone valide existe
-        if (copyWidth > 0 && copyHeight > 0)
-        {
-            cv::Rect srcROI(srcX, srcY, copyWidth, copyHeight);
-            cv::Rect dstROI(dstX, dstY, copyWidth, copyHeight);
-
-            oldImage(srcROI).copyTo(newCanvas(dstROI));
-        }
+        [[maybe_unused]] const cv::Mat newCanvas = PlaceOnCanvas(pictureFormat->GetMatImage(), canvasSize);
 
         // Mettre à jour l'image du calque avec le nouveau canvas redimensionné
-       // pictureFormat->SetPicture(newCanvas);
+        // pictureFormat->SetPicture(newCanvas);
     }
 
     listOfLayer.IsChanged(true);
 
-    // 6. Mettre à jour les variables de taille de l'éditeur sur la base de l'image principale
-    CImageLoadingFormat* source = listOfLayer.GetPictureToShow();
-    if (source)
-    {
-        bitmapwidth = source->GetWidth();
-        bitmapheight = source->GetHeight();
-        orientation = source->GetOrientation();
-    }
-
-    // 7. Forcer le rafraîchissement de l'interface graphique (repris de votre méthode Resize)
-    loadBitmap = true;
-    bitmapLoad = true;
-    bitmapUpdate = true;
-    flipVertical = 0;
-    flipHorizontal = 0;
-    angle = 0;
-    toolOption = MOVEPICTURE;
-
-    ShrinkImage(false);
-    AfterSetBitmap();
-    RemoveListener(false);
-
-    if (parentRender)
-        parentRender->Refresh();
-
-    RefreshWindow();
+    UpdateBitmapSizeFromLayers();
+    ApplyGeometryChange();
 }
 
 void CBitmapEditor::Resize(const int& widthOut, const int& heightOut, const int& method)
@@ -422,10 +436,10 @@ void CBitmapEditor::Resize(const int& widthOut, const int& heightOut, const int&
 
         // Initialisation des filtres d'effet OpenCV pour le calque actuel
         CRgbaquad color;
-        CFiltreEffet filtreEffet(color, nullptr, layerSource);
+        CFiltreEffet layerFilter(color, nullptr, layerSource);
 
         // Calcul du redimensionnement via OpenCV
-        cv::Mat output = filtreEffet.Resize(widthOut, heightOut, method);
+        cv::Mat output = layerFilter.Resize(widthOut, heightOut, method);
 
         // Appliquer la nouvelle matrice redimensionnée au calque
         layerSource->SetPicture(output);
@@ -436,15 +450,8 @@ void CBitmapEditor::Resize(const int& widthOut, const int& heightOut, const int&
 
     listOfLayer.IsChanged(true);
 
-    // 2. Récupérer l'image globale/principale pour mettre à jour les métadonnées du Viewer
-    CImageLoadingFormat* source = listOfLayer.GetPictureToShow();
-    if (source)
-    {
-        bitmapwidth = source->GetWidth();
-        bitmapheight = source->GetHeight();
-        orientation = source->GetOrientation();
-    }
-    else
+    // 2. Mise à jour des métadonnées du Viewer
+    if (!UpdateBitmapSizeFromLayers())
     {
         // Sécurité si GetPictureToShow() utilise une logique différente ou est nul
         bitmapwidth = widthOut;
@@ -452,29 +459,54 @@ void CBitmapEditor::Resize(const int& widthOut, const int& heightOut, const int&
         orientation = 1; // Orientation par défaut (Normal)
     }
 
-    // 3. Réinitialisation des états et rafraîchissement de l'interface
+    ApplyGeometryChange();
+}
+
+//-----------------------------------------------------------------
+// Taille / orientation de l'éditeur d'après l'image principale. false si aucune image.
+//-----------------------------------------------------------------
+bool CBitmapEditor::UpdateBitmapSizeFromLayers()
+{
+    CImageLoadingFormat* source = listOfLayer.GetPictureToShow();
+    if (source == nullptr)
+        return false;
+
+    bitmapwidth = source->GetWidth();
+    bitmapheight = source->GetHeight();
+    orientation = source->GetOrientation();
+    return true;
+}
+
+//-----------------------------------------------------------------
+// Réinitialise l'état de la vue après un changement d'image
+//-----------------------------------------------------------------
+void CBitmapEditor::ResetViewState()
+{
     loadBitmap = true;
     bitmapLoad = true;
     bitmapUpdate = true;
     flipVertical = 0;
     flipHorizontal = 0;
     angle = 0;
+}
 
+//-----------------------------------------------------------------
+// Fin commune de Resize / CanvasResize : reset d'état et rafraîchissement
+//-----------------------------------------------------------------
+void CBitmapEditor::ApplyGeometryChange()
+{
+    ResetViewState();
     toolOption = MOVEPICTURE;
 
     ShrinkImage(false);
     AfterSetBitmap();
-
     RemoveListener(false);
 
     if (parentRender)
-    {
         parentRender->Refresh();
-    }
 
     RefreshWindow();
 }
-
 
 void CBitmapEditor::ApplyEffectOnMouseRelease()
 {
@@ -513,11 +545,9 @@ void CBitmapEditor::RemoveListener(const bool& applyCancel)
 
 void CBitmapEditor::SetActifLayer(const int& numLayer)
 {
-    if (listOfLayer.size() > numLayer && numLayer != -1)
+    if (numLayer >= 0 && static_cast<size_t>(numLayer) < listOfLayer.size())
         numActifLayer = numLayer;
 }
-
-
 
 void CBitmapEditor::RenderTexture(GLTexture* textureDisplay, const bool& invertPos, int width, int height)
 {
@@ -528,14 +558,12 @@ void CBitmapEditor::RenderTexture(GLTexture* textureDisplay, const bool& invertP
 
         renderOpenGL->RenderToScreen(mouseUpdate, effectParameter, x, y, invertPos);
 
-
         //renderOpenGL->RenderQuad(textureDisplay, x, y, invertPos);
 
         xPosImage = x;
         yPosImage = y;
     }
 }
-
 
 //-----------------------------------------------------------------
 // Composition GPU : meme ordre que l'ancienne boucle (index 0 -> dernier),
@@ -551,59 +579,33 @@ bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width, int h
     if (!layerCompositor->IsValid())
         return false;
 
-    // Fond de previsualisation opaque (damier), identique a la version CPU.
-    if (pictureBackground.empty() ||
-        pictureBackground.getWidth() != width ||
-        pictureBackground.getHeight() != height)
+    // Fond de previsualisation (damier), reconstruit uniquement si la taille de sortie change.
+    const cv::Size size(width, height);
+    if (!backgroundTexture || backgroundTextureSize != size)
     {
-        pictureBackground.SetArray(
-            Regards::Picture::CLibPicture::CreateCheckerboardBackground(width, height));
-    }
-
-    if (!backgroundTexture || backgroundTextureWidth != width || backgroundTextureHeight != height)
-    {
-        cv::Mat background = LayerFonction::PrepareLayerImage(pictureBackground.getMat(), width, height);
-        if (background.empty())
-            background = cv::Mat(height, width, CV_8UC4, cv::Scalar(128, 128, 128, 255));
-
         auto texture = std::make_unique<GLTexture>();
-        Regards::Picture::CPictureArray array(background);
-        if (!texture->SetData(array, renderOpenGL->GetOpenCLContext()))
+        if (!UploadToTexture(*texture, PrepareBackgroundMat(width, height)))
             return false;
 
         backgroundTexture = std::move(texture);
-        backgroundTextureWidth = width;
-        backgroundTextureHeight = height;
+        backgroundTextureSize = size;
     }
 
     std::vector<LayerPass> passes;
     passes.reserve(listOfLayer.size());
 
-    for (size_t index = 0; index < listOfLayer.size(); index++)
-    {
-        LayerElement* layer = listOfLayer[index];
-        if (layer == nullptr || !layer->isVisible)
-            continue;
+    ForEachVisibleLayer(listOfLayer, [&](size_t index, LayerElement* layer, float opacity)
+        {
+            GLTexture* texture = IsActiveLayer(index)
+                ? GetActiveLayerTexture(width, height, activeDirty)
+                : GetLayerTexture(layer, width, height);
 
-        const float opacity = LayerFonction::Clamp01(static_cast<float>(layer->opacity) / 100.0f);
-        if (opacity <= 0.0f)
-            continue;
+            if (texture != nullptr)
+                passes.push_back(LayerPass{ texture, opacity, static_cast<int>(layer->blendMode) });
+        });
 
-        GLTexture* texture = (static_cast<int>(index) == numActifLayer)
-            ? GetActiveLayerTexture(width, height, activeDirty)
-            : GetLayerTexture(layer, width, height);
-        if (texture == nullptr)
-            continue;
-
-        passes.push_back(LayerPass{ texture, opacity, static_cast<int>(layer->blendMode) });
-    }
-
-    const bool composed = layerCompositor->Compose(backgroundTexture.get(), passes, textureDisplay, width, height);
-
-    return composed;
+    return layerCompositor->Compose(backgroundTexture.get(), passes, textureDisplay, width, height);
 }
-
-
 
 //-----------------------------------------------------------------
 // Texture GPU d'un calque non actif (image redimensionnee a la taille de sortie).
@@ -611,38 +613,29 @@ bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width, int h
 //-----------------------------------------------------------------
 GLTexture* CBitmapEditor::GetLayerTexture(LayerElement* layer, int width, int height)
 {
-    if (layer->TypeLayer() == TYPE_OPENGL)
+    if (layer->TypeLayer() != TYPE_OPENGL)
+        return nullptr;
+
+    auto* layerGL = static_cast<LayerElementGL*>(layer);
+
+    GLTexture* texture = layerGL->GetOpenGLTexture();
+    if (texture != nullptr && IsLayerTextureCurrent(layer, width, height))
+        return texture;
+
+    cv::Mat prepared = PrepareLayerSource(layer, width, height);
+    if (prepared.empty())
+        return nullptr;
+
+    auto* newTexture = new GLTexture();
+    if (!UploadToTexture(*newTexture, prepared))
     {
-        LayerElementGL* layerGL = (LayerElementGL*)layer;
-
-        GLTexture* texture = layerGL->GetOpenGLTexture();
-        if (texture != nullptr && !layer->needTextureUpdate &&
-            layer->textureWidth == width && layer->textureHeight == height)
-            return texture;
-
-        CImageLoadingFormat* picture = layer->GetPicture();
-        if (picture == nullptr || !picture->IsOk())
-            return nullptr;
-
-        cv::Mat prepared = LayerFonction::PrepareLayerImage(picture->GetMatImage(), width, height);
-        if (prepared.empty())
-            return nullptr;
-
-        auto* newTexture = new GLTexture();
-        Regards::Picture::CPictureArray array(prepared);
-        if (!newTexture->SetData(array, renderOpenGL->GetOpenCLContext()))
-        {
-            delete newTexture;
-            return nullptr;
-        }
-
-        layerGL->SetOpenGLTexture(newTexture); // detruit l'ancienne texture (contexte courant)
-        layer->needTextureUpdate = false;
-        layer->textureWidth = width;
-        layer->textureHeight = height;
-        return newTexture;
+        delete newTexture;
+        return nullptr;
     }
-    return nullptr;
+
+    layerGL->SetOpenGLTexture(newTexture); // detruit l'ancienne texture (contexte courant)
+    MarkLayerTextureCurrent(layer, width, height);
+    return newTexture;
 }
 
 //-----------------------------------------------------------------
@@ -651,24 +644,21 @@ GLTexture* CBitmapEditor::GetLayerTexture(LayerElement* layer, int width, int he
 //-----------------------------------------------------------------
 GLTexture* CBitmapEditor::GetActiveLayerTexture(int width, int height, bool activeDirty)
 {
-    if (activeLayerTexture && !activeDirty &&
-        activeLayerTextureWidth == width && activeLayerTextureHeight == height)
+    const cv::Size size(width, height);
+    if (activeLayerTexture && !activeDirty && activeLayerTextureSize == size)
         return activeLayerTexture.get();
 
-    Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-    cv::Mat prepared = LayerFonction::PrepareLayerImage(activePicture.getMat(), width, height);
+    cv::Mat prepared = PrepareActiveLayerImage(width, height);
     if (prepared.empty())
         return nullptr;
 
-    if (!activeLayerTexture || activeLayerTextureWidth != width || activeLayerTextureHeight != height)
+    if (!activeLayerTexture || activeLayerTextureSize != size)
     {
         activeLayerTexture = std::make_unique<GLTexture>();
-        activeLayerTextureWidth = width;
-        activeLayerTextureHeight = height;
+        activeLayerTextureSize = size;
     }
 
-    Regards::Picture::CPictureArray array(prepared);
-    if (!activeLayerTexture->SetData(array, renderOpenGL->GetOpenCLContext()))
+    if (!UploadToTexture(*activeLayerTexture, prepared))
     {
         activeLayerTexture.reset();
         return nullptr;
@@ -676,106 +666,55 @@ GLTexture* CBitmapEditor::GetActiveLayerTexture(int width, int height, bool acti
     return activeLayerTexture.get();
 }
 
-
 //-----------------------------------------------------------------
-// Ancienne composition CPU (conservee telle quelle comme repli).
+// Ancienne composition CPU (conservee comme repli).
 //-----------------------------------------------------------------
 void CBitmapEditor::ComposeLayersCPU(GLTexture* textureDisplay, int widthOutput, int heightOutput)
 {
     // Fond de previsualisation opaque (damier).
-    if (pictureBackground.empty() ||
-        pictureBackground.getWidth() != widthOutput ||
-        pictureBackground.getHeight() != heightOutput)
-    {
-        pictureBackground.SetArray(
-            Regards::Picture::CLibPicture::CreateCheckerboardBackground(
-                widthOutput, heightOutput));
-    }
+    cv::Mat composed = PrepareBackgroundMat(widthOutput, heightOutput);
 
-    cv::Mat composed = LayerFonction::PrepareLayerImage(
-        pictureBackground.getMat(), widthOutput, heightOutput);
-
-    if (composed.empty())
-    {
-        composed = cv::Mat(heightOutput, widthOutput, CV_8UC4,
-            cv::Scalar(128, 128, 128, 255));
-    }
-
-    for (int index = 0;
-        index < listOfLayer.size(); index++)
-    {
-        LayerElement* layer = listOfLayer[static_cast<size_t>(index)];
-        if (layer == nullptr || !layer->isVisible)
-            continue;
-
-        const float opacity = LayerFonction::Clamp01(
-            static_cast<float>(layer->opacity) / 100.0f);
-        if (opacity <= 0.0f)
-            continue;
-
-        cv::Mat sourceMat;
-        if (index == numActifLayer)
+    ForEachVisibleLayer(listOfLayer, [&](size_t index, LayerElement* layer, float opacity)
         {
-            Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-            const cv::Mat activeMat = activePicture.getMat().clone();
+            cv::Mat layerImage;
 
-            // Le calque actif doit utiliser le resultat des filtres/preview.
-            if (activeMat.empty())
-                continue;
-            sourceMat = activeMat;
-        }
-        else
-        {
-            CImageLoadingFormat* picture = layer->GetPicture();
-            if (picture == nullptr || !picture->IsOk())
-                continue;
+            if (IsActiveLayer(index))
+            {
+                // Le calque actif doit utiliser le resultat des filtres/preview.
+                Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
+                const cv::Mat activeMat = activePicture.getMat().clone();
+                if (activeMat.empty())
+                    return;
 
-            sourceMat = picture->GetMatImage();
-        }
+                layerImage = LayerFonction::PrepareLayerImage(activeMat, widthOutput, heightOutput);
+            }
+            else
+            {
+                layerImage = PrepareLayerSource(layer, widthOutput, heightOutput);
+            }
 
-        cv::Mat layerImage = LayerFonction::PrepareLayerImage(
-            sourceMat, widthOutput, heightOutput);
-        if (layerImage.empty())
-            continue;
+            if (layerImage.empty())
+                return;
 
-        LayerFonction::CompositeLayer(
-            composed, layerImage, opacity, layer->blendMode);
-    }
+            LayerFonction::CompositeLayer(composed, layerImage, opacity, layer->blendMode);
+        });
 
-    Regards::Picture::CPictureArray finalPicture(composed);
-    textureDisplay->SetData(finalPicture, renderOpenGL->GetOpenCLContext());
+    UploadToTexture(*textureDisplay, composed);
 }
-
-
 
 void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event)
 {
-    //int numLayer = event.GetInt();
     auto picture = static_cast<CImageLoadingFormat*>(event.GetClientData());
-    if (picture != nullptr)
+    if (picture == nullptr || !picture->IsOk())
+        return;
+
+    ResetViewState();
+    listOfLayer[numActifLayer]->SetPicture(picture);
+
+    wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
+    if (mainWindow)
     {
-        if (picture != nullptr)
-        {
-            if (picture->IsOk())
-            {
-
-                loadBitmap = true;
-                bitmapLoad = true;
-
-                bitmapUpdate = true;
-                flipVertical = 0;
-                flipHorizontal = 0;
-                angle = 0;
-                listOfLayer[numActifLayer]->SetPicture(picture);
-                //listOfLayer.UpdatePictureToShow();
-
-                wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
-                if (mainWindow)
-                {
-                    wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
-                    mainWindow->GetEventHandler()->AddPendingEvent(evt);
-                }
-            }
-        }
+        wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
+        mainWindow->GetEventHandler()->AddPendingEvent(evt);
     }
 }
