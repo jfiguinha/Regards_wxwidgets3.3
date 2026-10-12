@@ -956,8 +956,8 @@ void CBitmapWndRender::FlipVertical()
 
 
 	UpdateExifInfos();
-
-	//updateFilter = true;
+	updateFilter = true;
+	forceUpdateFilter = true;
 	RefreshWindow();
 }
 
@@ -966,7 +966,7 @@ void CBitmapWndRender::Rotate90()
 	//
 	angle += 90;
 	angle = angle % 360;
-
+	updateFilter = true;
 	UpdateExifInfos();
 	UpdateResized();
 	RefreshWindow();
@@ -977,7 +977,7 @@ void CBitmapWndRender::Rotate180()
 	//
 	angle += 180;
 	angle = angle % 360;
-
+	updateFilter = true;
 	UpdateExifInfos();
 	UpdateResized();
 	RefreshWindow();
@@ -1010,7 +1010,9 @@ void CBitmapWndRender::Rotate270()
 
 	angle += 270;
 	angle = angle % 360;
-	//updateFilter = true;
+	
+	updateFilter = true;
+	
 	UpdateExifInfos();
 
 	UpdateResized();
@@ -1024,8 +1026,9 @@ void CBitmapWndRender::FlipHorizontal()
 		flipHorizontal = 0;
 	else
 		flipHorizontal = 1;
-	//updateFilter = true;
 
+	updateFilter = true;
+	forceUpdateFilter = true;
 	UpdateExifInfos();
 
 	RefreshWindow();
