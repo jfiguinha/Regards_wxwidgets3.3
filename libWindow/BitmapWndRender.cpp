@@ -966,7 +966,9 @@ void CBitmapWndRender::Rotate90()
 	//
 	angle += 90;
 	angle = angle % 360;
+
 	updateFilter = true;
+	forceUpdateFilter = true;
 	UpdateExifInfos();
 	UpdateResized();
 	RefreshWindow();
@@ -977,7 +979,9 @@ void CBitmapWndRender::Rotate180()
 	//
 	angle += 180;
 	angle = angle % 360;
+
 	updateFilter = true;
+	forceUpdateFilter = true;
 	UpdateExifInfos();
 	UpdateResized();
 	RefreshWindow();
@@ -1011,7 +1015,9 @@ void CBitmapWndRender::Rotate270()
 	angle += 270;
 	angle = angle % 360;
 	
+
 	updateFilter = true;
+	forceUpdateFilter = true;
 	
 	UpdateExifInfos();
 
