@@ -535,7 +535,11 @@ void CBitmapEditor::RemoveListener(const bool& applyCancel) {
 }
 void CBitmapEditor::SetActifLayer(const int& numLayer) {
     if (numLayer >= 0 && static_cast<size_t>(numLayer) < listOfLayer.size())
+    {
         numActifLayer = numLayer;
+        loadBitmap = true;
+        needToRefresh = true;
+    }
 }
 void CBitmapEditor::RenderTexture(GLTexture* textureDisplay,
     const bool& invertPos, int width,

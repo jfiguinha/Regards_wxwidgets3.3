@@ -42,7 +42,23 @@ CThumbnailCalque::CThumbnailCalque(wxWindow* parent, const wxWindowID id, const 
 
 void CThumbnailCalque::OnPictureClick(const int& numPhotoId)
 {
-    if (actifLayer != numClickIcone)
+    bool hasChanged = false;
+    CIconeList* list = iconeList.get();
+    int numElement = 0;
+    for (LayerElement* layerElement : *listOfLayer)
+    {
+        auto* pBitmapIcone = list->GetElement(numElement);
+        if (layerElement->isVisible != pBitmapIcone->IsChecked())
+        {
+            layerElement->isVisible = pBitmapIcone->IsChecked();
+            hasChanged = true;
+        }
+            
+        numElement++;
+    }
+
+
+    if (actifLayer != numClickIcone || hasChanged)
     {
         actifLayer = numClickIcone;
         wxWindow* mainWindow = FindWindowById(frameId);

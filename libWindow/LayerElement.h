@@ -45,7 +45,6 @@ public:
     int opacity = 100;
     wxString layerName;
     bool needTextureUpdate = true;
-
     uint64_t layerId = NextLayerId();
     uint64_t pictureVersion = 0;
     int textureWidth = 0;

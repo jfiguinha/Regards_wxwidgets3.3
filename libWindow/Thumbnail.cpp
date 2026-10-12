@@ -1114,6 +1114,7 @@ void CThumbnail::OnLButtonDown(wxMouseEvent& event)
 			pBitmapIcone->SetSelected(true);
 		}
 		SetActifItem(numSelectPhotoId, false);
+		pBitmapIcone->SetSelected(true);
 	}
 	else
 	{
