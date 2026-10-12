@@ -306,6 +306,18 @@
     <ClInclude Include="LayerCompositorGL.h">
       <Filter>Layer</Filter>
     </ClInclude>
+    <ClInclude Include="LayerCompositor.h">
+      <Filter>Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerCompositorOpenCL.h">
+      <Filter>Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerFonction.h">
+      <Filter>Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerBlend.h">
+      <Filter>Layer</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapInfos.cpp">
@@ -504,6 +516,9 @@
       <Filter>Layer</Filter>
     </ClCompile>
     <ClCompile Include="LayerCompositorGL.cpp">
+      <Filter>Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="LayerCompositorOpenCL.cpp">
       <Filter>Layer</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,42 +1,50 @@
+// ==================== LayerElement.cpp ====================
 #include <header.h>
 #include "LayerElement.h"
-#include <ImageLoadingFormat.h>
-#include <RGBAQuad.h>
+#include <GLTexture.h>
 #include <opencv2/imgproc.hpp>
 #include <algorithm>
 #include <atomic>
-#include <cmath>
-#include <cstdint>
-#include <limits>
-#include <unordered_set>
-#include <GLTexture.h>
+#include <LayerFonction.h>
+// ============================================================================
+// Implémentation : LayerElement (Mère)
+// ============================================================================
+LayerElement::LayerElement() {}
 
-using namespace Regards::OpenGL;
-
-void LayerElement::SetOpenGLTexture(GLTexture* texture)
+LayerElement::LayerElement(const LayerElement& other)
 {
-    if (m_glTexture == texture) return;
-    DeleteOpenGLTexture();
-    m_glTexture = texture;
-}
+    numLayer = other.numLayer;
+    isVisible = other.isVisible;
+    blendMode = other.blendMode;
+    opacity = other.opacity;
+    layerName = other.layerName + " _copy";
 
-void LayerElement::DeleteOpenGLTexture()
-{
-    if (m_glTexture)
-    {
-        // Appelez ici la méthode de destruction de votre classe de texture si nécessaire
-        // ex: m_glTexture->Release(); 
-        delete m_glTexture;
-        m_glTexture = nullptr;
-    }
-}
+    if (other.picture)
+        picture = new CImageLoadingFormat(*other.picture);
 
-GLTexture* LayerElement::DetachOpenGLTexture()
-{
-    GLTexture* texture = m_glTexture;
-    m_glTexture = nullptr;
     needTextureUpdate = true;
-    return texture;
+}
+
+LayerElement::~LayerElement()
+{
+    if (picture)
+        delete picture;
+}
+
+void LayerElement::SetPicture(CImageLoadingFormat* source)
+{
+    if (picture)
+        delete picture;
+
+    picture = source;
+    pictureVersion++;
+    needTextureUpdate = true;
+}
+
+void LayerElement::InvalidatePicture()
+{
+    pictureVersion++;
+    needTextureUpdate = true;
 }
 
 uint64_t LayerElement::NextLayerId()
@@ -45,41 +53,166 @@ uint64_t LayerElement::NextLayerId()
     return ++counter;
 }
 
+// ============================================================================
+// Implémentation : LayerElementUMat
+// ============================================================================
+LayerElementUMat::LayerElementUMat(const LayerElementUMat& other) : LayerElement(other)
+{
+    // Réinitialisation de la texture spécifique
+    m_umatTexture = cv::UMat();
+}
+
+void LayerElementUMat::SetUMatTexture(const cv::UMat& texture)
+{
+    if (m_umatTexture.handle(cv::ACCESS_READ) == texture.handle(cv::ACCESS_READ))
+        return;
+    m_umatTexture = texture;
+}
+
+cv::UMat LayerElementUMat::DetachUMatTexture()
+{
+    cv::UMat texture = m_umatTexture;
+    m_umatTexture.release();
+    needTextureUpdate = true;
+    return texture;
+}
+
+// ============================================================================
+// Implémentation : LayerElementGL
+// ============================================================================
+LayerElementGL::LayerElementGL(const LayerElementGL& other) : LayerElement(other)
+{
+    // Réinitialisation du pointeur spécifique OpenGL pour éviter le double-free
+    m_glTexture = nullptr;
+}
+
+void LayerElementGL::DeleteTexture()
+{
+    if (m_glTexture)
+    {
+        delete m_glTexture;
+        m_glTexture = nullptr;
+    }
+}
+
+void LayerElementGL::SetOpenGLTexture(Regards::OpenGL::GLTexture* texture)
+{
+    if (m_glTexture == texture) return;
+    DeleteTexture();
+    m_glTexture = texture;
+}
+
+Regards::OpenGL::GLTexture* LayerElementGL::DetachOpenGLTexture()
+{
+    Regards::OpenGL::GLTexture* texture = m_glTexture;
+    m_glTexture = nullptr;
+    needTextureUpdate = true;
+    return texture;
+}
+
+// ============================================================================
+// Implémentation : CLayerList (Utilisation polymorphique)
+// ============================================================================
+
+CLayerList::~CLayerList()
+{
+    delete finalImage;
+    for (LayerElement* layer : m_layers)
+        delete layer; // Appelle le destructeur virtuel de la classe fille appropriée
+
+    FlushPendingTextureDeletes();
+}
+
+
+
 void CLayerList::RetireTexture(LayerElement* layer)
 {
-    if (!layer)
-        return;
+    if (!layer) return;
 
-    if (GLTexture* texture = layer->DetachOpenGLTexture())
-        m_pendingTextureDelete.push_back(texture);
+    // Utilisation dynamique pour détecter si c'est un calque OpenGL
+    if (auto* glLayer = dynamic_cast<LayerElementGL*>(layer))
+    {
+        if (Regards::OpenGL::GLTexture* texture = glLayer->DetachOpenGLTexture())
+            m_pendingTextureDelete.push_back(texture);
+    }
+    else
+    {
+        // Pour UMat, l'appel à la méthode virtuelle suffit, pas besoin de différer
+        layer->DeleteTexture();
+    }
 }
 
 void CLayerList::FlushPendingTextureDeletes()
 {
-    for (GLTexture* texture : m_pendingTextureDelete)
+    for (Regards::OpenGL::GLTexture* texture : m_pendingTextureDelete)
         delete texture;
     m_pendingTextureDelete.clear();
 }
 
-CImageLoadingFormat* CLayerList::GetPictureToShow()
+bool CLayerList::erase(size_t index)
 {
-    if (m_layers.empty())
-        return nullptr;
+    if (index >= m_layers.size()) return false;
 
-    if (m_layers.size() == 1 && m_layers.front())
-        return m_layers.front()->GetPicture();
+    if (m_layers[index])
+    {
+        RetireTexture(m_layers[index]);
+        delete m_layers[index]; // Destructeur virtuel appelé
+    }
+    m_layers.erase(m_layers.begin() + index);
 
-    if (canvasWidth <= 0 || canvasHeight <= 0)
-        return nullptr;
+    for (size_t i = 0; i < m_layers.size(); ++i)
+        if (m_layers[i]) m_layers[i]->numLayer = i;
 
-    if (!finalImage)
-        finalImage = new CImageLoadingFormat();
-
-    if (isChanged)
-        UpdatePictureToShow();
-
-    return finalImage;
+    if (m_layers.empty()) { canvasWidth = 0; canvasHeight = 0; }
+    isChanged = true;
+    return true;
 }
+
+bool CLayerList::copy(size_t index)
+{
+    if (index >= m_layers.size() || m_layers[index] == nullptr) return false;
+
+    // Utilisation du clonage polymorphique à la place du constructeur de copie direct
+    LayerElement* clonedLayer = m_layers[index]->Clone();
+    clonedLayer->numLayer = m_layers.size();
+    m_layers.push_back(clonedLayer);
+
+    isChanged = true;
+    return true;
+}
+
+void CLayerList::CreateLayer(wxString layerName, BackendType type)
+{
+    LayerElement* newLayer = nullptr;
+
+    // Instanciation de la bonne classe fille selon le besoin de votre application
+    if (type == BackendType::UMat)
+        newLayer = new LayerElementUMat();
+    else
+        newLayer = new LayerElementGL();
+
+    newLayer->isVisible = true;
+    newLayer->opacity = 100;
+    newLayer->layerName = layerName;
+    newLayer->numLayer = m_layers.size();
+
+    if (canvasWidth > 0 && canvasHeight > 0)
+    {
+        cv::Mat transparentMat = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
+        transparentMat.setTo(cv::Scalar(255, 255, 255, 0));
+
+        CImageLoadingFormat* newPicture = new CImageLoadingFormat();
+        newPicture->SetPicture(transparentMat);
+        newLayer->SetPicture(newPicture);
+    }
+    m_layers.push_back(newLayer);
+    isChanged = true;
+}
+
+// Les fonctions UpdatePictureToShow, FusionLayers, MoveUp/Down, SetPropertiesLayer et SetPicture
+// restent identiques à vos implémentations précédentes, car elles n'appellent que des propriétés
+// de la classe de base ou délèguent le traitement matriciel (cv::Mat) à LayerFonction.
+
 
 void CLayerList::UpdatePictureToShow()
 {
@@ -106,143 +239,36 @@ void CLayerList::UpdatePictureToShow()
     isChanged = false;
 }
 
-void CLayerList::SetPicture(CImageLoadingFormat* bitmapIn)
-{
-    if (!bitmapIn)
-        return;
-
-    if (m_layers.size() == 0 && bitmapIn)
-    {
-        canvasWidth = bitmapIn->GetWidth();
-        canvasHeight = bitmapIn->GetHeight();
-
-        LayerElement* element = new LayerElement();
-        element->isVisible = true;
-        element->numLayer = m_layers.size();
-        element->opacity = 100;
-        element->layerName = bitmapIn->GetFilename();
-        element->SetPicture(bitmapIn);
-
-        m_layers.push_back(element);
-    }
-    else
-    {
-        m_layers[0]->SetPicture(bitmapIn);
-    }
-    isChanged = true;
-
-
-
-}
-
-CLayerList::~CLayerList()
-{
-    delete finalImage;
-    finalImage = nullptr;
-    for (LayerElement* layerElement : m_layers)
-    {
-        if (layerElement)
-            delete layerElement;
-    }
-}
-
-void CLayerList::push_back(LayerElement* element) 
-{ 
-	if (!element)
-		return;
-
-	if (!element->GetPicture())
-		return;
-
-	if (m_layers.size() == 0 && element->GetPicture())
-	{
-		canvasWidth = element->GetPicture()->GetWidth();
-		canvasHeight = element->GetPicture()->GetHeight();
-	}
-
-    isChanged = true;
-
-	m_layers.push_back(element); 
-}
-
-int CLayerList::GetWidth() const
-{
-	return canvasWidth;
-}
-
-int CLayerList::GetHeight() const
-{
-	return canvasHeight;
-}
-
-void CLayerList::IsChanged(bool changed)
-{
-    this->isChanged = changed;
-}
-
-// ==================== Complément de LayerList.cpp ====================
 
 /**
- * Supprime le calque à l'index spécifié, libère sa mémoire
- * et met à jour les indices 'numLayer' des calques restants.
+ * Modifie les propriétés d'un calque spécifique et demande un rafraîchissement.
+ * Retourne true si le calque a été mis à jour avec succès.
  */
-bool CLayerList::erase(size_t index)
+bool CLayerList::SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity)
 {
-    if (index >= m_layers.size())
-        return false; // Index hors limites
+    // 1. Validation de l'index du calque
+    if (numLayer < 0 || static_cast<size_t>(numLayer) >= m_layers.size())
+        return false;
 
-    // 1. Libérer la mémoire du calque ciblé
-    if (m_layers[index])
-    {
-        RetireTexture(m_layers[index]);
-        delete m_layers[index];
-    }
+    LayerElement* layer = m_layers[numLayer];
+    if (!layer)
+        return false;
 
-    // 2. Retirer le pointeur du std::vector
-    m_layers.erase(m_layers.begin() + index);
+    // 2. Validation et encadrement de l'opacité (ex: entre 0 et 100)
+    int validOpacity = opacity;
+    if (validOpacity < 0) validOpacity = 0;
+    if (validOpacity > 100) validOpacity = 100;
 
-    // 3. Mettre à jour la variable 'numLayer' pour maintenir la cohérence des index
-    for (size_t i = 0; i < m_layers.size(); ++i)
-    {
-        if (m_layers[i])
-        {
-            m_layers[i]->numLayer = i;
-        }
-    }
+    // 3. Application des nouvelles propriétés
+    layer->layerName = layerName;
+    layer->blendMode = blendMode;
+    layer->opacity = validOpacity;
 
-    // 4. Si la liste devient vide, réinitialiser les dimensions du canevas
-    if (m_layers.empty())
-    {
-        canvasWidth = 0;
-        canvasHeight = 0;
-    }
+    // 4. Signaler le changement pour recalculer le rendu final (dans GetPictureToShow)
+    isChanged = true;
 
-    isChanged = true; // Demande de recalculer le rendu final de l'image
     return true;
 }
-
-/**
- * Duplique le calque situé à l'index spécifié et l'ajoute à la liste.
- */
-bool CLayerList::copy(size_t index)
-{
-    if (index >= m_layers.size() || m_layers[index] == nullptr)
-        return false; // Index hors limites ou calque invalide
-
-    // 1. Utilise le constructeur de copie de LayerElement défini plus haut
-    LayerElement* clonedLayer = new LayerElement(*m_layers[index]);
-
-    // 2. Assigne le nouvel index au calque dupliqué
-    clonedLayer->numLayer = m_layers.size();
-
-    // 3. Ajoute le calque cloné à la liste
-    m_layers.push_back(clonedLayer);
-
-    isChanged = true; // Signale un changement pour reconstruire l'image finale
-    return true;
-}
-
-#include <algorithm> // Pour std::sort et std::find
 
 /**
  * Fusionne une liste d'indices de calques en un seul calque unique.
@@ -344,68 +370,74 @@ bool CLayerList::MoveDownLayer(size_t index)
     return true;
 }
 
-void CLayerList::CreateLayer(wxString layerName)
+
+void CLayerList::SetPicture(CImageLoadingFormat* bitmapIn)
 {
-    // 1. Instancier le nouveau calque avec ses paramètres par défaut
-    LayerElement* newLayer = new LayerElement();
-    newLayer->isVisible = true;
-    newLayer->opacity = 100; // Initialisé à 100% d'opacité
-    newLayer->layerName = layerName;
-    newLayer->numLayer = m_layers.size();
+    if (!bitmapIn)
+        return;
 
-    // 2. Si le canevas a déjà des dimensions définies, on lui crée une image transparente
-    if (canvasWidth > 0 && canvasHeight > 0)
+    if (m_layers.size() == 0 && bitmapIn)
     {
-        // Création d'une matrice OpenCV transparente (4 canaux : BGRA)
-        cv::Mat transparentMat = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
-        transparentMat.setTo(cv::Scalar(255, 255, 255, 0));
+        canvasWidth = bitmapIn->GetWidth();
+        canvasHeight = bitmapIn->GetHeight();
 
-        CImageLoadingFormat* newPicture = new CImageLoadingFormat();
-        newPicture->SetPicture(transparentMat);
+        LayerElementGL * element = new LayerElementGL();
+        element->isVisible = true;
+        element->numLayer = m_layers.size();
+        element->opacity = 100;
+        element->layerName = bitmapIn->GetFilename();
+        element->SetPicture(bitmapIn);
 
-        newLayer->SetPicture(newPicture);
+        m_layers.push_back(element);
     }
     else
     {
-        // Optionnel : Si c'est le tout premier calque et que les dimensions ne sont pas encore définies,
-        // vous pouvez soit assigner des dimensions par défaut (ex: 800x600), soit laisser l'image à nullptr.
-        // Ici, on initialise le calque sans image en attendant un appel à SetPicture ou push_back.
-        newLayer->SetPicture(nullptr);
+        m_layers[0]->SetPicture(bitmapIn);
     }
+    isChanged = true;
 
-    // 3. Ajouter le calque en haut de la pile (fin du vecteur)
-    m_layers.push_back(newLayer);
 
-    isChanged = true; // Signaler qu'un rafraîchissement du rendu est nécessaire
+
 }
 
 
-/**
- * Modifie les propriétés d'un calque spécifique et demande un rafraîchissement.
- * Retourne true si le calque a été mis à jour avec succès.
- */
-bool CLayerList::SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity)
+void CLayerList::push_back(LayerElement* element)
 {
-    // 1. Validation de l'index du calque
-    if (numLayer < 0 || static_cast<size_t>(numLayer) >= m_layers.size())
-        return false;
+    if (!element)
+        return;
 
-    LayerElement* layer = m_layers[numLayer];
-    if (!layer)
-        return false;
+    if (!element->GetPicture())
+        return;
 
-    // 2. Validation et encadrement de l'opacité (ex: entre 0 et 100)
-    int validOpacity = opacity;
-    if (validOpacity < 0) validOpacity = 0;
-    if (validOpacity > 100) validOpacity = 100;
+    if (m_layers.size() == 0 && element->GetPicture())
+    {
+        canvasWidth = element->GetPicture()->GetWidth();
+        canvasHeight = element->GetPicture()->GetHeight();
+    }
 
-    // 3. Application des nouvelles propriétés
-    layer->layerName = layerName;
-    layer->blendMode = blendMode;
-    layer->opacity = validOpacity;
-
-    // 4. Signaler le changement pour recalculer le rendu final (dans GetPictureToShow)
     isChanged = true;
 
-    return true;
+    m_layers.push_back(element);
+}
+
+
+
+CImageLoadingFormat* CLayerList::GetPictureToShow()
+{
+    if (m_layers.empty())
+        return nullptr;
+
+    if (m_layers.size() == 1 && m_layers.front())
+        return m_layers.front()->GetPicture();
+
+    if (canvasWidth <= 0 || canvasHeight <= 0)
+        return nullptr;
+
+    if (!finalImage)
+        finalImage = new CImageLoadingFormat();
+
+    if (isChanged)
+        UpdatePictureToShow();
+
+    return finalImage;
 }

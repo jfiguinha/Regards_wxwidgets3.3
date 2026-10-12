@@ -79,7 +79,7 @@ CBitmapWndRender::CBitmapWndRender(CSliderInterface* slider, wxWindowID idMain, 
 	themeBitmap.colorBack = themeBitmap.colorScreen;
 	parentRender = nullptr;
 
-	LayerElement * layerElement = new LayerElement();
+	LayerElementGL * layerElement = new LayerElementGL();
 	listOfLayer.push_back(layerElement);
 }
 

@@ -843,8 +843,12 @@
     <ClInclude Include="CalendarDialogBox.h" />
     <ClInclude Include="CalendarSelect.h" />
     <ClInclude Include="ClickToolbar.h" />
+    <ClInclude Include="LayerBlend.h" />
+    <ClInclude Include="LayerCompositor.h" />
     <ClInclude Include="LayerCompositorGL.h" />
+    <ClInclude Include="LayerCompositorOpenCL.h" />
     <ClInclude Include="LayerElement.h" />
+    <ClInclude Include="LayerFonction.h" />
     <ClInclude Include="TreeElementColor.h" />
     <ClInclude Include="GLcontext.h" />
     <ClInclude Include="GpsEngine.h" />
@@ -944,6 +948,7 @@
     <ClCompile Include="InfosSeparationBar.cpp" />
     <ClCompile Include="KeywordDialogBox.cpp" />
     <ClCompile Include="LayerCompositorGL.cpp" />
+    <ClCompile Include="LayerCompositorOpenCL.cpp" />
     <ClCompile Include="LayerElement.cpp" />
     <ClCompile Include="MapDialogBox.cpp" />
     <ClCompile Include="MapSelect.cpp" />
