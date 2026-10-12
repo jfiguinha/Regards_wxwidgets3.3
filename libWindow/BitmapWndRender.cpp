@@ -850,6 +850,14 @@ void CBitmapWndRender::SetBitmap(CImageLoadingFormat* bitmapIn)
 			orientation = bitmapIn->GetOrientation();
 
 
+			CSqlPhotos sqlPhotos;
+			int exifCode = sqlPhotos.GetPhotoExif(filename);
+			if(exifCode != -1)
+				application_context.GetAngleAndFlip(exifCode, angle, flipHorizontal, flipVertical);
+
+			//int exifCode = application_context.GetExifFromAngleAndFlip(angle, flipHorizontal, flipVertical);
+			//sqlPhotos.UpdatePhotoExif(filename, exifCode);
+
 			ShrinkImage(false);
 			AfterSetBitmap();
 
