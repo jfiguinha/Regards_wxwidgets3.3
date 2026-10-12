@@ -122,69 +122,82 @@ void ExecuteSafeOpenCL(cv::UMat& inputData, F&& func)
 template<typename F>
 void ExecuteSafeOpenCL3Channels(cv::UMat& inputData, F&& func)
 {
-    try
-    {
-        if (inputData.empty())
-            return;
+	try
+	{
+		if (inputData.empty())
+			return;
 
-        const bool wasBGRA = inputData.channels() == 4;
+		const bool wasBGRA = inputData.channels() == 4;
 
-        if (wasBGRA)
-        {
-            cv::UMat alpha;
-            cv::UMat bgr;
-            cv::UMat restoredAlpha;
+		if (wasBGRA)
+		{
+			cv::UMat alpha;
+			cv::UMat bgr;
+			cv::UMat restoredAlpha;
 
-            cv::extractChannel(inputData, alpha, 3);
-            cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
+			// 1. Isolation propre du canal Alpha (index 3) et conversion en BGR
+			cv::extractChannel(inputData, alpha, 3);
+			cv::cvtColor(inputData, bgr, cv::COLOR_BGRA2BGR);
 
-            // Important :
-            // les opérations OpenCV sur UMat peuvent être exécutées
-            // de manière asynchrone sur la queue OpenCL d'OpenCV.
-            cv::ocl::finish();
+			// Important : On synchronise la queue OpenCV avant d'exécuter le traitement utilisateur
+			cv::ocl::finish();
 
-            cv::UMat resultBGR = func(bgr);
+			// 2. Exécution du traitement sur les 3 canaux (BGR)
+			cv::UMat resultBGR = func(bgr);
 
-            if (resultBGR.empty())
-                return;
+			if (resultBGR.empty())
+				return;
 
-            // Le traitement utilisateur peut avoir utilisé notre propre
-            // queue OpenCL. On synchronise avant de réutiliser le résultat
-            // avec une opération OpenCV.
-            cv::ocl::finish();
+			// On s'assure que le kernel utilisateur a terminé ses calculs OpenCL
+			cv::ocl::finish();
 
-            if (alpha.size() == resultBGR.size())
-                restoredAlpha = alpha;
-            else
-                cv::resize(
-                    alpha,
-                    restoredAlpha,
-                    resultBGR.size(),
-                    0.0,
-                    0.0,
-                    cv::INTER_LINEAR);
+			// 3. Redimensionnement de l'Alpha si le traitement a modifié la taille de l'image
+			if (alpha.size() == resultBGR.size())
+			{
+				restoredAlpha = alpha;
+			}
+			else
+			{
+				cv::resize(
+					alpha,
+					restoredAlpha,
+					resultBGR.size(),
+					0.0,
+					0.0,
+					cv::INTER_LINEAR);
 
-            cv::UMat resultBGRA;
-            cv::cvtColor(resultBGR, resultBGRA, cv::COLOR_BGR2BGRA);
+				// Synchronisation après le resize OpenCL de l'Alpha
+				cv::ocl::finish();
+			}
+
+			// 4. Re-reconstruction de l'image BGRA
+			cv::UMat resultBGRA;
+			cv::cvtColor(resultBGR, resultBGRA, cv::COLOR_BGR2BGRA);
 
 			cv::ocl::finish();
 
-            cv::insertChannel(restoredAlpha, resultBGRA, 3);
+			// Réinsertion sécurisée du canal Alpha
+			cv::insertChannel(restoredAlpha, resultBGRA, 3);
 
-            resultBGRA.copyTo(inputData);
+			cv::ocl::finish();
 
-        }
-        else
-        {
-            cv::UMat resultBGR = func(inputData);
-            cv::ocl::finish();
-            resultBGR.copyTo(inputData);
-        }
-    }
-    catch (const cv::Exception& e)
-    {
-        LogError(e.what());
-    }
+			// Affectation par référence d'en-tête (évite les bugs de réallocation mémoire sur un ROI)
+			inputData = resultBGRA;
+		}
+		else
+		{
+			// Traitement direct pour le 3 canaux (BGR)
+			cv::UMat resultBGR = func(inputData);
+			cv::ocl::finish();
+
+			// Affectation sécurisée
+			inputData = resultBGR;
+		}
+	}
+	catch (const cv::Exception& e)
+	{
+		LogError(e.what());
+	}
 }
 
 
@@ -486,83 +499,90 @@ void COpenCLFilter::Bm3d(UMat& inputData, const float& fSigma)
 
 
 
-
 void COpenCLFilter::BrightnessAndContrastAuto(UMat& inputData, float clipHistPercent)
 {
+	// ExecuteSafeOpenCL3Channels va dépouiller l'Alpha en amont et passer 
+	// une image 'image' STRICTEMENT en 3 canaux (BGR) à la fonction ci-dessous.
 	ExecuteSafeOpenCL3Channels(inputData,
 		[&](cv::UMat& image)
 		{
-
 			cv::UMat dest;
-        int histSize = 256;
-		float alpha, beta;
-		double minGray = 0, maxGray = 0;
-		
-		std::vector<cv::UMat> yuv_planes(3);
-		cv::UMat gpuframe_3channel(image.size(), CV_8UC3);
-		cv::cvtColor(image, gpuframe_3channel, COLOR_BGR2YUV, 3);
-		cv::ocl::finish();
-		cv::split(gpuframe_3channel, yuv_planes);
+			int histSize = 256;
+			float alpha, beta;
+			double minGray = 0, maxGray = 0;
 
-		if (clipHistPercent == 0)
-		{
-			// keep full available range
-			minMaxLoc(yuv_planes[0], &minGray, &maxGray);
-		}
-		else
-		{
-			UMat h;
+			// 1. L'image étant garantie en 3 canaux (BGR) grâce au helper,
+			//    on convertit en YUV et on extrait le canal Y de luminance sans risque de crash.
+			cv::UMat yuvFrame;
+			cv::cvtColor(image, yuvFrame, COLOR_BGR2YUV);
+			cv::ocl::finish();
 
-			std::vector<int> channels = {0}; // Analyze only the channel 0.
-			std::vector<int> hsize = {256};
-			//Quantize the intensities in the image using 256 levels even if all the levels are not present.
-			std::vector<float> hranges = {0, 256}; // The range is between 0 - 255 (so less than 256).
+			cv::UMat yChannel;
+			cv::extractChannel(yuvFrame, yChannel, 0);
+			cv::ocl::finish();
 
-			calcHist(std::vector<UMat>(1, yuv_planes[0]), channels, noArray(), h, hsize, hranges);
-
-			Mat hist;
-
-			h.copyTo(hist);
-
-			// calculate cumulative distribution from the histogram
-			std::vector<float> accumulator(histSize);
-			accumulator[0] = hist.at<float>(0);
-			for (int i = 1; i < histSize; i++)
+			// 2. Calcul des seuils min et max
+			if (clipHistPercent == 0)
 			{
-				accumulator[i] = accumulator[i - 1] + hist.at<float>(i);
+				// Conserver la plage dynamique complète disponible
+				minMaxLoc(yChannel, &minGray, &maxGray);
+			}
+			else
+			{
+				UMat h;
+				std::vector<int> channels = { 0 }; // Analyse uniquement le canal 0 (Y)
+				std::vector<int> hsize = { 256 };  // Quantification sur 256 niveaux
+				std::vector<float> hranges = { 0, 256 };
+
+				calcHist(std::vector<UMat>(1, yChannel), channels, noArray(), h, hsize, hranges);
+
+				Mat hist;
+				h.copyTo(hist);
+
+				// Calcul de la distribution cumulative de l'histogramme
+				std::vector<float> accumulator(histSize);
+				accumulator[0] = hist.at<float>(0);
+				for (int i = 1; i < histSize; i++)
+				{
+					accumulator[i] = accumulator[i - 1] + hist.at<float>(i);
+				}
+
+				// Localisation des points de coupure selon le pourcentage demandé
+				float max = accumulator.back();
+				clipHistPercent *= (max / 100.0f); // Conversion du pourcentage en valeur absolue
+				clipHistPercent /= 2.0f;           // Répartition sur les deux extrémités (gauche et droite)
+
+				// Coupure à gauche (min)
+				minGray = 0;
+				while (minGray < histSize && accumulator[minGray] < clipHistPercent)
+					minGray++;
+
+				// Coupure à droite (max)
+				maxGray = histSize - 1;
+				while (maxGray >= 0 && accumulator[maxGray] >= (max - clipHistPercent))
+				{
+					maxGray--;
+					if (maxGray == 0)
+						break;
+				}
 			}
 
-			// locate points that cuts at required value
-			float max = accumulator.back();
-			clipHistPercent *= (max / 100.0); //make percent as absolute
-			clipHistPercent /= 2.0; // left and right wings
-			// locate left cut
-			minGray = 0;
-			while (accumulator[minGray] < clipHistPercent)
-				minGray++;
+			// 3. Calcul de la mise à l'échelle (Alpha) et du décalage (Beta)
+			float inputRange = maxGray - minGray;
+			if (inputRange <= 0) inputRange = 1.0f; // Sécurité anti-division par zéro
 
-			// locate right cut
-			maxGray = histSize - 1;
-			while (accumulator[maxGray] >= (max - clipHistPercent))
-			{
-				maxGray--;
-				if (maxGray == 0)
-					break;
-			}
-		}
+			alpha = (histSize - 1) / inputRange; // Alpha étend la plage actuelle vers la plage 0-255
+			beta = -minGray * alpha;             // Beta décale la plage pour que minGray commence à 0
 
-		// current range
-		float inputRange = maxGray - minGray;
+			// 4. Application de la transformation linéaire (sur l'image BGR à 3 canaux)
+			convertScaleAbs(image, dest, alpha, beta);
+			cv::ocl::finish();
 
-		alpha = (histSize - 1) / inputRange; // alpha expands current range to histsize range
-		beta = -minGray * alpha; // beta shifts current range so that minGray will go to 0
-
-		convertScaleAbs(image, dest, alpha, beta);
-
-		return dest;
+			// On retourne l'UMat à 3 canaux (BGR). 
+			// C'est ExecuteSafeOpenCL3Channels qui se chargera de lui recoller l'Alpha d'origine.
+			return dest;
 		});
 }
-
 
 //----------------------------------------------------------------------------
 //
@@ -1358,22 +1378,16 @@ UMat COpenCLFilter::ExecuteOpenCLCode(const wxString& programName, const wxStrin
 	return memInfo->openclMem;
 }
 
-
-UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method,
+cv::UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, const wxRect& rc, const int& method,
 	UMat& inputData, int flipH, int flipV, int angle, int ratio, bool bgraOutput)
 {
 	cv::UMat cvDestBgra;
-    bool _useSuperResolution = false;
-    //cout << "COpenCLFilter::Interpolation : " << method << endl;
-    CRegardsConfigParam* regardsParam = CParamInit::getInstance();
-    int superDnn = regardsParam->GetSuperResolutionType();
-    int useSuperResolution = regardsParam->GetUseSuperResolution();
-    if (useSuperResolution && superSampling->TestIfMethodIsValid(superDnn, (ratio / 100)) && !isDnnUsed)
-        _useSuperResolution = true;
-
-	
-	//UMat cvImage;
-	//inputData.copyTo(cvImage);
+	bool _useSuperResolution = false;
+	CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+	int superDnn = regardsParam->GetSuperResolutionType();
+	int useSuperResolution = regardsParam->GetUseSuperResolution();
+	if (useSuperResolution && superSampling->TestIfMethodIsValid(superDnn, (ratio / 100)) && !isDnnUsed)
+		_useSuperResolution = true;
 
 	try
 	{
@@ -1387,9 +1401,9 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 
 		Rect rectGlobal;
 		Rect rect_begin = CalculRect(inputData.cols, inputData.rows, widthOut, heightOut, flipH, flipV, angle, ratioX,
-		                             ratioY, 0, 0, rc.x, rc.y);
+			ratioY, 0, 0, rc.x, rc.y);
 		Rect rect_end = CalculRect(inputData.cols, inputData.rows, widthOut, heightOut, flipH, flipV, angle, ratioX,
-		                           ratioY, widthOut, heightOut, rc.x, rc.y);
+			ratioY, widthOut, heightOut, rc.x, rc.y);
 		rectGlobal.x = rect_begin.x;
 		rectGlobal.y = rect_begin.y;
 		rectGlobal.width = rect_end.x;
@@ -1427,12 +1441,7 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 			rectGlobal.width = inputData.cols - rectGlobal.x;
 		}
 
-		//cv::UMat crop;
 		inputData(rectGlobal).copyTo(cvDestBgra);
-		//Mat global;
-		//cvImage.copyTo(global);
-		//crop.copyTo(cvImage);
-		//cvImage = cvImage(rectGlobal);
 
 		if (angle == 270)
 		{
@@ -1457,157 +1466,112 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 			cv::rotate(cvDestBgra, cvDestBgra, ROTATE_180);
 		}
 
-
-		/*
-		nearest neighbor interpolation
-		INTER_NEAREST = 0,
-		bilinear interpolation
-		INTER_LINEAR = 1,
-		bicubic interpolation
-		INTER_CUBIC = 2,
-		resampling using pixel area relation. It may be a preferred method for image decimation, as
-		it gives moire'-free results. But when the image is zoomed, it is similar to the INTER_NEAREST
-		method.
-		INTER_AREA = 3,
-		Lanczos interpolation over 8x8 neighborhood
-		INTER_LANCZOS4 = 4,
-		Bit exact bilinear interpolation
-		INTER_LINEAR_EXACT = 5,
-		Bit exact nearest neighbor interpolation. This will produce same results as
-		the nearest neighbor method in PIL, scikit-image or Matlab.
-		INTER_NEAREST_EXACT = 6,
-		*/
 		if (_useSuperResolution)
 		{
-			cv::UMat picture;
 			if (cvDestBgra.channels() == 4)
 			{
-				cvtColor(cvDestBgra, picture, cv::COLOR_BGRA2BGR);
+				cv::UMat alpha;
+				cv::UMat picture;
+				cv::UMat restoredAlpha;
+
+				// 1. Sauvegarder la couche Alpha (canal 3) et convertir le reste en BGR
+				cv::extractChannel(cvDestBgra, alpha, 3);
+				cv::cvtColor(cvDestBgra, picture, cv::COLOR_BGRA2BGR);
+
+				// 2. Appliquer le Super-Sampling sur les 3 canaux BGR
 				picture = superSampling->upscaleImage(picture, superDnn, (ratio / 100));
-				cvtColor(picture, cvDestBgra, cv::COLOR_BGR2BGRA);
+
+				// 3. Adapter la taille de la couche Alpha à la nouvelle résolution de l'image
+				cv::resize(
+					alpha,
+					restoredAlpha,
+					picture.size(),
+					0.0,
+					0.0,
+					cv::INTER_LINEAR);
+
+				// 4. Reconstruire l'image finale en BGRA avec l'Alpha mis à l'échelle
+				cv::cvtColor(picture, cvDestBgra, cv::COLOR_BGR2BGRA);
+				cv::insertChannel(restoredAlpha, cvDestBgra, 3);
 			}
 			else
+			{
+				// Traitement standard direct pour du 3 canaux natif
 				cvDestBgra = superSampling->upscaleImage(cvDestBgra, superDnn, (ratio / 100));
+			}
+
 		}
-		else if (method == 7) //AVIR INTERPOLATION NOT SUPPORTED BY OPENCL
+		else if (method == 7) // AVIR INTERPOLATION
 		{
-#ifdef _DEBUG
-			using std::chrono::high_resolution_clock;
-			using std::chrono::duration_cast;
-			using std::chrono::duration;
-			using std::chrono::milliseconds;
-
-			auto t1 = high_resolution_clock::now();
-#endif	
-
-			if(!resizer->IsInit())
+			if (!resizer->IsInit())
 				resizer->Init();
 
 			bool result = resizer->IsOk();
 			if (result)
 			{
 				SAvirResizeParams params;
-				params.linearizeGamma = true;      // correct pour une image sRGB classique
-				params.sharpen = true;             // si tu agrandis et veux un rendu plus net
+				params.linearizeGamma = true;
+				params.sharpen = true;
 				params.sharpenAmount = 0.35f;
-				params.dither = false;             // true seulement si tu redescends ensuite en 8 bits
-				params.peakValue = 1.0f;           // buffer normalise 0..1
+				params.dither = false;
+				params.peakValue = 1.0f;
 
 				cv::UMat dstRGBA;
 				dstRGBA.create(heightOut, widthOut, CV_8UC4);
-				
 
 				if (cvDestBgra.channels() == 3)
 				{
 					cv::UMat bitmapMatrix;
-
 					cvtColor(cvDestBgra, bitmapMatrix, cv::COLOR_BGR2BGRA);
 
-					result = resizer->Resize(
-						bitmapMatrix,
-						dstRGBA,
-						params);
+					result = resizer->Resize(bitmapMatrix, dstRGBA, params);
+
+					if (result)
+					{
+						dstRGBA.copyTo(cvDestBgra);
+						// Gestion du retour au format 3 channels d'origine si bgraOutput n'est pas requis
+						if (!bgraOutput)
+							cvtColor(cvDestBgra, cvDestBgra, COLOR_BGRA2BGR);
+					}
 				}
 				else
 				{
-					result = resizer->Resize(
-						cvDestBgra,
-						dstRGBA,
-						params);
+					result = resizer->Resize(cvDestBgra, dstRGBA, params);
+					if (result)
+						dstRGBA.copyTo(cvDestBgra);
 				}
-
-				if(result)
-					dstRGBA.copyTo(cvDestBgra);
-
 			}
-
 
 			if (!result)
 				resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method - 1);
-
-#ifdef _DEBUG
-			auto t2 = high_resolution_clock::now();
-
-			/* Getting number of milliseconds as an integer. */
-			auto ms_int = duration_cast<milliseconds>(t2 - t1);
-
-			/* Getting number of milliseconds as a double. */
-			duration<double, std::milli> ms_double = t2 - t1;
-
-
-#ifdef WIN32
-			OutputDebugString(L"Time taken by COpenCLFilter::Interpolation is : ");
-			OutputDebugString(to_wstring(ms_int.count()).c_str());
-			OutputDebugString(L" ms \n");
-#else
-			std::cout << "Time taken by COpenCLFilter::Interpolation is : " << ms_int.count() << "ms\n";
-#endif
-#endif
-
 		}
 		else if (method > 7)
 		{
-#ifdef _DEBUG
-			using std::chrono::high_resolution_clock;
-			using std::chrono::duration_cast;
-			using std::chrono::duration;
-			using std::chrono::milliseconds;
-
-			auto t1 = high_resolution_clock::now();
-#endif	
-			// Appelle une autre version d'Interpolation pour les méthodes avancées
 			int localMethod = method - 7;
-			cvDestBgra = Interpolation(widthOut, heightOut, cvDestBgra, cvDestBgra.cols, cvDestBgra.rows, localMethod, bgraOutput);
 
-#ifdef _DEBUG
-			auto t2 = high_resolution_clock::now();
+			if (cvDestBgra.channels() == 3)
+			{
+				cv::UMat bitmapMatrix;
+				cvtColor(cvDestBgra, bitmapMatrix, cv::COLOR_BGR2BGRA);
 
-			/* Getting number of milliseconds as an integer. */
-			auto ms_int = duration_cast<milliseconds>(t2 - t1);
+				cvDestBgra = Interpolation(widthOut, heightOut, bitmapMatrix, bitmapMatrix.cols, bitmapMatrix.rows, localMethod, bgraOutput);
 
-			/* Getting number of milliseconds as a double. */
-			duration<double, std::milli> ms_double = t2 - t1;
-
-
-#ifdef WIN32
-			OutputDebugString(L"Time taken by COpenCLFilter::Interpolation is : ");
-			OutputDebugString(to_wstring(ms_int.count()).c_str());
-			OutputDebugString(L" ms \n");
-#else
-			std::cout << "Time taken by COpenCLFilter::Interpolation is : " << ms_int.count() << "ms\n";
-#endif
-#endif
+				if (cvDestBgra.channels() == 3 && !bgraOutput)
+					cvtColor(cvDestBgra, cvDestBgra, COLOR_BGRA2BGR);
+			}
+			else
+			{
+				cvDestBgra = Interpolation(widthOut, heightOut, cvDestBgra, cvDestBgra.cols, cvDestBgra.rows, localMethod, bgraOutput);
+			}
 		}
 		else if (cvDestBgra.cols != widthOut || cvDestBgra.rows != heightOut)
 		{
 			resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method);
 		}
 
-		if (cvDestBgra.cols != widthOut || cvDestBgra.rows != heightOut)
-			resize(cvDestBgra, cvDestBgra, Size(widthOut, heightOut), method);
+		// Nettoyage de la duplication inutile du bloc resize(cvDestBgra...) de fin
 
-		//Apply Transformation
-
+		// Application des transformations finales de Flip
 		if (flipH)
 		{
 			if (angle == 90 || angle == 270)
@@ -1622,24 +1586,19 @@ UMat COpenCLFilter::Interpolation(const int& widthOut, const int& heightOut, con
 			else
 				flip(cvDestBgra, cvDestBgra, 0);
 		}
-		//
 	}
 	catch (Exception& e)
 	{
 		const char* err_msg = e.what();
 		std::cout << "COpenCLFilter::Interpolation exception caught: " << err_msg << std::endl;
-		std::cout << "wrong file format, please input the name of an IMAGE file" << std::endl;
-        std::cout << "width : " << widthOut << "height : " <<  heightOut << std::endl;
-        cv::Mat image(widthOut, heightOut, CV_8UC3, cv::Scalar(0, 0, 0));
-        image.copyTo(cvDestBgra);
+		std::cout << "width : " << widthOut << "height : " << heightOut << std::endl;
+		cv::Mat image(widthOut, heightOut, CV_8UC3, cv::Scalar(0, 0, 0));
+		image.copyTo(cvDestBgra);
 	}
 
-
-	//if (bgraOutput && cvDestBgra.channels() == 3)
-	//	cvtColor(cvDestBgra, cvDestBgra, COLOR_BGR2BGRA);
-	if (cvDestBgra.channels() == 4)
-		cvtColor(cvDestBgra, cvDestBgra, COLOR_BGRA2BGR);
+	// Uniquement la conversion finale conditionnelle d'origine sur les 3 channels
+	if (bgraOutput && cvDestBgra.channels() == 3)
+		cvtColor(cvDestBgra, cvDestBgra, COLOR_BGR2BGRA);
 
 	return cvDestBgra;
-    
 }

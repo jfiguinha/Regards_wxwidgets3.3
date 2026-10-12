@@ -122,6 +122,8 @@ namespace
         cv::UMat factorDestination, factorSource;
         cv::multiply(invSa, da, factorDestination);
         cv::multiply(invDa, sa, factorSource);
+        cv::UMat factorBlend;
+        cv::multiply(sa, da, factorBlend);
 
         std::vector<cv::UMat> outputChannels(4);
 
@@ -138,9 +140,6 @@ namespace
 
             cv::multiply(
                 factorSource, srcRGB[c], t2);
-
-            cv::UMat factorBlend;
-            cv::multiply(sa, da, factorBlend);
 
             cv::multiply(
                 factorBlend, blendedChannels[c], t3);

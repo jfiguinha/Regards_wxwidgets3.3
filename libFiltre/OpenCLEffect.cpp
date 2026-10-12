@@ -66,6 +66,7 @@ Regards::Picture::CPictureArray COpenCLEffect::GetMatrix()
 		{
 			if (nbChannels == 4)
 			{
+				/*
 				// Conversion du flux de travail BGR vers BGRA et réinsertion de l'alpha
 				cv::Mat resultBGRA;
 				cv::cvtColor(image, resultBGRA, cv::COLOR_BGR2BGRA);
@@ -83,8 +84,8 @@ Regards::Picture::CPictureArray COpenCLEffect::GetMatrix()
 				}
 				cv::insertChannel(alphaChannel, resultBGRA, 3);
 				cv::ocl::finish();
-
-				pictureArray.SetArray(resultBGRA);
+				*/
+				pictureArray.SetArray(image);
 			}
 			else
 				pictureArray.SetArray(image);
@@ -145,8 +146,9 @@ void COpenCLEffect::SetBitmap(CImageLoadingFormat* bitmap)
 		if (local.channels() == 4)
 		{
 			nbChannels = 4;
-			cv::extractChannel(local, alphaChannel, 3);
-			cvtColor(local, input, cv::COLOR_BGRA2BGR);
+			local.copyTo(input);
+			//cv::extractChannel(local, alphaChannel, 3);
+			//cvtColor(local, input, cv::COLOR_BGRA2BGR);
 		}
 		else if (local.channels() == 1)
 		{
@@ -194,21 +196,71 @@ cv::Mat COpenCLEffect::GetBitmap(const bool& source)
 //-----------------------------------------------------------------------------------------------
 //Get Output
 //-----------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------
+//Get Output
+//-----------------------------------------------------------------------------------------------
 
 wxImage COpenCLEffect::GetwxImage(cv::UMat& input)
 {
-	cv::Mat cvDest;
-	cvtColor(input, cvDest, cv::COLOR_BGR2RGB);
+	// 1. Rapatrier le cv::UMat (OpenCL GPU) vers un cv::Mat (CPU)
+	cv::Mat cvSource = input.getMat(cv::ACCESS_READ);
+	cv::Mat cvDestRGB;
+	cv::Mat cvAlpha;
 
-	long imsize = cvDest.rows * cvDest.cols * cvDest.channels();
-	wxImage wx(cvDest.cols, cvDest.rows, static_cast<unsigned char*>(malloc(imsize)), false);
-	unsigned char* s = cvDest.data;
-	unsigned char* d = wx.GetData();
-	memcpy(d, s, imsize);
+	// 2. Traiter les canaux et isoler l'Alpha si nécessaire
+	if (cvSource.channels() == 3)
+	{
+		cv::cvtColor(cvSource, cvDestRGB, cv::COLOR_BGR2RGB);
+	}
+	else if (cvSource.channels() == 4)
+	{
+		cv::cvtColor(cvSource, cvDestRGB, cv::COLOR_BGRA2RGB);
 
+		// Allocation d'une matrice continue pour l'Alpha afin d'éviter les problèmes de step/stride
+		cvAlpha.create(cvSource.size(), CV_8UC1);
+
+		// Copie sécurisée du 4ème canal (index 3) de cvSource vers le canal 0 de cvAlpha
+		int fromTo[] = { 3, 0 };
+		cv::mixChannels(&cvSource, 1, &cvAlpha, 1, fromTo, 1);
+	}
+	else if (cvSource.channels() == 1) // Gestion optionnelle du N&B (Grayscale)
+	{
+		cv::cvtColor(cvSource, cvDestRGB, cv::COLOR_GRAY2RGB);
+	}
+	else
+	{
+		// En cas de format inconnu, retourner une image vide
+		return wxImage();
+	}
+
+	// 3. Allouer la mémoire pour les données RGB de wxImage
+	long rgbSize = cvDestRGB.rows * cvDestRGB.cols * 3;
+	unsigned char* rgbData = static_cast<unsigned char*>(malloc(rgbSize));
+	if (rgbData == nullptr) return wxImage();
+
+	// Copier les données RGB
+	memcpy(rgbData, cvDestRGB.data, rgbSize);
+
+	// Initialiser la wxImage (elle prend la responsabilité de libérer rgbData via malloc)
+	wxImage wx(cvDestRGB.cols, cvDestRGB.rows, rgbData, false);
+
+	// 4. Injecter la couche transparente (Alpha) si elle existe
+	if (!cvAlpha.empty())
+	{
+		long alphaSize = cvAlpha.rows * cvAlpha.cols;
+		unsigned char* alphaData = static_cast<unsigned char*>(malloc(alphaSize));
+		if (alphaData != nullptr)
+		{
+			// Grâce à mixChannels, cvAlpha.data est garanti continu et fait exactement alphaSize octets
+			memcpy(alphaData, cvAlpha.data, alphaSize);
+			// wxImage prend également la responsabilité de libérer alphaData
+			wx.SetAlpha(alphaData, false);
+		}
+	}
 
 	return wx;
 }
+
 
 
 //-----------------------------------------------------------------------------------------------
