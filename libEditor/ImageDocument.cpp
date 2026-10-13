@@ -179,6 +179,23 @@ void ImageDocument::MoveDownLayer(int numLayer)
     }
 }
 
+
+void ImageDocument::SetZoomTool()
+{
+    if (bitmapWindow)
+    {
+        bitmapWindow->SetZoomTool();
+    }
+}
+
+void ImageDocument::SetMoveTool()
+{
+    if (bitmapWindow)
+    {
+        bitmapWindow->SetMoveTool();
+    }
+}
+
 CLayerList* ImageDocument::GetListOfLayer()
 {
     if (bitmapWindow)

@@ -78,7 +78,8 @@ CBitmapWndRender::CBitmapWndRender(CSliderInterface* slider, wxWindowID idMain, 
 	bitmapLoad = false;
 	themeBitmap.colorBack = themeBitmap.colorScreen;
 	
-
+	hCursorZoomIn = CResourceCursor::CreateDynamicZoomCursor(true);
+	hCursorZoomOut = CResourceCursor::CreateDynamicZoomCursor(false);
 
 
 	parentRender = nullptr;
@@ -592,7 +593,6 @@ void CBitmapWndRender::UpdateScrollBar()
 //-----------------------------------------------------------------
 void CBitmapWndRender::ZoomOut()
 {
-	//
 	CalculCenterPicture();
 
 	if (posRatio == -1)
@@ -605,14 +605,8 @@ void CBitmapWndRender::ZoomOut()
 		posRatio = 0;
 
 	ratio = ((float)value[posRatio] / 100.0f);
-
 	CalculPositionPicture(centerX, centerY);
-
-	//updateFilter = true;
-
 	UpdateScrollBar();
-
-	//needToRefresh = true;
 }
 
 //-----------------------------------------------------------------
@@ -1109,6 +1103,48 @@ void CBitmapWndRender::OnLButtonDown(wxMouseEvent& event)
 		}
 		break;
 
+	case ZOOMPICTURE:
+	{
+		if (iKey == WXK_CONTROL)
+		{
+			CalculPositionPicture(xPos + posLargeur, yPos + posHauteur);
+
+			wxSetCursor(hCursorZoomOut);
+			if (posRatio == -1)
+				ratio = CalculRatio(GetBitmapWidth(), GetBitmapHeight());
+
+			shrinkImage = false;
+
+			posRatio--;
+			if (posRatio < 0)
+				posRatio = 0;
+
+			ratio = ((float)value[posRatio] / 100.0f);
+			
+			UpdateScrollBar();
+
+		}
+		else
+		{
+			CalculPositionPicture(xPos + posLargeur, yPos + posHauteur);
+
+			wxSetCursor(hCursorZoomIn);
+			if (posRatio == -1)
+				ratio = CalculRatio(GetBitmapWidth(), GetBitmapHeight());
+
+			shrinkImage = false;
+
+			posRatio++;
+			if (posRatio >= value.size())
+				posRatio = value.size() - 1;
+
+			ratio = ((float)value[posRatio] / 100.0f);
+			
+			UpdateScrollBar();
+		}
+		break;
+	}
+
 	default:
 		wxSetCursor(*wxSTANDARD_CURSOR);
 		break;
@@ -1421,9 +1457,10 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 	case ZOOMPICTURE:
 		{
 			if (iKey == WXK_CONTROL)
-				wxSetCursor(hCursorZoomIn);
-			else
 				wxSetCursor(hCursorZoomOut);
+			else
+				wxSetCursor(hCursorZoomIn);
+				
 			break;
 		}
 

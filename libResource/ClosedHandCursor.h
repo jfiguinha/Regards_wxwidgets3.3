@@ -11,4 +11,5 @@ public:
 	{
 	};
 	static wxCursor GetClosedHand();
+	static wxCursor CreateDynamicZoomCursor(bool zoomIn);
 };

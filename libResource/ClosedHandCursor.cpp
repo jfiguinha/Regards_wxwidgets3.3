@@ -91,3 +91,45 @@ wxCursor CResourceCursor::GetClosedHand()
         
 #endif
 }
+
+
+wxCursor CResourceCursor::CreateDynamicZoomCursor(bool zoomIn)
+{
+	// 1. Créer le bitmap (ex: 32x32)
+	wxBitmap bmp(32, 32);
+	wxMemoryDC dc(bmp);
+
+	// 2. IMPORTANT : Remplir le fond avec une couleur spécifique qui servira de "masque" (ex: Rose/Magenta)
+	wxColour maskColor(255, 0, 255);
+	dc.SetBackground(wxBrush(maskColor));
+	dc.Clear();
+
+	// 3. Dessiner votre loupe
+	dc.SetPen(wxPen(*wxBLACK, 2));
+	dc.SetBrush(*wxTRANSPARENT_BRUSH);
+	dc.DrawCircle(12, 12, 6);        // Tête de la loupe
+	dc.DrawLine(16, 16, 24, 24);     // Manche
+
+	if (zoomIn) {
+		dc.DrawLine(10, 12, 15, 12);
+		dc.DrawLine(12, 10, 12, 15);
+	}
+	else {
+		dc.DrawLine(10, 12, 15, 12);
+	}
+
+	dc.SelectObject(wxNullBitmap); // Libérer le bitmap avant conversion
+
+	// 4. Convertir en image et dire à wxWidgets que le Rose/Magenta doit être TRANSPARENT
+	wxImage img = bmp.ConvertToImage();
+	img.SetMaskColour(255, 0, 255); // Rend le fond invisible
+
+	// Définir le point de clic (hotspot) au centre de la loupe
+	img.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_X, 12);
+	img.SetOption(wxIMAGE_OPTION_CUR_HOTSPOT_Y, 12);
+
+	return wxCursor(img);
+}
+
+// Utilisation :
+// myPanel->SetCursor(CreateDynamicZoomCursor(true)); // Applique la loupe "+"

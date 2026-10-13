@@ -63,6 +63,9 @@ public:
 
     void SetActifLayer(const int& numLayer);
 
+    void SetZoomTool();
+    void SetMoveTool();
+
     CLayerList* GetListOfLayer();
 private:
 

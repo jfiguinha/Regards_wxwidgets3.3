@@ -31,6 +31,10 @@ public:
     }
 
 
+    void SetZoomTool();
+    void SetMoveTool();
+   // void MouseClick(const int& xPos, const int& yPos) override;
+  //  void MouseRelease(const int& xPos, const int& yPos) override;
 private:
     // --- Rendu ---
     void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;

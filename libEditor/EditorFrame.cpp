@@ -452,16 +452,27 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
             if (numLayer != -1)
             {
                 int numEffect = event.GetInt();
-
                 m_activeDocument->SetActifLayer(numLayer);
+                switch (numEffect)
+                {
+                case WM_SELECTMOVE:
+                    break;
+                case WM_SELECTZOOM:
+                    m_activeDocument->SetZoomTool();
+                    break;
+                case WM_MOVEPICTURE:
+                    m_activeDocument->SetMoveTool();
+                    break;
+                default:
+                    parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+                    parameterDialog->SetActifLayer(numLayer);
+                    parameterDialog->SetTypeFiltre(TYPE_DRAWING);
+                    parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+                    parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+                    parameterDialog->Show(true);
+                }
+               
 
-                parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
-                parameterDialog->SetActifLayer(numLayer);
-                parameterDialog->SetTypeFiltre(TYPE_DRAWING);
-                parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
-
-                parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
-                parameterDialog->Show(true);
             }
         }
         //m_activeDocument->Crop();

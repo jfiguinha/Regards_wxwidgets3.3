@@ -8,9 +8,7 @@ using namespace Regards::Window;
 using namespace Regards::Editor;
 
 
-#define WM_SELECTMOVE FILTER_DRAWING_END + 1
-#define WM_SELECTZOOM FILTER_DRAWING_END + 2
-#define WM_MOVEPICTURE FILTER_DRAWING_END + 3
+
 
 CToolbarTools::CToolbarTools(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme, wxWindow* frameToSend, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical)

@@ -12,6 +12,7 @@
 #include <ViewerTheme.h>
 #include <ViewerThemeInit.h>
 #include <libPicture.h>
+#include <ClosedHandCursor.h>
 using namespace Regards::Viewer;
 
 //-----------------------------------------------------------------
@@ -752,5 +753,52 @@ void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event) {
     if (mainWindow) {
         wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
         mainWindow->GetEventHandler()->AddPendingEvent(evt);
+    }
+}
+
+
+void CBitmapEditor::SetZoomTool()
+{
+    preview = WM_SELECTZOOM;
+    isInUse = true;
+
+    m_cDessin.reset(nullptr);
+    if (m_cDessin != nullptr)
+    {
+        forceUpdateFilter = true;
+        toolOption = 0;
+        SetDessinRatio();
+        m_cDessin->SetCursor();
+        isInUse = false;
+        SetTool(preview);
+    }
+    else
+    {
+        forceUpdateFilter = false;
+        wxSetCursor(hCursorZoomIn);
+        toolOption = ZOOMPICTURE;
+    }
+}
+
+void CBitmapEditor::SetMoveTool()
+{
+    preview = WM_MOVEPICTURE;
+    isInUse = true;
+
+    m_cDessin.reset(nullptr);
+    if (m_cDessin != nullptr)
+    {
+        forceUpdateFilter = true;
+        toolOption = 0;
+        SetDessinRatio();
+        m_cDessin->SetCursor();
+        isInUse = false;
+        SetTool(preview);
+    }
+    else
+    {
+        forceUpdateFilter = false;
+        wxSetCursor(*wxSTANDARD_CURSOR);
+        toolOption = MOVEPICTURE;
     }
 }
