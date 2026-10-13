@@ -30,10 +30,6 @@ public:
         return &listOfLayer;
     }
 
-    Regards::Picture::CPictureArray* GetCachePicture() override
-    {
-        return &buffer;
-    }
 
 private:
     // --- Rendu ---
@@ -84,7 +80,7 @@ private:
     cv::Size backgroundTextureSize;
     std::unique_ptr<GLTexture> activeLayerTexture;
     cv::Size activeLayerTextureSize;
-    Regards::Picture::CPictureArray buffer;
+
     // Ressources OpenCL
     std::unique_ptr<CLayerCompositorOpenCL> layerCompositorOpenCL;
     cv::UMat backgroundUMat;
