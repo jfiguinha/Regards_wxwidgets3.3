@@ -19,6 +19,13 @@ void CPictureArray::SetArray(cv::Mat m)
 	kind = cv::_InputArray::KindFlag::MAT;
 }
 
+
+void CPictureArray::SetPtArray(cv::UMat & m)
+{
+	this->umat = m;
+	kind = cv::_InputArray::KindFlag::UMAT;
+}
+
 void CPictureArray::SetArray(cv::UMat m)
 {
 	// On nettoie d'abord les anciens verrous CPU/GPU de l'instance courante

@@ -130,6 +130,11 @@ namespace Regards::FiltreEffet
 
 		};
 
+		virtual void DessinerSurMat(cv::UMat& matrix, const long& hScroll, const long& vScroll, const float& ratio)
+		{
+
+		};
+
 		cv::Scalar GetColorWithTransparancy(wxColour color, int opacity)
 		{
 			// OpenCV utilise le format BGR(A) : 

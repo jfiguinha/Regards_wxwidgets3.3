@@ -112,6 +112,10 @@ public:
 	virtual int SuperResolutionNCNN() = 0;
 	virtual int Colorization() = 0;
     virtual int Inpaint(const cv::Mat &mask, int algorithm) = 0;
+
+
+	virtual Regards::Picture::CPictureArray * GetPtMatrix() = 0;
+	virtual void UpdateMatrix() = 0;
 protected:
 	//CRegardsBitmap * pBitmap;
 	CRgbaquad backColor;

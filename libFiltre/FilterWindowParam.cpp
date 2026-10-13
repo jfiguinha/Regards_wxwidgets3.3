@@ -40,6 +40,15 @@ void CFilterWindowParam::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, 
 	m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
 }
 
+void CFilterWindowParam::Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
+{
+
+	int hpos = bitmapViewer->GetHPos();
+	int vpos = bitmapViewer->GetVPos();
+	float ratio = bitmapViewer->GetRatio();
+	m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
+}
+
 void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer,
 	CFiltreEffet* filtreEffet, CDraw* m_cDessin)
 {
@@ -49,18 +58,9 @@ void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBi
 
 		if (effectParameter->IfNeedTransparence())
 		{
-			Regards::Picture::CPictureArray mat = filtreEffet->GetMatrix();
-			// /!\ ATTENTION : Si GetBitmap(false) contient déjà les dessins précédents,
-			// préférez passer 'true' ou écraser avec la source propre pour éviter la superposition infinie.
-			//cv::Mat & matBase = mat->getMat();
-
-			// Appelle CPenFilter::Drawing qui appelle à son tour m_cDessin->DessinerSurMat
-			Drawing(mat.getMat(), bitmapViewer, m_cDessin);
-
-			CImageLoadingFormat imageLoad;
-			imageLoad.SetPicture(mat.getMat());
-			filtreEffet->SetBitmap(&imageLoad);
-			// Plus besoin de delete manuel ici pour imageLoad car alloué sur la pile
+			Regards::Picture::CPictureArray * mat = filtreEffet->GetPtMatrix();
+			Drawing(mat->getUMat(), bitmapViewer, m_cDessin);
+			filtreEffet->UpdateMatrix();
 		}
 		else
 		{

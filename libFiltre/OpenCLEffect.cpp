@@ -59,6 +59,24 @@ bool COpenCLEffect::StabilizeVideo(OpenCV::COpenCVStabilization* stabilization)
 }
 
 
+Regards::Picture::CPictureArray* COpenCLEffect::GetPtMatrix()
+{
+	ExecuteSafe([&](cv::UMat& image)
+		{
+			pictureArray.SetPtArray(image);
+		});
+	return &pictureArray;
+}
+
+void COpenCLEffect::UpdateMatrix()
+{
+	ExecuteSafe([&](cv::UMat& image)
+		{
+			image = pictureArray.getUMat();
+			//local.copyTo(image);
+		});
+}
+
 Regards::Picture::CPictureArray COpenCLEffect::GetMatrix()
 {
 	Regards::Picture::CPictureArray pictureArray;
@@ -66,25 +84,6 @@ Regards::Picture::CPictureArray COpenCLEffect::GetMatrix()
 		{
 			if (nbChannels == 4)
 			{
-				/*
-				// Conversion du flux de travail BGR vers BGRA et réinsertion de l'alpha
-				cv::Mat resultBGRA;
-				cv::cvtColor(image, resultBGRA, cv::COLOR_BGR2BGRA);
-				cv::ocl::finish();
-
-				if (alphaChannel.size().width != resultBGRA.size().width || alphaChannel.size().height != resultBGRA.size().height)
-				{
-					cv::resize(
-						alphaChannel,
-						alphaChannel,
-						resultBGRA.size(),
-						0.0,
-						0.0,
-						cv::INTER_LINEAR);
-				}
-				cv::insertChannel(alphaChannel, resultBGRA, 3);
-				cv::ocl::finish();
-				*/
 				pictureArray.SetArray(image);
 			}
 			else

@@ -28,7 +28,7 @@ namespace Regards::FiltreEffet {
             const float& ratio) override;
 
         void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio) override;
-
+        void DessinerSurMat(cv::UMat& matrix, const long& hScroll, const long& vScroll, const float& ratio) override;
         void MouseDown(CEffectParameter* effect) override;
         void MouseUp() override;
 

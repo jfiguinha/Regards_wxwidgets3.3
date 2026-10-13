@@ -94,6 +94,9 @@ public:
 	int SuperResolutionNCNN() override;
 	int Colorization() override;
     int Inpaint(const cv::Mat &mask, int algorithm) override;
+
+	Regards::Picture::CPictureArray* GetPtMatrix();
+	void UpdateMatrix();
 private:
 	template<typename T, typename... Args>
 	void MakeAndCompute(cv::Mat& image, Args&&... args);
@@ -107,7 +110,7 @@ private:
 	int oldwidthDenoise = 0;
 	int oldheightDenoise = 0;
 	wxString filename;
-
+	Regards::Picture::CPictureArray out;
 	cv::Mat alphaChannel;
 	cv::Mat input;
 	cv::Mat paramOutput;

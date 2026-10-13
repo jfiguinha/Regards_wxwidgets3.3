@@ -231,6 +231,50 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 	return imageLoad;
 }
 
+
+void CPenFilter::Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
+{
+	if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
+
+	// 1. Récupération des paramètres de défilement (Scroll) et de zoom (Ratio) depuis le viewer
+	int hpos = bitmapViewer->GetHPos();
+	int vpos = bitmapViewer->GetVPos();
+	float ratio = bitmapViewer->GetRatio();
+	m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
+
+	auto penDraw = static_cast<Regards::FiltreEffet::CPenDraw*>(m_cDessin);
+	auto penParameter = static_cast<CPenFilterParameter*>(bitmapViewer->GetEffectPointer());
+
+	if (penParameter != nullptr && penDraw != nullptr)
+	{
+		// On vide l'ancien conteneur pour y copier l'état exact et complet de l'écran
+		penParameter->listLines.clear();
+
+		// Récupération du tableau de structures m_tousLesTraces depuis CPenDraw
+		const auto& tracesEcran = penDraw->GetTousLesTraces();
+
+		for (const auto& traceEcran : tracesEcran)
+		{
+			SLineTrace ligneOpenCV;
+			ligneOpenCV.points = traceEcran.points;
+			ligneOpenCV.penSize = traceEcran.penSize;
+			ligneOpenCV.typeBrush = traceEcran.typeBrush;
+			ligneOpenCV.opacity = traceEcran.opacity; // Sauvegarde de l'opacité historique de la ligne
+
+			// Conversion inverse : wxColour (RGB) vers cv::Scalar (BGR)
+			ligneOpenCV.color = cv::Scalar(
+				traceEcran.color.Blue(),
+				traceEcran.color.Green(),
+				traceEcran.color.Red(),
+				traceEcran.opacity // Alpha figé du trait (et non l'opacité courante du paramètre)
+			);
+
+			// Stockage définitif pour le moteur OpenCV (RenderEffect / ApplyEffect)
+			penParameter->listLines.push_back(ligneOpenCV);
+		}
+	}
+}
+
 void CPenFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
 	if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;

@@ -111,6 +111,10 @@ public:
 	int BrightnessAndContrastAuto(float clipHistPercent);
 	bool StabilizeVideo(Regards::OpenCV::COpenCVStabilization* stabilization);
 
+
+	Regards::Picture::CPictureArray* GetPtMatrix();
+	void UpdateMatrix();
+
 private:
 
 	void CalculNewSize(const int32_t& x, const int32_t& y, const double& angle, int& width, int& height, const bool preview);

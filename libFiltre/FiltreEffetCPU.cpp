@@ -2026,10 +2026,54 @@ int CFiltreEffetCPU::Fusion(Mat& bitmapSecond, const float& pourcentage)
 }
 
 
+
+Regards::Picture::CPictureArray* CFiltreEffetCPU::GetPtMatrix()
+{
+	Mat output;
+	const Mat& image = preview ? paramOutput : input;
+	if (image.empty())
+		return  &out;
+
+	image.copyTo(output);
+	if (output.channels() == 3)
+		cvtColor(output, output, COLOR_BGR2BGRA);
+	else
+	{
+		cv::Mat restoredAlpha;
+
+		if (alphaChannel.size() == output.size())
+			restoredAlpha = alphaChannel;
+		else
+			cv::resize(
+				alphaChannel,
+				restoredAlpha,
+				output.size(),
+				0.0,
+				0.0,
+				cv::INTER_LINEAR);
+
+		cv::cvtColor(output, output, cv::COLOR_BGR2BGRA);
+		cv::insertChannel(restoredAlpha, output, 3);
+	}
+
+	out.SetArray(output);
+
+	return &out;
+}
+
+void CFiltreEffetCPU::UpdateMatrix()
+{
+	Mat local = out.getMat();
+
+	if(preview)// ? paramOutput : input;
+		cvtColor(local, paramOutput, COLOR_BGRA2BGR);
+	else
+		cvtColor(local, input, COLOR_BGRA2BGR);
+	//preview = false;
+}
+
 Regards::Picture::CPictureArray CFiltreEffetCPU::GetMatrix()
 {
-	Regards::Picture::CPictureArray out;
-
 	Mat output;
 	const Mat & image = preview ? paramOutput : input;
 	if (image.empty())

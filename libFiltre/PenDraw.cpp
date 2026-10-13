@@ -142,3 +142,33 @@ void CPenDraw::DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& 
             GetColorWithTransparancy(ligne.color, ligne.opacity), ratio, toScreen);
     }
 }
+
+
+void CPenDraw::DessinerSurMat(cv::UMat& matrix, const long& hScroll, const long& vScroll, const float& ratio)
+{
+    if (matrix.empty()) return;
+
+    // 1. Récupération des paramètres de défilement (Scroll) et de zoom (Ratio) depuis le viewer
+    const int hpos = hScroll;
+    const int vpos = vScroll;
+
+    // 2. Sécurité : S'assurer que la matrice de rendu est au format 4 canaux (BGRA)
+    if (matrix.channels() == 3)
+        cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
+
+    // 3. Conversion image réelle -> coordonnées d'affichage (scroll + zoom)
+    const auto toScreen = [&](const wxPoint& point)
+        {
+            return cv::Point(
+                static_cast<int>(XDrawingPosition(static_cast<float>(point.x), hpos, ratio)),
+                static_cast<int>(YDrawingPosition(static_cast<float>(point.y), vpos, ratio)));
+        };
+
+    // 4. Parcours de l'ensemble des tracés (issus de l'image réelle).
+    //    Le rendu est le même que sur l'image source (RenderPenStroke), à l'échelle 'ratio'.
+    for (const auto& ligne : m_tousLesTraces)
+    {
+        RenderPenStrokeOpenCL(matrix, ligne.points, ligne.penSize, ligne.typeBrush, ligne.opacity,
+            GetColorWithTransparancy(ligne.color, ligne.opacity), ratio, toScreen);
+    }
+}

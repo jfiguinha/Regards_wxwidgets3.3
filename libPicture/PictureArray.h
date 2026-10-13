@@ -25,7 +25,7 @@ namespace Regards
 			void copyTo(cv::UMat& m);
 			bool empty();
 			void Release();
-
+			void SetPtArray(cv::UMat& m);
 		protected:
 			cv::_InputArray::KindFlag kind;
 			cv::UMat umat;

@@ -127,12 +127,16 @@ namespace Regards::FiltreEffet
 		int PencilSketch(const double& sigma_s, const double& sigma_r, const double& shade_factor) override;
 		int Stylization(const double& sigma_s, const double& sigma_r) override;
         
+
+		Regards::Picture::CPictureArray* GetPtMatrix();
+		void UpdateMatrix();
+
 	protected:
 
 		template<typename F> void ExecuteSafe(F&& func);
 		std::unique_ptr<COpenCLFilter> openclFilter;
 		wxImage GetwxImage(cv::UMat& input);
-
+		Regards::Picture::CPictureArray pictureArray;
 		int nbChannels = 3;
 		cl_mem_flags flag;
 		wxString filename;

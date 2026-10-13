@@ -233,6 +233,7 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
 //-----------------------------------------------------------------
 // Dessin de l'image
 //-----------------------------------------------------------------
+/*
 void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) {
 #ifndef WIN32
     scale_factor = parentRender->GetContentScaleFactor();
@@ -300,6 +301,80 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) {
     AfterRender();
     canvas->SwapBuffers();
 }
+*/
+
+
+//-----------------------------------------------------------------
+// Dessin de l'image
+//-----------------------------------------------------------------
+void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) {
+#ifndef WIN32
+    scale_factor = parentRender->GetContentScaleFactor();
+#endif
+
+    if (numActifLayer < 0 || numActifLayer >= listOfLayer.size()) return;
+
+    LayerElement* layerElement = listOfLayer[numActifLayer];
+    if (layerElement == nullptr) return;
+
+    // Changement de calque source ou de version -> rechargement du bitmap
+    if (layerElement->layerId != lastSourceLayerId ||
+        layerElement->pictureVersion != lastSourceVersion) {
+        loadBitmap = true;
+        lastSourceLayerId = layerElement->layerId;
+        lastSourceVersion = layerElement->pictureVersion;
+    }
+
+    CImageLoadingFormat* source = layerElement->GetPicture();
+    isOpenGLShow = true;
+
+    if (renderBitmapOpenGL == nullptr) {
+        this->renderOpenGL = renderOpenGL;
+        renderBitmapOpenGL = std::make_unique<CRenderBitmapOpenGL>(renderOpenGL);
+        renderBitmapOpenGL->LoadingResource(scale_factor, themeBitmap.colorArrow);
+    }
+
+    int widthOutput = static_cast<int>(GetBitmapWidthWithRatio()) * scale_factor;
+    int heightOutput =
+        static_cast<int>(GetBitmapHeightWithRatio()) * scale_factor;
+
+    bool bitmapIsLoad = false;
+
+    if (loadBitmap) {
+        if (filtreEffet == nullptr) {
+            CRgbaquad color;
+            filtreEffet = std::make_unique<CFiltreEffet>(
+                color, renderOpenGL->GetOpenCLContext(), source);
+        }
+        else
+            filtreEffet->SetBitmap(source);
+
+        loadBitmap = false;
+        bitmapIsLoad = true;
+    }
+
+    if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0) {
+        if (widthOutput < 0 || heightOutput < 0) return;
+
+        const bool activeDirty = UpdateScreenBitmap(layerElement, widthOutput,
+            heightOutput, bitmapIsLoad);
+
+        // Initialiser le fond de l'écran avec la couleur de thème
+        renderOpenGL->CreateScreenRender(
+            GetWidth() * scale_factor, GetHeight() * scale_factor,
+            CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
+                themeBitmap.colorBack.Blue()));
+        GLTexture* textureDisplay =
+            renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
+        if (textureDisplay == nullptr) return;
+        ComposeLayers(layerElement, textureDisplay, widthOutput, heightOutput,
+            activeDirty);
+        RenderTexture(textureDisplay, true, widthOutput, heightOutput);
+    }
+    AfterRender();
+    canvas->SwapBuffers();
+}
+
 //-----------------------------------------------------------------
 // Routage de la composition selon le backend du calque, repli CPU en cas
 // d'échec
