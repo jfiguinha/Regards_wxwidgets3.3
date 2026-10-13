@@ -11,6 +11,7 @@ namespace Regards { namespace OpenGL { class GLTexture; } }
 
 
 
+
 // ============================================================================
 // CLASSE MÈRE : LayerElement
 // ============================================================================
@@ -51,6 +52,7 @@ public:
     int textureHeight = 0;
 
     static uint64_t NextLayerId();
+    static uint64_t GetLayerId();
 
 protected:
     // Constructeur de copie protégé utilisé par les classes dérivées
@@ -58,6 +60,7 @@ protected:
 
     CImageLoadingFormat* picture = nullptr;
 
+    static std::atomic<uint64_t> counter;
     int typeLayer = 0;
 };
 
@@ -123,6 +126,8 @@ class CLayerList
 public:
     CLayerList() = default;
     ~CLayerList();
+
+    LayerElement* FindElementByLayerId(const uint64_t& layerId);
 
     void push_back(LayerElement* element);
     size_t size() const { return m_layers.size(); }

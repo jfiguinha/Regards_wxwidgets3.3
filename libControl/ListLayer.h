@@ -27,6 +27,7 @@ namespace Regards
 			void Resize() override;
 			void RefreshList();
 			int GetActifLayer();
+			int64_t GetActifLayerId();
 			vector<int> GetSelectLayer();
 			void UpdateLayerList();
 		private:

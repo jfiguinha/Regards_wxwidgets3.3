@@ -409,15 +409,18 @@ void CEditorFrame::PropertiesLayer(wxCommandEvent& event)
 
 void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
 {
-    if (m_activeDocument)
+    if (m_activeDocument && layerDialog)
     {
+        int numLayer = layerDialog->GetActifLayer();
+        int64_t numLayerId = layerDialog->GetActifLayerId();
         if (parameterDialog)
         {
             int numEffect = event.GetId() - wxID_HIGHEST - 100;
             parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
-           
+            parameterDialog->SetActifLayer(numLayer);
+            parameterDialog->SetActifLayerId(numLayerId);
             parameterDialog->SetTypeFiltre(TYPE_EFFECT);
-            parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+            parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
            
             parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
             parameterDialog->Show(true);
@@ -446,9 +449,10 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        if (parameterDialog)
+        if (parameterDialog && layerDialog)
         {
             int numLayer = layerDialog->GetActifLayer();
+            int64_t numLayerId = layerDialog->GetActifLayerId();
             if (numLayer != -1)
             {
                 int numEffect = event.GetInt();
@@ -466,8 +470,9 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                 default:
                     parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
                     parameterDialog->SetActifLayer(numLayer);
+                    parameterDialog->SetActifLayerId(numLayerId);
                     parameterDialog->SetTypeFiltre(TYPE_DRAWING);
-                    parameterDialog->SetFiltre(numEffect, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+                    parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
                     parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
                     parameterDialog->Show(true);
                 }
@@ -628,7 +633,7 @@ void CEditorFrame::OnOpen()
 
 
     CMainTheme* viewerTheme = CMainThemeInit::getInstance();
-    ImageDocument* imgDoc = new ImageDocument(this, SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, openFileDialog.GetPath());
+    ImageDocument* imgDoc = new ImageDocument(this, LayerElement::GetLayerId(),  SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, openFileDialog.GetPath());
     imgDoc->Show(true);
 
     STImageDoc imageDoc;
@@ -776,7 +781,7 @@ void CEditorFrame::OnNewImage(wxCommandEvent& event) {
 
 
             CMainTheme* viewerTheme = CMainThemeInit::getInstance();
-            ImageDocument* imgDoc = new ImageDocument(this, SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, pictureLocal);
+            ImageDocument* imgDoc = new ImageDocument(this, LayerElement::GetLayerId(), SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, pictureLocal);
             imgDoc->Show(true);
 
             STImageDoc imageDoc;

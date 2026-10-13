@@ -68,6 +68,11 @@ void CFiltreEffectScrollWnd::SetBitmapToViewer(CImageLoadingFormat* bitmap)
 	}
 }
 
+void CFiltreEffectScrollWnd::SetNumLayerId(const int& layerId)
+{
+	this->layerId = layerId;
+}
+
 void CFiltreEffectScrollWnd::OnFiltreCancel()
 {
 	CBitmapWndViewer* bitmapViewer = nullptr;
@@ -188,7 +193,7 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 				{
 					effectParameter = CFiltreData::GetEffectParameter(numItem);
 
-
+					effectParameter->layerId = layerId;
 					bitmapViewer->SetBitmapPreviewEffect(numItem);
 
 					bitmap.reset(bitmapViewer->GetBitmap(true));

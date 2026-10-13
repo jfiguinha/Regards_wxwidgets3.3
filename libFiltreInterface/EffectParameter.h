@@ -49,4 +49,5 @@ public:
 	int opacity = 255;
 	cv::Scalar color1;
 	cv::Scalar color2;
+	int layerId;
 };

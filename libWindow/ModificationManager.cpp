@@ -203,7 +203,7 @@ wxString CModificationManager::GetModificationLibelle(const unsigned int& numMod
 	return "";
 }
 
-CImageLoadingFormat* CModificationManager::GetModification(const unsigned int& targetModification)
+CImageLoadingFormat* CModificationManager::GetModification(const unsigned int& targetModification, int64_t & layerId)
 {
 	if (targetModification >= historySteps.size() || baseBitmap == nullptr)
 		return nullptr;

@@ -49,6 +49,11 @@ void ParameterDialog::SetActifLayer(const int& numLayer)
 	this->numLayer = numLayer;
 }
 
+void ParameterDialog::SetActifLayerId(const int64_t& numLayerId)
+{
+	this->numLayerId = numLayerId;
+}
+
 void ParameterDialog::SetTypeFiltre(const int& typeFiltre)
 {
 	this->typeFiltre = typeFiltre;
@@ -82,7 +87,7 @@ void ParameterDialog::OnFiltreCancel(wxCommandEvent& event)
 	this->Show(false);
 }
 
-void ParameterDialog::SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString &filename, const int& bitmapViewerId, const int& mainViewerId)
+void ParameterDialog::SetFiltre(const int& numFiltre, const int64_t & numLayerId, CInfoEffectWnd* historyEffectWnd, const wxString &filename, const int& bitmapViewerId, const int& mainViewerId)
 {
 	if (filtreEffectWnd)
 	{
@@ -90,7 +95,7 @@ void ParameterDialog::SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEff
 		this->numFiltre = numFiltre;
 		filtreToolbar->SetNumFiltre(numFiltre);
 		filtreEffectWnd->SetParentBitmapId(mainViewerId);
-		
+		filtreEffectWnd->SetNumLayerId(numLayerId);
 		filtreEffectWnd->ApplyEffect(numFiltre, historyEffectWnd, filename, false, PANELINFOSWNDID,
 			bitmapViewerId);
 

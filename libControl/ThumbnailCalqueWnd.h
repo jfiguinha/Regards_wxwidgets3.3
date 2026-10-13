@@ -28,6 +28,7 @@ namespace Regards::Control
 		int GetActifLayer();
 		void RefreshList();
 		vector<int> GetSelectLayer();
+		int64_t GetActifLayerId();
 
 	private:
 		CScrollbarWnd * thumbnailEffectScroll;

@@ -9,6 +9,10 @@
 // ============================================================================
 // Implémentation : LayerElement (Mère)
 // ============================================================================
+
+
+std::atomic<uint64_t> LayerElement::counter{ 0 };
+
 LayerElement::LayerElement() {}
 
 LayerElement::LayerElement(const LayerElement& other)
@@ -49,8 +53,12 @@ void LayerElement::InvalidatePicture()
 
 uint64_t LayerElement::NextLayerId()
 {
-    static std::atomic<uint64_t> counter{ 0 };
     return ++counter;
+}
+
+uint64_t LayerElement::GetLayerId()
+{
+    return counter;
 }
 
 // ============================================================================
@@ -300,6 +308,15 @@ bool CLayerList::FusionLayers(std::vector<int>* listLayer)
     return true;
 }
 
+LayerElement* CLayerList::FindElementByLayerId(const uint64_t& layerId)
+{
+    for (LayerElement* element : m_layers)
+    {
+        if (element->layerId == layerId)
+            return element;
+    }
+}
+
 /**
  * Déplace un calque vers le haut visuellement (diminue son index dans le vecteur).
  */
@@ -339,6 +356,7 @@ bool CLayerList::MoveDownLayer(size_t index)
     isChanged = true;
     return true;
 }
+
 
 
 void CLayerList::push_back(LayerElement* element)

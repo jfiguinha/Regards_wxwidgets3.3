@@ -103,6 +103,13 @@ int CListLayer::GetActifLayer()
 	return -1;
 }
 
+int64_t CListLayer::GetActifLayerId()
+{
+	if (thumbnailCalqueWnd)
+		return thumbnailCalqueWnd->GetActifLayerId();
+	return -1;
+}
+
 vector<int> CListLayer::GetSelectLayer()
 {
 	if (thumbnailCalqueWnd)

@@ -36,6 +36,11 @@ public:
    // void MouseClick(const int& xPos, const int& yPos) override;
   //  void MouseRelease(const int& xPos, const int& yPos) override;
 private:
+
+    //Event
+    void OnSetBitmap(wxCommandEvent& event) override;
+    void SetBitmapByLayerId(CImageLoadingFormat* bitmapIn, const uint64_t& layerId);
+    void UpdateLayerId(CImageLoadingFormat* bitmapIn, const uint64_t& layerId);
     // --- Rendu ---
     void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
     bool ApplySelectEffect(int& widthOutput, int& heightOutput)  override;

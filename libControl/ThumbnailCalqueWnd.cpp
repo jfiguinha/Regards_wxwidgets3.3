@@ -66,6 +66,13 @@ int CThumbnailCalqueWnd::GetActifLayer()
 	return -1;
 }
 
+int64_t CThumbnailCalqueWnd::GetActifLayerId()
+{
+	if (thumbnailCalque != nullptr)
+		return thumbnailCalque->GetActifLayerId();
+	return -1;
+}
+
 vector<int> CThumbnailCalqueWnd::GetSelectLayer()
 {
 	if (thumbnailCalque != nullptr)

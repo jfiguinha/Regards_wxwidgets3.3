@@ -30,6 +30,7 @@ namespace Regards::Control
 		void OnFiltreCancel();
 		CFiltreEffect* GetFiltreEffect();
 		int GetNumFiltre();
+		void SetNumLayerId(const int& layerId);
 		void SetParentBitmapId(const int& bitmapWindowId);
 		void SetColor(const wxColour& color1, const wxColour& color2);
 
@@ -41,7 +42,8 @@ namespace Regards::Control
 		CEffectParameter * effectParameter;
 		std::unique_ptr<CFiltreEffect> filtreEffectOld;
 		int numFiltre;
-		int numLayer = -1;
+		int layerId = 0;
+		int numLayer =0;
 		int bitmapWindowId;
 	};
 }

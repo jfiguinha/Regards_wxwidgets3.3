@@ -44,8 +44,9 @@ void CInfoEffect::SetTreeInterface(CTreeElementControlInterface* interfaceContro
 	eventControl = interfaceControl;
 }
 
-void CInfoEffect::Init(CImageLoadingFormat* bitmap, const wxString& libelle, const wxString& key)
+void CInfoEffect::Init(CImageLoadingFormat* bitmap,const int64_t & layerId, const wxString& libelle, const wxString& key)
 {
+	initLayerId = layerId;
 	this->baseBitmap = bitmap; // On stocke la référence de l'image source non-modifiée
 	modificationManager->Init(bitmap);
 	InitTree(libelle, key);
@@ -90,6 +91,7 @@ void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effect
 void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
 	const int& posLargeur, const int& posHauteur)
 {
+
 	CTreeElement* treeElement = element->GetTreeElement();
 	auto treeData = element->GetTreeData();
 	if (element->GetType() == ELEMENT_TEXTE)
@@ -97,15 +99,17 @@ void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, co
 		wxString key = treeData->GetExifKey();
 		if (key != "History")
 		{
+			int64_t layerId = 0;
 			const int modif = CConvertUtility::StringToInt(key);
+			CImageLoadingFormat* bitmap = modificationManager->GetModification(modif, layerId);
 			// Utilisation de la nouvelle fonction non-destructive basée sur l'image source originale
-			SetBitmapToViewer(modificationManager->GetModification(modif));
+			SetBitmapToViewer(bitmap, layerId);
 		}
 		else
 		{
 			CLibPicture libPicture;
 			CImageLoadingFormat* bitmap = libPicture.LoadPicture(treeData->GetKey());
-			SetBitmapToViewer(bitmap);
+			SetBitmapToViewer(bitmap, initLayerId);
 			modificationManager->SetNumModification(0);
 		}
 		SetActifElement(key);
@@ -140,11 +144,12 @@ wxString CInfoEffect::GetNumModification()
 	return to_string(modificationManager->GetNumModification());
 }
 
-void CInfoEffect::SetBitmapToViewer(CImageLoadingFormat* bitmap)
+void CInfoEffect::SetBitmapToViewer(CImageLoadingFormat* bitmap, const int64_t & layerId)
 {
 	auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);
 	auto event = new wxCommandEvent(wxEVENT_SETBITMAP);
 	event->SetClientData(bitmap);
+	event->SetExtraLong(layerId);
 	wxQueueEvent(bitmapWindow, event);
 }
 

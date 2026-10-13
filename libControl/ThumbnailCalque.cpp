@@ -274,6 +274,17 @@ int CThumbnailCalque::GetActifLayer()
     return numClickIcone;
 }
 
+int64_t CThumbnailCalque::GetActifLayerId()
+{
+    CIcone* icone = iconeList->GetElement(numClickIcone);
+    if (!icone)
+    {
+        auto* thumbnailData = icone->GetPtData();
+        return thumbnailData->GetNumPhotoId();
+    }
+    return -1;
+}
+
 void CThumbnailCalque::Resize()
 {
 	this->SetIconeSize(this->GetWindowWidth(), 50);

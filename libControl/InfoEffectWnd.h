@@ -27,7 +27,7 @@ namespace Regards::Control
 		void SetHistoryEffect(CInfoEffect* infoEffect);
 
 		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle);
-		void HistoryUpdate(CImageLoadingFormat* bitmap, const wxString& filename, const wxString& historyLibelle,
+		void HistoryUpdate(CImageLoadingFormat* bitmap, const int64_t& layerId, const wxString& filename, const wxString& historyLibelle,
 		                   CModificationManager* modificationManager);
 
 	private:

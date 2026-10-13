@@ -13,8 +13,13 @@
 #include <ViewerThemeInit.h>
 #include <libPicture.h>
 #include <ClosedHandCursor.h>
+#include <window_id.h>
+#include <SqlPhotos.h>
+#include <appcontext.h>
+using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 
+extern AppContext application_context;
 //-----------------------------------------------------------------
 // Utilitaires locaux (partagés par les backends GL / OpenCL / CPU)
 //-----------------------------------------------------------------
@@ -801,4 +806,76 @@ void CBitmapEditor::SetMoveTool()
         wxSetCursor(*wxSTANDARD_CURSOR);
         toolOption = MOVEPICTURE;
     }
+}
+
+
+void CBitmapEditor::OnSetBitmap(wxCommandEvent& event)
+{
+    auto picture = static_cast<CImageLoadingFormat*>(event.GetClientData());
+    uint64_t layerId = static_cast<uint64_t>(event.GetExtraLong());
+    if (picture != nullptr)
+        SetBitmapByLayerId(picture, layerId);
+}
+
+
+
+//-----------------------------------------------------------------
+//Affectation de l'image
+//-----------------------------------------------------------------
+void CBitmapEditor::SetBitmapByLayerId(CImageLoadingFormat* bitmapIn, const uint64_t & layerId)
+{
+    if (bitmapIn != nullptr)
+    {
+        if (bitmapIn->IsOk())
+        {
+            loadBitmap = true;
+            bitmapLoad = true;
+            filename = bitmapIn->GetFilename();
+            bitmapUpdate = true;
+            flipVertical = 0;
+            flipHorizontal = 0;
+            angle = 0;
+            UpdateLayerId(bitmapIn, layerId);
+
+            toolOption = MOVEPICTURE;
+            bitmapwidth = bitmapIn->GetWidth();
+            bitmapheight = bitmapIn->GetHeight();
+            orientation = bitmapIn->GetOrientation();
+
+
+            CSqlPhotos sqlPhotos;
+            int exifCode = sqlPhotos.GetPhotoExif(filename);
+            if (exifCode != -1)
+                application_context.GetAngleAndFlip(exifCode, angle, flipHorizontal, flipVertical);
+
+            //int exifCode = application_context.GetExifFromAngleAndFlip(angle, flipHorizontal, flipVertical);
+            //sqlPhotos.UpdatePhotoExif(filename, exifCode);
+
+            ShrinkImage(false);
+            AfterSetBitmap();
+
+            RemoveListener(false);
+
+            //needToRefresh = true;
+            parentRender->Refresh();
+
+            RefreshWindow();
+        }
+    }
+}
+
+
+void CBitmapEditor::UpdateLayerId(CImageLoadingFormat* bitmapIn, const uint64_t& layerId)
+{
+    CRegardsConfigParam* regardsParam = CParamInit::getInstance();
+    const bool openCLAvailable = cv::ocl::haveOpenCL() && regardsParam->GetIsOpenCLSupport();
+    bool addElement = false;
+    LayerElement* element = nullptr;
+
+    element = listOfLayer.FindElementByLayerId(layerId);
+
+    if (element == nullptr)
+        return;
+
+    element->SetPicture(bitmapIn);
 }

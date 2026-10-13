@@ -25,6 +25,7 @@ namespace Regards::Control
 		int GetActifLayer();
 		void OnPictureClick(const int& numPhotoId) override;
 		vector<int> GetSelectLayer();
+		int64_t GetActifLayerId();
 
 	private:
 

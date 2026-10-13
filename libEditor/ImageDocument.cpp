@@ -21,7 +21,7 @@ const std::vector<int> zoomValues = {
 };
 
 
-ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
+ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowID bitmapViewerId,
     wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename)
     : wxDialog(parent, wxID_ANY, filename, wxDefaultPosition, wxSize(600, 450),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX)
@@ -92,7 +92,7 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     modificationManager = std::make_unique<CModificationManager>(folder);
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, filename);
 
-    historyEffect->Init(pictureLocal, filename, historyLibelle);
+    historyEffect->Init(pictureLocal, layerId, filename, historyLibelle);
     // Mettre à jour les textes pour la première fois
     UpdateStatusText();
 }
@@ -205,7 +205,7 @@ CLayerList* ImageDocument::GetListOfLayer()
 }
 
 
-ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
+ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowID bitmapViewerId,
     wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, CImageLoadingFormat* pictureLocal)
     : wxDialog(parent, wxID_ANY, pictureLocal->GetFilename(), wxDefaultPosition, wxSize(600, 450),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxMAXIMIZE_BOX | wxMINIMIZE_BOX)
@@ -274,7 +274,7 @@ ImageDocument::ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
     modificationManager = std::make_unique<CModificationManager>(folder);
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, m_filename);
 
-    historyEffect->Init(pictureLocal, m_filename, historyLibelle);
+    historyEffect->Init(pictureLocal, layerId, m_filename, historyLibelle);
     // Mettre à jour les textes pour la première fois
     UpdateStatusText();
 }

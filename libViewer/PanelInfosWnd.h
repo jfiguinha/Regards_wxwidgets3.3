@@ -78,6 +78,8 @@ namespace Regards
 			CToolbarInfos * infosToolbar;
 			std::unique_ptr<CModificationManager> modificationManager;
 
+
+			uint64_t layerId = 0;
 			bool isThumbnail;
 			bool isVideo;
 			wxString filename;

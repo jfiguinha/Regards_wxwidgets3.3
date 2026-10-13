@@ -170,7 +170,7 @@ void CPanelInfosWnd::HistoryUpdate()
 		if (bitmap != nullptr)
 		{
 			wxString filename = bitmap->GetFilename();
-			historyEffectWnd->HistoryUpdate(bitmap, filename, historyLibelle, modificationManager.get());
+			historyEffectWnd->HistoryUpdate(bitmap, 0, filename, historyLibelle, modificationManager.get());
 			delete bitmap;
 		}
 	}

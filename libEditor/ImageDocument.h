@@ -16,10 +16,10 @@ class CModificationManager;
 // --- 1. La Fenêtre "Image" (Dialogue Non-Modal) ---
 class ImageDocument : public wxDialog {
 public:
-    ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
+    ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowID bitmapViewerId,
         wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, const wxString& filename);
 
-    ImageDocument(wxWindow* parent, wxWindowID bitmapViewerId,
+    ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowID bitmapViewerId,
         wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, CImageLoadingFormat* pictureLocal);
 
     CInfoEffect * GetHistoryPt();

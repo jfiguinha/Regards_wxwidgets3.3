@@ -63,6 +63,14 @@ int LayerDialog::GetActifLayer()
 	return -1;
 }
 
+int64_t LayerDialog::GetActifLayerId()
+{
+	if (listLayer)
+		return listLayer->GetActifLayerId();
+	return -1;
+}
+
+
 vector<int> LayerDialog::GetSelectLayer()
 {
 	if (listLayer)

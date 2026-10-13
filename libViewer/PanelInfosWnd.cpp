@@ -539,7 +539,7 @@ void CPanelInfosWnd::HistoryUpdate()
 		if (bitmapViewer != nullptr)
 		{
 			CImageLoadingFormat* bitmap = bitmapViewer->GetBitmap(true);
-			historyEffectWnd->HistoryUpdate(bitmap, filename, historyLibelle, modificationManager.get());
+			historyEffectWnd->HistoryUpdate(bitmap, layerId, filename, historyLibelle, modificationManager.get());
 		}
 	}
 }

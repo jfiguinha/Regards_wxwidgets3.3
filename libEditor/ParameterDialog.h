@@ -11,11 +11,11 @@ using namespace Regards::Control;
 class ParameterDialog : public wxDialog {
 public:
     ParameterDialog(wxWindow* parent);
-    void SetFiltre(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, const wxString& filename, const int& bitmapViewerId, const int& mainViewerId);
+    void SetFiltre(const int& numFiltre, const int64_t& numLayerId, CInfoEffectWnd* historyEffectWnd, const wxString& filename, const int& bitmapViewerId, const int& mainViewerId);
     void SetTypeFiltre(const int& typeFiltre);
     void SetColor(const wxColour& color1, const wxColour& color2);
     void SetActifLayer(const int& numLayer);
-
+    void SetActifLayerId(const int64_t& numLayerId);
 private:
     void OnSize(wxSizeEvent& event);
     void OnFiltreOk(wxCommandEvent& event);
@@ -26,6 +26,7 @@ private:
     CFiltreToolbar* filtreToolbar = nullptr;
     
     int numLayer = 0;
+    int64_t numLayerId = 0;
     int numFiltre = 0;
     wxStatusBar* m_statusBar;
     int typeFiltre = 0;

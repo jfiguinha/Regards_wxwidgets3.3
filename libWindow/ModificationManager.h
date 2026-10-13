@@ -17,7 +17,7 @@ public:
 	unsigned int GetNumModification();
 
 	// Prend désormais l'image de base en paramètre pour rejouer les filtres dessus
-	CImageLoadingFormat* GetModification(const unsigned int& numModification);
+	CImageLoadingFormat* GetModification(const unsigned int& numModification, int64_t& layerId);
 
 	// Enregistre l'ID du filtre et ses paramètres au lieu d'écrire un fichier PNG
 	void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle);

@@ -37,13 +37,6 @@ CInfoEffectWnd::~CInfoEffectWnd(void)
 
 void CInfoEffectWnd::SetHistoryEffect(CInfoEffect* infoEffect)
 {
-	/*
-	if (historyEffectOld)
-	{
-		if (historyEffectOld->GetFilename() == infoEffect->GetFilename())
-			return;
-	}
-	*/
 	if (infoEffect != nullptr)
 		historyEffectOld = infoEffect;
 	eraseMemory = false;
@@ -71,14 +64,14 @@ void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* eff
 	}
 }
 
-void CInfoEffectWnd::HistoryUpdate(CImageLoadingFormat* bitmap, const wxString& filename,
+void CInfoEffectWnd::HistoryUpdate(CImageLoadingFormat* bitmap, const int64_t& layerId, const wxString& filename,
                                    const wxString& historyLibelle,
                                    CModificationManager* modificationManager)
 {
 	if (historyEffectOld == nullptr || historyEffectOld->GetFilename() != filename)
 	{
 		auto historyEffect = new CInfoEffect(treeWindow, modificationManager, bitmapWindowId, filename);
-		historyEffect->Init(bitmap, filename, historyLibelle);
+		historyEffect->Init(bitmap, layerId, filename, historyLibelle);
 		treeWindow->SetTreeControl(historyEffect);
 
 		if (historyEffectOld)
