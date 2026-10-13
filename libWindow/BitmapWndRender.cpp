@@ -1082,6 +1082,42 @@ void CBitmapWndRender::OnRButtonDown(wxMouseEvent& event)
 	}
 }
 
+void CBitmapWndRender::CalculPositionPictureAtMouse(const float& mouseX, const float& mouseY)
+{
+	float bitmapRatioWidth = GetBitmapWidthWithRatio();
+	float bitmapRatioHeight = GetBitmapHeightWithRatio();
+	float screenWidth = static_cast<float>(GetWidth());
+	float screenHeight = static_cast<float>(GetHeight());
+
+	// Déterminer la nouvelle position théorique de l'image à l'écran
+	float screenXPos = centerX * ratio;
+	float screenYPos = centerY * ratio;
+
+	int posLargeurMax = bitmapRatioWidth - screenWidth;
+	int posHauteurMax = bitmapRatioHeight - screenHeight;
+
+	// Si l'image entière est plus petite que l'écran, on la centre (0)
+	if (screenWidth > bitmapRatioWidth)
+	{
+		posLargeur = 0;
+	}
+	else
+	{
+		// On ajuste l'offset de défilement pour que le point visé reste sous la souris
+		posLargeur = clamp(static_cast<int>(screenXPos - mouseX), 0, posLargeurMax);
+	}
+
+	if (screenHeight > bitmapRatioHeight)
+	{
+		posHauteur = 0;
+	}
+	else
+	{
+		posHauteur = clamp(static_cast<int>(screenYPos - mouseY), 0, posHauteurMax);
+	}
+}
+
+
 //-----------------------------------------------------------------
 //Gestion du click de souris
 //-----------------------------------------------------------------
@@ -1094,54 +1130,57 @@ void CBitmapWndRender::OnLButtonDown(wxMouseEvent& event)
 	switch (toolOption)
 	{
 	case MOVEPICTURE:
-		{
-			mouseBlock = true;
-			mouseScrollX = xPos;
-			mouseScrollY = yPos;
-			parentRender->CaptureMouse();
-			wxSetCursor(hCursorHand);
-		}
-		break;
+	{
+		mouseBlock = true;
+		mouseScrollX = xPos;
+		mouseScrollY = yPos;
+		parentRender->CaptureMouse();
+		wxSetCursor(hCursorHand);
+	}
+	break;
 
 	case ZOOMPICTURE:
 	{
+		// 1. Calculer la position absolue du clic par rapport à l'image affichée avec son ratio actuel
+		// (On ajoute les offsets de défilement posLargeur / posHauteur)
+		float clickedImageX = static_cast<float>(xPos + posLargeur);
+		float clickedImageY = static_cast<float>(yPos + posHauteur);
+
+		// 2. Convertir cette position en pixels réels de l'image source (indépendante du zoom)
+		centerX = clickedImageX / ratio;
+		centerY = clickedImageY / ratio;
+
+		if (posRatio == -1)
+			ratio = CalculRatio(GetBitmapWidth(), GetBitmapHeight());
+
+		shrinkImage = false;
+
 		if (iKey == WXK_CONTROL)
 		{
-			CalculPositionPicture(xPos + posLargeur, yPos + posHauteur);
-
+			// --- ZOOM ARRIÈRE (ZOOM OUT) ---
 			wxSetCursor(hCursorZoomOut);
-			if (posRatio == -1)
-				ratio = CalculRatio(GetBitmapWidth(), GetBitmapHeight());
-
-			shrinkImage = false;
 
 			posRatio--;
 			if (posRatio < 0)
 				posRatio = 0;
-
-			ratio = ((float)value[posRatio] / 100.0f);
-			
-			UpdateScrollBar();
-
 		}
 		else
 		{
-			CalculPositionPicture(xPos + posLargeur, yPos + posHauteur);
-
+			// --- ZOOM AVANT (ZOOM IN) ---
 			wxSetCursor(hCursorZoomIn);
-			if (posRatio == -1)
-				ratio = CalculRatio(GetBitmapWidth(), GetBitmapHeight());
-
-			shrinkImage = false;
 
 			posRatio++;
 			if (posRatio >= value.size())
 				posRatio = value.size() - 1;
-
-			ratio = ((float)value[posRatio] / 100.0f);
-			
-			UpdateScrollBar();
 		}
+
+		// 3. Appliquer le nouveau ratio calculé
+		ratio = ((float)value[posRatio] / 100.0f);
+
+		// 4. Repositionner l'image pour que le point (centerX, centerY) reste sous la souris
+		CalculPositionPictureAtMouse(xPos, yPos);
+
+		UpdateScrollBar();
 		break;
 	}
 
@@ -1152,6 +1191,7 @@ void CBitmapWndRender::OnLButtonDown(wxMouseEvent& event)
 
 	MouseClick(xPos, yPos);
 }
+
 
 //-----------------------------------------------------------------
 //Obtention des dimensions du bitmap

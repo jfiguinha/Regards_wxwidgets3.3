@@ -211,7 +211,7 @@ namespace Regards::Window
 		void CalculRealPosFromScreen(const int& xScreen, const int& yScreen, int& xReal, int& yReal);
 
 		virtual void RenderTexture(const bool& invertPos);
-
+		void CalculPositionPictureAtMouse(const float& mouseX, const float& mouseY);
 		void Resize() override;
 
 		CDraw* GetDessinPt() override
