@@ -246,9 +246,6 @@
     <ClInclude Include="IBitmapRenderInterface.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="BitmapWnd2d.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="IBitmapWnd.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -317,6 +314,9 @@
     </ClInclude>
     <ClInclude Include="LayerBlend.h">
       <Filter>Layer</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapWnd2d.h">
+      <Filter>OpenGL</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

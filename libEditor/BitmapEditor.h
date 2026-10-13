@@ -30,6 +30,11 @@ public:
         return &listOfLayer;
     }
 
+    Regards::Picture::CPictureArray* GetCachePicture() override
+    {
+        return &buffer;
+    }
+
 private:
     // --- Rendu ---
     void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
@@ -79,7 +84,7 @@ private:
     cv::Size backgroundTextureSize;
     std::unique_ptr<GLTexture> activeLayerTexture;
     cv::Size activeLayerTextureSize;
-
+    Regards::Picture::CPictureArray buffer;
     // Ressources OpenCL
     std::unique_ptr<CLayerCompositorOpenCL> layerCompositorOpenCL;
     cv::UMat backgroundUMat;
@@ -91,6 +96,8 @@ private:
     uint64_t lastSourceVersion = 0;
     bool gpuComposeFallbackLogged = false;
     bool openclComposeFallbackLogged = false;
+
+    bool needToChangeBuffer = true;
 
     wxWindowID parameterId;
     wxWindowID mainViewerId;

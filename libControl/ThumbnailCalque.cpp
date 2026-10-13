@@ -125,8 +125,8 @@ void CThumbnailCalque::UpdateLayerList()
     std::unordered_set<uint64_t> listOfLayerFind;
     CIconeList* oldList = iconeList.get();
 
-    int targetWidth = themeThumbnail.themeIcone.GetWidth();
-    int targetHeight = themeThumbnail.themeIcone.GetHeight();
+    int targetWidth = 640;// themeThumbnail.themeIcone.GetWidth();
+    int targetHeight = 480;// themeThumbnail.themeIcone.GetHeight();
 
     for (LayerElement* layerElement : *listOfLayer)
     {

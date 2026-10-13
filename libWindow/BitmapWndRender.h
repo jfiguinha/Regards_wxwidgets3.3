@@ -95,6 +95,8 @@ namespace Regards::Window
 		};
 		int GetKey();
 
+		Regards::Picture::CPictureArray* GetCachePicture() override;
+
 		void SetOpenGLOutput(const bool& value);
 
 		void SetFullscreen(const bool& fullscreen);

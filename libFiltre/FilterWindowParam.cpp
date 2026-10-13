@@ -49,17 +49,17 @@ void CFilterWindowParam::DrawingToPicture(CEffectParameter* effectParameter, IBi
 
 		if (effectParameter->IfNeedTransparence())
 		{
-			Regards::Picture::CPictureArray mat = filtreEffet->GetMatrix();
+			Regards::Picture::CPictureArray * mat = bitmapViewer->GetCachePicture(); //filtreEffet->GetMatrix();
 			// /!\ ATTENTION : Si GetBitmap(false) contient déjà les dessins précédents,
 			// préférez passer 'true' ou écraser avec la source propre pour éviter la superposition infinie.
-			cv::Mat matBase = mat.getMat();
+			cv::Mat & matBase = mat->getMat();
 
 			// Appelle CPenFilter::Drawing qui appelle à son tour m_cDessin->DessinerSurMat
 			Drawing(matBase, bitmapViewer, m_cDessin);
 
-			CImageLoadingFormat imageLoad;
-			imageLoad.SetPicture(matBase);
-			filtreEffet->SetBitmap(&imageLoad);
+			//CImageLoadingFormat imageLoad;
+			//imageLoad.SetPicture(matBase);
+			//filtreEffet->SetBitmap(&imageLoad);
 			// Plus besoin de delete manuel ici pour imageLoad car alloué sur la pile
 		}
 		else
