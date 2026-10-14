@@ -19,12 +19,9 @@ using namespace cv;
 CRectangleFilter::CRectangleFilter()
 {
 	libelleShapeType = CLibResource::LoadStringFromResource("LBLEFFECTSHAPETYPE", 1); 
-
 	libellePenSize = CLibResource::LoadStringFromResource("LBLEFFECTPENSIZE", 1);
-	libelleColor = CLibResource::LoadStringFromResource("LBLEFFECTCOLOR", 1);
 	libelleTypeBrush = CLibResource::LoadStringFromResource("LBLEFFECTBRUSH", 1);
 	libelleOpacity = CLibResource::LoadStringFromResource("LBLEFFECTOPACITY", 1);
-
 	libelleIsFilled = CLibResource::LoadStringFromResource("LBLEFFECTFILLED", 1);
 }
 	
@@ -68,9 +65,6 @@ void CRectangleFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source
 	vector<int> elementSize;
 	for (auto i = 1; i < 50; i++) elementSize.push_back(i);
 	filtreInterface->AddTreeInfos(libellePenSize, new CTreeElementValueInt(param->penSize), &elementSize);
-
-	// Couleur
-	filtreInterface->AddTreeInfos(libelleColor, new CTreeElementValueColor(ConvertScalarToWxColour(param->color, effectParameter->opacity)), &elementSize, TYPE_COLOR, TYPE_COLOR);
 		
 
 	// Forme du trait
@@ -99,10 +93,6 @@ void CRectangleFilter::FilterChangeParam(CEffectParameter* effectParameter, CTre
 		param->shapeType = static_cast<CTreeElementValueInt*>(valueData)->GetValue();
 	else if (key == libellePenSize && valueData->GetType() == TYPE_ELEMENT_INT)
 		param->penSize = static_cast<CTreeElementValueInt*>(valueData)->GetValue();
-	else if (key == libelleColor && valueData->GetType() == 4) {
-		wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
-		param->color = cv::Scalar(c.Red(), c.Green(), c.Blue(), effectParameter->opacity);
-	}
 	else if (key == libelleTypeBrush && valueData->GetType() == TYPE_ELEMENT_INT)
 		param->typeBrush = static_cast<CTreeElementValueInt*>(valueData)->GetValue();
 	else if (key == libelleOpacity && valueData->GetType() == TYPE_ELEMENT_INT)

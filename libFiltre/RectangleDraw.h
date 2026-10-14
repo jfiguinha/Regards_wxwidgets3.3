@@ -22,7 +22,8 @@ namespace Regards::FiltreEffet {
 
         void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll, const float& ratio) override;
         void MouseMove(const long& xNewSize, const long& yNewSize, const long& m_lHScroll, const long& m_lVScroll, const float& ratio) override;
-        void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio);
+        void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio) override;
+        void DessinerSurMat(cv::UMat& matrix, const long& hScroll, const long& vScroll, const float& ratio) override;
         void MouseDown(CEffectParameter* effect) override;
         void MouseUp() override;
         void Reset();
@@ -37,7 +38,7 @@ namespace Regards::FiltreEffet {
         }
 
     private:
-
+        void DrawShapeOnMat(cv::UMat& matrix, SShapeStyleDraw& shape, const long& hScroll, const long& vScroll, const float& ratio);
         void DrawShapeOnMat(cv::Mat& matrix, SShapeStyleDraw& shape, const long& hScroll, const long& vScroll, const float& ratio);
         std::vector<SShapeStyleDraw> m_tousLesTraces;
         bool m_isDrawing = false;

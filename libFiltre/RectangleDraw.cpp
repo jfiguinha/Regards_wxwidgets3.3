@@ -19,7 +19,7 @@ void CRectangleDraw::MouseDown(CEffectParameter* effect) {
     CRectangleFilterParameter* param = (CRectangleFilterParameter*)effect;
 
     SShapeStyleDraw nouvelleForme;
-    nouvelleForme.color = param->ConvertScalarToWxColour();
+    nouvelleForme.color = param->GetColor1();
     nouvelleForme.penSize = param->penSize;
     nouvelleForme.typeBrush = param->typeBrush;
     nouvelleForme.shapeType = param->shapeType;
@@ -95,6 +95,79 @@ void CRectangleDraw::DrawShapeOnMat(cv::Mat& matrix, SShapeStyleDraw& shape, con
         else {
             cv::line(matrix, p1, p2, GetColorWithTransparancy(shape.color, shape.opacity), thickness, lineStyle);
         }
+    }
+}
+
+
+void CRectangleDraw::DrawShapeOnMat(cv::UMat& matrix, SShapeStyleDraw& shape, const long& hScroll, const long& vScroll, const float& ratio)
+{
+    float thickness = shape.isFilled ? -1 : shape.penSize * ratio;
+    if (shape.shapeType == SHAPE_LINE) thickness = shape.penSize * ratio; // Une ligne ne peut pas être "remplie"
+
+    int lineStyle = (shape.typeBrush == 1) ? cv::LINE_8 : cv::LINE_AA;
+    if (shape.typeBrush == 2) lineStyle = cv::LINE_8; // Pointillés forcés en standard pour le calcul du saut
+
+    cv::Point p1;
+    cv::Point p2;
+
+    p1.x = static_cast<int>(XDrawingPosition(static_cast<float>(shape.startPoint.x), hScroll, ratio));
+    p1.y = static_cast<int>(XDrawingPosition(static_cast<float>(shape.startPoint.y), vScroll, ratio));
+
+    p2.x = static_cast<int>(YDrawingPosition(static_cast<float>(shape.endPoint.x), hScroll, ratio));
+    p2.y = static_cast<int>(YDrawingPosition(static_cast<float>(shape.endPoint.y), vScroll, ratio));
+
+
+    if (shape.shapeType == SHAPE_RECTANGLE) {
+        cv::rectangle(matrix, p1, p2, GetColorWithTransparancy(shape.color, shape.opacity), thickness, lineStyle);
+    }
+    else if (shape.shapeType == SHAPE_CIRCLE) {
+        double radius = cv::norm(p1 - p2);
+        cv::circle(matrix, p1, static_cast<int>(radius), GetColorWithTransparancy(shape.color, shape.opacity), thickness, lineStyle);
+    }
+    else if (shape.shapeType == SHAPE_LINE) 
+    {
+        if (shape.typeBrush == 2) 
+        {
+            /*
+            // Rendu basique d'une ligne pointillée en OpenCV
+            cv::LineIterator it(matrix, p1, p2, 8);
+            for (int i = 0; i < it.count; i++, ++it) {
+                if (i % 10 < 5) { // Dessine 5 pixels, saute 5 pixels
+                    cv::Scalar color = GetColorWithTransparancy(shape.color, shape.opacity);
+                    matrix.at<cv::Vec4b>(it.pos()) = cv::Vec4b(color[0], color[1], color[2], color[3]);
+                }
+            }
+            */
+        }
+        else {
+            cv::line(matrix, p1, p2, GetColorWithTransparancy(shape.color, shape.opacity), thickness, lineStyle);
+        }
+    }
+}
+
+void CRectangleDraw::DessinerSurMat(cv::UMat& matrix, const long& hScroll, const long& vScroll, const float& ratio)
+{
+    if (matrix.empty()) return;
+    if (matrix.channels() == 3) cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
+
+
+    try {
+
+        for (auto& shape : m_tousLesTraces)
+        {
+            if (shape.opacity >= 255) {
+                DrawShapeOnMat(matrix, shape, hScroll, vScroll, ratio);
+            }
+            else if (shape.opacity > 0) {
+                cv::UMat overlay = matrix.clone();
+                DrawShapeOnMat(overlay, shape, hScroll, vScroll, ratio);
+                double alpha = shape.opacity / 255.0;
+                cv::addWeighted(overlay, alpha, matrix, 1.0 - alpha, 0, matrix);
+            }
+        }
+    }
+    catch (cv::Exception& e) {
+        std::cout << "Exception: " << e.what() << std::endl;
     }
 }
 

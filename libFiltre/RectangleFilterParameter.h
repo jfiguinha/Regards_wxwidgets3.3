@@ -28,13 +28,6 @@ struct SShapeTrace {
 class CRectangleFilterParameter : public CEffectParameter
 {
 public:
-	wxColour ConvertScalarToWxColour()
-	{
-		int blue = static_cast<int>(color[0]);
-		int green = static_cast<int>(color[1]);
-		int red = static_cast<int>(color[2]);
-		return wxColour(red, green, blue, opacity);
-	}
 
 	bool IfNeedTransparence() override
 	{
@@ -53,7 +46,6 @@ public:
 	std::vector<SShapeTrace> listShapes;
 	int shapeType = SHAPE_RECTANGLE;
 	int penSize = 4;
-	cv::Scalar color;
 	int typeBrush = 0;
 	bool isFilled = false;
 };
