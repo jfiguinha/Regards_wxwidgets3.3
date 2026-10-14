@@ -128,16 +128,17 @@ void CRectangleDraw::DrawShapeOnMat(cv::UMat& matrix, SShapeStyleDraw& shape, co
     {
         if (shape.typeBrush == 2) 
         {
-            /*
+            cv::Mat local;
+            matrix.copyTo(local);
             // Rendu basique d'une ligne pointillée en OpenCV
-            cv::LineIterator it(matrix, p1, p2, 8);
+            cv::LineIterator it(local, p1, p2, 8);
             for (int i = 0; i < it.count; i++, ++it) {
                 if (i % 10 < 5) { // Dessine 5 pixels, saute 5 pixels
                     cv::Scalar color = GetColorWithTransparancy(shape.color, shape.opacity);
-                    matrix.at<cv::Vec4b>(it.pos()) = cv::Vec4b(color[0], color[1], color[2], color[3]);
+                    local.at<cv::Vec4b>(it.pos()) = cv::Vec4b(color[0], color[1], color[2], color[3]);
                 }
             }
-            */
+            local.copyTo(matrix);
         }
         else {
             cv::line(matrix, p1, p2, GetColorWithTransparancy(shape.color, shape.opacity), thickness, lineStyle);

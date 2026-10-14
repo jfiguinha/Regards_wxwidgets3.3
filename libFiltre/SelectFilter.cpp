@@ -95,7 +95,7 @@ void CSelectFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw*
 
 	if (param && selectDraw) {
 		selectDraw->SetCurrentSelectParams(param->selectType);
-		wxColour color(0, 0, 0);
+		wxColour color(0, 0, 0, 255);
 		m_cDessin->Dessiner(dc, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio(), color, color, color, 1);
 
 		param->listSelections.clear();
@@ -106,7 +106,7 @@ void CSelectFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw*
 			selectOpenCV.points = s.points;
 			selectOpenCV.selectType = s.selectType;
 			selectOpenCV.penSize = 4;
-			selectOpenCV.color = cv::Scalar(0, 0, 0, 0);
+			selectOpenCV.color = cv::Scalar(0, 0, 0, 255);
 			param->listSelections.push_back(selectOpenCV);
 		}
 	}
