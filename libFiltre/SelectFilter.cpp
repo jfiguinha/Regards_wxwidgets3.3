@@ -12,7 +12,7 @@
 #include <treetypeid.h>
 #include <opencv2/imgproc.hpp>
 #include "SelectDraw.h"
-
+using namespace Regards::Window;
 using namespace Regards::Filter;
 using namespace cv;
 
@@ -71,8 +71,7 @@ void CSelectFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeEl
 }
 
 void CSelectFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter, const bool& preview)
-{
-}
+{}
 
 CImageLoadingFormat* CSelectFilter::ApplyEffect(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer)
 {
@@ -85,19 +84,18 @@ CImageLoadingFormat* CSelectFilter::ApplyEffect(CEffectParameter* effectParamete
 	return imageLoad;
 }
 
-
-void CSelectFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
+// MODIFICATION : Utilisation de cv::Mat au lieu de wxMemoryDC pour s'aligner sur CRectangleFilter
+void CSelectFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
-	if (!m_cDessin || !dc || !bitmapViewer) return;
+	if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
+
+	// Rendu à l'écran via OpenCV sur la Matrice
+	m_cDessin->DessinerSurMat(matrix, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio());
 
 	auto param = static_cast<CSelectFilterParameter*>(bitmapViewer->GetEffectPointer());
 	auto selectDraw = static_cast<Regards::FiltreEffet::CSelectDraw*>(m_cDessin);
 
 	if (param && selectDraw) {
-		selectDraw->SetCurrentSelectParams(param->selectType);
-		wxColour color(0, 0, 0, 255);
-		m_cDessin->Dessiner(dc, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio(), color, color, color, 1);
-
 		param->listSelections.clear();
 		for (const auto& s : selectDraw->GetTousLesTraces()) {
 			SSelectionTrace selectOpenCV;
@@ -105,8 +103,9 @@ void CSelectFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw*
 			selectOpenCV.endPoint = s.endPoint;
 			selectOpenCV.points = s.points;
 			selectOpenCV.selectType = s.selectType;
-			selectOpenCV.penSize = 4;
-			selectOpenCV.color = cv::Scalar(0, 0, 0, 255);
+			selectOpenCV.penSize = s.penSize;
+			// Stockage au format OpenCV (Scalar)
+			selectOpenCV.color = cv::Scalar(s.color.Blue(), s.color.Green(), s.color.Red(), s.opacity);
 			param->listSelections.push_back(selectOpenCV);
 		}
 	}

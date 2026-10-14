@@ -1,41 +1,49 @@
 #pragma once
+#include <FiltreEffectInterface.h>
 #include "CropFilter.h"
 #include "FilterWindowParam.h"
+#include <TreeElementValue.h>
+
+class CEffectParameter;
+
+class CFiltreEffet;
+class CImageLoadingFormat;
+class IBitmapDisplay;
 
 class CMetadata;
-struct SSelectionTrace;
 
-namespace Regards::Filter
-{
-	class CSelectFilter : public CCropFilter
-	{
-	public:
-		CSelectFilter();
-		~CSelectFilter() override;
+namespace Regards {
+    namespace Filter {
 
-		int GetTypeFilter() override;
-		int GetNameFilter() override;
-		wxString GetFilterLabel() override;
+        class CSelectFilter : public CCropFilter
+        {
+        public:
+            CSelectFilter();
+            virtual ~CSelectFilter();
 
-		CImageLoadingFormat* ApplyEffect(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer) override;
-		void Filter(CEffectParameter* effectParameter, cv::Mat& source, const wxString& filename,
-			IFiltreEffectInterface* filtreInterface) override;
-		void FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData, const wxString& key);
-		CEffectParameter* GetEffectPointer() override;
-		void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter, const bool& preview) override;
+            CEffectParameter* GetEffectPointer();
+            CDraw* GetDrawingPt();
+            int GetTypeFilter();
+            int GetNameFilter();
+            wxString GetFilterLabel();
 
-		// Surcharges pour la capture et le rendu à l'écran (wxWidgets) et OpenCV
-		void Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
+            void Filter(CEffectParameter* effectParameter, cv::Mat& source, const wxString& filename, IFiltreEffectInterface* filtreInterface);
+            void FilterChangeParam(CEffectParameter* effectParameter, Regards::Window::CTreeElementValue* valueData, const wxString& key);
+            void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter, const bool& preview);
+            CImageLoadingFormat* ApplyEffect(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer);
 
-		CDraw* GetDrawingPt() override;
+            // MODIFICATION : Utilisation de cv::Mat& à la place de wxMemoryDC*
+            void Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin);
 
-	private:
-		wxColour ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha);
-		void AddMetadataElement(vector<CMetadata>& element, wxString value, int key);
-		void DrawSelectionOnMat(cv::Mat& matrix, SSelectionTrace& selection);
+        private:
+            wxColour ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha);
+            void AddMetadataElement(std::vector<CMetadata>& element, wxString value, int key);
 
-		wxString libelleSelectType;
-		wxString libelleTolerance;
+            cv::Mat source;
+            wxString filename;
+            wxString libelleSelectType;
+            wxString libelleTolerance;
+        };
 
-	};
+    }
 }

@@ -1,51 +1,62 @@
 #pragma once
+#include <Draw.h> // Assurez-vous que cette classe de base virtuelle possède bien la méthode virtuelle DessinerSurMat
+#include <opencv2/core.hpp>
+#include <wx/gdicmn.h>
 #include <vector>
-#include "Draw.h"
 
-namespace Regards::FiltreEffet {
+
 
 #define SELECT_RECTANGLE 0
 #define SELECT_ELLIPSE   1
 #define SELECT_LASSO     2
 
-    struct SSelectionStyleDraw {
-        wxPoint startPoint;
-        wxPoint endPoint;
-        std::vector<wxPoint> points;
-        int selectType;
-        wxColour color;
-        int penSize;
-        int opacity;
-        bool isFilled;
-    };
+class CEffectParameter;
+struct SSelectionStyleDraw; // À déclarer selon votre structure existante
 
-    class CSelectDraw : public CDraw {
-    public:
-        CSelectDraw();
-        ~CSelectDraw() override = default;
+namespace Regards {
+    namespace FiltreEffet {
 
-        void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll, const float& ratio) override;
-        void MouseMove(const long& xNewSize, const long& yNewSize, const long& m_lHScroll, const long& m_lVScroll, const float& ratio) override;
-        void Dessiner(wxDC* deviceContext, const long& hScroll, const long& vScroll, const float& ratio, const wxColour& rgb, const wxColour& rgbFirst, const wxColour& rgbSecond, const int32_t& style) override;
-        void MouseDown(CEffectParameter* effect) override;
-        void MouseUp() override;
-        void Reset();
-        void GetPoint(wxPoint& pt) override;
+        struct SSelectionStyleDraw {
+            wxPoint startPoint;
+            wxPoint endPoint;
+            std::vector<wxPoint> points;
+            int selectType;
+            wxColour color;
+            int penSize;
+            int opacity;
+            bool isFilled;
+        };
 
 
-        const std::vector<SSelectionStyleDraw>& GetTousLesTraces() const { return m_tousLesTraces; }
+        class CSelectDraw : public CDraw
+        {
+        public:
+            CSelectDraw();
+            virtual ~CSelectDraw() {}
 
-        // Gère uniquement le type, le reste est fixé en dur
-        void SetCurrentSelectParams(int selectType) {
-            m_currentSelectType = selectType;
-        }
+            void Reset();
+            void MouseUp();
+            void MouseDown(CEffectParameter* effect);
+            void GetPoint(wxPoint& pt);
 
-    private:
+            void InitPoint(CEffectParameter* effect, const long& m_lx, const long& m_ly, const long& m_lHScroll, const long& m_lVScroll, const float& ratio);
+            void MouseMove(const long& xNewSize, const long& yNewSize, const long& m_lHScroll, const long& m_lVScroll, const float& ratio);
 
-        std::vector<SSelectionStyleDraw> m_tousLesTraces;
-        bool m_isDrawing = false;
-        int m_currentSelectType = 0;
-        wxColour wx_color = wxColour(0, 0, 0);
-        //cv::Scalar cvColor = cv::Scalar(0, 0, 0, 0);
-    };
+            // MODIFICATIONS : Surcharges pour le dessin direct sur Mat et UMat (comme CRectangleDraw)
+            void DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long& vScroll, const float& ratio);
+            void DessinerSurMat(cv::UMat& matrix, const long& hScroll, const long& vScroll, const float& ratio);
+
+            // Accesseur utilisé par CSelectFilter pour récupérer les tracés
+            const std::vector<SSelectionStyleDraw>& GetTousLesTraces() const { return m_tousLesTraces; }
+
+        private:
+            // Méthodes internes de dessin pour factoriser le code
+            void DrawSelectOnMat(cv::Mat& matrix, SSelectionStyleDraw& select, const long& hScroll, const long& vScroll, const float& ratio);
+            void DrawSelectOnMat(cv::UMat& matrix, SSelectionStyleDraw& select, const long& hScroll, const long& vScroll, const float& ratio);
+
+            std::vector<SSelectionStyleDraw> m_tousLesTraces;
+            bool m_isDrawing;
+        };
+
+    }
 }
