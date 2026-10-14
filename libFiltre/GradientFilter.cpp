@@ -17,8 +17,6 @@ using namespace std;
 
 CGradientFilter::CGradientFilter()
 {
-    libelleColorStart = CLibResource::LoadStringFromResource("LBLCOLORSTART", 1); // Modifiable par CLibResource::LoadStringFromResource
-    libelleColorEnd = CLibResource::LoadStringFromResource("LBLCOLOREND", 1); // Modifiable par CLibResource::LoadStringFromResource
     libelleGradientType = CLibResource::LoadStringFromResource("LBLGRADIENTTYPE", 1); // Modifiable par CLibResource::LoadStringFromResource
 }
 
@@ -48,10 +46,6 @@ void CGradientFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source,
 
     vector<int> elementDummy;
 
-    // Ajout des sélecteurs de couleur
-    filtreInterface->AddTreeInfos(libelleColorStart, new CTreeElementValueColor(param->GetWxColorStart()), &elementDummy, TYPE_COLOR, TYPE_COLOR);
-    filtreInterface->AddTreeInfos(libelleColorEnd, new CTreeElementValueColor(param->GetWxColorEnd()), &elementDummy, TYPE_COLOR, TYPE_COLOR);
-
     // Ajout de la liste déroulante des types de dégradé
     vector<CMetadata> gradientOptions;
     AddMetadataElement(gradientOptions, "Linear", GRADIENT_LINEAR);
@@ -68,15 +62,7 @@ void CGradientFilter::FilterChangeParam(CEffectParameter* effectParameter, CTree
 {
     auto param = static_cast<CGradientFilterParameter*>(effectParameter);
 
-    if (key == libelleColorStart && valueData->GetType() == 4) {
-        wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
-        param->colorStart = cv::Scalar(c.Blue(), c.Green(), c.Red(), 255);
-    }
-    else if (key == libelleColorEnd && valueData->GetType() == 4) {
-        wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
-        param->colorEnd = cv::Scalar(c.Blue(), c.Green(), c.Red(), 255);
-    }
-    else if (key == libelleGradientType && valueData->GetType() == TYPE_ELEMENT_INT) {
+    if (key == libelleGradientType && valueData->GetType() == TYPE_ELEMENT_INT) {
         param->gradientType = static_cast<CTreeElementValueInt*>(valueData)->GetValue();
     }
 }
@@ -186,7 +172,7 @@ void CGradientFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDr
         cv::Point ptEnd = cv::Point(screenX, screenY);
 
 
-        GenerateGradientMap(matrix, ptStart, ptEnd, param->colorStart, param->colorEnd, param->gradientType);
+        GenerateGradientMap(matrix, ptStart, ptEnd, param->color1, param->color2, param->gradientType);
     }
     else
     {
@@ -219,7 +205,7 @@ CImageLoadingFormat* CGradientFilter::ApplyEffect(CEffectParameter* effectParame
         cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
 
     // Applique le dégradé sur l'entièreté de la matrice
-    GenerateGradientMap(matrix, param->ptStart, param->ptEnd, param->colorStart, param->colorEnd, param->gradientType);
+    GenerateGradientMap(matrix, param->ptStart, param->ptEnd, param->color1, param->color2, param->gradientType);
 
     param->apply = true;
     return imageLoad;
@@ -239,7 +225,7 @@ void CGradientFilter::RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* 
     if (matrix.channels() == 3)
         cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
 
-    GenerateGradientMap(matrix, param->ptStart, param->ptEnd, param->colorStart, param->colorEnd, param->gradientType);
+    GenerateGradientMap(matrix, param->ptStart, param->ptEnd, param->color1, param->color2, param->gradientType);
 
     filtreEffet->SetBitmap(imageLoad);
 }

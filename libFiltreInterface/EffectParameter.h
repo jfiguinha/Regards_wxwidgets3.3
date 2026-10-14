@@ -24,6 +24,15 @@ public:
 		return wxColour(red, green, blue, opacity);
 	}
 
+	wxColour GetColor2()
+	{
+		int red = static_cast<int>(color2[0]);
+		int green = static_cast<int>(color2[1]);
+		int blue = static_cast<int>(color2[2]);
+
+		return wxColour(red, green, blue, opacity);
+	}
+
 
 	static cv::Scalar ConvertwxColourToScalar(wxColour color, int opacity)
 	{
