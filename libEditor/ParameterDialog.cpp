@@ -72,9 +72,10 @@ void ParameterDialog::SetColor(const wxColour& color1, const wxColour& color2)
 
 void ParameterDialog::OnFiltreOk(wxCommandEvent& event)
 {
-	if(filtreEffectWnd)
+	if (filtreEffectWnd)
+	{
 		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd, numLayer);
-
+	}
 	if(typeFiltre == TYPE_EFFECT)
 		this->Show(false);
 }
@@ -91,6 +92,7 @@ void ParameterDialog::SetFiltre(const int& numFiltre, const int64_t & numLayerId
 {
 	if (filtreEffectWnd)
 	{
+		this->numLayerId = numLayerId;
 		this->historyEffectWnd = historyEffectWnd;
 		this->numFiltre = numFiltre;
 		filtreToolbar->SetNumFiltre(numFiltre);

@@ -24,7 +24,7 @@ private:
     CInfoEffectWnd* historyEffectWnd = nullptr;
     CFiltreEffectScrollWnd* filtreEffectWnd = nullptr;
     CFiltreToolbar* filtreToolbar = nullptr;
-    
+
     int numLayer = 0;
     int64_t numLayerId = 0;
     int numFiltre = 0;

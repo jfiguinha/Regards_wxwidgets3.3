@@ -58,7 +58,9 @@ uint64_t LayerElement::NextLayerId()
 
 uint64_t LayerElement::GetLayerId()
 {
-    return counter;
+    if (counter == 0)
+        return 1;
+    return counter - 1;
 }
 
 // ============================================================================
@@ -315,6 +317,7 @@ LayerElement* CLayerList::FindElementByLayerId(const uint64_t& layerId)
         if (element->layerId == layerId)
             return element;
     }
+    return nullptr;
 }
 
 /**

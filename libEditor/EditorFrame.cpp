@@ -459,6 +459,18 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                 m_activeDocument->SetActifLayer(numLayer);
                 switch (numEffect)
                 {
+                case IDM_PAINTCROP:
+                {
+                    numEffect = IDM_CROP;
+                    parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+                    parameterDialog->SetActifLayer(numLayer);
+                    parameterDialog->SetActifLayerId(numLayerId);
+                    parameterDialog->SetTypeFiltre(IDM_CROP);
+                    parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+                    parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+                    parameterDialog->Show(false);
+                }
+                    break;
                 case WM_SELECTMOVE:
                     break;
                 case WM_SELECTZOOM:

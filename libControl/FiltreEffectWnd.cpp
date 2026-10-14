@@ -106,7 +106,9 @@ void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* hi
 		CImageLoadingFormat* imageLoad = filtreEffectOld->ApplyEffect();
 		if (imageLoad != nullptr)
 		{
-			historyEffectWnd->AddModification(numFiltre, filtreEffectOld->GetEffectParameter(), CFiltreData::GetFilterLabel(numFiltre));
+			auto* effect = filtreEffectOld->GetEffectParameter();
+			effect->layerId = this->layerId;
+			historyEffectWnd->AddModification(numFiltre, effect, CFiltreData::GetFilterLabel(numFiltre));
 		}
 
 		if (imageLoad != nullptr)

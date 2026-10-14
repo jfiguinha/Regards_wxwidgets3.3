@@ -277,7 +277,7 @@ int CThumbnailCalque::GetActifLayer()
 int64_t CThumbnailCalque::GetActifLayerId()
 {
     CIcone* icone = iconeList->GetElement(numClickIcone);
-    if (!icone)
+    if (icone)
     {
         auto* thumbnailData = icone->GetPtData();
         return thumbnailData->GetNumPhotoId();
