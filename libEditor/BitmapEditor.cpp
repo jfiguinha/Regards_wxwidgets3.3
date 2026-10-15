@@ -266,42 +266,8 @@ bool CBitmapEditor::Copy()
         outMat = sourceMat;
     }
 
-    // 5. Conversion OpenCV (BGR/BGRA) vers Espace Couleur de wxWidgets (RGB/RGBA)
-    cv::Mat rgbMat;
-    bool hasAlpha = (outMat.channels() == 4);
-
-    if (hasAlpha) {
-        cv::cvtColor(outMat, rgbMat, cv::COLOR_BGRA2RGBA);
-    }
-    else if (outMat.channels() == 3) {
-        cv::cvtColor(outMat, rgbMat, cv::COLOR_BGR2RGB);
-    }
-    else if (outMat.channels() == 1) {
-        cv::cvtColor(outMat, rgbMat, cv::COLOR_GRAY2RGB);
-    }
-    else {
-        return false;
-    }
-
-    // 6. Création de l'image et initialisation du canal alpha de wxWidgets si requis
-    wxImage wxImg(rgbMat.cols, rgbMat.rows, rgbMat.data, true);
-
-    if (hasAlpha)
-    {
-        // Allocation du masque alpha pour wxImage
-        unsigned char* alphaData = (unsigned char*)malloc(rgbMat.cols * rgbMat.rows);
-        if (alphaData != nullptr)
-        {
-            for (int i = 0; i < rgbMat.cols * rgbMat.rows; ++i) {
-                alphaData[i] = rgbMat.data[i * 4 + 3]; // Extraction du pixel A depuis RGBA
-            }
-            // Passer la propriété à wxImage (il se chargera de faire le free)
-            wxImg.SetAlpha(alphaData);
-        }
-    }
-
     // Conversion finale en Bitmap pour le presse-papiers
-    wxBitmap bitmap(wxImg);
+    wxBitmap bitmap(Regards::Picture::CLibPicture::ConvertRegardsBitmapToWXImage(outMat));
 
     // 7. Envoi au presse-papiers du système
     if (wxTheClipboard->Open())

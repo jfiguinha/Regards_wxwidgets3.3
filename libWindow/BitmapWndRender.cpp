@@ -1523,10 +1523,6 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 			LayerElement* layerElement = listOfLayer[numActifLayer];
 			if (layerElement != nullptr && ratio > 0.0f)
 			{
-				mouseBlock = true;
-				parentRender->CaptureMouse();
-				wxSetCursor(*wxHOURGLASS_CURSOR);
-
 				// 1. Calcul de la position absolue de la souris dans l'espace virtuel (avec le scroll)
 				layerElement->x = static_cast<float>(xPos + posLargeur) / ratio;
 				layerElement->y = static_cast<float>(yPos + posHauteur) / ratio;
