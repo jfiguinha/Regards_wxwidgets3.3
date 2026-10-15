@@ -142,6 +142,9 @@ void CGradientFilter::GenerateGradientMap(cv::Mat& outMat, const cv::Point& p1, 
     }
 }
 
+
+
+
 void CGradientFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
     if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
@@ -190,6 +193,60 @@ void CGradientFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDr
     }
 
 }
+
+
+
+void CGradientFilter::Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
+{
+    if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
+
+    int hpos = bitmapViewer->GetHPos();
+    int vpos = bitmapViewer->GetVPos();
+    float ratio = bitmapViewer->GetRatio();
+
+    if (matrix.channels() == 3)
+        cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
+
+    // 1. Demande à CGradientDraw de tracer le trait guide à l'écran
+    m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
+
+    auto gradientDraw = static_cast<Regards::FiltreEffet::CGradientDraw*>(m_cDessin);
+    auto param = static_cast<CGradientFilterParameter*>(bitmapViewer->GetEffectPointer());
+
+    if (!gradientDraw->GetIsDrawing() && gradientDraw->GetIsInit())
+    {
+        int screenX = static_cast<int>(gradientDraw->XDrawingPosition(static_cast<float>(param->ptStart.x), hpos, ratio));
+        int screenY = static_cast<int>(gradientDraw->YDrawingPosition(static_cast<float>(param->ptStart.y), vpos, ratio));
+
+        cv::Point ptStart = cv::Point(screenX, screenY);
+
+        screenX = static_cast<int>(gradientDraw->XDrawingPosition(static_cast<float>(param->ptEnd.x), hpos, ratio));
+        screenY = static_cast<int>(gradientDraw->YDrawingPosition(static_cast<float>(param->ptEnd.y), vpos, ratio));
+
+        cv::Point ptEnd = cv::Point(screenX, screenY);
+
+        cv::Mat mat;
+        matrix.copyTo(mat);
+        GenerateGradientMap(mat, ptStart, ptEnd, param->color1, param->color2, param->gradientType);
+        mat.copyTo(matrix);
+    }
+    else
+    {
+
+
+        if (param != nullptr && gradientDraw != nullptr)
+        {
+
+            // 2. Met à jour en temps réel les coordonnées réelles de l'effet
+            param->ptStart = cv::Point(gradientDraw->GetStartPoint().x, gradientDraw->GetStartPoint().y);
+            param->ptEnd = cv::Point(gradientDraw->GetEndPoint().x, gradientDraw->GetEndPoint().y);
+
+
+        }
+    }
+
+}
+
 
 CImageLoadingFormat* CGradientFilter::ApplyEffect(CEffectParameter* effectParameter, IBitmapDisplay* bitmapViewer)
 {
