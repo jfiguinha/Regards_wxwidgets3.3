@@ -89,51 +89,149 @@ void CSelectFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw
 {
 	if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
 
-	// Rendu à l'écran via OpenCV sur la Matrice
-	m_cDessin->DessinerSurMat(matrix, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio());
-
 	auto param = static_cast<CSelectFilterParameter*>(bitmapViewer->GetEffectPointer());
 	auto selectDraw = static_cast<Regards::FiltreEffet::CSelectDraw*>(m_cDessin);
 
-	if (param && selectDraw) {
+	// 1. Si le dessin demande une mise à jour des tracés depuis le paramètre partagé
+	if (m_cDessin->GetUpdateTrace() && param && selectDraw)
+	{
+		// On réinitialise l'état du moteur de dessin
+		selectDraw->Reset();
+
+		// Si le paramètre global contient des sélections, on simule un clic pour réinitialiser
+		if (!param->listSelections.empty())
+		{
+			//selectDraw->MouseDown(param);
+			std::vector<Regards::FiltreEffet::SSelectionStyleDraw> list = selectDraw->GetTousLesTraces();
+			// On vide la liste par défaut créée par MouseDown pour injecter nos données réelles
+			// Note : Si l'architecture interdit l'accès en écriture directe sur m_tousLesTraces,
+			// vous pouvez créer une méthode publique SetTousLesTraces() dans CSelectDraw.
+			// Ici, nous reconstruisons les tracés via l'API géométrique standard.
+			for (const auto& s : param->listSelections)
+			{
+				Regards::FiltreEffet::SSelectionStyleDraw selection;
+				selection.startPoint = s.startPoint;
+				selection.endPoint = s.endPoint;
+				selection.points = s.points;
+				selection.selectType = s.selectType;
+				selection.penSize = s.penSize;
+
+				// Reconversion cv::Scalar (BGR) vers wxColour (RGB)
+				selection.color = wxColour(
+					static_cast<unsigned char>(s.color[2]),
+					static_cast<unsigned char>(s.color[1]),
+					static_cast<unsigned char>(s.color[0])
+				);
+				selection.opacity = static_cast<int>(s.color[3]);
+				selection.isFilled = false;
+
+				selectDraw->m_tousLesTraces.push_back(selection);
+
+				// Si m_tousLesTraces de CSelectDraw est accessible ou si vous disposez d'un accesseur non-const :
+				// (Code basé sur l'alignement strict de la structure SSelectionStyleDraw)
+				// selectDraw->AjouterTrace(selection); 
+			}
+		}
+	}
+
+	m_cDessin->SetUpdateTrace(false);
+
+	// 2. Rendu matériel accéléré OpenCL sur la Matrice de type cv::UMat
+	m_cDessin->DessinerSurMat(matrix, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio());
+
+	// 3. Sauvegarde et mise à jour vectorielle synchrone vers le paramètre de filtre
+	if (param && selectDraw)
+	{
 		param->listSelections.clear();
-		for (const auto& s : selectDraw->GetTousLesTraces()) {
+		for (const auto& s : selectDraw->GetTousLesTraces())
+		{
 			SSelectionTrace selectOpenCV;
 			selectOpenCV.startPoint = s.startPoint;
 			selectOpenCV.endPoint = s.endPoint;
 			selectOpenCV.points = s.points;
 			selectOpenCV.selectType = s.selectType;
 			selectOpenCV.penSize = s.penSize;
-			// Stockage au format OpenCV (Scalar)
+
+			// Stockage au format de couleur OpenCV natif (Scalar : B, G, R, Alpha)
 			selectOpenCV.color = cv::Scalar(s.color.Blue(), s.color.Green(), s.color.Red(), s.opacity);
 			param->listSelections.push_back(selectOpenCV);
 		}
 	}
+
 }
 
 
-
-// MODIFICATION : Utilisation de cv::Mat au lieu de wxMemoryDC pour s'aligner sur CRectangleFilter
+// MODIFICATION : Utilisation de cv::UMat pour le pipeline de rendu OpenCL / GPU
 void CSelectFilter::Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
 {
 	if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
 
-	// Rendu à l'écran via OpenCV sur la Matrice
-	m_cDessin->DessinerSurMat(matrix, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio());
-
 	auto param = static_cast<CSelectFilterParameter*>(bitmapViewer->GetEffectPointer());
 	auto selectDraw = static_cast<Regards::FiltreEffet::CSelectDraw*>(m_cDessin);
 
-	if (param && selectDraw) {
+	// 1. Si le dessin demande une mise à jour des tracés depuis le paramètre partagé
+	if (m_cDessin->GetUpdateTrace() && param && selectDraw)
+	{
+		// On réinitialise l'état du moteur de dessin
+		selectDraw->Reset();
+
+		// Si le paramètre global contient des sélections, on simule un clic pour réinitialiser
+		if (!param->listSelections.empty())
+		{
+			
+			//std::vector<Regards::FiltreEffet::SSelectionStyleDraw> list = selectDraw->GetTousLesTraces();
+			//selectDraw->MouseDown(param);
+
+			// On vide la liste par défaut créée par MouseDown pour injecter nos données réelles
+			// Note : Si l'architecture interdit l'accès en écriture directe sur m_tousLesTraces,
+			// vous pouvez créer une méthode publique SetTousLesTraces() dans CSelectDraw.
+			// Ici, nous reconstruisons les tracés via l'API géométrique standard.
+			for (const auto& s : param->listSelections)
+			{
+				Regards::FiltreEffet::SSelectionStyleDraw selection;
+				selection.startPoint = s.startPoint;
+				selection.endPoint = s.endPoint;
+				selection.points = s.points;
+				selection.selectType = s.selectType;
+				selection.penSize = s.penSize;
+
+				// Reconversion cv::Scalar (BGR) vers wxColour (RGB)
+				selection.color = wxColour(
+					static_cast<unsigned char>(s.color[2]),
+					static_cast<unsigned char>(s.color[1]),
+					static_cast<unsigned char>(s.color[0])
+				);
+				selection.opacity = static_cast<int>(s.color[3]);
+				selection.isFilled = false;
+
+				selectDraw->m_tousLesTraces.push_back(selection);
+
+				// Si m_tousLesTraces de CSelectDraw est accessible ou si vous disposez d'un accesseur non-const :
+				// (Code basé sur l'alignement strict de la structure SSelectionStyleDraw)
+				// selectDraw->AjouterTrace(selection); 
+			}
+		}
+	}
+
+	m_cDessin->SetUpdateTrace(false);
+
+	// 2. Rendu matériel accéléré OpenCL sur la Matrice de type cv::UMat
+	m_cDessin->DessinerSurMat(matrix, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio());
+
+	// 3. Sauvegarde et mise à jour vectorielle synchrone vers le paramètre de filtre
+	if (param && selectDraw)
+	{
 		param->listSelections.clear();
-		for (const auto& s : selectDraw->GetTousLesTraces()) {
+		for (const auto& s : selectDraw->GetTousLesTraces())
+		{
 			SSelectionTrace selectOpenCV;
 			selectOpenCV.startPoint = s.startPoint;
 			selectOpenCV.endPoint = s.endPoint;
 			selectOpenCV.points = s.points;
 			selectOpenCV.selectType = s.selectType;
 			selectOpenCV.penSize = s.penSize;
-			// Stockage au format OpenCV (Scalar)
+
+			// Stockage au format de couleur OpenCV natif (Scalar : B, G, R, Alpha)
 			selectOpenCV.color = cv::Scalar(s.color.Blue(), s.color.Green(), s.color.Red(), s.opacity);
 			param->listSelections.push_back(selectOpenCV);
 		}

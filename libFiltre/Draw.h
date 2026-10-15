@@ -21,6 +21,16 @@ namespace Regards::FiltreEffet
 			return applyEffectOnMouseRelease;
 		}
 
+		void SetUpdateTrace(const bool& updateTrace)
+		{
+			this->updateTrace = updateTrace;
+		}
+		bool GetUpdateTrace()
+		{
+			return updateTrace;
+		}
+
+
 		wxColour WithOpacity(const wxColour& colour, unsigned char opacity)
 		{
 			return wxColour(
@@ -186,6 +196,7 @@ namespace Regards::FiltreEffet
 
 	protected:
 
+		bool updateTrace = false;
 		bool applyEffectOnMouseRelease = false;
 		wxRect m_rcAffichage;
 		float m_fRatioValue;

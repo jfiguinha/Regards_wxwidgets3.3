@@ -35,6 +35,11 @@ public:
     bool Copy();
     bool Cut();
     bool Paste();
+
+    void SelectAll();
+    void InverseAll();
+    void CancelSelect();
+
     void SetZoomTool();
     void SetMoveTool();
     void SetSelectMoveTool();

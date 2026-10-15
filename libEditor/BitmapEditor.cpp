@@ -132,10 +132,222 @@ cv::UMat CBitmapEditor::PrepareLayerSourceOpenCL(LayerElement* layer, int width,
 }
 
 
+// -----------------------------------------------------------------
+// SELECT ALL : Sélectionne l'intégralité du calque actif
+// -----------------------------------------------------------------
+void CBitmapEditor::SelectAll()
+{
+    if (effectParameter != nullptr && preview == IDM_SELECTFILTER)
+    {
+        CSelectFilterParameter* selectFilter = (CSelectFilterParameter*)effectParameter;
+
+        if (numActifLayer < 0 || numActifLayer >= static_cast<int>(listOfLayer.size()))
+            return;
+
+        LayerElement* layerElement = listOfLayer[numActifLayer];
+        if (layerElement == nullptr || layerElement->GetPicture() == nullptr)
+            return;
+
+        // Récupération de la taille réelle de l'image source du calque
+        int imgW = layerElement->GetPicture()->GetWidth();
+        int imgH = layerElement->GetPicture()->GetHeight();
+
+        if (imgW <= 0 || imgH <= 0)
+            return;
+
+        // Vider les sélections partielles précédentes
+        selectFilter->listSelections.clear();
+
+        // Créer un tracé rectangulaire unique couvrant tout le calque
+        SSelectionTrace fullSelect;
+        fullSelect.selectType = SELECT_RECTANGLE;
+        fullSelect.startPoint = wxPoint(0, 0);
+        fullSelect.endPoint = wxPoint(imgW, imgH);
+        fullSelect.penSize = 1;
+        fullSelect.color = cv::Scalar(255, 255, 255, 255); // Blanc opaque OpenCV standard
+
+        selectFilter->listSelections.push_back(fullSelect);
+
+        this->m_cDessin->SetUpdateTrace(true);
+
+        // Demander à rafraîchir l'écran pour afficher le contour de sélection global
+        needToRefresh = true;
+        if (parentRender) parentRender->Refresh();
+    }
+}
+
+void CBitmapEditor::InverseAll()
+{
+    if (effectParameter == nullptr || preview != IDM_SELECTFILTER)
+        return;
+
+    auto* selectFilter =
+        static_cast<CSelectFilterParameter*>(effectParameter);
+
+    if (numActifLayer < 0 ||
+        numActifLayer >= static_cast<int>(listOfLayer.size()))
+        return;
+
+    LayerElement* layerElement = listOfLayer[numActifLayer];
+
+    if (layerElement == nullptr || layerElement->GetPicture() == nullptr)
+        return;
+
+    int imgW = layerElement->GetPicture()->GetWidth();
+    int imgH = layerElement->GetPicture()->GetHeight();
+
+    if (imgW <= 0 || imgH <= 0)
+        return;
+
+    auto& selections = selectFilter->listSelections;
+
+    // Aucune sélection : tout sélectionner.
+    if (selections.empty())
+    {
+        SelectAll();
+        return;
+    }
+
+    // 1. Construire le masque des sélections existantes.
+    cv::Mat mask = cv::Mat::zeros(imgH, imgW, CV_8UC1);
+
+    for (const auto& selection : selections)
+    {
+        switch (selection.selectType)
+        {
+        case SELECT_RECTANGLE:
+        {
+            cv::Point p1(selection.startPoint.x, selection.startPoint.y);
+            cv::Point p2(selection.endPoint.x, selection.endPoint.y);
+
+            cv::rectangle(mask, p1, p2, cv::Scalar(255), cv::FILLED);
+            break;
+        }
+
+        case SELECT_ELLIPSE:
+        {
+            const int left = std::min(
+                selection.startPoint.x, selection.endPoint.x);
+            const int right = std::max(
+                selection.startPoint.x, selection.endPoint.x);
+            const int top = std::min(
+                selection.startPoint.y, selection.endPoint.y);
+            const int bottom = std::max(
+                selection.startPoint.y, selection.endPoint.y);
+
+            const cv::Point center(
+                left + (right - left) / 2,
+                top + (bottom - top) / 2);
+
+            const cv::Size axes(
+                (right - left) / 2,
+                (bottom - top) / 2);
+
+            if (axes.width > 0 && axes.height > 0)
+                cv::ellipse(mask, center, axes, 0, 0, 360,
+                    cv::Scalar(255), cv::FILLED);
+
+            break;
+        }
+
+        case SELECT_LASSO:
+        {
+            if (selection.points.size() < 3)
+                break;
+
+            std::vector<cv::Point> points;
+            points.reserve(selection.points.size());
+
+            for (const auto& point : selection.points)
+                points.emplace_back(point.x, point.y);
+
+            cv::fillPoly(mask,
+                std::vector<std::vector<cv::Point>>{ points },
+                cv::Scalar(255));
+
+            break;
+        }
+
+        default:
+            break;
+        }
+    }
+
+    // 2. Inverser la sélection.
+    cv::bitwise_not(mask, mask);
+
+    // 3. Extraire les contours, y compris les contours intérieurs.
+    std::vector<std::vector<cv::Point>> contours;
+    std::vector<cv::Vec4i> hierarchy;
+
+    cv::findContours(
+        mask,
+        contours,
+        hierarchy,
+        cv::RETR_TREE,
+        cv::CHAIN_APPROX_SIMPLE);
+
+    // 4. Convertir les contours en tracés LASSO.
+    std::vector<SSelectionTrace> inverseSelections;
+    inverseSelections.reserve(contours.size());
+
+    for (size_t i = 0; i < contours.size(); ++i)
+    {
+        if (contours[i].size() < 3)
+            continue;
+
+        SSelectionTrace trace;
+        trace.selectType = SELECT_LASSO;
+        trace.penSize = 1;
+        trace.color = cv::Scalar(255, 255, 255, 255);
+
+        trace.startPoint = wxPoint(
+            contours[i][0].x, contours[i][0].y);
+
+        trace.endPoint = trace.startPoint;
+
+        trace.points.reserve(contours[i].size() + 1);
+
+        for (const auto& point : contours[i])
+            trace.points.emplace_back(point.x, point.y);
+
+        // Fermer explicitement le contour.
+        if (trace.points.front() != trace.points.back())
+            trace.points.push_back(trace.points.front());
+
+        inverseSelections.push_back(std::move(trace));
+    }
+
+    // 5. Remplacer les anciennes sélections.
+    selections = std::move(inverseSelections);
+
+    m_cDessin->SetUpdateTrace(true);
+    needToRefresh = true;
+
+    if (parentRender)
+        parentRender->Refresh();
+}
 
 // -----------------------------------------------------------------
-// COPY : Copie l'image du calque actif dans le presse-papiers
+// CANCEL SELECT : Désactive et vide toutes les sélections en cours
 // -----------------------------------------------------------------
+void CBitmapEditor::CancelSelect()
+{
+    if (effectParameter != nullptr && preview == IDM_SELECTFILTER)
+    {
+        CSelectFilterParameter* selectFilter = (CSelectFilterParameter*)effectParameter;
+
+        // Vide l'intégralité du vecteur géométrique
+        selectFilter->listSelections.clear();
+
+        this->m_cDessin->SetUpdateTrace(true);
+
+        needToRefresh = true;
+        if (parentRender) parentRender->Refresh();
+    }
+}
+
+
 // -----------------------------------------------------------------
 // COPY : Copie l'image (ou la sélection détourée) dans le presse-papiers
 // -----------------------------------------------------------------

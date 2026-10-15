@@ -52,6 +52,14 @@ private:
 	void OnQuit(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void Exit();
+
+	void OnCopy(wxCommandEvent& event);
+	void OnPaste(wxCommandEvent& event);
+	void OnCut(wxCommandEvent& event);
+
+	void OnSelectAll(wxCommandEvent& event);
+	void OnInverseAll(wxCommandEvent& event);
+	void OnCancelSelect(wxCommandEvent& event);
 	
 	void OnWindowEffects(wxCommandEvent& event);
 	void OnWindowTools(wxCommandEvent& event);

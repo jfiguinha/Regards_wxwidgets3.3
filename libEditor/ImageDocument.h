@@ -67,6 +67,15 @@ public:
     void SetMoveTool();
     void SetSelectMoveTool();
 
+
+    bool Copy();
+    bool Cut();
+    bool Paste();
+
+    void SelectAll();
+    void InverseAll();
+    void CancelSelect();
+
     CLayerList* GetListOfLayer();
 private:
 

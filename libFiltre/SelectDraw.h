@@ -49,12 +49,15 @@ namespace Regards {
             // Accesseur utilisé par CSelectFilter pour récupérer les tracés
             const std::vector<SSelectionStyleDraw>& GetTousLesTraces() const { return m_tousLesTraces; }
 
+
+            std::vector<SSelectionStyleDraw> m_tousLesTraces;
+
         private:
             // Méthodes internes de dessin pour factoriser le code
             void DrawSelectOnMat(cv::Mat& matrix, SSelectionStyleDraw& select, const long& hScroll, const long& vScroll, const float& ratio);
             void DrawSelectOnMat(cv::UMat& matrix, SSelectionStyleDraw& select, const long& hScroll, const long& vScroll, const float& ratio);
 
-            std::vector<SSelectionStyleDraw> m_tousLesTraces;
+            
             bool m_isDrawing;
         };
 

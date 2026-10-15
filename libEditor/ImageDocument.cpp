@@ -97,6 +97,39 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     UpdateStatusText();
 }
 
+bool ImageDocument::Copy()
+{
+    return bitmapWindow->Copy();
+}
+
+bool ImageDocument::Cut()
+{
+    return bitmapWindow->Cut();
+}
+
+bool ImageDocument::Paste()
+{
+    return bitmapWindow->Paste();
+}
+
+void ImageDocument::SelectAll()
+{
+    if(bitmapWindow)
+        bitmapWindow->SelectAll();
+}
+
+void ImageDocument::InverseAll()
+{
+    if (bitmapWindow)
+        bitmapWindow->InverseAll();
+}
+
+void ImageDocument::CancelSelect()
+{
+    if (bitmapWindow)
+        bitmapWindow->CancelSelect();
+}
+
 void ImageDocument::SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity)
 {
     if (bitmapWindow)

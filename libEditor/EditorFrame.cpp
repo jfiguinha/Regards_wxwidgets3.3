@@ -275,6 +275,14 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate180, this, wxID_ROTATE180);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate270, this, wxID_ROTATE270);
 
+    Bind(wxEVT_MENU, &CEditorFrame::OnCopy, this, wxID_COPY);
+    Bind(wxEVT_MENU, &CEditorFrame::OnPaste, this, wxID_PASTE);
+    Bind(wxEVT_MENU, &CEditorFrame::OnCut, this, wxID_CUT);
+
+    Bind(wxEVT_MENU, &CEditorFrame::OnSelectAll, this, wxID_SELECTALL);
+    Bind(wxEVT_MENU, &CEditorFrame::OnInverseAll, this, wxID_INVERSESELECT);
+    Bind(wxEVT_MENU, &CEditorFrame::OnCancelSelect, this, wxID_CANCELSELECT);
+
     Connect(wxEVENT_CREATELAYER, wxCommandEventHandler(CEditorFrame::CreateLayer));
     Connect(wxEVENT_DELETELAYER, wxCommandEventHandler(CEditorFrame::DeleteLayer));
     Connect(wxEVENT_COPYLAYER, wxCommandEventHandler(CEditorFrame::CopyLayer));
@@ -289,6 +297,25 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     this->Maximize();
 }
 
+
+void CEditorFrame::OnSelectAll(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+        m_activeDocument->SelectAll();
+}
+
+void CEditorFrame::OnInverseAll(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+        m_activeDocument->InverseAll();
+}
+
+void CEditorFrame::OnCancelSelect(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+        m_activeDocument->CancelSelect();
+}
+
 void CEditorFrame::UpdateLayerPicture(wxCommandEvent& event)
 {
     if (m_activeDocument)
@@ -296,6 +323,25 @@ void CEditorFrame::UpdateLayerPicture(wxCommandEvent& event)
         layerDialog->UpdateLayerList();
 
     }
+}
+
+
+void CEditorFrame::OnCopy(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+        m_activeDocument->Copy();
+}
+
+void CEditorFrame::OnPaste(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+        m_activeDocument->Paste();
+}
+
+void CEditorFrame::OnCut(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+        m_activeDocument->Cut();
 }
 
 void CEditorFrame::DeleteLayer(wxCommandEvent& event)
