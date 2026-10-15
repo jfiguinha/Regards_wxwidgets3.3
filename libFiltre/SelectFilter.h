@@ -34,6 +34,7 @@ namespace Regards {
 
             // MODIFICATION : Utilisation de cv::Mat& à la place de wxMemoryDC*
             void Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin);
+            void Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin);
 
         private:
             wxColour ConvertScalarToWxColour(const cv::Scalar& scalar_color, int alpha);

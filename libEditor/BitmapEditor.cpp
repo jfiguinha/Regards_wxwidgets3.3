@@ -346,15 +346,14 @@ bool CBitmapEditor::Cut()
 }
 
 // -----------------------------------------------------------------
-// PASTE : Récupère une image du presse-papiers et l'applique au calque actif
+// PASTE : Récupère une image du presse-papiers et l'ajoute dans un NOUVEAU calque
 // -----------------------------------------------------------------
 // -----------------------------------------------------------------
 // PASTE : Récupère une image du presse-papiers et l'ajoute dans un NOUVEAU calque
+// (Centrée sur un canvas transparent si elle est plus petite)
 // -----------------------------------------------------------------
 bool CBitmapEditor::Paste()
 {
-    
-
     bool success = false;
 
     if (wxTheClipboard->Open())
@@ -376,18 +375,44 @@ bool CBitmapEditor::Paste()
                 // 2. Création de la matrice OpenCV (RGB) depuis le buffer wxImage
                 cv::Mat rgbMat(height, width, CV_8UC3, (void*)wxImg.GetData());
                 cv::Mat bgrMat;
+                cv::cvtColor(rgbMat, bgrMat, cv::COLOR_RGB2BGRA); // Forcer en 4 canaux pour la transparence
 
-                // Par défaut, nous créons une image au format standard BGR (ou BGRA si vous gérez l'alpha)
-                cv::cvtColor(rgbMat, bgrMat, cv::COLOR_RGB2BGR);
+                // 3. Récupération des dimensions réelles du canvas global de l'éditeur
+                int canvasW = bitmapwidth;
+                int canvasH = bitmapheight;
 
-                // 3. Création du conteneur d'image pour le nouveau calque
-                // Note : Selon votre architecture, assurez-vous que CImageLoadingFormat possède un 
-                // constructeur ou une méthode prenant une cv::Mat (ex: CImageLoadingFormat(bgrMat))
+                // Matrice finale à attribuer au calque
+                cv::Mat finalMat;
+
+                // Si le bitmap collé est plus petit que le canvas global, on le centre sur une texture transparente
+                if (canvasW > 0 && canvasH > 0 && (width < canvasW || height < canvasH))
+                {
+                    // Création d'un canvas transparent à la taille du document global
+                    finalMat = cv::Mat::zeros(canvasH, canvasW, CV_8UC4);
+
+                    // Calcul du centrage
+                    int dstX = (canvasW - width) / 2;
+                    int dstY = (canvasH - height) / 2;
+
+                    // Calcul de la zone d'intersection pour parer à tout débordement
+                    cv::Rect dstROI = cv::Rect(dstX, dstY, width, height) & cv::Rect(0, 0, canvasW, canvasH);
+                    if (!dstROI.empty())
+                    {
+                        cv::Rect srcROI(dstROI.x - dstX, dstROI.y - dstY, dstROI.width, dstROI.height);
+                        bgrMat(srcROI).copyTo(finalMat(dstROI));
+                    }
+                }
+                else
+                {
+                    // Si l'image est plus grande ou qu'il s'agit du tout premier calque, on la conserve telle quelle
+                    finalMat = bgrMat;
+                }
+
+                // 4. Création du conteneur d'image pour le nouveau calque
                 auto* newPicture = new CImageLoadingFormat();
-                newPicture->SetPicture(bgrMat);
+                newPicture->SetPicture(finalMat);
 
-                // 4. Instanciation du nouveau calque selon le backend par défaut (ex: TYPE_OPENGL ou TYPE_OPENCL)
-                // Nous récupérons le type depuis le calque actif pour conserver une cohérence de rendu
+                // 5. Instanciation du calque selon le backend actif (OpenGL ou OpenCL)
                 int currentTypeLayer = TYPE_OPENGL;
                 if (numActifLayer >= 0 && static_cast<size_t>(numActifLayer) < listOfLayer.size()) {
                     currentTypeLayer = listOfLayer[numActifLayer]->TypeLayer();
@@ -395,24 +420,25 @@ bool CBitmapEditor::Paste()
 
                 LayerElement* newLayer = nullptr;
                 if (currentTypeLayer == TYPE_OPENCL) {
-                    newLayer = new LayerElementUMat(); // Si backend OpenCL
+                    newLayer = new LayerElementUMat();
                 }
                 else {
-                    newLayer = new LayerElementGL();   // Si backend OpenGL
+                    newLayer = new LayerElementGL();
                 }
 
-                // Initialisation du calque
+                // Initialisation du calque (le centrage étant géré dans la texture, les offsets x et y restent à 0)
                 newLayer->SetPicture(newPicture);
                 newLayer->layerName = wxString::Format("Calque %d (Collé)", static_cast<int>(listOfLayer.size() + 1));
                 newLayer->isVisible = true;
                 newLayer->opacity = 100;
-                newLayer->blendMode = LayerBlendMode::Normal; // Mode Normal par défaut
+                newLayer->blendMode = LayerBlendMode::Normal;
+                newLayer->x = 0;
+                newLayer->y = 0;
                 newLayer->needTextureUpdate = true;
 
-                // 5. Ajout du calque à la liste et mise à jour de l'index actif
-                // Note : Utilisez la méthode d'insertion ou d'ajout de votre classe CLayerList (ex: push_back ou Add)
+                // 6. Ajout à la liste et focus sur le calque collé
                 listOfLayer.push_back(newLayer);
-                numActifLayer = static_cast<int>(listOfLayer.size()) - 1; // Le calque collé devient le calque actif
+                numActifLayer = static_cast<int>(listOfLayer.size()) - 1;
 
                 success = true;
             }
@@ -427,10 +453,10 @@ bool CBitmapEditor::Paste()
         UpdateBitmapSizeFromLayers();
         ApplyGeometryChange();
 
-        // Envoi d'un événement pour notifier l'UI globale (arbre des calques, etc.) qu'un calque a été ajouté
+        // Envoi d'un événement pour notifier l'UI globale qu'un calque a été ajouté
         wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
         if (mainWindow) {
-            wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE); // Réutilisation ou création d'un événement adapté
+            wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
             mainWindow->GetEventHandler()->AddPendingEvent(evt);
         }
         return true;
@@ -438,6 +464,7 @@ bool CBitmapEditor::Paste()
 
     return false;
 }
+
 
 
 
@@ -941,7 +968,7 @@ void CBitmapEditor::SetKey(const int& iKey)
         {
             this->Paste();
 
-            SetSelectMoveTool();
+            //SetSelectMoveTool();
             return;
         }
         break;

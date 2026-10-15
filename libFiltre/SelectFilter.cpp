@@ -110,3 +110,32 @@ void CSelectFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw
 		}
 	}
 }
+
+
+
+// MODIFICATION : Utilisation de cv::Mat au lieu de wxMemoryDC pour s'aligner sur CRectangleFilter
+void CSelectFilter::Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin)
+{
+	if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
+
+	// Rendu à l'écran via OpenCV sur la Matrice
+	m_cDessin->DessinerSurMat(matrix, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio());
+
+	auto param = static_cast<CSelectFilterParameter*>(bitmapViewer->GetEffectPointer());
+	auto selectDraw = static_cast<Regards::FiltreEffet::CSelectDraw*>(m_cDessin);
+
+	if (param && selectDraw) {
+		param->listSelections.clear();
+		for (const auto& s : selectDraw->GetTousLesTraces()) {
+			SSelectionTrace selectOpenCV;
+			selectOpenCV.startPoint = s.startPoint;
+			selectOpenCV.endPoint = s.endPoint;
+			selectOpenCV.points = s.points;
+			selectOpenCV.selectType = s.selectType;
+			selectOpenCV.penSize = s.penSize;
+			// Stockage au format OpenCV (Scalar)
+			selectOpenCV.color = cv::Scalar(s.color.Blue(), s.color.Green(), s.color.Red(), s.opacity);
+			param->listSelections.push_back(selectOpenCV);
+		}
+	}
+}
