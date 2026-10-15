@@ -18,6 +18,7 @@ class CEffectParameter;
 
 #define MOVEPICTURE 2
 #define ZOOMPICTURE 3
+#define SELECTPICTURE 4
 
 namespace Regards::OpenGL
 {
@@ -88,12 +89,12 @@ namespace Regards::Window
 		};
 		int GetTool();
 
-		void SetKey(const int& iKey);
+		virtual void SetKey(const int& iKey);
 
 		virtual void SetKeyOption(const int& iKey)
 		{
 		};
-		int GetKey();
+		virtual int GetKey();
 
 		Regards::Picture::CPictureArray* GetCachePicture() override;
 

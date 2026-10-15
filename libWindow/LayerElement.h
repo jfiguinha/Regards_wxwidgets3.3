@@ -51,6 +51,9 @@ public:
     int textureWidth = 0;
     int textureHeight = 0;
 
+    int x = 0;
+    int y = 0;
+
     static uint64_t NextLayerId();
     static uint64_t GetLayerId();
 

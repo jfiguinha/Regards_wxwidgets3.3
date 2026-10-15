@@ -188,6 +188,14 @@ void ImageDocument::SetZoomTool()
     }
 }
 
+void ImageDocument::SetSelectMoveTool()
+{
+    if (bitmapWindow)
+    {
+        bitmapWindow->SetSelectMoveTool();
+    }
+}
+
 void ImageDocument::SetMoveTool()
 {
     if (bitmapWindow)

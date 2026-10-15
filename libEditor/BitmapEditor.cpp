@@ -16,6 +16,12 @@
 #include <window_id.h>
 #include <SqlPhotos.h>
 #include <appcontext.h>
+#include <SelectFilterParameter.h>
+
+// À insérer à la fin de BitmapEditor.cpp
+#include <wx/clipbrd.h>
+#include <wx/bitmap.h>
+#include <wx/image.h>
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 
@@ -122,9 +128,317 @@ cv::UMat CBitmapEditor::PrepareLayerSourceOpenCL(LayerElement* layer, int width,
     GenerateScreenBitmap(filter, wOut, hOut);
 
     Regards::Picture::CPictureArray transformPicture = filter->GetMatrix();
-    return LayerFonction::PrepareLayerImageOpenCL(transformPicture.getUMat(), width,
-        height);
+    return LayerFonction::PrepareLayerImageOpenCL(transformPicture.getUMat(), width, height, layer->x, layer->y, ratio);
 }
+
+
+
+// -----------------------------------------------------------------
+// COPY : Copie l'image du calque actif dans le presse-papiers
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// COPY : Copie l'image (ou la sélection détourée) dans le presse-papiers
+// -----------------------------------------------------------------
+bool CBitmapEditor::Copy()
+{
+    if (numActifLayer < 0 || numActifLayer >= static_cast<int>(listOfLayer.size()))
+        return false;
+
+    LayerElement* layerElement = listOfLayer[numActifLayer];
+    if (layerElement == nullptr)
+        return false;
+
+    CImageLoadingFormat* picture = layerElement->GetPicture();
+    if (picture == nullptr || !picture->IsOk())
+        return false;
+
+    // Récupération de la matrice OpenCV du calque
+    cv::Mat sourceMat = picture->GetMatImage();
+    if (sourceMat.empty())
+        return false;
+
+    cv::Mat outMat; // Matrice finale qui sera envoyée au presse-papiers
+
+    // VERIFICATION : Y a-t-il une sélection active via l'outil de sélection ?
+    if (effectParameter != nullptr && preview == IDM_SELECTFILTER)
+    {
+        CSelectFilterParameter* selectFilter = (CSelectFilterParameter*)effectParameter;
+
+        if (!selectFilter->listSelections.empty())
+        {
+            // 1. Déterminer la boîte englobante (ROI) de toutes les sélections cumulées
+            int minX = sourceMat.cols, minY = sourceMat.rows;
+            int maxX = 0, maxY = 0;
+
+            for (const auto& s : selectFilter->listSelections)
+            {
+                if (s.selectType == SELECT_RECTANGLE || s.selectType == SELECT_ELLIPSE)
+                {
+                    minX = std::min({ minX, s.startPoint.x, s.endPoint.x });
+                    minY = std::min({ minY, s.startPoint.y, s.endPoint.y });
+                    maxX = std::max({ maxX, s.startPoint.x, s.endPoint.x });
+                    maxY = std::max({ maxY, s.startPoint.y, s.endPoint.y });
+                }
+                else if (s.selectType == SELECT_LASSO)
+                {
+                    for (const auto& pt : s.points)
+                    {
+                        minX = std::min(minX, pt.x);
+                        minY = std::min(minY, pt.y);
+                        maxX = std::max(maxX, pt.x);
+                        maxY = std::max(maxY, pt.y);
+                    }
+                }
+            }
+
+            // Sécurité des limites de l'image
+            minX = std::max(0, minX);
+            minY = std::max(0, minY);
+            maxX = std::min(sourceMat.cols, maxX);
+            maxY = std::min(sourceMat.rows, maxY);
+
+            int roiWidth = maxX - minX;
+            int roiHeight = maxY - minY;
+
+            if (roiWidth > 0 && roiHeight > 0)
+            {
+                // 2. Création d'un masque global en dur à la taille de l'image (0 = transparent)
+                cv::Mat mask = cv::Mat::zeros(sourceMat.size(), CV_8UC1);
+
+                for (const auto& s : selectFilter->listSelections)
+                {
+                    // Conversion des coordonnées locales
+                    cv::Point p1(s.startPoint.x, s.startPoint.y);
+                    cv::Point p2(s.endPoint.x, s.endPoint.y);
+
+                    if (s.selectType == SELECT_RECTANGLE)
+                    {
+                        cv::rectangle(mask, p1, p2, cv::Scalar(255), cv::FILLED);
+                    }
+                    else if (s.selectType == SELECT_ELLIPSE)
+                    {
+                        cv::Point center((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+                        cv::Size axes(std::abs(p1.x - p2.x) / 2, std::abs(p1.y - p2.y) / 2);
+                        cv::ellipse(mask, center, axes, 0, 0, 360, cv::Scalar(255), cv::FILLED);
+                    }
+                    else if (s.selectType == SELECT_LASSO && !s.points.empty())
+                    {
+                        std::vector<cv::Point> cvPoints;
+                        for (const auto& pt : s.points) {
+                            cvPoints.push_back(cv::Point(pt.x, pt.y));
+                        }
+                        std::vector<std::vector<cv::Point>> contours = { cvPoints };
+                        cv::fillPoly(mask, contours, cv::Scalar(255));
+                    }
+                }
+
+                // 3. Forcer l'image source en format 4 canaux (BGRA) pour injecter la transparence
+                cv::Mat bgraMat;
+                if (sourceMat.channels() == 3) {
+                    cv::cvtColor(sourceMat, bgraMat, cv::COLOR_BGR2BGRA);
+                }
+                else if (sourceMat.channels() == 1) {
+                    cv::cvtColor(sourceMat, bgraMat, cv::COLOR_GRAY2BGRA);
+                }
+                else {
+                    bgraMat = sourceMat.clone();
+                }
+
+                // Appliquer le masque sur le canal Alpha (Index canal 3 dans BGRA)
+                for (int y = 0; y < bgraMat.rows; ++y) {
+                    for (int x = 0; x < bgraMat.cols; ++x) {
+                        if (mask.at<uchar>(y, x) == 0) {
+                            bgraMat.at<cv::Vec4b>(y, x)[3] = 0; // Pixel hors sélection -> Transparent
+                        }
+                    }
+                }
+
+                // 4. Découper la sous-partie ajustée à la boîte englobante de la sélection
+                cv::Rect roi(minX, minY, roiWidth, roiHeight);
+                outMat = bgraMat(roi).clone();
+            }
+        }
+    }
+
+    // Si aucune sélection n'était active ou valide, on copie l'image entière
+    if (outMat.empty())
+    {
+        outMat = sourceMat;
+    }
+
+    // 5. Conversion OpenCV (BGR/BGRA) vers Espace Couleur de wxWidgets (RGB/RGBA)
+    cv::Mat rgbMat;
+    bool hasAlpha = (outMat.channels() == 4);
+
+    if (hasAlpha) {
+        cv::cvtColor(outMat, rgbMat, cv::COLOR_BGRA2RGBA);
+    }
+    else if (outMat.channels() == 3) {
+        cv::cvtColor(outMat, rgbMat, cv::COLOR_BGR2RGB);
+    }
+    else if (outMat.channels() == 1) {
+        cv::cvtColor(outMat, rgbMat, cv::COLOR_GRAY2RGB);
+    }
+    else {
+        return false;
+    }
+
+    // 6. Création de l'image et initialisation du canal alpha de wxWidgets si requis
+    wxImage wxImg(rgbMat.cols, rgbMat.rows, rgbMat.data, true);
+
+    if (hasAlpha)
+    {
+        // Allocation du masque alpha pour wxImage
+        unsigned char* alphaData = (unsigned char*)malloc(rgbMat.cols * rgbMat.rows);
+        if (alphaData != nullptr)
+        {
+            for (int i = 0; i < rgbMat.cols * rgbMat.rows; ++i) {
+                alphaData[i] = rgbMat.data[i * 4 + 3]; // Extraction du pixel A depuis RGBA
+            }
+            // Passer la propriété à wxImage (il se chargera de faire le free)
+            wxImg.SetAlpha(alphaData);
+        }
+    }
+
+    // Conversion finale en Bitmap pour le presse-papiers
+    wxBitmap bitmap(wxImg);
+
+    // 7. Envoi au presse-papiers du système
+    if (wxTheClipboard->Open())
+    {
+        wxTheClipboard->Clear();
+        wxTheClipboard->SetData(new wxBitmapDataObject(bitmap));
+        wxTheClipboard->Close();
+        return true;
+    }
+
+    return false;
+}
+
+
+// -----------------------------------------------------------------
+// CUT : Copie l'image du calque actif puis efface/vide le calque
+// -----------------------------------------------------------------
+bool CBitmapEditor::Cut()
+{
+    // 1. On effectue la copie
+    if (!Copy())
+        return false;
+
+    // 2. On récupère le calque pour le vider (création d'une matrice noire/vide)
+    LayerElement* layerElement = listOfLayer[numActifLayer];
+    CImageLoadingFormat* picture = layerElement->GetPicture();
+
+    cv::Mat currentMat = picture->GetMatImage();
+    if (!currentMat.empty())
+    {
+        // Remplace l'image par un fond transparent ou noir de même dimension
+        cv::Mat emptyMat = cv::Mat::zeros(currentMat.rows, currentMat.cols, currentMat.type());
+        picture->SetPicture(emptyMat);
+
+        // Invalidation des caches et mise à jour géométrique
+        layerElement->InvalidatePicture();
+        listOfLayer.IsChanged(true);
+        ApplyGeometryChange();
+    }
+
+    return true;
+}
+
+// -----------------------------------------------------------------
+// PASTE : Récupère une image du presse-papiers et l'applique au calque actif
+// -----------------------------------------------------------------
+// -----------------------------------------------------------------
+// PASTE : Récupère une image du presse-papiers et l'ajoute dans un NOUVEAU calque
+// -----------------------------------------------------------------
+bool CBitmapEditor::Paste()
+{
+    
+
+    bool success = false;
+
+    if (wxTheClipboard->Open())
+    {
+        // Vérifie si le presse-papiers contient des données de type Image/Bitmap
+        if (wxTheClipboard->IsSupported(wxDF_BITMAP))
+        {
+            wxBitmapDataObject data;
+            wxTheClipboard->GetData(data);
+            wxBitmap bitmap = data.GetBitmap();
+
+            if (bitmap.IsOk())
+            {
+                // 1. Conversion wxBitmap -> wxImage pour accéder aux pixels RGB
+                wxImage wxImg = bitmap.ConvertToImage();
+                int width = wxImg.GetWidth();
+                int height = wxImg.GetHeight();
+
+                // 2. Création de la matrice OpenCV (RGB) depuis le buffer wxImage
+                cv::Mat rgbMat(height, width, CV_8UC3, (void*)wxImg.GetData());
+                cv::Mat bgrMat;
+
+                // Par défaut, nous créons une image au format standard BGR (ou BGRA si vous gérez l'alpha)
+                cv::cvtColor(rgbMat, bgrMat, cv::COLOR_RGB2BGR);
+
+                // 3. Création du conteneur d'image pour le nouveau calque
+                // Note : Selon votre architecture, assurez-vous que CImageLoadingFormat possède un 
+                // constructeur ou une méthode prenant une cv::Mat (ex: CImageLoadingFormat(bgrMat))
+                auto* newPicture = new CImageLoadingFormat();
+                newPicture->SetPicture(bgrMat);
+
+                // 4. Instanciation du nouveau calque selon le backend par défaut (ex: TYPE_OPENGL ou TYPE_OPENCL)
+                // Nous récupérons le type depuis le calque actif pour conserver une cohérence de rendu
+                int currentTypeLayer = TYPE_OPENGL;
+                if (numActifLayer >= 0 && static_cast<size_t>(numActifLayer) < listOfLayer.size()) {
+                    currentTypeLayer = listOfLayer[numActifLayer]->TypeLayer();
+                }
+
+                LayerElement* newLayer = nullptr;
+                if (currentTypeLayer == TYPE_OPENCL) {
+                    newLayer = new LayerElementUMat(); // Si backend OpenCL
+                }
+                else {
+                    newLayer = new LayerElementGL();   // Si backend OpenGL
+                }
+
+                // Initialisation du calque
+                newLayer->SetPicture(newPicture);
+                newLayer->layerName = wxString::Format("Calque %d (Collé)", static_cast<int>(listOfLayer.size() + 1));
+                newLayer->isVisible = true;
+                newLayer->opacity = 100;
+                newLayer->blendMode = LayerBlendMode::Normal; // Mode Normal par défaut
+                newLayer->needTextureUpdate = true;
+
+                // 5. Ajout du calque à la liste et mise à jour de l'index actif
+                // Note : Utilisez la méthode d'insertion ou d'ajout de votre classe CLayerList (ex: push_back ou Add)
+                listOfLayer.push_back(newLayer);
+                numActifLayer = static_cast<int>(listOfLayer.size()) - 1; // Le calque collé devient le calque actif
+
+                success = true;
+            }
+        }
+        wxTheClipboard->Close();
+    }
+
+    if (success)
+    {
+        // Notification et rafraîchissement global de la vue de l'éditeur
+        listOfLayer.IsChanged(true);
+        UpdateBitmapSizeFromLayers();
+        ApplyGeometryChange();
+
+        // Envoi d'un événement pour notifier l'UI globale (arbre des calques, etc.) qu'un calque a été ajouté
+        wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
+        if (mainWindow) {
+            wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE); // Réutilisation ou création d'un événement adapté
+            mainWindow->GetEventHandler()->AddPendingEvent(evt);
+        }
+        return true;
+    }
+
+    return false;
+}
+
 
 
 cv::Mat CBitmapEditor::PrepareLayerSource(LayerElement* layer, int width,
@@ -138,8 +452,7 @@ cv::Mat CBitmapEditor::PrepareLayerSource(LayerElement* layer, int width,
     GenerateScreenBitmap(filter, wOut, hOut);
 
     Regards::Picture::CPictureArray transformPicture(filter->GetMatrix());
-    return LayerFonction::PrepareLayerImage(transformPicture.getMat(), width,
-        height);
+    return LayerFonction::PrepareLayerImage(transformPicture.getMat(), width, height, layer->x, layer->y, ratio);
 }
 
 CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId,
@@ -235,80 +548,6 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
     heightOutputOld = heightOutput;
     return regenerate;
 }
-
-//-----------------------------------------------------------------
-// Dessin de l'image
-//-----------------------------------------------------------------
-/*
-void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) {
-#ifndef WIN32
-    scale_factor = parentRender->GetContentScaleFactor();
-#endif
-
-    if (numActifLayer < 0 || numActifLayer >= listOfLayer.size()) return;
-
-    LayerElement* layerElement = listOfLayer[numActifLayer];
-    if (layerElement == nullptr) return;
-
-    // Changement de calque source ou de version -> rechargement du bitmap
-    if (layerElement->layerId != lastSourceLayerId ||
-        layerElement->pictureVersion != lastSourceVersion) {
-        loadBitmap = true;
-        lastSourceLayerId = layerElement->layerId;
-        lastSourceVersion = layerElement->pictureVersion;
-    }
-
-    CImageLoadingFormat* source = layerElement->GetPicture();
-    isOpenGLShow = true;
-
-    if (renderBitmapOpenGL == nullptr) {
-        this->renderOpenGL = renderOpenGL;
-        renderBitmapOpenGL = std::make_unique<CRenderBitmapOpenGL>(renderOpenGL);
-        renderBitmapOpenGL->LoadingResource(scale_factor, themeBitmap.colorArrow);
-    }
-
-    int widthOutput = static_cast<int>(GetBitmapWidthWithRatio()) * scale_factor;
-    int heightOutput =
-        static_cast<int>(GetBitmapHeightWithRatio()) * scale_factor;
-
-    bool bitmapIsLoad = false;
-
-    if (loadBitmap) {
-        if (filtreEffet == nullptr) {
-            CRgbaquad color;
-            filtreEffet = std::make_unique<CFiltreEffet>(
-                color, renderOpenGL->GetOpenCLContext(), source);
-        }
-        else
-            filtreEffet->SetBitmap(source);
-
-        loadBitmap = false;
-        bitmapIsLoad = true;
-    }
-
-    if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0) {
-        if (widthOutput < 0 || heightOutput < 0) return;
-
-        const bool activeDirty = UpdateScreenBitmap(layerElement, widthOutput,
-            heightOutput, bitmapIsLoad);
-
-        // Initialiser le fond de l'écran avec la couleur de thème
-        renderOpenGL->CreateScreenRender(
-            GetWidth() * scale_factor, GetHeight() * scale_factor,
-            CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
-                themeBitmap.colorBack.Blue()));
-        GLTexture* textureDisplay =
-            renderOpenGL->GetDisplayTexture(widthOutput, heightOutput);
-        if (textureDisplay == nullptr) return;
-        ComposeLayers(layerElement, textureDisplay, widthOutput, heightOutput,
-            activeDirty);
-        RenderTexture(textureDisplay, true, widthOutput, heightOutput);
-    }
-    AfterRender();
-    canvas->SwapBuffers();
-}
-*/
-
 
 //-----------------------------------------------------------------
 // Dessin de l'image
@@ -429,14 +668,19 @@ cv::Mat CBitmapEditor::PrepareBackgroundMat(int width, int height) {
 // taille de sortie.
 cv::Mat CBitmapEditor::PrepareActiveLayerImage(int width, int height) {
     Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-    return LayerFonction::PrepareLayerImage(activePicture.getMat(), width,
-        height);
+    // Remplacer la ligne finale par :
+    LayerElement* layer = (numActifLayer >= 0 && numActifLayer < listOfLayer.size()) ? listOfLayer[numActifLayer] : nullptr;
+    int lx = layer ? layer->x : 0;
+    int ly = layer ? layer->y : 0;
+    return LayerFonction::PrepareLayerImage(activePicture.getMat(), width, height, lx, ly, ratio);
 }
+
 bool CBitmapEditor::UploadToTexture(GLTexture& texture, const cv::Mat& image) {
     cv::Mat local = image;
     Regards::Picture::CPictureArray array(local);
     return texture.SetData(array, renderOpenGL->GetOpenCLContext());
 }
+
 //-----------------------------------------------------------------
 // [OPENCL] Récupère la texture matérielle OpenCL (cv::UMat) d'un calque
 //-----------------------------------------------------------------
@@ -669,6 +913,71 @@ bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width,
     return layerCompositor->Compose(backgroundTexture.get(), passes,
         textureDisplay, width, height);
 }
+
+
+void CBitmapEditor::SetKey(const int& iKey)
+{
+    this->iKey = iKey;
+
+    // 1. Interception des raccourcis clavier Ctrl+C, Ctrl+V, Ctrl+X
+    // On vérifie à la fois les caractères de contrôle (ASCII / wxWidgets) et les codes standards.
+    switch (iKey)
+    {
+    case 3:          // Valeur ASCII / Control Code pour Ctrl+C
+    case 'C':        // Au cas où le raccourci remonte en lettre brute
+    case 'c':
+        // Pour s'assurer que Ctrl est bien enfoncé si on reçoit la lettre brute
+        if (wxGetKeyState(WXK_CONTROL))
+        {
+            this->Copy();
+            return; // On arrête le traitement pour ne pas altérer les curseurs
+        }
+        break;
+
+    case 22:         // Valeur ASCII / Control Code pour Ctrl+V (Synchronisé avec WXK_CONTROL_V si défini)
+    case 'V':
+    case 'v':
+        if (wxGetKeyState(WXK_CONTROL))
+        {
+            this->Paste();
+
+            SetSelectMoveTool();
+            return;
+        }
+        break;
+
+    case 24:         // Valeur ASCII / Control Code pour Ctrl+X
+    case 'X':
+    case 'x':
+        if (wxGetKeyState(WXK_CONTROL))
+        {
+            this->Cut();
+            return;
+        }
+        break;
+    }
+
+    // 2. Gestion d'origine pour l'outil de déplacement et le changement de curseur Zoom
+    switch (toolOption)
+    {
+    case MOVEPICTURE:
+    {
+        if (iKey == WXK_CONTROL)
+            wxSetCursor(hCursorZoomIn);
+        else
+            wxSetCursor(hCursorZoomOut);
+        break;
+    }
+    }
+}
+
+
+int CBitmapEditor::GetKey()
+{
+    //
+    return iKey;
+}
+
 //-----------------------------------------------------------------
 // Texture GPU d'un calque non actif (image redimensionnee a la taille de
 // sortie). Rechargee uniquement si l'image ou la taille de sortie a change.
@@ -761,6 +1070,27 @@ void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event) {
     }
 }
 
+void CBitmapEditor::SetSelectMoveTool()
+{
+    preview = WM_SELECTMOVE;
+    isInUse = true;
+    m_cDessin.reset(nullptr);
+    if (m_cDessin != nullptr)
+    {
+        forceUpdateFilter = true;
+        toolOption = 0;
+        SetDessinRatio();
+        m_cDessin->SetCursor();
+        isInUse = false;
+        SetTool(preview);
+    }
+    else
+    {
+        forceUpdateFilter = false;
+        wxSetCursor(*wxHOURGLASS_CURSOR);
+        toolOption = WM_SELECTMOVE;
+    }
+}
 
 void CBitmapEditor::SetZoomTool()
 {

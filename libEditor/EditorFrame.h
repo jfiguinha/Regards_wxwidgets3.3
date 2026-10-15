@@ -86,6 +86,10 @@ private:
 
 	void UpdateLayerPicture(wxCommandEvent& event);
 
+
+
+
+
 	std::map<int, STImageDoc> m_openedDocuments;
    
 	Regards::Viewer::CMainParam * viewerParam;

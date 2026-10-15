@@ -431,7 +431,6 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
 
 
 
-
 void CEditorFrame::OnColorChange(wxCommandEvent& event)
 {
     if (m_activeDocument)
@@ -460,25 +459,29 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                 switch (numEffect)
                 {
                 case IDM_PAINTCROP:
-                {
-                    numEffect = IDM_CROP;
-                    parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
-                    parameterDialog->SetActifLayer(numLayer);
-                    parameterDialog->SetActifLayerId(numLayerId);
-                    parameterDialog->SetTypeFiltre(IDM_CROP);
-                    parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
-                    parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
-                    parameterDialog->Show(false);
-                }
+                    {
+                        numEffect = IDM_CROP;
+                        parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+                        parameterDialog->SetActifLayer(numLayer);
+                        parameterDialog->SetActifLayerId(numLayerId);
+                        parameterDialog->SetTypeFiltre(IDM_CROP);
+                        parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+                        parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+                        parameterDialog->Show(false);
+                    }
                     break;
-                case WM_SELECTMOVE:
-                    break;
+
                 case WM_SELECTZOOM:
                     m_activeDocument->SetZoomTool();
                     break;
                 case WM_MOVEPICTURE:
                     m_activeDocument->SetMoveTool();
                     break;
+
+                case WM_SELECTMOVE:
+                    m_activeDocument->SetSelectMoveTool();
+                    break;
+
                 default:
                     parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
                     parameterDialog->SetActifLayer(numLayer);

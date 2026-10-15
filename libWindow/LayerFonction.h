@@ -1,6 +1,9 @@
 #pragma once
 
 #include "LayerBlend.h"
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/ocl.hpp>
+#include <algorithm>
 
 class LayerFonction
 {
@@ -36,19 +39,20 @@ public:
         }
     }
 
-    // Normalise les images source en BGRA 8 bits. Les données d'entrée ne sont
-    // converties/redimensionnées qu'une seule fois par calque et par composition.
-    static cv::Mat PrepareLayerImage(const cv::Mat& input, int width, int height)
+    // MODIFICATION : Ajout de layerX, layerY et ratio pour gérer le déplacement sur le Canvas
+    static cv::Mat PrepareLayerImage(const cv::Mat& input, int width, int height, int layerX = 0, int layerY = 0, float ratio = 1.0f)
     {
         if (input.empty() || width <= 0 || height <= 0)
             return {};
 
+        // 1. Conversion de la profondeur de pixel en 8 bits
         cv::Mat eightBit;
         if (input.depth() == CV_8U)
             eightBit = input;
         else
             input.convertTo(eightBit, CV_MAKETYPE(CV_8U, input.channels()));
 
+        // 2. Normalisation en format 4 canaux BGRA (Transparence obligatoire pour le déplacement)
         cv::Mat bgra;
         if (eightBit.channels() == 4)
             bgra = eightBit;
@@ -59,31 +63,48 @@ public:
         else
             return {};
 
+        // 3. Redimensionnement de l'image si ses dimensions diffèrent du canvas cible
+        cv::Mat resized = bgra;
         if (bgra.cols != width || bgra.rows != height)
         {
-            cv::Mat resized;
             const int interpolation =
                 (bgra.cols > width || bgra.rows > height) ? cv::INTER_AREA : cv::INTER_LINEAR;
             cv::resize(bgra, resized, cv::Size(width, height), 0.0, 0.0, interpolation);
-            return resized;
         }
-        return bgra;
+
+        // 4. CREATION DU CANVAS TRANSPARENT GLOBAL ET TRANSLATION
+        cv::Mat finalCanvas = cv::Mat::zeros(height, width, CV_8UC4);
+
+        // Application du décalage (x, y) modulé par le ratio de zoom
+        int offsetX = static_cast<int>(layerX * ratio);
+        int offsetY = static_cast<int>(layerY * ratio);
+
+        // Calcul sécurisé de l'intersection (ROI) pour éviter les plantages hors écran
+        cv::Rect dstROI = cv::Rect(offsetX, offsetY, resized.cols, resized.rows) & cv::Rect(0, 0, width, height);
+
+        if (!dstROI.empty())
+        {
+            cv::Rect srcROI(dstROI.x - offsetX, dstROI.y - offsetY, dstROI.width, dstROI.height);
+            resized(srcROI).copyTo(finalCanvas(dstROI));
+        }
+
+        return finalCanvas;
     }
 
-
-    // Normalise les images source en BGRA 8 bits. Les données d'entrée ne sont
-// converties/redimensionnées qu'une seule fois par calque et par composition.
-    static cv::UMat PrepareLayerImageOpenCL(const cv::UMat& input, int width, int height)
+    // MODIFICATION : Version OpenCL prenant en compte les offsets et le ratio
+    static cv::UMat PrepareLayerImageOpenCL(const cv::UMat& input, int width, int height, int layerX = 0, int layerY = 0, float ratio = 1.0f)
     {
         if (input.empty() || width <= 0 || height <= 0)
             return {};
 
+        // 1. Conversion de la profondeur de pixel en 8 bits
         cv::UMat eightBit;
         if (input.depth() == CV_8U)
             eightBit = input;
         else
             input.convertTo(eightBit, CV_MAKETYPE(CV_8U, input.channels()));
 
+        // 2. Normalisation en format 4 canaux BGRA
         cv::UMat bgra;
         if (eightBit.channels() == 4)
             bgra = eightBit;
@@ -94,19 +115,35 @@ public:
         else
             return {};
 
+        // 3. Redimensionnement OpenCL
+        cv::UMat resized = bgra;
         if (bgra.cols != width || bgra.rows != height)
         {
-            cv::UMat resized;
             const int interpolation =
                 (bgra.cols > width || bgra.rows > height) ? cv::INTER_AREA : cv::INTER_LINEAR;
             cv::resize(bgra, resized, cv::Size(width, height), 0.0, 0.0, interpolation);
-            return resized;
         }
-        return bgra;
+
+        // 4. TRANSLATION OPENCL VIA TECHNIQUE DE CANVAS TRANSPARENT (Rembobinage CPU temporaire pour ROI sécurisé si nécessaire)
+        // Crée une matrice transparente de base
+        cv::Mat canvasMat = cv::Mat::zeros(height, width, CV_8UC4);
+        cv::UMat finalCanvas = canvasMat.getUMat(cv::ACCESS_WRITE);
+
+        int offsetX = static_cast<int>(layerX * ratio);
+        int offsetY = static_cast<int>(layerY * ratio);
+
+        cv::Rect dstROI = cv::Rect(offsetX, offsetY, resized.cols, resized.rows) & cv::Rect(0, 0, width, height);
+
+        if (!dstROI.empty())
+        {
+            cv::Rect srcROI(dstROI.x - offsetX, dstROI.y - offsetY, dstROI.width, dstROI.height);
+            // Copie matérielle OpenCL (UMat vers UMat)
+            resized(srcROI).copyTo(finalCanvas(dstROI));
+        }
+
+        return finalCanvas;
     }
 
-    // Composition source-over avec alpha droit (straight alpha), et mode de
-    // fusion appliqué aux couleurs. Aucun split/merge ni Mat flottant temporaire.
     static void CompositeLayer(cv::Mat& destination, const cv::Mat& source,
         float layerOpacity, LayerBlendMode mode)
     {
@@ -136,8 +173,6 @@ public:
                     const float destinationColor = dst[x][c] / 255.0f;
                     const float blendedColor = BlendChannel(sourceColor, destinationColor, mode);
 
-                    // Formule W3C de composition avec mode de fusion :
-                    // Co = (1-as)*ad*Cd + (1-ad)*as*Cs + as*ad*B(Cs,Cd)
                     const float premultiplied =
                         (1.0f - sourceAlpha) * destinationAlpha * destinationColor +
                         (1.0f - destinationAlpha) * sourceAlpha * sourceColor +
@@ -165,7 +200,8 @@ public:
         if (opacity <= 0.0f)
             return false;
 
-        cv::Mat source = PrepareLayerImage(layer->GetPicture()->GetMatImage(), width, height);
+        // Note : En cas d'appel générique depuis l'extérieur, on passe le positionnement (si géré au niveau global)
+        cv::Mat source = PrepareLayerImage(layer->GetPicture()->GetMatImage(), width, height, layer->x, layer->y, 1.0f);
         if (source.empty())
             return false;
 

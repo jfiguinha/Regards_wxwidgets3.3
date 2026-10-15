@@ -65,6 +65,7 @@ public:
 
     void SetZoomTool();
     void SetMoveTool();
+    void SetSelectMoveTool();
 
     CLayerList* GetListOfLayer();
 private:

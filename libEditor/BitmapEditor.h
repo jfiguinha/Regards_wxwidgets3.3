@@ -7,6 +7,8 @@
 
 #include <CanvasSizeDialog.h>
 
+class CSelectFilterParameter;
+
 class CBitmapEditor : public Regards::Control::CBitmapWndViewer
 {
 public:
@@ -30,9 +32,12 @@ public:
         return &listOfLayer;
     }
 
-
+    bool Copy();
+    bool Cut();
+    bool Paste();
     void SetZoomTool();
     void SetMoveTool();
+    void SetSelectMoveTool();
    // void MouseClick(const int& xPos, const int& yPos) override;
   //  void MouseRelease(const int& xPos, const int& yPos) override;
 private:
@@ -81,6 +86,9 @@ private:
     cv::UMat GetLayerUMat(LayerElement* layer, int width, int height);
     cv::UMat GetActiveLayerUMat(int width, int height, bool activeDirty);
 
+    void SetKey(const int& iKey) override;
+    int GetKey() override;
+
     Regards::Picture::CPictureArray pictureBackground;
 
     // Ressources OpenGL
@@ -89,6 +97,8 @@ private:
     cv::Size backgroundTextureSize;
     std::unique_ptr<GLTexture> activeLayerTexture;
     cv::Size activeLayerTextureSize;
+
+    CSelectFilterParameter* selectFilter = nullptr;
 
     // Ressources OpenCL
     std::unique_ptr<CLayerCompositorOpenCL> layerCompositorOpenCL;

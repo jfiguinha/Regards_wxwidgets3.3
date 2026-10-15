@@ -1139,6 +1139,16 @@ void CBitmapWndRender::OnLButtonDown(wxMouseEvent& event)
 	}
 	break;
 
+	case WM_SELECTMOVE:
+	{
+		mouseBlock = true;
+		mouseScrollX = xPos;
+		mouseScrollY = yPos;
+		parentRender->CaptureMouse();
+		wxSetCursor(*wxHOURGLASS_CURSOR);
+	}
+	break;
+
 	case ZOOMPICTURE:
 	{
 		// 1. Calculer la position absolue du clic par rapport à l'image affichée avec son ratio actuel
@@ -1207,6 +1217,7 @@ void CBitmapWndRender::OnLButtonUp(wxMouseEvent& event)
 
 	switch (toolOption)
 	{
+	case WM_SELECTMOVE:
 	case MOVEPICTURE:
 		{
 			mouseBlock = false;
@@ -1503,6 +1514,30 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 				
 			break;
 		}
+
+
+	case WM_SELECTMOVE:
+	{
+		if (numActifLayer >= 0 && numActifLayer < listOfLayer.size())
+		{
+			LayerElement* layerElement = listOfLayer[numActifLayer];
+			if (layerElement != nullptr && ratio > 0.0f)
+			{
+				mouseBlock = true;
+				parentRender->CaptureMouse();
+				wxSetCursor(*wxHOURGLASS_CURSOR);
+
+				// 1. Calcul de la position absolue de la souris dans l'espace virtuel (avec le scroll)
+				layerElement->x = static_cast<float>(xPos + posLargeur) / ratio;
+				layerElement->y = static_cast<float>(yPos + posHauteur) / ratio;
+
+
+				mouseScrollX = xPos;
+				mouseScrollY = yPos;
+			}
+		}
+	}
+	break;
 
 	default:
 		{
