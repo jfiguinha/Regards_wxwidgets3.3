@@ -1518,7 +1518,7 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 
 	case WM_SELECTMOVE:
 	{
-		if (numActifLayer >= 0 && numActifLayer < listOfLayer.size())
+		if (numActifLayer >= 0 && numActifLayer < listOfLayer.size() && mouseBlock)
 		{
 			LayerElement* layerElement = listOfLayer[numActifLayer];
 			if (layerElement != nullptr && ratio > 0.0f)
@@ -1530,6 +1530,8 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 
 				mouseScrollX = xPos;
 				mouseScrollY = yPos;
+
+				needToRefresh = true;
 			}
 		}
 	}
