@@ -1520,18 +1520,31 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 	{
 		if (numActifLayer >= 0 && numActifLayer < listOfLayer.size() && mouseBlock)
 		{
-			LayerElement* layerElement = listOfLayer[numActifLayer];
-			if (layerElement != nullptr && ratio > 0.0f)
+			if (mouseBlock)
 			{
-				// 1. Calcul de la position absolue de la souris dans l'espace virtuel (avec le scroll)
-				layerElement->x = static_cast<float>(xPos + posLargeur) / ratio;
-				layerElement->y = static_cast<float>(yPos + posHauteur) / ratio;
+				// 1. Vérification de sécurité : on s'assure qu'une image est bien en cours de déplacement
+				if (!dataCopy.empty() && ratio > 0.0f)
+				{
+					// 2. Calcul de la position absolue de la souris dans l'espace virtuel réel (en intégrant le défilement/scroll)
+					float mouseVirtualX = static_cast<float>(xPos + posLargeur) / ratio;
+					float mouseVirtualY = static_cast<float>(yPos + posHauteur) / ratio;
 
+					// 3. AFFECTATION : On positionne le COIN de l'image de manière à ce que son CENTRE soit sur la souris
+					copyX = static_cast<int>(mouseVirtualX - (static_cast<float>(dataCopy.cols) / 2.0f));
+					copyY = static_cast<int>(mouseVirtualY - (static_cast<float>(dataCopy.rows) / 2.0f));
 
-				mouseScrollX = xPos;
-				mouseScrollY = yPos;
+					// 4. On force la liste des calques ou le filtre à se redessiner
+					if (numLayerCopy >= 0 && numLayerCopy < listOfLayer.size())
+					{
+						if (listOfLayer[numLayerCopy] != nullptr)
+						{
+							listOfLayer[numLayerCopy]->needTextureUpdate = true;
+						}
+					}
 
-				needToRefresh = true;
+					// 5. Demande de rafraîchissement immédiat de l'affichage
+					needToRefresh = true;
+				}
 			}
 		}
 	}

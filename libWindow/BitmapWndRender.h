@@ -365,6 +365,10 @@ namespace Regards::Window
 
 		bool forceUpdateFilter = false;
 
+		cv::Mat dataCopy;
+		int copyX = 0;
+		int copyY = 0;
+		int numLayerCopy = 0;
 
 		CLayerList listOfLayer;
 		int numActifLayer = 0;
