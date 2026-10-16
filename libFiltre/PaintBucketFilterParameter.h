@@ -14,9 +14,8 @@ struct SPaintBucketAction {
 class CPaintBucketFilterParameter : public CEffectParameter
 {
 public:
-    CPaintBucketFilterParameter()
-        : fillColor(cv::Scalar(0, 0, 0, 255)) // Noir par défaut (BGR)
-        , tolerance(20)                       // Tolérance par défaut
+    CPaintBucketFilterParameter() :
+        tolerance(20)                       // Tolérance par défaut
         , apply(false)
     {
         actionsHistory.clear();
@@ -30,10 +29,9 @@ public:
     }
 
     wxColour GetWxFillColor() {
-        return wxColour(fillColor[0], fillColor[1], fillColor[2], 255);
+        return wxColour(color1[0], color1[1], color1[2], 255);
     }
 
-    cv::Scalar fillColor; // Couleur courante sélectionnée pour le prochain clic
     int tolerance;        // Tolérance courante sélectionnée pour le prochain clic
 
     // Historique complet des zones cliquées

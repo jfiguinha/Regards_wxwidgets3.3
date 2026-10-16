@@ -23,6 +23,7 @@ namespace Regards::Filter
         void RenderEffect(CFiltreEffet* filtreEffet, CEffectParameter* effectParameter, const bool& preview) override;
 
         void Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
+        void Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) override;
         CDraw* GetDrawingPt() override;
 
     private:
