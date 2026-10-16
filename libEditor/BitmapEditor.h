@@ -97,6 +97,8 @@ private:
     cv::Mat PrepareLayerSource(LayerElement* layer, int width, int height, CFiltreEffet* filter);
     cv::UMat PrepareLayerSourceOpenCL(LayerElement* layer, int width, int height, CFiltreEffet* filter);
     cv::Mat PrepareActiveLayerImage(int width, int height);
+    cv::UMat PrepareActiveLayerImageOpenCL(int width, int height);
+
     bool UploadToTexture(GLTexture& texture, const cv::Mat& image);
 
     // --- Backend OpenGL ---
@@ -125,6 +127,8 @@ private:
     cv::Size backgroundUMatSize;
     cv::UMat activeLayerUMat;
     cv::Size activeLayerUMatSize;
+
+    bool testPaste = false;
 
     uint64_t lastSourceLayerId = 0;
     uint64_t lastSourceVersion = 0;

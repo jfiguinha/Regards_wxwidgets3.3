@@ -553,6 +553,8 @@ bool CBitmapEditor::Paste()
                     copyX = (bitmapwidth - dataCopy.size().width) / 2;
                     copyY = (bitmapheight - dataCopy.size().height) / 2;
                 }
+
+                
             }
         }
         wxTheClipboard->Close();
@@ -629,6 +631,9 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
             parentRender->Refresh();
 
         NotifyLayerPictureUpdated();
+
+
+        testPaste = true;
 
         wxSetCursor(*wxSTANDARD_CURSOR);
         return;
@@ -843,6 +848,11 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) {
         bitmapIsLoad = true;
     }
 
+    if (testPaste)
+    {
+        cv::imwrite("d:\\test.jpg", source->GetMatImage());
+    }
+
     if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0) {
         if (widthOutput < 0 || heightOutput < 0) return;
 
@@ -913,11 +923,30 @@ cv::Mat CBitmapEditor::PrepareBackgroundMat(int width, int height) {
 // taille de sortie et positionné selon l'offset du calque.
 cv::Mat CBitmapEditor::PrepareActiveLayerImage(int width, int height) {
     Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
+
+    if (testPaste)
+        cv::imwrite("d:\\toto2.jpg", activePicture.getMat());
+
     const LayerElement* layer = GetActiveLayerElement();
     const int lx = layer ? layer->x : 0;
     const int ly = layer ? layer->y : 0;
     return LayerFonction::PrepareLayerImage(activePicture.getMat(), width, height, lx, ly, ratio);
 }
+
+// Résultat des filtres/preview du calque actif (filtreEffet), préparé à la
+// taille de sortie et positionné selon l'offset du calque.
+cv::UMat CBitmapEditor::PrepareActiveLayerImageOpenCL(int width, int height) {
+    Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
+
+    if (testPaste)
+        cv::imwrite("d:\\toto2.jpg", activePicture.getMat());
+
+    const LayerElement* layer = GetActiveLayerElement();
+    const int lx = layer ? layer->x : 0;
+    const int ly = layer ? layer->y : 0;
+    return LayerFonction::PrepareLayerImageOpenCL(activePicture.getUMat(), width, height, lx, ly, ratio);
+}
+
 
 bool CBitmapEditor::UploadToTexture(GLTexture& texture, const cv::Mat& image) {
     cv::Mat local = image;
@@ -955,9 +984,9 @@ cv::UMat CBitmapEditor::GetActiveLayerUMat(int width, int height,
     const cv::Size size(width, height);
     if (!activeLayerUMat.empty() && !activeDirty && activeLayerUMatSize == size)
         return activeLayerUMat;
-    cv::Mat prepared = PrepareActiveLayerImage(width, height);
+    cv::UMat prepared = PrepareActiveLayerImageOpenCL(width, height);
     if (prepared.empty()) return cv::UMat();
-    activeLayerUMat = prepared.getUMat(cv::ACCESS_READ);
+    activeLayerUMat = prepared;
     activeLayerUMatSize = size;
     return activeLayerUMat;
 }
