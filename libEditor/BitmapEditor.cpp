@@ -566,34 +566,6 @@ bool CBitmapEditor::Paste()
     return true;
 }
 
-//-----------------------------------------------------------------
-// Fixe dataCopy dans le calque cible (numLayerCopy), puis libère dataCopy.
-// Retourne le calque cible (nullptr si aucun calque valide).
-//-----------------------------------------------------------------
-LayerElement* CBitmapEditor::CommitFloatingPaste()
-{
-    LayerElement* targetLayer = nullptr;
-
-    if (!dataCopy.empty() && numLayerCopy >= 0 &&
-        numLayerCopy < static_cast<int>(listOfLayer.size()))
-    {
-        targetLayer = listOfLayer[numLayerCopy];
-        if (targetLayer != nullptr && targetLayer->GetPicture() != nullptr)
-        {
-            cv::Mat targetMat = targetLayer->GetPicture()->GetMatImage();
-            if (!targetMat.empty() && CopyIntoROI(dataCopy, targetMat, copyX, copyY))
-            {
-                targetLayer->GetPicture()->SetPicture(targetMat);
-
-                // Force le changement de version pour réveiller OnPaint3D
-                targetLayer->pictureVersion++;
-            }
-        }
-    }
-
-    dataCopy.release();
-    return targetLayer;
-}
 
 // -----------------------------------------------------------------
 // MOUSE RELEASE : Fixation définitive et collage direct de dataCopy
@@ -617,15 +589,6 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
                 cv::Mat targetMat = targetLayer->GetPicture()->GetMatImage();
                 if (!targetMat.empty())
                 {
-                    // Aligne le nombre de canaux pour éviter les plantages (copyTo nécessite des formats identiques)
-                    if (dataCopy.channels() != targetMat.channels())
-                    {
-                        if (targetMat.channels() == 4)
-                            cv::cvtColor(dataCopy, dataCopy, cv::COLOR_BGR2BGRA);
-                        else if (targetMat.channels() == 3)
-                            cv::cvtColor(dataCopy, dataCopy, cv::COLOR_BGRA2BGR);
-                    }
-
                     // Calcul de la zone d'intersection (ROI) sécurisée
                     cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) & cv::Rect(0, 0, targetMat.cols, targetMat.rows);
 

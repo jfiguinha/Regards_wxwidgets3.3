@@ -68,7 +68,6 @@ private:
     void ActivateSimpleTool(int previewId, int tool, const wxCursor& cursor);
 
     // --- Collage (dataCopy « volant » puis fixé dans le calque) ---
-    LayerElement* CommitFloatingPaste();
     void ApplyFloatingPasteToFilter();
 
     // --- Rendu ---
