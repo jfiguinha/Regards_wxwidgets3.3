@@ -523,7 +523,9 @@ bool CBitmapEditor::Cut()
     return true;
 }
 
-
+// -----------------------------------------------------------------
+// MOUSE RELEASE : Fixation définitive et collage direct de dataCopy
+// -----------------------------------------------------------------
 void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
 {
     if (toolOption == WM_SELECTMOVE)
@@ -534,8 +536,8 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
 
         LayerElement* targetLayer = nullptr;
 
-        // FIXATION DEFINITIVE : L'utilisateur lâche la souris, on fusionne réellement dans le calque
-        if (!dataCopy.empty() && numLayerCopy >= 0 && numLayerCopy < listOfLayer.size())
+        // COLLAGE DIRECT DE DATA COPY DANS LE CALQUE CIBLE
+        if (!dataCopy.empty() && numLayerCopy >= 0 && numLayerCopy < static_cast<int>(listOfLayer.size()))
         {
             targetLayer = listOfLayer[numLayerCopy];
             if (targetLayer != nullptr && targetLayer->GetPicture() != nullptr)
@@ -543,60 +545,63 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
                 cv::Mat targetMat = targetLayer->GetPicture()->GetMatImage();
                 if (!targetMat.empty())
                 {
-                    // 1. Forcer le format BGRA si nécessaire
-                    if (targetMat.channels() == 3)
-                        cv::cvtColor(targetMat, targetMat, cv::COLOR_BGR2BGRA);
-
-                    // 2. Calcul de l'intersection
+                    // Calcul de la zone d'intersection (ROI) sécurisée
                     cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) & cv::Rect(0, 0, targetMat.cols, targetMat.rows);
+
                     if (!dstROI.empty())
                     {
                         cv::Rect srcROI(dstROI.x - copyX, dstROI.y - copyY, dstROI.width, dstROI.height);
 
-                        // Fusion définitive (Alpha blending)
-                        for (int y = 0; y < dstROI.height; ++y)
-                        {
-                            auto* dstPtr = targetMat.ptr<cv::Vec4b>(dstROI.y + y) + dstROI.x;
-                            const auto* srcPtr = dataCopy.ptr<cv::Vec4b>(srcROI.y + y) + srcROI.x;
+                        // Collage direct des pixels
+                        dataCopy(srcROI).copyTo(targetMat(dstROI));
 
-                            for (int x = 0; x < dstROI.width; ++x)
-                            {
-                                float alphaSrc = srcPtr[x][3] / 255.0f;
-                                if (alphaSrc > 0.0f)
-                                {
-                                    float alphaDst = dstPtr[x][3] / 255.0f;
-                                    float alphaOut = alphaSrc + alphaDst * (1.0f - alphaSrc);
-                                    for (int c = 0; c < 3; ++c) {
-                                        dstPtr[x][c] = cv::saturate_cast<uchar>((srcPtr[x][c] * alphaSrc + dstPtr[x][c] * alphaDst * (1.0f - alphaSrc)) / alphaOut);
-                                    }
-                                    dstPtr[x][3] = cv::saturate_cast<uchar>(alphaOut * 255.0f);
-                                }
-                            }
-                        }
-
-                        // 3. Sauvegarde permanente dans le calque de l'éditeur
+                        // Sauvegarde de la matrice mise à jour dans le calque
                         targetLayer->GetPicture()->SetPicture(targetMat);
+
+                        // FORCE LA VERSION À CHANGER pour réveiller OnPaint3D
+                        targetLayer->pictureVersion++;
                     }
                 }
             }
         }
 
-        // Libération de la mémoire de l'élément volant puisqu'il est maintenant fixé
+        // Libération de la mémoire de l'élément copié
         dataCopy.release();
 
-        // Forcer le rafraîchissement global final
+        // Invalidation des structures de l'éditeur
         listOfLayer.IsChanged(true);
 
         if (targetLayer)
         {
             targetLayer->InvalidatePicture();
             targetLayer->needTextureUpdate = true;
+
+            // Réassignation obligatoire au gestionnaire de filtres d'effet
+            if (filtreEffet != nullptr)
+                filtreEffet->SetBitmap(targetLayer->GetPicture());
+
+            // Force le rechargement de la texture écran OpenGL
+            loadBitmap = true;
+            forceUpdateFilter = true;
+            updateFilter = true;
+
+
+            needToRefresh = true;
+
+
+            // Envoi d'un événement pour notifier l'UI globale qu'un calque a été ajouté
+            wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
+            if (mainWindow) {
+                wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
+                mainWindow->GetEventHandler()->AddPendingEvent(evt);
+            }
         }
-        needToRefresh = true;
 
         wxSetCursor(*wxSTANDARD_CURSOR);
+        return;
     }
 
+    // --- Gestion par défaut du clic de souris existant ---
     if (CFiltreData::SupportMouseClick(toolOption))
     {
         mouseBlock = false;
@@ -610,18 +615,17 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
         if (m_cDessin->ApplyEffectOnMouseRelease())
         {
             ApplyEffectOnMouseRelease();
-
         }
-        // Forcer la régénération depuis la source originale
+
         updateFilter = true;
         needToRefresh = true;
-
-        
     }
 
     if (clickTimer->IsRunning())
         clickTimer->Stop();
 }
+
+
 
 // -----------------------------------------------------------------
 // PASTE : Récupère une image du presse-papiers et l'ajoute dans un NOUVEAU calque
@@ -749,15 +753,6 @@ void CBitmapEditor::GenerateScreenBitmap(CFiltreEffet* filtreEffet,
 // redimensionnement). Retourne true si le résultat du calque actif a été
 // régénéré.
 //-----------------------------------------------------------------
-//-----------------------------------------------------------------
-// Régénère le bitmap d'écran du calque actif (filtres / preview /
-// redimensionnement). Retourne true si le résultat du calque actif a été
-// régénéré.
-//-----------------------------------------------------------------
-//-----------------------------------------------------------------
-// Régénère le bitmap d'écran du calque actif (filtres / preview /
-// redimensionnement). Retourne true si le résultat du calque actif a été
-// régénéré.
 //-----------------------------------------------------------------
 bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
     int& widthOutput, int& heightOutput,
