@@ -1530,8 +1530,8 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 					float mouseVirtualY = static_cast<float>(yPos + posHauteur) / ratio;
 
 					// 3. AFFECTATION : On positionne le COIN de l'image de manière à ce que son CENTRE soit sur la souris
-					copyX = static_cast<int>(mouseVirtualX - (static_cast<float>(dataCopy.cols) / 2.0f));
-					copyY = static_cast<int>(mouseVirtualY - (static_cast<float>(dataCopy.rows) / 2.0f));
+					copyX = static_cast<int>(mouseVirtualX - (static_cast<float>(dataCopy.getWidth()) / 2.0f));
+					copyY = static_cast<int>(mouseVirtualY - (static_cast<float>(dataCopy.getHeight()) / 2.0f));
 
 					// 4. On force la liste des calques ou le filtre à se redessiner
 					if (numLayerCopy >= 0 && numLayerCopy < listOfLayer.size())

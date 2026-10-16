@@ -542,7 +542,7 @@ bool CBitmapEditor::Paste()
 
             if (bitmap.IsOk())
             {
-                dataCopy = Regards::Picture::CLibPicture::mat_from_wx(bitmap.ConvertToImage());
+                dataCopy.SetArray(Regards::Picture::CLibPicture::mat_from_wx(bitmap.ConvertToImage()));
                 numLayerCopy = numActifLayer;
 
                 // Centrage sur la taille du document global
@@ -550,8 +550,8 @@ bool CBitmapEditor::Paste()
                 copyY = 0;
                 if (bitmapwidth > 0 && bitmapheight > 0)
                 {
-                    copyX = (bitmapwidth - dataCopy.size().width) / 2;
-                    copyY = (bitmapheight - dataCopy.size().height) / 2;
+                    copyX = (bitmapwidth - dataCopy.getWidth()) / 2;
+                    copyY = (bitmapheight - dataCopy.getHeight()) / 2;
                 }
 
                 
@@ -590,7 +590,7 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
                 if (!targetMat.empty())
                 {
                     // Calcul de la zone d'intersection (ROI) sécurisée
-                    cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) & cv::Rect(0, 0, targetMat.cols, targetMat.rows);
+                    cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.getWidth(), dataCopy.getHeight()) & cv::Rect(0, 0, targetMat.cols, targetMat.rows);
 
                     if (!dstROI.empty())
                     {
@@ -598,7 +598,7 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
                         cv::Rect srcROI(dstROI.x - copyX, dstROI.y - copyY, dstROI.width, dstROI.height);
 
                         // Collage direct des pixels (écrase la zone sur la cible CPU)
-                        dataCopy(srcROI).copyTo(targetMat(dstROI));
+                        dataCopy.getMat()(srcROI).copyTo(targetMat(dstROI));
 
                         // REPARATION CRITIQUE : Au lieu de simplement modifier la matrice existante, 
                         // on force CImageLoadingFormat à reconstruire entièrement ses structures (Mat et UMat)
@@ -615,7 +615,7 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
         }
 
         // Libération finale de la matrice de copie
-        dataCopy.release();
+        dataCopy.Release();
 
         // Notification de modification de la liste des calques
         listOfLayer.IsChanged(true);
@@ -1000,11 +1000,11 @@ bool CBitmapEditor::ComposeLayersOpenCL(GLTexture* textureDisplay, int width,
     if (!dataCopy.empty())
     {
         // 1. Création d'un grand canvas OpenCL transparent à la dimension exigée (width x height)
-        cv::Mat baseCanvasMat = cv::Mat::zeros(height, width, CV_8UC4);
-        cv::UMat fullCanvasCL = baseCanvasMat.getUMat(cv::ACCESS_WRITE);
+        cv::UMat fullCanvasCL = cv::UMat::zeros(height, width, CV_8UC4);
+        //cv::UMat fullCanvasCL = baseCanvasMat.getUMat(cv::ACCESS_WRITE);
 
         // 2. Rapatriement de dataCopy sur le flux GPU
-        cv::UMat floatingUMatSource = dataCopy.getUMat(cv::ACCESS_READ);
+        cv::UMat floatingUMatSource = dataCopy.getUMat();
 
         // 3. Calcul de la taille de la sélection mise à l'échelle
         int targetW = static_cast<int>(static_cast<float>(floatingUMatSource.cols) * ratio);
@@ -1206,14 +1206,14 @@ bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width,
         cv::Mat fullCanvasGPU = cv::Mat::zeros(height, width, CV_8UC4);
 
         // 2. Calcul de la taille de l'élément volant indexée sur le ratio de zoom
-        int targetW = static_cast<int>(static_cast<float>(dataCopy.cols) * ratio);
-        int targetH = static_cast<int>(static_cast<float>(dataCopy.rows) * ratio);
+        int targetW = static_cast<int>(static_cast<float>(dataCopy.getWidth()) * ratio);
+        int targetH = static_cast<int>(static_cast<float>(dataCopy.getHeight()) * ratio);
 
         if (targetW > 0 && targetH > 0)
         {
             // 3. Redimensionnement isolé du petit bloc d'image pour préserver ses proportions
             cv::Mat scaledFloatingMat;
-            cv::resize(dataCopy, scaledFloatingMat, cv::Size(targetW, targetH), 0.0, 0.0, cv::INTER_LINEAR);
+            cv::resize(dataCopy.getMat(), scaledFloatingMat, cv::Size(targetW, targetH), 0.0, 0.0, cv::INTER_LINEAR);
 
             // 4. Forcer le format BGRA 4 canaux pour la transparence
             if (scaledFloatingMat.channels() == 3)

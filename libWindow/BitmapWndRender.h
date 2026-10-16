@@ -365,7 +365,7 @@ namespace Regards::Window
 
 		bool forceUpdateFilter = false;
 
-		cv::Mat dataCopy;
+		Regards::Picture::CPictureArray dataCopy;
 		int copyX = 0;
 		int copyY = 0;
 		int numLayerCopy = 0;
