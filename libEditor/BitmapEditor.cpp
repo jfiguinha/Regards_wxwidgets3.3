@@ -18,18 +18,24 @@
 #include <appcontext.h>
 #include <SelectFilterParameter.h>
 #include <FilterData.h>
-// À insérer à la fin de BitmapEditor.cpp
 #include <wx/clipbrd.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
+#include <algorithm>
+#include <vector>
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 
 extern AppContext application_context;
+
 //-----------------------------------------------------------------
-// Utilitaires locaux (partagés par les backends GL / OpenCL / CPU)
+// Utilitaires locaux (partagés par les backends GL / OpenCL / CPU et les
+// outils de sélection)
 //-----------------------------------------------------------------
 namespace {
+    // Couleur des tracés de sélection (blanc opaque)
+    const cv::Scalar kSelectionColor(0, 0, 0, 255);
+
     // Parcourt les calques dans l'ordre (index 0 -> dernier) en sautant les calques
     // nuls, invisibles ou d'opacité nulle. Opacité normalisée dans [0..1].
     template <typename LayerList, typename Visitor>
@@ -59,13 +65,35 @@ namespace {
         layer->textureHeight = height;
     }
 
-    // Image d'un calque non actif, préparée à la taille de sortie avec l'effet
-    // d'écran appliqué (Resize / Rotation / Flip)
     void LogFallbackOnce(bool& alreadyLogged, const char* message) {
         if (!alreadyLogged) {
             wxLogDebug("%s", message);
             alreadyLogged = true;
         }
+    }
+
+    // Copie 'src' dans 'dst' à la position (x, y), recadrée sur l'intersection
+    // avec 'dst'. Retourne false si l'intersection est vide.
+    bool CopyIntoROI(const cv::Mat& src, cv::Mat& dst, int x, int y) {
+        const cv::Rect dstROI = cv::Rect(x, y, src.cols, src.rows) &
+            cv::Rect(0, 0, dst.cols, dst.rows);
+        if (dstROI.empty()) return false;
+        const cv::Rect srcROI(dstROI.x - x, dstROI.y - y, dstROI.width,
+            dstROI.height);
+        src(srcROI).copyTo(dst(dstROI));
+        return true;
+    }
+
+    // Conversion en 4 canaux BGRA (le canal alpha porte la transparence).
+    cv::Mat ToBGRA(const cv::Mat& source) {
+        cv::Mat bgra;
+        if (source.channels() == 3)
+            cv::cvtColor(source, bgra, cv::COLOR_BGR2BGRA);
+        else if (source.channels() == 1)
+            cv::cvtColor(source, bgra, cv::COLOR_GRAY2BGRA);
+        else
+            bgra = source.clone();
+        return bgra;
     }
 
     // Place l'image sur un nouveau canvas (noir/transparent) selon l'ancre choisie,
@@ -102,261 +130,331 @@ namespace {
             break;
         }
 
-        // Zone de destination = intersection de l'ancienne image (positionnée) et du
-        // nouveau canvas
-        const cv::Rect dstROI = cv::Rect(dstX, dstY, oldImage.cols, oldImage.rows) &
-            cv::Rect(0, 0, newWidth, newHeight);
-        if (!dstROI.empty()) {
-            const cv::Rect srcROI(dstROI.x - dstX, dstROI.y - dstY, dstROI.width,
-                dstROI.height);
-            oldImage(srcROI).copyTo(newCanvas(dstROI));
+        CopyIntoROI(oldImage, newCanvas, dstX, dstY);
+        return newCanvas;
+    }
+
+    // --- Sélections ------------------------------------------------
+
+    // Masque (255 = sélectionné) des sélections, utilisé pour l'inversion.
+    template <typename Selections>
+    cv::Mat BuildInversionMask(const Selections& selections, int width, int height) {
+        cv::Mat mask = cv::Mat::zeros(height, width, CV_8UC1);
+
+        for (const auto& selection : selections)
+        {
+            switch (selection.selectType)
+            {
+            case SELECT_RECTANGLE:
+            {
+                const cv::Point p1(selection.startPoint.x, selection.startPoint.y);
+                const cv::Point p2(selection.endPoint.x, selection.endPoint.y);
+                cv::rectangle(mask, p1, p2, cv::Scalar(255), cv::FILLED);
+                break;
+            }
+
+            case SELECT_ELLIPSE:
+            {
+                const int left = std::min(selection.startPoint.x, selection.endPoint.x);
+                const int right = std::max(selection.startPoint.x, selection.endPoint.x);
+                const int top = std::min(selection.startPoint.y, selection.endPoint.y);
+                const int bottom = std::max(selection.startPoint.y, selection.endPoint.y);
+
+                const cv::Point center(left + (right - left) / 2,
+                    top + (bottom - top) / 2);
+                const cv::Size axes((right - left) / 2, (bottom - top) / 2);
+
+                if (axes.width > 0 && axes.height > 0)
+                    cv::ellipse(mask, center, axes, 0, 0, 360, cv::Scalar(255),
+                        cv::FILLED);
+                break;
+            }
+
+            case SELECT_LASSO:
+            {
+                if (selection.points.size() < 3)
+                    break;
+
+                std::vector<cv::Point> points;
+                points.reserve(selection.points.size());
+                for (const auto& point : selection.points)
+                    points.emplace_back(point.x, point.y);
+
+                cv::fillPoly(mask, std::vector<std::vector<cv::Point>>{ points },
+                    cv::Scalar(255));
+                break;
+            }
+
+            default:
+                break;
+            }
+        }
+        return mask;
+    }
+
+    // Convertit les contours d'un masque (y compris les contours intérieurs) en
+    // tracés LASSO fermés.
+    std::vector<SSelectionTrace> MaskToLassoSelections(const cv::Mat& mask) {
+        std::vector<std::vector<cv::Point>> contours;
+        std::vector<cv::Vec4i> hierarchy;
+        cv::findContours(mask, contours, hierarchy, cv::RETR_TREE,
+            cv::CHAIN_APPROX_SIMPLE);
+
+        std::vector<SSelectionTrace> result;
+        result.reserve(contours.size());
+
+        for (const auto& contour : contours)
+        {
+            if (contour.size() < 3)
+                continue;
+
+            SSelectionTrace trace;
+            trace.selectType = SELECT_LASSO;
+            trace.penSize = 1;
+            trace.color = kSelectionColor;
+            trace.startPoint = wxPoint(contour[0].x, contour[0].y);
+            trace.endPoint = trace.startPoint;
+
+            trace.points.reserve(contour.size() + 1);
+            for (const auto& point : contour)
+                trace.points.emplace_back(point.x, point.y);
+
+            // Fermer explicitement le contour.
+            if (trace.points.front() != trace.points.back())
+                trace.points.push_back(trace.points.front());
+
+            result.push_back(std::move(trace));
+        }
+        return result;
+    }
+
+    // Boîte englobante de toutes les sélections, bornée à l'image.
+    // Largeur/hauteur <= 0 si rien d'exploitable.
+    template <typename Selections>
+    cv::Rect SelectionBounds(const Selections& selections, const cv::Size& imageSize) {
+        int minX = imageSize.width, minY = imageSize.height;
+        int maxX = 0, maxY = 0;
+
+        for (const auto& s : selections)
+        {
+            if (s.selectType == SELECT_RECTANGLE || s.selectType == SELECT_ELLIPSE)
+            {
+                minX = std::min({ minX, s.startPoint.x, s.endPoint.x });
+                minY = std::min({ minY, s.startPoint.y, s.endPoint.y });
+                maxX = std::max({ maxX, s.startPoint.x, s.endPoint.x });
+                maxY = std::max({ maxY, s.startPoint.y, s.endPoint.y });
+            }
+            else if (s.selectType == SELECT_LASSO)
+            {
+                for (const auto& pt : s.points)
+                {
+                    minX = std::min(minX, pt.x);
+                    minY = std::min(minY, pt.y);
+                    maxX = std::max(maxX, pt.x);
+                    maxY = std::max(maxY, pt.y);
+                }
+            }
         }
 
-        return newCanvas;
+        minX = std::max(0, minX);
+        minY = std::max(0, minY);
+        maxX = std::min(imageSize.width, maxX);
+        maxY = std::min(imageSize.height, maxY);
+        return cv::Rect(minX, minY, maxX - minX, maxY - minY);
+    }
+
+    // Masque (255 = sélectionné) utilisé pour le détourage lors d'une copie.
+    template <typename Selections>
+    cv::Mat BuildCopyMask(const Selections& selections, const cv::Size& imageSize) {
+        cv::Mat mask = cv::Mat::zeros(imageSize, CV_8UC1);
+
+        for (const auto& s : selections)
+        {
+            const cv::Point p1(s.startPoint.x, s.startPoint.y);
+            const cv::Point p2(s.endPoint.x, s.endPoint.y);
+
+            if (s.selectType == SELECT_RECTANGLE)
+            {
+                cv::rectangle(mask, p1, p2, cv::Scalar(255), cv::FILLED);
+            }
+            else if (s.selectType == SELECT_ELLIPSE)
+            {
+                const cv::Point center((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
+                const cv::Size axes(std::abs(p1.x - p2.x) / 2, std::abs(p1.y - p2.y) / 2);
+                cv::ellipse(mask, center, axes, 0, 0, 360, cv::Scalar(255), cv::FILLED);
+            }
+            else if (s.selectType == SELECT_LASSO && !s.points.empty())
+            {
+                std::vector<cv::Point> cvPoints;
+                cvPoints.reserve(s.points.size());
+                for (const auto& pt : s.points)
+                    cvPoints.emplace_back(pt.x, pt.y);
+                cv::fillPoly(mask, std::vector<std::vector<cv::Point>>{ cvPoints },
+                    cv::Scalar(255));
+            }
+        }
+        return mask;
+    }
+
+    // Pixels hors masque -> alpha = 0 (transparent). 'bgra' doit être en 4 canaux.
+    void ApplyMaskToAlpha(cv::Mat& bgra, const cv::Mat& mask) {
+        std::vector<cv::Mat> channels;
+        cv::split(bgra, channels);
+        cv::bitwise_and(channels[3], mask, channels[3]);
+        cv::merge(channels, bgra);
     }
 }  // namespace
 
+//-----------------------------------------------------------------
+// Accès au calque actif / à l'outil de sélection
+//-----------------------------------------------------------------
+LayerElement* CBitmapEditor::GetActiveLayerElement() {
+    if (numActifLayer < 0 ||
+        numActifLayer >= static_cast<int>(listOfLayer.size()))
+        return nullptr;
+    return listOfLayer[numActifLayer];
+}
 
-cv::UMat CBitmapEditor::PrepareLayerSourceOpenCL(LayerElement* layer, int width,
-    int height, CFiltreEffet* filter) {
+CSelectFilterParameter* CBitmapEditor::GetSelectFilter() {
+    if (effectParameter == nullptr || preview != IDM_SELECTFILTER)
+        return nullptr;
+    return static_cast<CSelectFilterParameter*>(effectParameter);
+}
+
+// Outil de sélection actif + calque actif avec une image de taille valide.
+bool CBitmapEditor::GetActiveSelectionContext(CSelectFilterParameter*& filter,
+    int& imgW, int& imgH) {
+    filter = GetSelectFilter();
+    if (filter == nullptr) return false;
+
+    LayerElement* layer = GetActiveLayerElement();
+    if (layer == nullptr || layer->GetPicture() == nullptr) return false;
+
+    imgW = layer->GetPicture()->GetWidth();
+    imgH = layer->GetPicture()->GetHeight();
+    return imgW > 0 && imgH > 0;
+}
+
+void CBitmapEditor::RefreshSelectionView() {
+    m_cDessin->SetUpdateTrace(true);
+    needToRefresh = true;
+    if (parentRender) parentRender->Refresh();
+}
+
+// Prévient l'UI globale que l'image d'un calque a changé.
+void CBitmapEditor::NotifyLayerPictureUpdated() {
+    if (parentRender == nullptr) return;
+    wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
+    if (mainWindow) {
+        wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
+        mainWindow->GetEventHandler()->AddPendingEvent(evt);
+    }
+}
+
+//-----------------------------------------------------------------
+// Passe un calque dans le pipeline d'écran du filtre (Resize / Rotation / Flip).
+// Résultat disponible via filter->GetMatrix(). false si le calque n'a pas
+// d'image valide.
+//-----------------------------------------------------------------
+bool CBitmapEditor::PrepareFilteredLayer(LayerElement* layer, CFiltreEffet* filter,
+    int width, int height) {
     CImageLoadingFormat* picture = layer->GetPicture();
-    if (picture == nullptr || !picture->IsOk()) return cv::UMat();
+    if (picture == nullptr || !picture->IsOk()) return false;
 
     filter->SetBitmap(picture);
     int wOut = width;
     int hOut = height;
     GenerateScreenBitmap(filter, wOut, hOut);
+    return true;
+}
+
+cv::Mat CBitmapEditor::PrepareLayerSource(LayerElement* layer, int width,
+    int height, CFiltreEffet* filter) {
+    if (!PrepareFilteredLayer(layer, filter, width, height)) return cv::Mat();
+
+    Regards::Picture::CPictureArray transformPicture(filter->GetMatrix());
+    return LayerFonction::PrepareLayerImage(transformPicture.getMat(), width, height, layer->x, layer->y, ratio);
+}
+
+cv::UMat CBitmapEditor::PrepareLayerSourceOpenCL(LayerElement* layer, int width,
+    int height, CFiltreEffet* filter) {
+    if (!PrepareFilteredLayer(layer, filter, width, height)) return cv::UMat();
 
     Regards::Picture::CPictureArray transformPicture = filter->GetMatrix();
     return LayerFonction::PrepareLayerImageOpenCL(transformPicture.getUMat(), width, height, layer->x, layer->y, ratio);
 }
 
-
-// -----------------------------------------------------------------
-// SELECT ALL : Sélectionne l'intégralité du calque actif
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
+// SELECT ALL : sélectionne l'intégralité du calque actif
+//-----------------------------------------------------------------
 void CBitmapEditor::SelectAll()
 {
-    if (effectParameter != nullptr && preview == IDM_SELECTFILTER)
-    {
-        CSelectFilterParameter* selectFilter = (CSelectFilterParameter*)effectParameter;
+    CSelectFilterParameter* filter = nullptr;
+    int imgW = 0, imgH = 0;
+    if (!GetActiveSelectionContext(filter, imgW, imgH))
+        return;
 
-        if (numActifLayer < 0 || numActifLayer >= static_cast<int>(listOfLayer.size()))
-            return;
+    // Un tracé rectangulaire unique couvrant tout le calque remplace les
+    // sélections précédentes.
+    SSelectionTrace fullSelect;
+    fullSelect.selectType = SELECT_RECTANGLE;
+    fullSelect.startPoint = wxPoint(0, 0);
+    fullSelect.endPoint = wxPoint(imgW, imgH);
+    fullSelect.penSize = 1;
+    fullSelect.color = kSelectionColor;
 
-        LayerElement* layerElement = listOfLayer[numActifLayer];
-        if (layerElement == nullptr || layerElement->GetPicture() == nullptr)
-            return;
+    filter->listSelections.clear();
+    filter->listSelections.push_back(fullSelect);
 
-        // Récupération de la taille réelle de l'image source du calque
-        int imgW = layerElement->GetPicture()->GetWidth();
-        int imgH = layerElement->GetPicture()->GetHeight();
-
-        if (imgW <= 0 || imgH <= 0)
-            return;
-
-        // Vider les sélections partielles précédentes
-        selectFilter->listSelections.clear();
-
-        // Créer un tracé rectangulaire unique couvrant tout le calque
-        SSelectionTrace fullSelect;
-        fullSelect.selectType = SELECT_RECTANGLE;
-        fullSelect.startPoint = wxPoint(0, 0);
-        fullSelect.endPoint = wxPoint(imgW, imgH);
-        fullSelect.penSize = 1;
-        fullSelect.color = cv::Scalar(255, 255, 255, 255); // Blanc opaque OpenCV standard
-
-        selectFilter->listSelections.push_back(fullSelect);
-
-        this->m_cDessin->SetUpdateTrace(true);
-
-        // Demander à rafraîchir l'écran pour afficher le contour de sélection global
-        needToRefresh = true;
-        if (parentRender) parentRender->Refresh();
-    }
+    RefreshSelectionView();
 }
 
+//-----------------------------------------------------------------
+// INVERSE ALL : inverse la sélection (contours du masque inversé -> tracés LASSO)
+//-----------------------------------------------------------------
 void CBitmapEditor::InverseAll()
 {
-    if (effectParameter == nullptr || preview != IDM_SELECTFILTER)
+    CSelectFilterParameter* filter = nullptr;
+    int imgW = 0, imgH = 0;
+    if (!GetActiveSelectionContext(filter, imgW, imgH))
         return;
-
-    auto* selectFilter =
-        static_cast<CSelectFilterParameter*>(effectParameter);
-
-    if (numActifLayer < 0 ||
-        numActifLayer >= static_cast<int>(listOfLayer.size()))
-        return;
-
-    LayerElement* layerElement = listOfLayer[numActifLayer];
-
-    if (layerElement == nullptr || layerElement->GetPicture() == nullptr)
-        return;
-
-    int imgW = layerElement->GetPicture()->GetWidth();
-    int imgH = layerElement->GetPicture()->GetHeight();
-
-    if (imgW <= 0 || imgH <= 0)
-        return;
-
-    auto& selections = selectFilter->listSelections;
 
     // Aucune sélection : tout sélectionner.
-    if (selections.empty())
+    if (filter->listSelections.empty())
     {
         SelectAll();
         return;
     }
 
-    // 1. Construire le masque des sélections existantes.
-    cv::Mat mask = cv::Mat::zeros(imgH, imgW, CV_8UC1);
-
-    for (const auto& selection : selections)
-    {
-        switch (selection.selectType)
-        {
-        case SELECT_RECTANGLE:
-        {
-            cv::Point p1(selection.startPoint.x, selection.startPoint.y);
-            cv::Point p2(selection.endPoint.x, selection.endPoint.y);
-
-            cv::rectangle(mask, p1, p2, cv::Scalar(255), cv::FILLED);
-            break;
-        }
-
-        case SELECT_ELLIPSE:
-        {
-            const int left = std::min(
-                selection.startPoint.x, selection.endPoint.x);
-            const int right = std::max(
-                selection.startPoint.x, selection.endPoint.x);
-            const int top = std::min(
-                selection.startPoint.y, selection.endPoint.y);
-            const int bottom = std::max(
-                selection.startPoint.y, selection.endPoint.y);
-
-            const cv::Point center(
-                left + (right - left) / 2,
-                top + (bottom - top) / 2);
-
-            const cv::Size axes(
-                (right - left) / 2,
-                (bottom - top) / 2);
-
-            if (axes.width > 0 && axes.height > 0)
-                cv::ellipse(mask, center, axes, 0, 0, 360,
-                    cv::Scalar(255), cv::FILLED);
-
-            break;
-        }
-
-        case SELECT_LASSO:
-        {
-            if (selection.points.size() < 3)
-                break;
-
-            std::vector<cv::Point> points;
-            points.reserve(selection.points.size());
-
-            for (const auto& point : selection.points)
-                points.emplace_back(point.x, point.y);
-
-            cv::fillPoly(mask,
-                std::vector<std::vector<cv::Point>>{ points },
-                cv::Scalar(255));
-
-            break;
-        }
-
-        default:
-            break;
-        }
-    }
-
-    // 2. Inverser la sélection.
+    cv::Mat mask = BuildInversionMask(filter->listSelections, imgW, imgH);
     cv::bitwise_not(mask, mask);
 
-    // 3. Extraire les contours, y compris les contours intérieurs.
-    std::vector<std::vector<cv::Point>> contours;
-    std::vector<cv::Vec4i> hierarchy;
+    filter->listSelections = MaskToLassoSelections(mask);
 
-    cv::findContours(
-        mask,
-        contours,
-        hierarchy,
-        cv::RETR_TREE,
-        cv::CHAIN_APPROX_SIMPLE);
-
-    // 4. Convertir les contours en tracés LASSO.
-    std::vector<SSelectionTrace> inverseSelections;
-    inverseSelections.reserve(contours.size());
-
-    for (size_t i = 0; i < contours.size(); ++i)
-    {
-        if (contours[i].size() < 3)
-            continue;
-
-        SSelectionTrace trace;
-        trace.selectType = SELECT_LASSO;
-        trace.penSize = 1;
-        trace.color = cv::Scalar(255, 255, 255, 255);
-
-        trace.startPoint = wxPoint(
-            contours[i][0].x, contours[i][0].y);
-
-        trace.endPoint = trace.startPoint;
-
-        trace.points.reserve(contours[i].size() + 1);
-
-        for (const auto& point : contours[i])
-            trace.points.emplace_back(point.x, point.y);
-
-        // Fermer explicitement le contour.
-        if (trace.points.front() != trace.points.back())
-            trace.points.push_back(trace.points.front());
-
-        inverseSelections.push_back(std::move(trace));
-    }
-
-    // 5. Remplacer les anciennes sélections.
-    selections = std::move(inverseSelections);
-
-    m_cDessin->SetUpdateTrace(true);
-    needToRefresh = true;
-
-    if (parentRender)
-        parentRender->Refresh();
+    RefreshSelectionView();
 }
 
-// -----------------------------------------------------------------
-// CANCEL SELECT : Désactive et vide toutes les sélections en cours
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
+// CANCEL SELECT : vide toutes les sélections en cours
+//-----------------------------------------------------------------
 void CBitmapEditor::CancelSelect()
 {
-    if (effectParameter != nullptr && preview == IDM_SELECTFILTER)
-    {
-        CSelectFilterParameter* selectFilter = (CSelectFilterParameter*)effectParameter;
+    CSelectFilterParameter* filter = GetSelectFilter();
+    if (filter == nullptr)
+        return;
 
-        // Vide l'intégralité du vecteur géométrique
-        selectFilter->listSelections.clear();
-
-        this->m_cDessin->SetUpdateTrace(true);
-
-        needToRefresh = true;
-        if (parentRender) parentRender->Refresh();
-    }
+    filter->listSelections.clear();
+    this->m_cDessin->SetUpdateTrace(true);
+    needToRefresh = true;
+    if (parentRender) parentRender->Refresh();
 }
 
-
-// -----------------------------------------------------------------
-// COPY : Copie l'image (ou la sélection détourée) dans le presse-papiers
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
+// COPY : copie l'image (ou la sélection détourée) dans le presse-papiers
+//-----------------------------------------------------------------
 bool CBitmapEditor::Copy()
 {
-    if (numActifLayer < 0 || numActifLayer >= static_cast<int>(listOfLayer.size()))
-        return false;
-
-    LayerElement* layerElement = listOfLayer[numActifLayer];
+    LayerElement* layerElement = GetActiveLayerElement();
     if (layerElement == nullptr)
         return false;
 
@@ -364,124 +462,31 @@ bool CBitmapEditor::Copy()
     if (picture == nullptr || !picture->IsOk())
         return false;
 
-    // Récupération de la matrice OpenCV du calque
-    cv::Mat sourceMat = picture->GetMatImage();
+    const cv::Mat sourceMat = picture->GetMatImage();
     if (sourceMat.empty())
         return false;
 
-    cv::Mat outMat; // Matrice finale qui sera envoyée au presse-papiers
+    cv::Mat outMat;  // Matrice envoyée au presse-papiers
 
-    // VERIFICATION : Y a-t-il une sélection active via l'outil de sélection ?
-    if (effectParameter != nullptr && preview == IDM_SELECTFILTER)
+    // Sélection active : détourage + découpe à la boîte englobante
+    CSelectFilterParameter* filter = GetSelectFilter();
+    if (filter != nullptr && !filter->listSelections.empty())
     {
-        CSelectFilterParameter* selectFilter = (CSelectFilterParameter*)effectParameter;
-
-        if (!selectFilter->listSelections.empty())
+        const cv::Rect roi = SelectionBounds(filter->listSelections, sourceMat.size());
+        if (roi.width > 0 && roi.height > 0)
         {
-            // 1. Déterminer la boîte englobante (ROI) de toutes les sélections cumulées
-            int minX = sourceMat.cols, minY = sourceMat.rows;
-            int maxX = 0, maxY = 0;
-
-            for (const auto& s : selectFilter->listSelections)
-            {
-                if (s.selectType == SELECT_RECTANGLE || s.selectType == SELECT_ELLIPSE)
-                {
-                    minX = std::min({ minX, s.startPoint.x, s.endPoint.x });
-                    minY = std::min({ minY, s.startPoint.y, s.endPoint.y });
-                    maxX = std::max({ maxX, s.startPoint.x, s.endPoint.x });
-                    maxY = std::max({ maxY, s.startPoint.y, s.endPoint.y });
-                }
-                else if (s.selectType == SELECT_LASSO)
-                {
-                    for (const auto& pt : s.points)
-                    {
-                        minX = std::min(minX, pt.x);
-                        minY = std::min(minY, pt.y);
-                        maxX = std::max(maxX, pt.x);
-                        maxY = std::max(maxY, pt.y);
-                    }
-                }
-            }
-
-            // Sécurité des limites de l'image
-            minX = std::max(0, minX);
-            minY = std::max(0, minY);
-            maxX = std::min(sourceMat.cols, maxX);
-            maxY = std::min(sourceMat.rows, maxY);
-
-            int roiWidth = maxX - minX;
-            int roiHeight = maxY - minY;
-
-            if (roiWidth > 0 && roiHeight > 0)
-            {
-                // 2. Création d'un masque global en dur à la taille de l'image (0 = transparent)
-                cv::Mat mask = cv::Mat::zeros(sourceMat.size(), CV_8UC1);
-
-                for (const auto& s : selectFilter->listSelections)
-                {
-                    // Conversion des coordonnées locales
-                    cv::Point p1(s.startPoint.x, s.startPoint.y);
-                    cv::Point p2(s.endPoint.x, s.endPoint.y);
-
-                    if (s.selectType == SELECT_RECTANGLE)
-                    {
-                        cv::rectangle(mask, p1, p2, cv::Scalar(255), cv::FILLED);
-                    }
-                    else if (s.selectType == SELECT_ELLIPSE)
-                    {
-                        cv::Point center((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
-                        cv::Size axes(std::abs(p1.x - p2.x) / 2, std::abs(p1.y - p2.y) / 2);
-                        cv::ellipse(mask, center, axes, 0, 0, 360, cv::Scalar(255), cv::FILLED);
-                    }
-                    else if (s.selectType == SELECT_LASSO && !s.points.empty())
-                    {
-                        std::vector<cv::Point> cvPoints;
-                        for (const auto& pt : s.points) {
-                            cvPoints.push_back(cv::Point(pt.x, pt.y));
-                        }
-                        std::vector<std::vector<cv::Point>> contours = { cvPoints };
-                        cv::fillPoly(mask, contours, cv::Scalar(255));
-                    }
-                }
-
-                // 3. Forcer l'image source en format 4 canaux (BGRA) pour injecter la transparence
-                cv::Mat bgraMat;
-                if (sourceMat.channels() == 3) {
-                    cv::cvtColor(sourceMat, bgraMat, cv::COLOR_BGR2BGRA);
-                }
-                else if (sourceMat.channels() == 1) {
-                    cv::cvtColor(sourceMat, bgraMat, cv::COLOR_GRAY2BGRA);
-                }
-                else {
-                    bgraMat = sourceMat.clone();
-                }
-
-                // Appliquer le masque sur le canal Alpha (Index canal 3 dans BGRA)
-                for (int y = 0; y < bgraMat.rows; ++y) {
-                    for (int x = 0; x < bgraMat.cols; ++x) {
-                        if (mask.at<uchar>(y, x) == 0) {
-                            bgraMat.at<cv::Vec4b>(y, x)[3] = 0; // Pixel hors sélection -> Transparent
-                        }
-                    }
-                }
-
-                // 4. Découper la sous-partie ajustée à la boîte englobante de la sélection
-                cv::Rect roi(minX, minY, roiWidth, roiHeight);
-                outMat = bgraMat(roi).clone();
-            }
+            cv::Mat bgraMat = ToBGRA(sourceMat);
+            ApplyMaskToAlpha(bgraMat, BuildCopyMask(filter->listSelections, sourceMat.size()));
+            outMat = bgraMat(roi).clone();
         }
     }
 
-    // Si aucune sélection n'était active ou valide, on copie l'image entière
+    // Aucune sélection active ou valide : copie de l'image entière
     if (outMat.empty())
-    {
         outMat = sourceMat;
-    }
 
-    // Conversion finale en Bitmap pour le presse-papiers
-    wxBitmap bitmap(Regards::Picture::CLibPicture::ConvertRegardsBitmapToWXImage(outMat));
+    const wxBitmap bitmap(Regards::Picture::CLibPicture::ConvertRegardsBitmapToWXImage(outMat));
 
-    // 7. Envoi au presse-papiers du système
     if (wxTheClipboard->Open())
     {
         wxTheClipboard->Clear();
@@ -493,24 +498,21 @@ bool CBitmapEditor::Copy()
     return false;
 }
 
-
-// -----------------------------------------------------------------
-// CUT : Copie l'image du calque actif puis efface/vide le calque
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
+// CUT : copie l'image du calque actif puis vide le calque
+//-----------------------------------------------------------------
 bool CBitmapEditor::Cut()
 {
-    // 1. On effectue la copie
     if (!Copy())
         return false;
 
-    // 2. On récupère le calque pour le vider (création d'une matrice noire/vide)
-    LayerElement* layerElement = listOfLayer[numActifLayer];
+    LayerElement* layerElement = GetActiveLayerElement();
     CImageLoadingFormat* picture = layerElement->GetPicture();
 
-    cv::Mat currentMat = picture->GetMatImage();
+    const cv::Mat currentMat = picture->GetMatImage();
     if (!currentMat.empty())
     {
-        // Remplace l'image par un fond transparent ou noir de même dimension
+        // Remplace l'image par une matrice vide de mêmes dimensions
         cv::Mat emptyMat = cv::Mat::zeros(currentMat.rows, currentMat.cols, currentMat.type());
         picture->SetPicture(emptyMat);
 
@@ -523,9 +525,78 @@ bool CBitmapEditor::Cut()
     return true;
 }
 
-// -----------------------------------------------------------------
-// MOUSE RELEASE : Fixation définitive et collage direct de dataCopy
-// -----------------------------------------------------------------
+//-----------------------------------------------------------------
+// PASTE : récupère l'image du presse-papiers dans dataCopy (élément « volant »,
+// centré sur le document) puis active l'outil de déplacement. Le collage est
+// fixé dans le calque au relâchement de la souris (MouseRelease).
+//-----------------------------------------------------------------
+bool CBitmapEditor::Paste()
+{
+    if (wxTheClipboard->Open())
+    {
+        if (wxTheClipboard->IsSupported(wxDF_BITMAP))
+        {
+            wxBitmapDataObject data;
+            wxTheClipboard->GetData(data);
+            const wxBitmap bitmap = data.GetBitmap();
+
+            if (bitmap.IsOk())
+            {
+                dataCopy = Regards::Picture::CLibPicture::mat_from_wx(bitmap.ConvertToImage());
+                numLayerCopy = numActifLayer;
+
+                // Centrage sur la taille du document global
+                copyX = 0;
+                copyY = 0;
+                if (bitmapwidth > 0 && bitmapheight > 0)
+                {
+                    copyX = (bitmapwidth - dataCopy.size().width) / 2;
+                    copyY = (bitmapheight - dataCopy.size().height) / 2;
+                }
+            }
+        }
+        wxTheClipboard->Close();
+    }
+
+    if (!dataCopy.empty())
+        SetSelectMoveTool();
+
+    return true;
+}
+
+//-----------------------------------------------------------------
+// Fixe dataCopy dans le calque cible (numLayerCopy), puis libère dataCopy.
+// Retourne le calque cible (nullptr si aucun calque valide).
+//-----------------------------------------------------------------
+LayerElement* CBitmapEditor::CommitFloatingPaste()
+{
+    LayerElement* targetLayer = nullptr;
+
+    if (!dataCopy.empty() && numLayerCopy >= 0 &&
+        numLayerCopy < static_cast<int>(listOfLayer.size()))
+    {
+        targetLayer = listOfLayer[numLayerCopy];
+        if (targetLayer != nullptr && targetLayer->GetPicture() != nullptr)
+        {
+            cv::Mat targetMat = targetLayer->GetPicture()->GetMatImage();
+            if (!targetMat.empty() && CopyIntoROI(dataCopy, targetMat, copyX, copyY))
+            {
+                targetLayer->GetPicture()->SetPicture(targetMat);
+
+                // Force le changement de version pour réveiller OnPaint3D
+                targetLayer->pictureVersion++;
+            }
+        }
+    }
+
+    dataCopy.release();
+    return targetLayer;
+}
+
+//-----------------------------------------------------------------
+// MOUSE RELEASE : fixation définitive du collage (outil WM_SELECTMOVE) ou
+// gestion par défaut du clic
+//-----------------------------------------------------------------
 void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
 {
     if (toolOption == WM_SELECTMOVE)
@@ -534,41 +605,8 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
         if (parentRender->HasCapture())
             parentRender->ReleaseMouse();
 
-        LayerElement* targetLayer = nullptr;
+        LayerElement* targetLayer = CommitFloatingPaste();
 
-        // COLLAGE DIRECT DE DATA COPY DANS LE CALQUE CIBLE
-        if (!dataCopy.empty() && numLayerCopy >= 0 && numLayerCopy < static_cast<int>(listOfLayer.size()))
-        {
-            targetLayer = listOfLayer[numLayerCopy];
-            if (targetLayer != nullptr && targetLayer->GetPicture() != nullptr)
-            {
-                cv::Mat targetMat = targetLayer->GetPicture()->GetMatImage();
-                if (!targetMat.empty())
-                {
-                    // Calcul de la zone d'intersection (ROI) sécurisée
-                    cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) & cv::Rect(0, 0, targetMat.cols, targetMat.rows);
-
-                    if (!dstROI.empty())
-                    {
-                        cv::Rect srcROI(dstROI.x - copyX, dstROI.y - copyY, dstROI.width, dstROI.height);
-
-                        // Collage direct des pixels
-                        dataCopy(srcROI).copyTo(targetMat(dstROI));
-
-                        // Sauvegarde de la matrice mise à jour dans le calque
-                        targetLayer->GetPicture()->SetPicture(targetMat);
-
-                        // FORCE LA VERSION À CHANGER pour réveiller OnPaint3D
-                        targetLayer->pictureVersion++;
-                    }
-                }
-            }
-        }
-
-        // Libération de la mémoire de l'élément copié
-        dataCopy.release();
-
-        // Invalidation des structures de l'éditeur
         listOfLayer.IsChanged(true);
 
         if (targetLayer)
@@ -584,24 +622,19 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
             loadBitmap = true;
             forceUpdateFilter = true;
             updateFilter = true;
-
-
-            needToRefresh = true;
-
-
-            // Envoi d'un événement pour notifier l'UI globale qu'un calque a été ajouté
-            wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
-            if (mainWindow) {
-                wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
-                mainWindow->GetEventHandler()->AddPendingEvent(evt);
-            }
         }
+
+        needToRefresh = true;
+        if (parentRender)
+            parentRender->Refresh();
+
+        NotifyLayerPictureUpdated();
 
         wxSetCursor(*wxSTANDARD_CURSOR);
         return;
     }
 
-    // --- Gestion par défaut du clic de souris existant ---
+    // --- Gestion par défaut du clic de souris ---
     if (CFiltreData::SupportMouseClick(toolOption))
     {
         mouseBlock = false;
@@ -623,73 +656,6 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
 
     if (clickTimer->IsRunning())
         clickTimer->Stop();
-}
-
-
-
-// -----------------------------------------------------------------
-// PASTE : Récupère une image du presse-papiers et l'ajoute dans un NOUVEAU calque
-// (Centrée sur un canvas transparent si elle est plus petite)
-// -----------------------------------------------------------------
-bool CBitmapEditor::Paste()
-{
-    bool success = false;
-
-    if (wxTheClipboard->Open())
-    {
-        // Vérifie si le presse-papiers contient des données de type Image/Bitmap
-        if (wxTheClipboard->IsSupported(wxDF_BITMAP))
-        {
-            wxBitmapDataObject data;
-            wxTheClipboard->GetData(data);
-            wxBitmap bitmap = data.GetBitmap();
-
-            if (bitmap.IsOk())
-            {
-
-                dataCopy = Regards::Picture::CLibPicture::mat_from_wx(bitmap.ConvertToImage());
-
-                this->numLayerCopy = numActifLayer;
-
-
-                // 5. CALCUL DU CENTRAGE : Détermination des offsets x et y réels
-                // On base le centrage sur la taille du document global (bitmapwidth, bitmapheight)
-                copyX = 0;
-                copyY = 0;
-                if (bitmapwidth > 0 && bitmapheight > 0)
-                {
-                    copyX = (bitmapwidth - dataCopy.size().width) / 2;
-                    copyY = (bitmapheight - dataCopy.size().height) / 2;
-                }
-
-
-                success = true;
-            }
-        }
-        wxTheClipboard->Close();
-    }
-
-    if(!dataCopy.empty())
-        SetSelectMoveTool();
-
-    return true;
-}
-
-
-
-
-cv::Mat CBitmapEditor::PrepareLayerSource(LayerElement* layer, int width,
-    int height, CFiltreEffet* filter) {
-    CImageLoadingFormat* picture = layer->GetPicture();
-    if (picture == nullptr || !picture->IsOk()) return cv::Mat();
-
-    filter->SetBitmap(picture);
-    int wOut = width;
-    int hOut = height;
-    GenerateScreenBitmap(filter, wOut, hOut);
-
-    Regards::Picture::CPictureArray transformPicture(filter->GetMatrix());
-    return LayerFonction::PrepareLayerImage(transformPicture.getMat(), width, height, layer->x, layer->y, ratio);
 }
 
 CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId,
@@ -749,96 +715,63 @@ void CBitmapEditor::GenerateScreenBitmap(CFiltreEffet* filtreEffet,
 }
 
 //-----------------------------------------------------------------
+// Collage « volant » (non destructif) : tant que dataCopy est en cours de
+// déplacement, fusionne l'image du calque cible et dataCopy dans un canvas
+// temporaire à la taille du document, appliqué au filtre d'affichage uniquement.
+//-----------------------------------------------------------------
+void CBitmapEditor::ApplyFloatingPasteToFilter() {
+    if (dataCopy.empty() || numLayerCopy < 0 ||
+        numLayerCopy >= static_cast<int>(listOfLayer.size()))
+        return;
+
+    LayerElement* targetLayer = listOfLayer[numLayerCopy];
+    if (targetLayer == nullptr || targetLayer->GetPicture() == nullptr) return;
+
+    const cv::Mat originalMat = targetLayer->GetPicture()->GetMatImage();
+    if (originalMat.empty()) return;
+
+    // Image d'origine (non modifiée) posée en (0,0) sur un canvas transparent
+    cv::Mat displayMat = cv::Mat::zeros(bitmapheight, bitmapwidth, CV_8UC4);
+    CopyIntoROI(ToBGRA(originalMat), displayMat, 0, 0);
+
+    // Incrustation de dataCopy (alpha blending, mode Normal) à sa position
+    const cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) &
+        cv::Rect(0, 0, bitmapwidth, bitmapheight);
+    if (!dstROI.empty()) {
+        const cv::Rect srcROI(dstROI.x - copyX, dstROI.y - copyY, dstROI.width,
+            dstROI.height);
+        cv::Mat dstView = displayMat(dstROI);
+        LayerFonction::CompositeLayer(dstView, dataCopy(srcROI), 1.0f,
+            LayerBlendMode::Normal);
+    }
+
+    CImageLoadingFormat* imageLoading = new CImageLoadingFormat();
+    imageLoading->SetPicture(displayMat);
+
+    // Application TEMPORAIRE du canvas fusionné au filtre d'affichage
+    filtreEffet->SetBitmap(imageLoading);
+    forceUpdateFilter = true;
+}
+
+//-----------------------------------------------------------------
 // Régénère le bitmap d'écran du calque actif (filtres / preview /
 // redimensionnement). Retourne true si le résultat du calque actif a été
 // régénéré.
 //-----------------------------------------------------------------
-//-----------------------------------------------------------------
 bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
     int& widthOutput, int& heightOutput,
     bool bitmapIsLoad) {
+    ApplyFloatingPasteToFilter();
 
-    // LOGIQUE DE RENDU VOLANT (Non destructive)
-    if (!dataCopy.empty() && numLayerCopy >= 0 && numLayerCopy < static_cast<int>(listOfLayer.size()))
-    {
-        LayerElement* targetLayer = listOfLayer[numLayerCopy];
-        if (targetLayer != nullptr && targetLayer->GetPicture() != nullptr)
-        {
-            // 1. Récupération de l'image d'origine SANS la modifier
-            cv::Mat originalMat = targetLayer->GetPicture()->GetMatImage();
-
-            if (!originalMat.empty())
-            {
-                // 2. Création d'un canvas d'affichage temporaire de la taille du document global
-                // afin d'éviter tout écrasement ou déformation géométrique
-                cv::Mat tempDisplayMat = cv::Mat::zeros(bitmapheight, bitmapwidth, CV_8UC4);
-
-                // 3. Copie de l'image de base du calque sur ce canvas temporaire (centrée ou calée en 0,0 selon votre architecture)
-                // Ici, on la place en (0,0) ou à sa position d'origine si elle a des offsets
-                cv::Mat targetBGRA;
-                if (originalMat.channels() == 3)
-                    cv::cvtColor(originalMat, targetBGRA, cv::COLOR_BGR2BGRA);
-                else
-                    targetBGRA = originalMat.clone();
-
-                cv::Rect baseROI = cv::Rect(0, 0, targetBGRA.cols, targetBGRA.rows) & cv::Rect(0, 0, bitmapwidth, bitmapheight);
-                if (!baseROI.empty())
-                {
-                    targetBGRA(baseROI).copyTo(tempDisplayMat(baseROI));
-                }
-
-                // 4. Incrustation volante de dataCopy par-dessus le canvas temporaire
-                cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) & cv::Rect(0, 0, bitmapwidth, bitmapheight);
-
-                if (!dstROI.empty())
-                {
-                    cv::Rect srcROI(dstROI.x - copyX, dstROI.y - copyY, dstROI.width, dstROI.height);
-
-                    // Alpha blending pixel par pixel de l'élément volant
-                    for (int y = 0; y < dstROI.height; ++y)
-                    {
-                        auto* dstPtr = tempDisplayMat.ptr<cv::Vec4b>(dstROI.y + y) + dstROI.x;
-                        const auto* srcPtr = dataCopy.ptr<cv::Vec4b>(srcROI.y + y) + srcROI.x;
-
-                        for (int x = 0; x < dstROI.width; ++x)
-                        {
-                            float alphaSrc = srcPtr[x][3] / 255.0f;
-                            if (alphaSrc > 0.0f)
-                            {
-                                float alphaDst = dstPtr[x][3] / 255.0f;
-                                float alphaOut = alphaSrc + alphaDst * (1.0f - alphaSrc);
-
-                                for (int c = 0; c < 3; ++c)
-                                {
-                                    dstPtr[x][c] = cv::saturate_cast<uchar>((srcPtr[x][c] * alphaSrc + dstPtr[x][c] * alphaDst * (1.0f - alphaSrc)) / alphaOut);
-                                }
-                                dstPtr[x][3] = cv::saturate_cast<uchar>(alphaOut * 255.0f);
-                            }
-                        }
-                    }
-                }
-                
-                CImageLoadingFormat* imageLoading = new CImageLoadingFormat();
-                imageLoading->SetPicture(tempDisplayMat);
-                // 5. On applique TEMPORAIREMENT le canvas fusionné au filtre d'affichage
-                filtreEffet->SetBitmap(imageLoading);
-
-                // On force la regénération de la texture d'affichage uniquement pour l'écran
-                forceUpdateFilter = true;
-            }
-        }
-    }
-
-    // --- Reprise de votre code d'origine existant pour la fonction ---
     updateFilter = forceUpdateFilter || preview > 0 || bitmapIsLoad;
 
     if (updateFilter) {
-        // MODIFICATION SECURITE : On ne réassigne le calque au filtre que si dataCopy n'est pas en cours de déplacement
+        // Pas de réassignation du calque au filtre pendant le déplacement d'un collage
         if (dataCopy.empty() && !bitmapIsLoad)
             filtreEffet->SetBitmap(activeLayer->GetPicture());
 
         BeforeInterpolationBitmap();
-        updateFilter = true;
+        updateFilter = true;  // BeforeInterpolationBitmap peut modifier le drapeau
     }
 
     const bool regenerate = updateFilter || widthOutputOld != widthOutput ||
@@ -848,6 +781,8 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
         ApplyPreviewEffect(widthOutput, heightOutput);
         ApplySelectEffect(widthOutput, heightOutput);
 
+        // Invalider le cache de texture de TOUS les calques secondaires lors d'un
+        // changement d'affichage global
         for (size_t i = 0; i < listOfLayer.size(); ++i) {
             if (listOfLayer[i] != nullptr && static_cast<int>(i) != numActifLayer) {
                 listOfLayer[i]->needTextureUpdate = true;
@@ -861,7 +796,6 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
     return regenerate;
 }
 
-
 //-----------------------------------------------------------------
 // Dessin de l'image
 //-----------------------------------------------------------------
@@ -870,9 +804,7 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) {
     scale_factor = parentRender->GetContentScaleFactor();
 #endif
 
-    if (numActifLayer < 0 || numActifLayer >= listOfLayer.size()) return;
-
-    LayerElement* layerElement = listOfLayer[numActifLayer];
+    LayerElement* layerElement = GetActiveLayerElement();
     if (layerElement == nullptr) return;
 
     // Changement de calque source ou de version -> rechargement du bitmap
@@ -978,13 +910,12 @@ cv::Mat CBitmapEditor::PrepareBackgroundMat(int width, int height) {
     return background;
 }
 // Résultat des filtres/preview du calque actif (filtreEffet), préparé à la
-// taille de sortie.
+// taille de sortie et positionné selon l'offset du calque.
 cv::Mat CBitmapEditor::PrepareActiveLayerImage(int width, int height) {
     Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-    // Remplacer la ligne finale par :
-    LayerElement* layer = (numActifLayer >= 0 && numActifLayer < listOfLayer.size()) ? listOfLayer[numActifLayer] : nullptr;
-    int lx = layer ? layer->x : 0;
-    int ly = layer ? layer->y : 0;
+    const LayerElement* layer = GetActiveLayerElement();
+    const int lx = layer ? layer->x : 0;
+    const int ly = layer ? layer->y : 0;
     return LayerFonction::PrepareLayerImage(activePicture.getMat(), width, height, lx, ly, ratio);
 }
 
@@ -1186,7 +1117,6 @@ void CBitmapEditor::RenderTexture(GLTexture* textureDisplay,
         int x = (GetWidth() * scale_factor - width) / 2;
         int y = (GetHeight() * scale_factor - height) / 2;
         renderOpenGL->RenderToScreen(mouseUpdate, effectParameter, x, y, invertPos);
-        // renderOpenGL->RenderQuad(textureDisplay, x, y, invertPos);
         xPosImage = x;
         yPosImage = y;
     }
@@ -1232,55 +1162,30 @@ void CBitmapEditor::SetKey(const int& iKey)
 {
     this->iKey = iKey;
 
-    // 1. Interception des raccourcis clavier Ctrl+C, Ctrl+V, Ctrl+X
-    // On vérifie à la fois les caractères de contrôle (ASCII / wxWidgets) et les codes standards.
+    // 1. Raccourcis presse-papiers Ctrl+C / Ctrl+V / Ctrl+X (code de contrôle
+    // ASCII ou lettre brute si Ctrl est enfoncé)
+    bool (CBitmapEditor:: * clipboardAction)() = nullptr;
     switch (iKey)
     {
-    case 3:          // Valeur ASCII / Control Code pour Ctrl+C
-    case 'C':        // Au cas où le raccourci remonte en lettre brute
-    case 'c':
-        // Pour s'assurer que Ctrl est bien enfoncé si on reçoit la lettre brute
-        if (wxGetKeyState(WXK_CONTROL))
-        {
-            this->Copy();
-            return; // On arrête le traitement pour ne pas altérer les curseurs
-        }
-        break;
-
-    case 22:         // Valeur ASCII / Control Code pour Ctrl+V (Synchronisé avec WXK_CONTROL_V si défini)
-    case 'V':
-    case 'v':
-        if (wxGetKeyState(WXK_CONTROL))
-        {
-            this->Paste();
-
-            //SetSelectMoveTool();
-            return;
-        }
-        break;
-
-    case 24:         // Valeur ASCII / Control Code pour Ctrl+X
-    case 'X':
-    case 'x':
-        if (wxGetKeyState(WXK_CONTROL))
-        {
-            this->Cut();
-            return;
-        }
-        break;
+    case 3:  case 'C': case 'c': clipboardAction = &CBitmapEditor::Copy;  break;
+    case 22: case 'V': case 'v': clipboardAction = &CBitmapEditor::Paste; break;
+    case 24: case 'X': case 'x': clipboardAction = &CBitmapEditor::Cut;   break;
+    default: break;
     }
 
-    // 2. Gestion d'origine pour l'outil de déplacement et le changement de curseur Zoom
-    switch (toolOption)
+    if (clipboardAction != nullptr && wxGetKeyState(WXK_CONTROL))
     {
-    case MOVEPICTURE:
+        (this->*clipboardAction)();
+        return;  // Ne pas altérer les curseurs
+    }
+
+    // 2. Curseur Zoom de l'outil de déplacement
+    if (toolOption == MOVEPICTURE)
     {
         if (iKey == WXK_CONTROL)
             wxSetCursor(hCursorZoomIn);
         else
             wxSetCursor(hCursorZoomOut);
-        break;
-    }
     }
 }
 
@@ -1341,22 +1246,18 @@ GLTexture* CBitmapEditor::GetActiveLayerTexture(int width, int height,
     return activeLayerTexture.get();
 }
 //-----------------------------------------------------------------
-// Ancienne composition CPU (conservee comme repli).
+// Ancienne composition CPU (conservée comme repli).
 //-----------------------------------------------------------------
 void CBitmapEditor::ComposeLayersCPU(GLTexture* textureDisplay, int widthOutput,
     int heightOutput) {
-    // Fond de previsualisation opaque (damier).
+    // Fond de prévisualisation opaque (damier).
     cv::Mat composed = PrepareBackgroundMat(widthOutput, heightOutput);
     ForEachVisibleLayer(listOfLayer, [&](size_t index, LayerElement* layer,
         float opacity) {
             cv::Mat layerImage;
             if (IsActiveLayer(index)) {
-                // Le calque actif doit utiliser le resultat des filtres/preview.
-                Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-                const cv::Mat activeMat = activePicture.getMat().clone();
-                if (activeMat.empty()) return;
-                layerImage = LayerFonction::PrepareLayerImage(activeMat, widthOutput,
-                    heightOutput);
+                // Le calque actif utilise le résultat des filtres/preview.
+                layerImage = PrepareActiveLayerImage(widthOutput, heightOutput);
             }
             else {
                 CRgbaquad color;
@@ -1376,81 +1277,37 @@ void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event) {
     if (picture == nullptr || !picture->IsOk()) return;
     ResetViewState();
     listOfLayer[numActifLayer]->SetPicture(picture);
-    wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
-    if (mainWindow) {
-        wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
-        mainWindow->GetEventHandler()->AddPendingEvent(evt);
-    }
+    NotifyLayerPictureUpdated();
+}
+
+//-----------------------------------------------------------------
+// Outils simples (sans objet de dessin) : sélection-déplacement, zoom, déplacement
+//-----------------------------------------------------------------
+void CBitmapEditor::ActivateSimpleTool(int previewId, int tool, const wxCursor& cursor)
+{
+    preview = previewId;
+    isInUse = true;
+    m_cDessin.reset(nullptr);
+
+    forceUpdateFilter = false;
+    wxSetCursor(cursor);
+    toolOption = tool;
 }
 
 void CBitmapEditor::SetSelectMoveTool()
 {
-    preview = WM_SELECTMOVE;
-    isInUse = true;
-    m_cDessin.reset(nullptr);
-    if (m_cDessin != nullptr)
-    {
-        forceUpdateFilter = true;
-        toolOption = 0;
-        SetDessinRatio();
-        m_cDessin->SetCursor();
-        isInUse = false;
-        SetTool(preview);
-    }
-    else
-    {
-        forceUpdateFilter = false;
-        wxSetCursor(*wxHOURGLASS_CURSOR);
-        toolOption = WM_SELECTMOVE;
-    }
+    ActivateSimpleTool(WM_SELECTMOVE, WM_SELECTMOVE, *wxHOURGLASS_CURSOR);
 }
 
 void CBitmapEditor::SetZoomTool()
 {
-    preview = WM_SELECTZOOM;
-    isInUse = true;
-
-    m_cDessin.reset(nullptr);
-    if (m_cDessin != nullptr)
-    {
-        forceUpdateFilter = true;
-        toolOption = 0;
-        SetDessinRatio();
-        m_cDessin->SetCursor();
-        isInUse = false;
-        SetTool(preview);
-    }
-    else
-    {
-        forceUpdateFilter = false;
-        wxSetCursor(hCursorZoomIn);
-        toolOption = ZOOMPICTURE;
-    }
+    ActivateSimpleTool(WM_SELECTZOOM, ZOOMPICTURE, hCursorZoomIn);
 }
 
 void CBitmapEditor::SetMoveTool()
 {
-    preview = WM_MOVEPICTURE;
-    isInUse = true;
-
-    m_cDessin.reset(nullptr);
-    if (m_cDessin != nullptr)
-    {
-        forceUpdateFilter = true;
-        toolOption = 0;
-        SetDessinRatio();
-        m_cDessin->SetCursor();
-        isInUse = false;
-        SetTool(preview);
-    }
-    else
-    {
-        forceUpdateFilter = false;
-        wxSetCursor(*wxSTANDARD_CURSOR);
-        toolOption = MOVEPICTURE;
-    }
+    ActivateSimpleTool(WM_MOVEPICTURE, MOVEPICTURE, *wxSTANDARD_CURSOR);
 }
-
 
 void CBitmapEditor::OnSetBitmap(wxCommandEvent& event)
 {
@@ -1461,62 +1318,41 @@ void CBitmapEditor::OnSetBitmap(wxCommandEvent& event)
 }
 
 
-
 //-----------------------------------------------------------------
-//Affectation de l'image
+// Affectation de l'image
 //-----------------------------------------------------------------
-void CBitmapEditor::SetBitmapByLayerId(CImageLoadingFormat* bitmapIn, const uint64_t & layerId)
+void CBitmapEditor::SetBitmapByLayerId(CImageLoadingFormat* bitmapIn, const uint64_t& layerId)
 {
-    if (bitmapIn != nullptr)
-    {
-        if (bitmapIn->IsOk())
-        {
-            loadBitmap = true;
-            bitmapLoad = true;
-            filename = bitmapIn->GetFilename();
-            bitmapUpdate = true;
-            flipVertical = 0;
-            flipHorizontal = 0;
-            angle = 0;
-            UpdateLayerId(bitmapIn, layerId);
+    if (bitmapIn == nullptr || !bitmapIn->IsOk())
+        return;
 
-            toolOption = MOVEPICTURE;
-            bitmapwidth = bitmapIn->GetWidth();
-            bitmapheight = bitmapIn->GetHeight();
-            orientation = bitmapIn->GetOrientation();
+    filename = bitmapIn->GetFilename();
+    ResetViewState();
+    UpdateLayerId(bitmapIn, layerId);
 
+    toolOption = MOVEPICTURE;
+    bitmapwidth = bitmapIn->GetWidth();
+    bitmapheight = bitmapIn->GetHeight();
+    orientation = bitmapIn->GetOrientation();
 
-            CSqlPhotos sqlPhotos;
-            int exifCode = sqlPhotos.GetPhotoExif(filename);
-            if (exifCode != -1)
-                application_context.GetAngleAndFlip(exifCode, angle, flipHorizontal, flipVertical);
+    // Orientation EXIF mémorisée pour cette photo
+    CSqlPhotos sqlPhotos;
+    const int exifCode = sqlPhotos.GetPhotoExif(filename);
+    if (exifCode != -1)
+        application_context.GetAngleAndFlip(exifCode, angle, flipHorizontal, flipVertical);
 
-            //int exifCode = application_context.GetExifFromAngleAndFlip(angle, flipHorizontal, flipVertical);
-            //sqlPhotos.UpdatePhotoExif(filename, exifCode);
+    ShrinkImage(false);
+    AfterSetBitmap();
 
-            ShrinkImage(false);
-            AfterSetBitmap();
+    RemoveListener(false);
 
-            RemoveListener(false);
-
-            //needToRefresh = true;
-            parentRender->Refresh();
-
-            RefreshWindow();
-        }
-    }
+    parentRender->Refresh();
+    RefreshWindow();
 }
-
 
 void CBitmapEditor::UpdateLayerId(CImageLoadingFormat* bitmapIn, const uint64_t& layerId)
 {
-    CRegardsConfigParam* regardsParam = CParamInit::getInstance();
-    const bool openCLAvailable = cv::ocl::haveOpenCL() && regardsParam->GetIsOpenCLSupport();
-    bool addElement = false;
-    LayerElement* element = nullptr;
-
-    element = listOfLayer.FindElementByLayerId(layerId);
-
+    LayerElement* element = listOfLayer.FindElementByLayerId(layerId);
     if (element == nullptr)
         return;
 
