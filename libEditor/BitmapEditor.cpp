@@ -644,8 +644,15 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
         }
 
         needToRefresh = true;
-        if (parentRender)
-            parentRender->Refresh(); // Actualise instantanément la fenêtre à l'écran
+
+
+
+        // Envoi d'un événement pour notifier l'UI globale qu'un calque a été ajouté
+        wxWindow* mainWindow = parentRender->FindWindowById(FRAMEEDITOR_ID);
+        if (mainWindow) {
+            wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
+            mainWindow->GetEventHandler()->AddPendingEvent(evt);
+        }
 
         wxSetCursor(*wxSTANDARD_CURSOR);
         return;

@@ -1145,7 +1145,7 @@ void CBitmapWndRender::OnLButtonDown(wxMouseEvent& event)
 		mouseScrollX = xPos;
 		mouseScrollY = yPos;
 		parentRender->CaptureMouse();
-		wxSetCursor(*wxHOURGLASS_CURSOR);
+		wxSetCursor(wxCursor(wxCURSOR_HAND));
 	}
 	break;
 
@@ -1522,18 +1522,20 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 		{
 			if (mouseBlock)
 			{
-				// 1. Vérification de sécurité : on s'assure qu'une image est bien en cours de déplacement
 				if (!dataCopy.empty() && ratio > 0.0f)
 				{
-					// 2. Calcul de la position absolue de la souris dans l'espace virtuel réel (en intégrant le défilement/scroll)
+					// 1. Calcul de la position absolue de la souris dans l'espace virtuel (indépendant du zoom)
 					float mouseVirtualX = static_cast<float>(xPos + posLargeur) / ratio;
 					float mouseVirtualY = static_cast<float>(yPos + posHauteur) / ratio;
 
-					// 3. AFFECTATION : On positionne le COIN de l'image de manière à ce que son CENTRE soit sur la souris
-					copyX = static_cast<int>(mouseVirtualX - (static_cast<float>(dataCopy.getWidth()) / 2.0f));
+					// 2. CORRECTION D'ALIGNEMENT DU CALQUE TEMPORAIRE :
+					// Puisque l'image est générée dans un calque virtuel à la taille complète du document,
+					// copyX et copyY définissent le décalage de l'origine de ce calque complet.
+					// Pour centrer l'élément, on soustrait la moitié de la taille réelle du sous-bloc.
+					copyX = static_cast<int>(mouseVirtualX - static_cast<float>(dataCopy.getWidth()));
 					copyY = static_cast<int>(mouseVirtualY - (static_cast<float>(dataCopy.getHeight()) / 2.0f));
 
-					// 4. On force la liste des calques ou le filtre à se redessiner
+					// 3. Notifier le calque cible que la texture a changé de coordonnées
 					if (numLayerCopy >= 0 && numLayerCopy < listOfLayer.size())
 					{
 						if (listOfLayer[numLayerCopy] != nullptr)
@@ -1542,13 +1544,14 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 						}
 					}
 
-					// 5. Demande de rafraîchissement immédiat de l'affichage
+					// 4. Déclencher le cycle de dessin asynchrone
 					needToRefresh = true;
 				}
 			}
 		}
 	}
 	break;
+
 
 	default:
 		{
