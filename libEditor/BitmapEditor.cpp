@@ -734,42 +734,15 @@ void CBitmapEditor::GenerateScreenBitmap(CFiltreEffet* filtreEffet,
 }
 
 //-----------------------------------------------------------------
-// Collage « volant » (non destructif) : tant que dataCopy est en cours de
-// déplacement, fusionne l'image du calque cible et dataCopy dans un canvas
-// temporaire à la taille du document, appliqué au filtre d'affichage uniquement.
+// Version ultra-rapide (GPU) : Notifie simplement que l'élément volant 
+// a changé de position, la composition réelle est déléguée aux shaders.
 //-----------------------------------------------------------------
 void CBitmapEditor::ApplyFloatingPasteToFilter() {
-    if (dataCopy.empty() || numLayerCopy < 0 ||
-        numLayerCopy >= static_cast<int>(listOfLayer.size()))
-        return;
+    if (dataCopy.empty()) return;
 
-    LayerElement* targetLayer = listOfLayer[numLayerCopy];
-    if (targetLayer == nullptr || targetLayer->GetPicture() == nullptr) return;
-
-    const cv::Mat originalMat = targetLayer->GetPicture()->GetMatImage();
-    if (originalMat.empty()) return;
-
-    // Image d'origine (non modifiée) posée en (0,0) sur un canvas transparent
-    cv::Mat displayMat = cv::Mat::zeros(bitmapheight, bitmapwidth, CV_8UC4);
-    CopyIntoROI(ToBGRA(originalMat), displayMat, 0, 0);
-
-    // Incrustation de dataCopy (alpha blending, mode Normal) à sa position
-    const cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) &
-        cv::Rect(0, 0, bitmapwidth, bitmapheight);
-    if (!dstROI.empty()) {
-        const cv::Rect srcROI(dstROI.x - copyX, dstROI.y - copyY, dstROI.width,
-            dstROI.height);
-        cv::Mat dstView = displayMat(dstROI);
-        LayerFonction::CompositeLayer(dstView, dataCopy(srcROI), 1.0f,
-            LayerBlendMode::Normal);
-    }
-
-    CImageLoadingFormat* imageLoading = new CImageLoadingFormat();
-    imageLoading->SetPicture(displayMat);
-
-    // Application TEMPORAIRE du canvas fusionné au filtre d'affichage
-    filtreEffet->SetBitmap(imageLoading);
+    // On lève le flag pour forcer OnPaint3D et le compositeur à ré-assembler la scène
     forceUpdateFilter = true;
+    needToRefresh = true;
 }
 
 //-----------------------------------------------------------------
@@ -996,44 +969,84 @@ cv::UMat CBitmapEditor::GetActiveLayerUMat(int width, int height,
     activeLayerUMatSize = size;
     return activeLayerUMat;
 }
-//-----------------------------------------------------------------
-// [OPENCL] Pipeline global de composition OpenCL
-//-----------------------------------------------------------------
+
+
 bool CBitmapEditor::ComposeLayersOpenCL(GLTexture* textureDisplay, int width,
     int height, bool activeDirty) {
     if (width <= 0 || height <= 0 || textureDisplay == nullptr) return false;
     if (!layerCompositorOpenCL)
         layerCompositorOpenCL = std::make_unique<CLayerCompositorOpenCL>();
     if (!layerCompositorOpenCL->IsValid()) return false;
-    // 1. Fond en damier (reconstruit uniquement si la taille de sortie change)
+
     const cv::Size size(width, height);
     if (backgroundUMat.empty() || backgroundUMatSize != size) {
         backgroundUMat =
             PrepareBackgroundMat(width, height).getUMat(cv::ACCESS_READ);
         backgroundUMatSize = size;
     }
-    // 2. Remplissage du vecteur de passes OpenCL
+
     std::vector<LayerPassOpenCL> passes;
-    passes.reserve(listOfLayer.size());
-    ForEachVisibleLayer(
-        listOfLayer, [&](size_t index, LayerElement* layer, float opacity) {
-            cv::UMat texture = IsActiveLayer(index)
-                ? GetActiveLayerUMat(width, height, activeDirty)
-                : GetLayerUMat(layer, width, height);
-            if (!texture.empty())
-                passes.push_back(
-                    LayerPassOpenCL{ texture, opacity,
-                        static_cast<int>(layer->blendMode) });
+    passes.reserve(listOfLayer.size() + 1);
+
+    ForEachVisibleLayer(listOfLayer, [&](size_t index, LayerElement* layer, float opacity) {
+        cv::UMat texture = IsActiveLayer(index)
+            ? GetActiveLayerUMat(width, height, activeDirty)
+            : GetLayerUMat(layer, width, height);
+        if (!texture.empty())
+            passes.push_back(LayerPassOpenCL{ texture, opacity, static_cast<int>(layer->blendMode) });
         });
-    // 3. Fusion matérielle OpenCL dans un UMat temporaire
+
+    // INJECTION DE L'ÉLÉMENT VOLANT EN OPENCL
+    if (!dataCopy.empty())
+    {
+        // 1. Création d'un grand canvas OpenCL transparent à la dimension exigée (width x height)
+        cv::Mat baseCanvasMat = cv::Mat::zeros(height, width, CV_8UC4);
+        cv::UMat fullCanvasCL = baseCanvasMat.getUMat(cv::ACCESS_WRITE);
+
+        // 2. Rapatriement de dataCopy sur le flux GPU
+        cv::UMat floatingUMatSource = dataCopy.getUMat(cv::ACCESS_READ);
+
+        // 3. Calcul de la taille de la sélection mise à l'échelle
+        int targetW = static_cast<int>(static_cast<float>(floatingUMatSource.cols) * ratio);
+        int targetH = static_cast<int>(static_cast<float>(floatingUMatSource.rows) * ratio);
+
+        if (targetW > 0 && targetH > 0)
+        {
+            // 4. Redimensionnement isolé du petit bloc d'image en OpenCL
+            cv::UMat scaledFloatingUMat;
+            cv::resize(floatingUMatSource, scaledFloatingUMat, cv::Size(targetW, targetH), 0.0, 0.0, cv::INTER_LINEAR);
+
+            if (scaledFloatingUMat.channels() == 3)
+                cv::cvtColor(scaledFloatingUMat, scaledFloatingUMat, cv::COLOR_BGR2BGRA);
+
+            // 5. Calcul des offsets de positionnement d'affichage OpenGL
+            int posX = static_cast<int>(static_cast<float>(copyX) * ratio * scale_factor);
+            int posY = static_cast<int>(static_cast<float>(copyY) * ratio * scale_factor);
+
+            // 6. Insertion sécurisée par ROI de la sélection zoomée sur le grand canvas
+            cv::Rect dstROI = cv::Rect(posX, posY, scaledFloatingUMat.cols, scaledFloatingUMat.rows) & cv::Rect(0, 0, width, height);
+
+            if (!dstROI.empty())
+            {
+                cv::Rect srcROI(dstROI.x - posX, dstROI.y - posY, dstROI.width, dstROI.height);
+                scaledFloatingUMat(srcROI).copyTo(fullCanvasCL(dstROI));
+            }
+
+            // 7. Ajout de la passe (taille parfaite conforme) au compositeur OpenCL
+            passes.push_back(LayerPassOpenCL{ fullCanvasCL, 1.0f, static_cast<int>(LayerBlendMode::Normal) });
+        }
+    }
+
     cv::UMat targetUMat;
-    const bool composed = layerCompositorOpenCL->Compose(
-        backgroundUMat, passes, targetUMat, width, height);
-    // 4. Copie du résultat vers la texture OpenGL d'affichage
+    const bool composed = layerCompositorOpenCL->Compose(backgroundUMat, passes, targetUMat, width, height);
+
     if (composed && !targetUMat.empty())
         UploadToTexture(*textureDisplay, targetUMat.getMat(cv::ACCESS_READ));
+
     return composed;
 }
+
+
 void CBitmapEditor::CanvasResize(CanvasSizeParameter canvasSize) {
     // Parcourir l'ensemble des calques
     for (size_t i = 0; i < listOfLayer.size(); ++i) {
@@ -1156,18 +1169,14 @@ void CBitmapEditor::RenderTexture(GLTexture* textureDisplay,
         yPosImage = y;
     }
 }
-//-----------------------------------------------------------------
-// Composition GPU : meme ordre que l'ancienne boucle (index 0 -> dernier),
-// memes regles de saut (invisible, opacite 0, image invalide).
-//-----------------------------------------------------------------
+
 bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width,
     int height, bool activeDirty) {
     if (renderOpenGL == nullptr || width <= 0 || height <= 0) return false;
     if (!layerCompositor)
         layerCompositor = std::make_unique<CLayerCompositorGL>();
     if (!layerCompositor->IsValid()) return false;
-    // Fond de previsualisation (damier), reconstruit uniquement si la taille de
-    // sortie change.
+
     const cv::Size size(width, height);
     if (!backgroundTexture || backgroundTextureSize != size) {
         auto texture = std::make_unique<GLTexture>();
@@ -1176,21 +1185,62 @@ bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width,
         backgroundTexture = std::move(texture);
         backgroundTextureSize = size;
     }
+
     std::vector<LayerPass> passes;
-    passes.reserve(listOfLayer.size());
-    ForEachVisibleLayer(listOfLayer, [&](size_t index, LayerElement* layer,
-        float opacity) {
-            GLTexture* texture = IsActiveLayer(index)
-                ? GetActiveLayerTexture(width, height, activeDirty)
-                : GetLayerTexture(layer, width, height);
-            if (texture != nullptr)
-                passes.push_back(
-                    LayerPass{ texture, opacity,
-                        static_cast<int>(layer->blendMode) });
+    passes.reserve(listOfLayer.size() + 1);
+
+    ForEachVisibleLayer(listOfLayer, [&](size_t index, LayerElement* layer, float opacity) {
+        GLTexture* texture = IsActiveLayer(index)
+            ? GetActiveLayerTexture(width, height, activeDirty)
+            : GetLayerTexture(layer, width, height);
+        if (texture != nullptr)
+            passes.push_back(LayerPass{ texture, opacity, static_cast<int>(layer->blendMode) });
         });
-    return layerCompositor->Compose(backgroundTexture.get(), passes,
-        textureDisplay, width, height);
+
+    // INJECTION DE L'ÉLÉMENT VOLANT (Canvas global transparent + Petit bloc redimensionné)
+    if (!dataCopy.empty())
+    {
+        static std::unique_ptr<GLTexture> floatingTexture = std::make_unique<GLTexture>();
+
+        // 1. Création d'un canvas transparent complet à la dimension EXACTE exigée par le compositeur
+        cv::Mat fullCanvasGPU = cv::Mat::zeros(height, width, CV_8UC4);
+
+        // 2. Calcul de la taille de l'élément volant indexée sur le ratio de zoom
+        int targetW = static_cast<int>(static_cast<float>(dataCopy.cols) * ratio);
+        int targetH = static_cast<int>(static_cast<float>(dataCopy.rows) * ratio);
+
+        if (targetW > 0 && targetH > 0)
+        {
+            // 3. Redimensionnement isolé du petit bloc d'image pour préserver ses proportions
+            cv::Mat scaledFloatingMat;
+            cv::resize(dataCopy, scaledFloatingMat, cv::Size(targetW, targetH), 0.0, 0.0, cv::INTER_LINEAR);
+
+            // 4. Forcer le format BGRA 4 canaux pour la transparence
+            if (scaledFloatingMat.channels() == 3)
+                cv::cvtColor(scaledFloatingMat, scaledFloatingMat, cv::COLOR_BGR2BGRA);
+
+            // 5. Calcul des coordonnées de rendu ajustées (avec scale_factor d'OpenGL)
+            int posX = static_cast<int>(static_cast<float>(copyX) * ratio * scale_factor);
+            int posY = static_cast<int>(static_cast<float>(copyY) * ratio * scale_factor);
+
+            // 6. Collage sécurisé (ROI) du petit bloc au bon emplacement sur le grand canvas
+            cv::Rect dstROI = cv::Rect(posX, posY, scaledFloatingMat.cols, scaledFloatingMat.rows) & cv::Rect(0, 0, width, height);
+
+            if (!dstROI.empty())
+            {
+                cv::Rect srcROI(dstROI.x - posX, dstROI.y - posY, dstROI.width, dstROI.height);
+                scaledFloatingMat(srcROI).copyTo(fullCanvasGPU(dstROI));
+            }
+
+            // 7. Envoi du canvas (qui fait bien la taille width x height) au shader de composition
+            UploadToTexture(*floatingTexture, fullCanvasGPU);
+            passes.push_back(LayerPass{ floatingTexture.get(), 1.0f, static_cast<int>(LayerBlendMode::Normal) });
+        }
+    }
+
+    return layerCompositor->Compose(backgroundTexture.get(), passes, textureDisplay, width, height);
 }
+
 
 
 void CBitmapEditor::SetKey(const int& iKey)
