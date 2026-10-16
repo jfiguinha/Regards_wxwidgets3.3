@@ -137,17 +137,18 @@ int COpenCLEffect::WaveFilter(int x, int y, short height, int scale, int radius)
 
 void COpenCLEffect::SetBitmap(CImageLoadingFormat* bitmap)
 {
-
 	if (bitmap != nullptr && bitmap->IsOk())
 	{
-		cv::UMat local = bitmap->GetMatrix().getUMat();
+		// REPARATION DU BUG : Libère explicitement l'ancien buffer OpenCL.
+		// Cela force copyTo à réallouer une toute nouvelle en-tête et un nouveau pointeur GPU.
+		input.release();
+
+		cv::Mat local = bitmap->GetMatImage();
 		nbChannels = 3;
 		if (local.channels() == 4)
 		{
 			nbChannels = 4;
 			local.copyTo(input);
-			//cv::extractChannel(local, alphaChannel, 3);
-			//cvtColor(local, input, cv::COLOR_BGRA2BGR);
 		}
 		else if (local.channels() == 1)
 		{
@@ -161,10 +162,10 @@ void COpenCLEffect::SetBitmap(CImageLoadingFormat* bitmap)
 		}
 
 		filename = bitmap->GetFilename();
-
 		preview = false;
 	}
 }
+
 
 COpenCLEffect::~COpenCLEffect()
 {

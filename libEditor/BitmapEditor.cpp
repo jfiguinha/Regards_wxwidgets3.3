@@ -595,10 +595,9 @@ LayerElement* CBitmapEditor::CommitFloatingPaste()
     return targetLayer;
 }
 
-//-----------------------------------------------------------------
-// MOUSE RELEASE : fixation définitive du collage (outil WM_SELECTMOVE) ou
-// gestion par défaut du clic
-//-----------------------------------------------------------------
+// -----------------------------------------------------------------
+// MOUSE RELEASE : Fixation définitive et collage direct de dataCopy
+// -----------------------------------------------------------------
 void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
 {
     if (toolOption == WM_SELECTMOVE)
@@ -607,39 +606,88 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
         if (parentRender->HasCapture())
             parentRender->ReleaseMouse();
 
-        LayerElement* targetLayer = CommitFloatingPaste();
+        LayerElement* targetLayer = nullptr;
 
+        // COLLAGE DIRECT ET DEFINITIF DE DATA COPY DANS LE CALQUE CIBLE
+        if (!dataCopy.empty() && numLayerCopy >= 0 && numLayerCopy < static_cast<int>(listOfLayer.size()))
+        {
+            targetLayer = listOfLayer[numLayerCopy];
+            if (targetLayer != nullptr && targetLayer->GetPicture() != nullptr)
+            {
+                cv::Mat targetMat = targetLayer->GetPicture()->GetMatImage();
+                if (!targetMat.empty())
+                {
+                    // Aligne le nombre de canaux pour éviter les plantages (copyTo nécessite des formats identiques)
+                    if (dataCopy.channels() != targetMat.channels())
+                    {
+                        if (targetMat.channels() == 4)
+                            cv::cvtColor(dataCopy, dataCopy, cv::COLOR_BGR2BGRA);
+                        else if (targetMat.channels() == 3)
+                            cv::cvtColor(dataCopy, dataCopy, cv::COLOR_BGRA2BGR);
+                    }
+
+                    // Calcul de la zone d'intersection (ROI) sécurisée
+                    cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.cols, dataCopy.rows) & cv::Rect(0, 0, targetMat.cols, targetMat.rows);
+
+                    if (!dstROI.empty())
+                    {
+                        // Extraction de la sous-zone correspondante de la source
+                        cv::Rect srcROI(dstROI.x - copyX, dstROI.y - copyY, dstROI.width, dstROI.height);
+
+                        // Collage direct des pixels (écrase la zone sur la cible CPU)
+                        dataCopy(srcROI).copyTo(targetMat(dstROI));
+
+                        // REPARATION CRITIQUE : Au lieu de simplement modifier la matrice existante, 
+                        // on force CImageLoadingFormat à reconstruire entièrement ses structures (Mat et UMat)
+                        // en réassignant une matrice clonée toute neuve.
+
+                        cv::Mat ImageList_Copy = targetMat.clone();
+                        targetLayer->GetPicture()->SetPicture(ImageList_Copy);
+
+                        // Incrémentation de la version pour réveiller le pipeline OpenGL
+                        targetLayer->pictureVersion++;
+                    }
+                }
+            }
+        }
+
+        // Libération finale de la matrice de copie
+        dataCopy.release();
+
+        // Notification de modification de la liste des calques
         listOfLayer.IsChanged(true);
 
         if (targetLayer)
         {
+            // Invalidation des caches de textures matérielles de l'éditeur
             targetLayer->InvalidatePicture();
             targetLayer->needTextureUpdate = true;
 
             // Réassignation obligatoire au gestionnaire de filtres d'effet
             if (filtreEffet != nullptr)
+            {
                 filtreEffet->SetBitmap(targetLayer->GetPicture());
+            }
 
-            // Force le rechargement de la texture écran OpenGL
+            // Invalidation des anciennes tailles de l'écran pour forcer l'interpolation OpenCV
+            widthOutputOld = -1;
+            heightOutputOld = -1;
+
+            // Force le rechargement global de la scène dans OnPaint3D
             loadBitmap = true;
             forceUpdateFilter = true;
             updateFilter = true;
+            testPaste = true;
         }
 
         needToRefresh = true;
         if (parentRender)
-            parentRender->Refresh();
-
-        NotifyLayerPictureUpdated();
-
-
-        testPaste = true;
+            parentRender->Refresh(); // Actualise instantanément la fenêtre à l'écran
 
         wxSetCursor(*wxSTANDARD_CURSOR);
         return;
     }
 
-    // --- Gestion par défaut du clic de souris ---
     if (CFiltreData::SupportMouseClick(toolOption))
     {
         mouseBlock = false;
@@ -662,6 +710,8 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
     if (clickTimer->IsRunning())
         clickTimer->Stop();
 }
+
+
 
 CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId,
     const CThemeBitmapWindow& theme,
@@ -714,6 +764,7 @@ void CBitmapEditor::GenerateScreenBitmap(CFiltreEffet* filtreEffet,
     wxRect rc(0, 0, 0, 0);
     CalculRectPictureInterpolation(rc, widthOutput, heightOutput, left, top,
         false);
+
     filtreEffet->Interpolation(widthOutput, heightOutput, rc, filterInterpolation,
         localflipHorizontal, localflipVertical, localAngle,
         value[posRatio]);
@@ -782,6 +833,7 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
     const bool regenerate = updateFilter || widthOutputOld != widthOutput ||
         heightOutputOld != heightOutput;
     if (regenerate) {
+
         GenerateScreenBitmap(filtreEffet.get(), widthOutput, heightOutput);
         ApplyPreviewEffect(widthOutput, heightOutput);
         ApplySelectEffect(widthOutput, heightOutput);
@@ -846,11 +898,6 @@ void CBitmapEditor::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) {
 
         loadBitmap = false;
         bitmapIsLoad = true;
-    }
-
-    if (testPaste)
-    {
-        cv::imwrite("d:\\test.jpg", source->GetMatImage());
     }
 
     if (bitmapLoad && GetWidth() > 0 && GetHeight() > 0) {
@@ -919,13 +966,11 @@ cv::Mat CBitmapEditor::PrepareBackgroundMat(int width, int height) {
         cv::Mat(height, width, CV_8UC4, cv::Scalar(128, 128, 128, 255));
     return background;
 }
+
 // Résultat des filtres/preview du calque actif (filtreEffet), préparé à la
 // taille de sortie et positionné selon l'offset du calque.
 cv::Mat CBitmapEditor::PrepareActiveLayerImage(int width, int height) {
     Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-
-    if (testPaste)
-        cv::imwrite("d:\\toto2.jpg", activePicture.getMat());
 
     const LayerElement* layer = GetActiveLayerElement();
     const int lx = layer ? layer->x : 0;
@@ -937,9 +982,6 @@ cv::Mat CBitmapEditor::PrepareActiveLayerImage(int width, int height) {
 // taille de sortie et positionné selon l'offset du calque.
 cv::UMat CBitmapEditor::PrepareActiveLayerImageOpenCL(int width, int height) {
     Regards::Picture::CPictureArray activePicture(filtreEffet->GetMatrix());
-
-    if (testPaste)
-        cv::imwrite("d:\\toto2.jpg", activePicture.getMat());
 
     const LayerElement* layer = GetActiveLayerElement();
     const int lx = layer ? layer->x : 0;
@@ -985,6 +1027,7 @@ cv::UMat CBitmapEditor::GetActiveLayerUMat(int width, int height,
     if (!activeLayerUMat.empty() && !activeDirty && activeLayerUMatSize == size)
         return activeLayerUMat;
     cv::UMat prepared = PrepareActiveLayerImageOpenCL(width, height);
+
     if (prepared.empty()) return cv::UMat();
     activeLayerUMat = prepared;
     activeLayerUMatSize = size;
