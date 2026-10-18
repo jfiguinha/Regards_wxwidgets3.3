@@ -32,12 +32,12 @@ namespace Regards::Filter {
             return false;
         }
 
-        bool IfNeedTransparence() override { return false; }
+        bool IfNeedTransparence() override { return true; }
 
         wxColour ConvertScalarToWxColour() {
-            int blue = static_cast<int>(color[0]);
-            int green = static_cast<int>(color[1]);
-            int red = static_cast<int>(color[2]);
+            int blue = static_cast<int>(color1[0]);
+            int green = static_cast<int>(color1[1]);
+            int red = static_cast<int>(color1[2]);
             return wxColour(red, green, blue, opacity);
         }
 
@@ -49,7 +49,6 @@ namespace Regards::Filter {
         wxString fontName;
         int fontSize;
         int fontIndex;       // Index OpenCV de la police (cv::HersheyFonts)
-        cv::Scalar color;
         bool isBold;
         bool isItalic;
     };

@@ -17,7 +17,6 @@ CTextFilter::CTextFilter() {
 
     lblFontFace = CLibResource::LoadStringFromResource("LBLTEXTPOLICE", 1);
     lblFontSize = CLibResource::LoadStringFromResource("LBLTEXTSIZE", 1);
-    lblColor = CLibResource::LoadStringFromResource("LBLCOLOR", 1);
     lblBold = CLibResource::LoadStringFromResource("LBLTEXTBOLD", 1);
     lblItalic = CLibResource::LoadStringFromResource("LBLTEXTITALIC", 1);
     lblOpacity = CLibResource::LoadStringFromResource("LBLEFFECTOPACITY", 1);
@@ -67,10 +66,6 @@ void CTextFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, con
     for (int i = 5; i <= 150; i += 5) elementSize.push_back(i);
     filtreInterface->AddTreeInfos(lblFontSize, new CTreeElementValueInt(param->fontSize), &elementSize);
 
-    // 4. Choix de la couleur
-    filtreInterface->AddTreeInfos(lblColor, new CTreeElementValueColor(param->ConvertScalarToWxColour()), &elementSize, TYPE_COLOR, TYPE_COLOR);
-
-
     filtreInterface->AddTreeInfos(lblBold, new CTreeElementValueInt(param->isBold),
         &param->isBold, 2, 2);
 
@@ -92,10 +87,6 @@ void CTextFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElem
     }
     else if (key == lblFontSize && valueData->GetType() == TYPE_ELEMENT_INT) {
         param->fontSize = static_cast<CTreeElementValueInt*>(valueData)->GetValue();
-    }
-    else if (key == lblColor && valueData->GetType() == 4) {
-        wxColour c = static_cast<CTreeElementValueColor*>(valueData)->GetValue();
-        param->color = cv::Scalar(c.Blue(), c.Green(), c.Red(), param->opacity);
     }
     else if (key == lblBold && valueData->GetType() == TYPE_ELEMENT_BOOL) {
         param->isBold = static_cast<CTreeElementValueBool*>(valueData)->GetValue();
@@ -175,10 +166,63 @@ void CTextFilter::Drawing(cv::Mat& matrix, IBitmapDisplay* bitmapViewer, CDraw* 
     int vpos = bitmapViewer->GetVPos();
     float ratio = bitmapViewer->GetRatio();
 
+    auto* param = static_cast<CTextFilterParameter*>(bitmapViewer->GetEffectPointer());
+    auto* textDraw = static_cast<Regards::FiltreEffet::CTextDraw*>(m_cDessin);
+    // Met à jour la boîte à outils graphique avec les bons paramètres utilisateur
+    textDraw->SetCurrentTextParams(
+        param->fontSize,
+        param->fontName,
+        param->fontIndex,
+        param->isBold,
+        param->isItalic,
+        param->opacity,
+        param->ConvertScalarToWxColour()
+    );
+
     m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
 
-    auto* textDraw = static_cast<Regards::FiltreEffet::CTextDraw*>(m_cDessin);
+    if (param != nullptr && textDraw != nullptr) {
+        param->listTexts.clear();
+        const auto& textesEcran = textDraw->GetTousLesTextes();
+
+        for (const auto& te : textesEcran) {
+            STextTrace tOpenCV;
+            tOpenCV.position = te.point;
+            tOpenCV.text = te.text;
+            tOpenCV.fontSize = te.fontSize;
+            tOpenCV.fontIndex = te.fontIndex;
+            tOpenCV.isBold = te.isBold;
+            tOpenCV.isItalic = te.isItalic;
+            tOpenCV.opacity = te.opacity;
+            tOpenCV.color = cv::Scalar(te.color.Blue(), te.color.Green(), te.color.Red(), te.opacity);
+
+            param->listTexts.push_back(tOpenCV);
+        }
+    }
+}
+
+
+void CTextFilter::Drawing(cv::UMat& matrix, IBitmapDisplay* bitmapViewer, CDraw* m_cDessin) {
+    if (matrix.empty() || m_cDessin == nullptr || bitmapViewer == nullptr) return;
+
+    int hpos = bitmapViewer->GetHPos();
+    int vpos = bitmapViewer->GetVPos();
+    float ratio = bitmapViewer->GetRatio();
+
     auto* param = static_cast<CTextFilterParameter*>(bitmapViewer->GetEffectPointer());
+    auto* textDraw = static_cast<Regards::FiltreEffet::CTextDraw*>(m_cDessin);
+    // Met à jour la boîte à outils graphique avec les bons paramètres utilisateur
+    textDraw->SetCurrentTextParams(
+        param->fontSize,
+        param->fontName,
+        param->fontIndex,
+        param->isBold,
+        param->isItalic,
+        param->opacity,
+        param->ConvertScalarToWxColour()
+    );
+
+    m_cDessin->DessinerSurMat(matrix, hpos, vpos, ratio);
 
     if (param != nullptr && textDraw != nullptr) {
         param->listTexts.clear();
@@ -209,11 +253,24 @@ void CTextFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m
     auto textDraw = static_cast<Regards::FiltreEffet::CTextDraw*>(m_cDessin);
 
     if (param && textDraw) {
-        textDraw->SetCurrentTextParams(param->fontSize, param->fontName, param->fontIndex, param->isBold, param->isItalic,
-            param->opacity, textDraw->WithOpacity(param->color));
-        wxColour color(0, 0, 0);
-        m_cDessin->Dessiner(dc, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio(), color, color, color, 1);
+        // CORRECTION 1 : Récupérer la vraie couleur choisie par l'utilisateur
+        wxColour couleurChoisie = param->ConvertScalarToWxColour(); // Utilise l'opacité et le scalaire BGR
 
+        // Met à jour la boîte à outils graphique avec les bons paramètres utilisateur
+        textDraw->SetCurrentTextParams(
+            param->fontSize,
+            param->fontName,
+            param->fontIndex,
+            param->isBold,
+            param->isItalic,
+            param->opacity,
+            couleurChoisie
+        );
+
+        // CORRECTION 2 : On passe la couleur choisie à Dessiner au lieu de forcer du noir wxColour(0,0,0)
+        m_cDessin->Dessiner(dc, bitmapViewer->GetHPos(), bitmapViewer->GetVPos(), bitmapViewer->GetRatio(), couleurChoisie, couleurChoisie, couleurChoisie, 1);
+
+        // Synchronisation de l'historique vers les paramètres
         param->listTexts.clear();
         for (const auto& t : textDraw->GetTousLesTextes()) {
             STextTrace textOpenCV;
@@ -230,5 +287,4 @@ void CTextFilter::Drawing(wxMemoryDC* dc, IBitmapDisplay* bitmapViewer, CDraw* m
         }
     }
 }
-
 

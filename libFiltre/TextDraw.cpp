@@ -188,3 +188,36 @@ void CTextDraw::DessinerSurMat(cv::Mat& matrix, const long& hScroll, const long&
         }
     }
 }
+
+
+void CTextDraw::DessinerSurMat(cv::UMat& matrix, const long& hScroll, const long& vScroll, const float& ratio) {
+    if (matrix.empty()) return;
+    if (matrix.channels() == 3) cv::cvtColor(matrix, matrix, cv::COLOR_BGR2BGRA);
+
+    for (const auto& txt : m_tousLesTextes) {
+        if (txt.opacity <= 0 || txt.text.IsEmpty()) continue;
+
+        int screenX = static_cast<int>(XDrawingPosition(static_cast<float>(txt.point.x), hScroll, ratio));
+        int screenY = static_cast<int>(YDrawingPosition(static_cast<float>(txt.point.y), vScroll, ratio));
+
+        cv::UMat overlay = matrix.clone();
+
+        int fontFace = txt.fontIndex;
+        if (txt.isItalic) fontFace |= cv::FONT_ITALIC;
+
+        double fontScale = (txt.fontSize * 0.05) * ratio;
+        int epaisseur = std::max(1, static_cast<int>((txt.isBold ? 3 : 1) * ratio));
+
+        cv::Scalar colorOpenCV(txt.color.Blue(), txt.color.Green(), txt.color.Red(), static_cast<double>(txt.opacity));
+
+        cv::putText(overlay, txt.text.ToStdString(), cv::Point(screenX, screenY), fontFace, fontScale, colorOpenCV, epaisseur, cv::LINE_AA);
+
+        if (txt.opacity >= 255) {
+            overlay.copyTo(matrix);
+        }
+        else {
+            double alpha = txt.opacity / 255.0;
+            cv::addWeighted(overlay, alpha, matrix, 1.0 - alpha, 0, matrix);
+        }
+    }
+}
