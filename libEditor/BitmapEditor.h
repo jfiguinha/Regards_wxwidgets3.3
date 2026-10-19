@@ -37,6 +37,7 @@ public:
     bool Copy();
     bool Cut();
     bool Paste();
+    bool Delete();
 
     void SelectAll();
     void InverseAll();
@@ -46,6 +47,12 @@ public:
     void SetZoomTool();
     void SetMoveTool();
     void SetSelectMoveTool();
+
+    // --- Gestion de l'historique (Undo / Redo) ---
+    void SaveHistoryState(const wxString& actionLabel);
+    void Undo();
+    void Redo();
+    void ClearHistory();
 
 private:
     // --- Evènements ---
@@ -85,6 +92,8 @@ private:
 
     // --- Composition : routage selon le backend du calque, avec repli CPU ---
     void ComposeLayers(LayerElement* typeSource, GLTexture* textureDisplay, int width, int height, bool activeDirty);
+    
+    void OnFiltreOk() override;
 
     // --- Briques communes aux backends ---
     bool IsActiveLayer(size_t index) const
@@ -133,4 +142,15 @@ private:
     uint64_t lastSourceVersion = 0;
     bool gpuComposeFallbackLogged = false;
     bool openclComposeFallbackLogged = false;
+
+
+    // Structure pour associer un état à un libellé
+    struct HistoryItem {
+        CLayerList layers;
+        wxString label;
+    };
+
+    std::vector<HistoryItem> historyUndoStack;
+    std::vector<HistoryItem> historyRedoStack;
+    const size_t maxHistoryDepth = 20;
 };

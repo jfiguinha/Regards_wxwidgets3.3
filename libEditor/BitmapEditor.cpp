@@ -466,24 +466,36 @@ bool CBitmapEditor::Copy()
     if (sourceMat.empty())
         return false;
 
-    cv::Mat outMat;  // Matrice envoyée au presse-papiers
+    cv::Mat outMat;  // Matrice finale envoyée au presse-papiers
 
-    // Sélection active : détourage + découpe à la boîte englobante
     CSelectFilterParameter* filter = GetSelectFilter();
     if (filter != nullptr && !filter->listSelections.empty())
     {
+        // Détermination de la boîte englobante globale de la sélection
         const cv::Rect roi = SelectionBounds(filter->listSelections, sourceMat.size());
         if (roi.width > 0 && roi.height > 0)
         {
-            cv::Mat bgraMat = ToBGRA(sourceMat);
-            ApplyMaskToAlpha(bgraMat, BuildCopyMask(filter->listSelections, sourceMat.size()));
-            outMat = bgraMat(roi).clone();
+            // Vérification du type du premier élément de sélection pour ajuster le comportement
+            int selectType = filter->listSelections.front().selectType;
+
+            if (selectType == SELECT_RECTANGLE)
+            {
+                // Pour le rectangle, extraction brute de la sous-zone sans gestion de canal alpha forcé
+                outMat = sourceMat(roi).clone();
+            }
+            else if (selectType == SELECT_ELLIPSE || selectType == SELECT_LASSO)
+            {
+                // Pour l'ellipse et le lasso, on encadre et on applique la transparence à l'extérieur
+                cv::Mat bgraMat = ToBGRA(sourceMat);
+                ApplyMaskToAlpha(bgraMat, BuildCopyMask(filter->listSelections, sourceMat.size()));
+                outMat = bgraMat(roi).clone();
+            }
         }
     }
 
     // Aucune sélection active ou valide : copie de l'image entière
     if (outMat.empty())
-        outMat = sourceMat;
+        outMat = sourceMat.clone();
 
     const wxBitmap bitmap(Regards::Picture::CLibPicture::ConvertRegardsBitmapToWXImage(outMat));
 
@@ -499,31 +511,79 @@ bool CBitmapEditor::Copy()
 }
 
 //-----------------------------------------------------------------
-// CUT : copie l'image du calque actif puis vide le calque
+// DELETE : Efface le contenu de la sélection par de la transparence
+//-----------------------------------------------------------------
+bool CBitmapEditor::Delete()
+{
+    LayerElement* layerElement = GetActiveLayerElement();
+    if (layerElement == nullptr)
+        return false;
+
+    CImageLoadingFormat* picture = layerElement->GetPicture();
+    if (picture == nullptr || !picture->IsOk())
+        return false;
+
+    const cv::Mat sourceMat = picture->GetMatImage();
+    if (sourceMat.empty())
+        return false;
+
+    CSelectFilterParameter* filter = GetSelectFilter();
+    // S'il n'y a pas de sélection active, la fonction delete ne fait rien ou efface tout selon votre choix.
+    // Ici, elle cible uniquement la sélection en cours.
+    if (filter != nullptr && !filter->listSelections.empty())
+    {
+        SaveHistoryState(L"Delete Selection");
+
+        // On convertit l'image en BGRA pour forcer le support du canal alpha (transparence)
+        cv::Mat bgraMat = ToBGRA(sourceMat);
+
+        // Construction du masque où 255 représente la zone sélectionnée à effacer
+        cv::Mat mask = BuildCopyMask(filter->listSelections, bgraMat.size());
+
+        // Mettre à zéro (transparent) le canal Alpha (index 3) là où le masque est actif (255)
+        // Optionnel : Vous pouvez aussi nettoyer les canaux BGR en noir transparent (0, 0, 0, 0)
+        bgraMat.setTo(cv::Scalar(0, 0, 0, 0), mask);
+
+        // Assigner la nouvelle image modifiée au calque
+        picture->SetPicture(bgraMat);
+
+        // Invalidation des caches graphiques et notification de rafraîchissement
+        layerElement->InvalidatePicture();
+        layerElement->needTextureUpdate = true;
+        layerElement->pictureVersion++;
+
+        listOfLayer.IsChanged(true);
+
+        widthOutputOld = -1;
+        heightOutputOld = -1;
+        loadBitmap = true;
+        forceUpdateFilter = true;
+        updateFilter = true;
+
+        NotifyLayerPictureUpdated();
+        RefreshSelectionView();
+
+        return true;
+    }
+
+    return false;
+}
+
+//-----------------------------------------------------------------
+// CUT : copie la sélection puis efface le contenu par transparence
 //-----------------------------------------------------------------
 bool CBitmapEditor::Cut()
 {
+    SaveHistoryState(L"Cut la sélection");
+
+    // Appelle Copy pour mettre la sélection dans le presse-papiers
     if (!Copy())
         return false;
 
-    LayerElement* layerElement = GetActiveLayerElement();
-    CImageLoadingFormat* picture = layerElement->GetPicture();
-
-    const cv::Mat currentMat = picture->GetMatImage();
-    if (!currentMat.empty())
-    {
-        // Remplace l'image par une matrice vide de mêmes dimensions
-        cv::Mat emptyMat = cv::Mat::zeros(currentMat.rows, currentMat.cols, currentMat.type());
-        picture->SetPicture(emptyMat);
-
-        // Invalidation des caches et mise à jour géométrique
-        layerElement->InvalidatePicture();
-        listOfLayer.IsChanged(true);
-        ApplyGeometryChange();
-    }
-
-    return true;
+    // Appelle Delete pour effacer le contenu de la sélection par transparence
+    return Delete();
 }
+
 
 //-----------------------------------------------------------------
 // PASTE : récupère l'image du presse-papiers dans dataCopy (élément « volant »,
@@ -567,6 +627,33 @@ bool CBitmapEditor::Paste()
 }
 
 
+void CBitmapEditor::OnFiltreOk()
+{
+    LayerElement* layerElement = GetActiveLayerElement();
+    if (layerElement != nullptr && layerElement->GetPicture() != nullptr && filtreEffet != nullptr)
+    {
+        // Détermination du nom de l'effet appliqué
+        wxString effectName = L"Application d'un effet";
+        if (preview == IDM_SELECTFILTER) {
+            effectName = L"Filtre de sélection / détourage";
+        }
+        else if (preview > 0) {
+            effectName = wxString::Format(L"Effet ou Filtre (ID: %d)", preview);
+        }
+
+        // Sauvegarde de l'état avec le nom de l'effet
+        SaveHistoryState(effectName);
+
+        Regards::Picture::CPictureArray processedPicture(filtreEffet->GetMatrix());
+        // ... (reste du code de fixation du filtre)
+
+        RemoveListener();
+        forceUpdateFilter = false;
+        widthOutputOld = 0;
+    }
+
+}
+
 // -----------------------------------------------------------------
 // MOUSE RELEASE : Fixation définitive et collage direct de dataCopy
 // -----------------------------------------------------------------
@@ -586,9 +673,13 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
             targetLayer = listOfLayer[numLayerCopy];
             if (targetLayer != nullptr && targetLayer->GetPicture() != nullptr)
             {
+                SaveHistoryState(L"Paste picture");
+
                 cv::Mat targetMat = targetLayer->GetPicture()->GetMatImage();
                 if (!targetMat.empty())
                 {
+                   
+
                     // Calcul de la zone d'intersection (ROI) sécurisée
                     cv::Rect dstROI = cv::Rect(copyX, copyY, dataCopy.getWidth(), dataCopy.getHeight()) & cv::Rect(0, 0, targetMat.cols, targetMat.rows);
 
@@ -795,6 +886,87 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
     heightOutputOld = heightOutput;
     return regenerate;
 }
+
+//-----------------------------------------------------------------
+// Sauvegarde l'état actuel avec un libellé descriptif
+//-----------------------------------------------------------------
+void CBitmapEditor::SaveHistoryState(const wxString& actionLabel)
+{
+    // On efface la pile de Redo car une nouvelle action brise la chaîne temporelle
+    historyRedoStack.clear();
+
+    // Ajout de l'élément avec son libellé
+    HistoryItem item;
+    item.layers = listOfLayer;
+    item.label = actionLabel;
+    historyUndoStack.push_back(item);
+
+    // Débogage (optionnel) : affiche l'action enregistrée dans la console
+    wxLogDebug("Historique enregistré : %s", actionLabel);
+
+    if (historyUndoStack.size() > maxHistoryDepth)
+    {
+        historyUndoStack.erase(historyUndoStack.begin());
+    }
+}
+
+//-----------------------------------------------------------------
+// ANNULER (Undo)
+//-----------------------------------------------------------------
+void CBitmapEditor::Undo()
+{
+    if (historyUndoStack.empty())
+        return;
+
+    // L'état actuel migre vers la pile Redo (on peut garder le libellé de l'état qu'on annule)
+    HistoryItem currentItem;
+    currentItem.layers = listOfLayer;
+    currentItem.label = historyUndoStack.back().label;
+    historyRedoStack.push_back(currentItem);
+
+    // Restauration du dernier état
+    listOfLayer = historyUndoStack.back().layers;
+    wxLogDebug("Annulation de l'action : %s", historyUndoStack.back().label);
+    historyUndoStack.pop_back();
+
+    // Forcer la reconstruction complète de l'affichage
+    listOfLayer.IsChanged(true);
+    UpdateBitmapSizeFromLayers();
+    ApplyGeometryChange();
+}
+
+//-----------------------------------------------------------------
+// REFAIRE (Redo)
+//-----------------------------------------------------------------
+void CBitmapEditor::Redo()
+{
+    if (historyRedoStack.empty())
+        return;
+
+    // L'état actuel migre vers la pile Undo
+    HistoryItem currentItem;
+    currentItem.layers = listOfLayer;
+    currentItem.label = historyRedoStack.back().label;
+    historyUndoStack.push_back(currentItem);
+
+    // Restauration de l'état annulé
+    listOfLayer = historyRedoStack.back().layers;
+    wxLogDebug("Restauration de l'action : %s", historyRedoStack.back().label);
+    historyRedoStack.pop_back();
+
+    // Forcer la reconstruction complète de l'affichage
+    listOfLayer.IsChanged(true);
+    UpdateBitmapSizeFromLayers();
+    ApplyGeometryChange();
+}
+
+void CBitmapEditor::ClearHistory()
+{
+    historyUndoStack.clear();
+    historyRedoStack.clear();
+}
+
+
 
 //-----------------------------------------------------------------
 // Dessin de l'image
@@ -1248,30 +1420,45 @@ bool CBitmapEditor::ComposeLayersGPU(GLTexture* textureDisplay, int width,
     return layerCompositor->Compose(backgroundTexture.get(), passes, textureDisplay, width, height);
 }
 
-
-
 void CBitmapEditor::SetKey(const int& iKey)
 {
     this->iKey = iKey;
 
-    // 1. Raccourcis presse-papiers Ctrl+C / Ctrl+V / Ctrl+X (code de contrôle
-    // ASCII ou lettre brute si Ctrl est enfoncé)
-    bool (CBitmapEditor:: * clipboardAction)() = nullptr;
-    switch (iKey)
+    // 1. Gestion de la touche Suppr (Delete) autonome pour annuler la sélection
+    if (iKey == WXK_ESCAPE)
     {
-    case 3:  case 'C': case 'c': clipboardAction = &CBitmapEditor::Copy;  break;
-    case 22: case 'V': case 'v': clipboardAction = &CBitmapEditor::Paste; break;
-    case 24: case 'X': case 'x': clipboardAction = &CBitmapEditor::Cut;   break;
-    default: break;
+        CancelSelect();
+        return;
     }
 
-    if (clipboardAction != nullptr && wxGetKeyState(WXK_CONTROL))
+    // 2. Raccourcis presse-papiers : Exécution STRICTEMENT si la touche CTRL est enfoncée
+    if (wxGetKeyState(WXK_CONTROL))
     {
-        (this->*clipboardAction)();
-        return;  // Ne pas altérer les curseurs
+        bool (CBitmapEditor:: * clipboardAction)() = nullptr;
+
+        switch (iKey)
+        {
+        case 3:  case 'C': case 'c':
+            clipboardAction = &CBitmapEditor::Copy;
+            break;
+        case 22: case 'V': case 'v':
+            clipboardAction = &CBitmapEditor::Paste;
+            break;
+        case 24: case 'X': case 'x':
+            clipboardAction = &CBitmapEditor::Cut;
+            break;
+        default:
+            break;
+        }
+
+        if (clipboardAction != nullptr)
+        {
+            (this->*clipboardAction)();
+            return;  // Évite d'altérer les curseurs après une action sur le presse-papiers
+        }
     }
 
-    // 2. Curseur Zoom de l'outil de déplacement
+    // 3. Curseur Zoom de l'outil de déplacement
     if (toolOption == MOVEPICTURE)
     {
         if (iKey == WXK_CONTROL)
