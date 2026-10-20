@@ -18,7 +18,7 @@ using namespace Regards::Control;
 using namespace Regards::Picture;
 
 CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModificationManager* modificationManager,
-	int bitmapWindowId, wxString filename) : numEvent(0), yPos(0), index(0), baseBitmap(nullptr)
+	int bitmapWindowId, wxString filename) : numEvent(0), yPos(0), index(0)
 {
 	this->filename = filename;
 	this->bitmapWindowId = bitmapWindowId;
@@ -44,18 +44,23 @@ void CInfoEffect::SetTreeInterface(CTreeElementControlInterface* interfaceContro
 	eventControl = interfaceControl;
 }
 
-void CInfoEffect::Init(CImageLoadingFormat* bitmap,const int64_t & layerId, const wxString& libelle, const wxString& key)
+void CInfoEffect::Init(CImageLoadingFormat* bitmap, CLayerList * initialLayers, const int64_t& layerId, const wxString& libelle, const wxString& key)
 {
 	initLayerId = layerId;
-	this->baseBitmap = bitmap; // On stocke la référence de l'image source non-modifiée
-	modificationManager->Init(bitmap);
+	if (modificationManager != nullptr)
+	{
+		modificationManager->Init(bitmap, initialLayers);
+	}
 	InitTree(libelle, key);
 }
 
-void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle)
+void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers)
 {
-	const int numModification = modificationManager->GetNumModification();
-	const int nbModification = modificationManager->GetNbModification();
+	if (modificationManager == nullptr)
+		return;
+
+	const unsigned int numModification = modificationManager->GetNumModification();
+	const unsigned int nbModification = modificationManager->GetNbModification();
 
 	// Si l'utilisateur était revenu en arrière (Undo), on nettoie l'arbre graphique
 	if (numModification < nbModification)
@@ -64,7 +69,7 @@ void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effect
 
 		InitTree(modificationManager->GetModificationLibelle(0), to_string(0));
 
-		for (int i = 1; i < (numModification + 1); i++)
+		for (unsigned int i = 1; i <= numModification; i++)
 		{
 			wxString modificationString = modificationManager->GetModificationLibelle(i);
 			modificationString.Replace(".", "@99");
@@ -76,8 +81,8 @@ void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effect
 	wxString localLibelle = libelle;
 	localLibelle.Replace(".", "@99");
 
-	// Appel de la nouvelle méthode non-destructive sur le gestionnaire
-	modificationManager->AddModification(numEffect, effectParameter, libelle);
+	// Enregistrement de la modification avec le nouveau ModificationManager
+	modificationManager->AddModification(numEffect, effectParameter, libelle, currentLayers);
 
 	// Récupération du nouvel index généré par le manager
 	wxString currentModifKey = GetNumModification();
@@ -87,49 +92,79 @@ void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effect
 	SetActifElement(currentModifKey);
 }
 
-
-void CInfoEffect::ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-	const int& posLargeur, const int& posHauteur)
+void CInfoEffect::ClickOnElement(
+	CPositionElement* element,
+	wxWindow* window,
+	const int& x,
+	const int& y,
+	const int& posLargeur,
+	const int& posHauteur)
 {
+	if (element == nullptr)
+		return;
 
 	CTreeElement* treeElement = element->GetTreeElement();
 	auto treeData = element->GetTreeData();
+
 	if (element->GetType() == ELEMENT_TEXTE)
 	{
-		wxString key = treeData->GetExifKey();
-		if (key != "History")
+		if (treeData == nullptr)
+			return;
+
+		const wxString key = treeData->GetExifKey();
+
+		if (modificationManager != nullptr)
 		{
-			int64_t layerId = 0;
-			const int modif = CConvertUtility::StringToInt(key);
-			CImageLoadingFormat* bitmap = modificationManager->GetModification(modif, layerId);
-			// Utilisation de la nouvelle fonction non-destructive basée sur l'image source originale
-			SetBitmapToViewer(bitmap, layerId);
+			unsigned int modif = 0;
+
+			if (key != "History")
+			{
+				const long parsedIndex = wxAtol(key);
+
+				if (parsedIndex < 0 ||
+					static_cast<unsigned long>(parsedIndex) >=
+					modificationManager->GetNbModification())
+				{
+					return;
+				}
+
+				modif = static_cast<unsigned int>(parsedIndex);
+			}
+
+			CLayerList* layers =
+				modificationManager->GetLayersForModification(modif);
+
+			if (layers == nullptr)
+				return;
+
+			modificationManager->SetNumModification(modif);
+			RestoreLayersToViewer(layers, initLayerId);
 		}
-		else
-		{
-			CLibPicture libPicture;
-			CImageLoadingFormat* bitmap = libPicture.LoadPicture(treeData->GetKey());
-			SetBitmapToViewer(bitmap, initLayerId);
-			modificationManager->SetNumModification(0);
-		}
+
 		SetActifElement(key);
 	}
 	else if (element->GetType() == ELEMENT_TRIANGLE)
 	{
-		auto treeElementTriangle = dynamic_cast<CTreeElementTriangle*>(treeElement);
-		treeElementTriangle->ClickElement(window, (x + posLargeur) - element->GetX(),
+		auto treeElementTriangle =
+			dynamic_cast<CTreeElementTriangle*>(treeElement);
+
+		if (treeElementTriangle == nullptr)
+			return;
+
+		treeElementTriangle->ClickElement(
+			window,
+			(x + posLargeur) - element->GetX(),
 			(y + posHauteur) - element->GetY());
+
 		CreateElement(RenderMode::Update);
-		if(eventControl)
+
+		if (eventControl)
 			eventControl->UpdateTreeControl();
 	}
 }
 
-// Les fonctions suivantes restent inchangées, conservées pour l'intégrité du fichier compilable :
-
 void CInfoEffect::InitTree(const wxString& libelle, const wxString& key)
 {
-	//filename = libelle;
 	numEvent = 1;
 	index = 0;
 	wxString localLibelle = libelle;
@@ -141,17 +176,29 @@ void CInfoEffect::InitTree(const wxString& libelle, const wxString& key)
 
 wxString CInfoEffect::GetNumModification()
 {
-	return to_string(modificationManager->GetNumModification());
+	if (modificationManager != nullptr)
+		return to_string(modificationManager->GetNumModification());
+	return "0";
 }
 
-void CInfoEffect::SetBitmapToViewer(CImageLoadingFormat* bitmap, const int64_t & layerId)
+void CInfoEffect::RestoreLayersToViewer(CLayerList* layers, const int64_t& layerId)
 {
 	auto bitmapWindow = wxWindow::FindWindowById(bitmapWindowId);
-	auto event = new wxCommandEvent(wxEVENT_SETBITMAP);
-	event->SetClientData(bitmap);
-	event->SetExtraLong(layerId);
-	wxQueueEvent(bitmapWindow, event);
+	if (bitmapWindow != nullptr && layers != nullptr)
+	{
+		auto event = new wxCommandEvent(wxEVENT_UPDATELAYERMODIFICATION);
+
+		// 1. On s'assure que l'image finale composite de cette étape est calculée et à jour
+		layers->UpdatePictureToShow();
+
+		// 2. On transmet la CLayerList complète à la fenêtre d'affichage (Viewer/Editor)
+		// L'appelant (CBitmapEditor) pourra ainsi manipuler à nouveau chaque calque individuellement.
+		event->SetClientData(layers);
+		event->SetInt(layerId);
+		wxQueueEvent(bitmapWindow, event);
+	}
 }
+
 
 void CInfoEffect::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
 	const int& posLargeur, const int& posHauteur, bool& update)
@@ -239,7 +286,7 @@ void CInfoEffect::AddEvent(const wxString& libelle, const wxString& key)
 		++level;
 	}
 	CreateElement(RenderMode::Update);
-	if(eventControl)
+	if (eventControl)
 		eventControl->UpdateTreeControl();
 }
 

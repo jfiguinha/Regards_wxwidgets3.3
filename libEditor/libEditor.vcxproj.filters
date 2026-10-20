@@ -22,6 +22,9 @@
     <Filter Include="Dialog">
       <UniqueIdentifier>{0c975852-d741-4c69-8898-73206a7e33c8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Render">
+      <UniqueIdentifier>{3aef57a7-49f1-4ca2-b53f-5607879baf40}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EditorFrame.h">
@@ -66,6 +69,18 @@
     <ClInclude Include="..\include\header.h">
       <Filter>Header</Filter>
     </ClInclude>
+    <ClInclude Include="LayerRenderer.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerRendererCPU.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerRendererGL.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="LayerRendererOpenCL.h">
+      <Filter>Render</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EditorFrame.cpp">
@@ -109,6 +124,15 @@
     </ClCompile>
     <ClCompile Include="..\include\header.cpp">
       <Filter>Header</Filter>
+    </ClCompile>
+    <ClCompile Include="LayerRendererCPU.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="LayerRendererGL.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="LayerRendererOpenCL.cpp">
+      <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

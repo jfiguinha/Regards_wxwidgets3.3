@@ -124,10 +124,10 @@ void CBitmapWndViewer::RemoveListener(const bool& applyCancel)
 	{
 		mouseUpdate->CancelPreview(this);
 		updateFilter = true;
-		if (listOfLayer.size() > 0)
+		if (listOfLayer->size() > 0)
 		{
-			bitmapwidth = listOfLayer.GetWidth();
-			bitmapheight = listOfLayer.GetHeight();
+			bitmapwidth = listOfLayer->GetWidth();
+			bitmapheight = listOfLayer->GetHeight();
 			ShrinkImage();
 		}
 	}
@@ -221,7 +221,7 @@ void CBitmapWndViewer::PrintPicture()
 
 bool CBitmapWndViewer::IsPictureLoad()
 {
-	if (listOfLayer.size() > 0)
+	if (listOfLayer->size() > 0)
 		return true;
 	return false;
 }
@@ -485,13 +485,22 @@ bool CBitmapWndViewer::ApplyPreviewEffect(int& widthOutput, int& heightOutput)
 	return true;
 }
 
+//-----------------------------------------------------------------
+// Accès au calque actif / à l'outil de sélection
+//-----------------------------------------------------------------
+LayerElement* CBitmapWndViewer::GetActiveLayerElement() {
+	return GetElement(numActifLayer);
+}
+
+
+
 void CBitmapWndViewer::OnFiltreOk()
 {
 	RemoveListener();
 	forceUpdateFilter = false;
 	widthOutputOld = 0;
-
 }
+
 
 void CBitmapWndViewer::OnFiltreCancel()
 {
@@ -768,7 +777,7 @@ void CBitmapWndViewer::AfterRender()
 
 void CBitmapWndViewer::RenderTexture(const bool& invertPos)
 {
-	CImageLoadingFormat* source = listOfLayer.GetPictureToShow();
+	CImageLoadingFormat* source = listOfLayer->GetPictureToShow();
 
 	if (glTexture != nullptr)
 	{

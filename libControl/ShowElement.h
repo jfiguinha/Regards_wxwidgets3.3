@@ -9,6 +9,7 @@
 #include "VideoInterface.h"
 #include <FiltreUpdate.h>
 #include <memory>
+#include <LayerElement.h>
 
 using namespace Regards::Window;
 using namespace Regards::Video;
@@ -66,6 +67,8 @@ namespace Regards
             void Rotate270();
             void FlipHorizontal();
 
+            CLayerList* GetLayerList();
+
             // Image
             bool SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail);
             void SetBitmapPreviewEffect(const int& effect);
@@ -107,6 +110,7 @@ namespace Regards
             void MoveSlider(const int64_t& position) override;
             void ClickButton(const int& id) override;
             void SetTrackBarPosition(const int& /*iPos*/) override {}
+
 
         protected:
             // IVideoInterface

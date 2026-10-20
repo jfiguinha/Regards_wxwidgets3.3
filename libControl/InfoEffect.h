@@ -1,6 +1,7 @@
 #pragma once
 #include <TreeControl.h>
 #include "ModificationManager.h"
+#include "LayerElement.h" // Nécessaire pour manipuler CLayerList
 using namespace Regards::Window;
 
 namespace Regards::Control
@@ -13,14 +14,13 @@ namespace Regards::Control
 		~CInfoEffect() = default;
 
 		wxString GetFilename();
-		void Init(CImageLoadingFormat* bitmap, const int64_t& layerId, const wxString& libelle, const wxString& key);
+		void Init(CImageLoadingFormat* bitmap, CLayerList* currentLayers, const int64_t& layerId, const wxString& libelle, const wxString& key);
 		void AddEvent(const wxString& libelle, const wxString& key);
 		void SetActifElement(const wxString& key);
 		void SetTreeInterface(CTreeElementControlInterface* interfaceControl);
 
-		// Conserve la signature, mais en interne le bitmap n'est plus enregistré sur le disque
-		// Remplacer l'ancienne signature par la nouvelle
-		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle);
+		// Ajout d'une modification en passant l'état actuel des calques au manager
+		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers);
 
 		void UpdateScreenRatio() override;
 
@@ -31,7 +31,10 @@ namespace Regards::Control
 	private:
 		void InitTree(const wxString& libelle, const wxString& key);
 		wxString GetNumModification();
-		void SetBitmapToViewer(CImageLoadingFormat* bitmap, const int64_t& layerId);
+
+		// Modifié pour transmettre la liste des calques restaurée au visualiseur
+		void RestoreLayersToViewer(CLayerList * layers, const int64_t& layerId);
+
 		void ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
 			const int& posLargeur, const int& posHauteur) override;
 		void MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
@@ -46,11 +49,9 @@ namespace Regards::Control
 		tree<CTreeData*>::iterator top;
 		tree<CTreeData*>::iterator child;
 
-		// Pointeur externe
+		// Pointeur externe vers le gestionnaire unifié
 		CModificationManager* modificationManager;
 
-		// Sauvegarde locale de l'image d'origine pour rejouer l'historique non destructif
-		CImageLoadingFormat* baseBitmap = nullptr;
 		int64_t initLayerId = 0;
 		int widthPosition;
 		wxString filename;

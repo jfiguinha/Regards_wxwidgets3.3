@@ -6,6 +6,7 @@
 #include <InfosFileWnd.h>
 #include "TabWindow.h"
 #include "FiltreEffect.h"
+#include <LayerElement.h>
 using namespace std;
 using namespace Regards::Window;
 using namespace Regards::Control;
@@ -34,7 +35,7 @@ namespace Regards
 			~CPanelInfosWnd() = default;
 			void OnFiltreOk(const int& numFiltre);
 			void OnFiltreCancel();
-			void SetFile(wxString filename);
+			void SetFile(wxString filename, CLayerList* layers);
 			wxString GetFilename();
 
 			void ShowFiltre(const wxString& title);
@@ -52,7 +53,7 @@ namespace Regards
 			CInfoEffectWnd * historyEffectWnd;
 			CThumbnailViewerEffectWnd * thumbnailEffectWnd;
 			CFiltreEffectScrollWnd * filtreEffectWnd;
-
+			CLayerList* layers;
 			CInfosFileWnd * infosFileWnd;
 			CToolbarInfos * infosToolbar;
 			COcrWnd * ocrWnd;

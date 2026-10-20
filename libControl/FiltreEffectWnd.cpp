@@ -22,7 +22,7 @@ using namespace Regards::Control;
 
 
 CFiltreEffectScrollWnd::CFiltreEffectScrollWnd(wxWindow* parent, wxWindowID id, const CThemeScrollBar& themeScroll,
-                                               const CThemeTree& themeTree, int bitmapWindowId)
+	const CThemeTree& themeTree, int bitmapWindowId)
 	: CTreeWithScrollbar("CFiltreEffectScrollWnd", parent, id, themeScroll, themeTree, "Filtre", true)
 {
 	this->bitmapWindowId = bitmapWindowId;
@@ -88,13 +88,11 @@ void CFiltreEffectScrollWnd::OnFiltreCancel()
 		bitmapViewer->RemoveListener();
 
 	filtreEffectOld.reset();
-
 }
 
-void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, int numLayer)
+void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, CLayerList * currentLayers, int numLayer)
 {
 	this->numLayer = numLayer;
-	//auto bitmapViewer = static_cast<CBitmapWndViewer*>(this->FindWindowById(bitmapWindowId));
 	CBitmapWndViewer* bitmapViewer = nullptr;
 	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(FindWindowById(bitmapWindowId));
 	if (bitmapWindow != nullptr)
@@ -108,13 +106,16 @@ void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* hi
 		{
 			auto* effect = filtreEffectOld->GetEffectParameter();
 			effect->layerId = this->layerId;
-			historyEffectWnd->AddModification(numFiltre, effect, CFiltreData::GetFilterLabel(numFiltre));
+
+			// Transmission de currentLayers au gestionnaire d'historique unifié
+			if (historyEffectWnd != nullptr)
+			{
+				historyEffectWnd->AddModification(numFiltre, effect, CFiltreData::GetFilterLabel(numFiltre), currentLayers);
+			}
 		}
 
 		if (imageLoad != nullptr)
 			SetBitmapToViewer(imageLoad);
-
-		//filtreEffectOld->UpdateSourceBitmap(imageLoad->GetMatImage());
 	}
 
 	if (bitmapViewer != nullptr && CFiltreData::NeedPreview(numFiltre))
@@ -135,7 +136,7 @@ int CFiltreEffectScrollWnd::GetNumFiltre()
 }
 
 void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* historyEffectWnd, const wxString& filename,
-                                         const int& isVideo, int panelId, int previewId)
+	const int& isVideo, int panelId, int previewId)
 {
 	auto panelInfos = this->FindWindowById(panelId);
 	auto previewWindow = this->FindWindowById(previewId);
@@ -168,138 +169,106 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 
 		if (bitmapViewer != nullptr)
 		{
-			//auto filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
 			int typeData = CFiltreData::TypeApplyFilter(numItem);
 
 			switch (typeData)
 			{
 			case 1:
+			{
+				wxCommandEvent evt(wxEVENT_APPLYEFFECT);
+				evt.SetInt(numItem);
+				previewWindow->GetEventHandler()->AddPendingEvent(evt);
+
+				if (previewWindow != nullptr)
 				{
-					wxCommandEvent evt(wxEVENT_APPLYEFFECT);
-					evt.SetInt(numItem);
-					previewWindow->GetEventHandler()->AddPendingEvent(evt);
-
-
-					if (previewWindow != nullptr)
-					{
-						wxCommandEvent wx_command_event(wxEVENT_SHOWTOOLBARFILTRE);
-						wx_command_event.SetInt(numItem);
-						previewWindow->GetEventHandler()->AddPendingEvent(wx_command_event);
-					}
-					bitmapViewer->SetTool(numItem);
-					bitmapViewer->SetBitmapPreviewEffect(numItem);
+					wxCommandEvent wx_command_event(wxEVENT_SHOWTOOLBARFILTRE);
+					wx_command_event.SetInt(numItem);
+					previewWindow->GetEventHandler()->AddPendingEvent(wx_command_event);
 				}
-				break;
+				bitmapViewer->SetTool(numItem);
+				bitmapViewer->SetBitmapPreviewEffect(numItem);
+			}
+			break;
 
 			case 2:
+			{
+				effectParameter = CFiltreData::GetEffectParameter(numItem);
+
+				effectParameter->layerId = layerId;
+				bitmapViewer->SetBitmapPreviewEffect(numItem);
+
+				bitmap.reset(bitmapViewer->GetBitmap(true));
+
+				if (filtreEffect == nullptr)
+					filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
+
+				filtreEffect->Init(effectParameter, bitmap->GetMatImage().clone(), filename, numItem);
+
+				if (previewWindow != nullptr)
 				{
-					effectParameter = CFiltreData::GetEffectParameter(numItem);
-
-					effectParameter->layerId = layerId;
-					bitmapViewer->SetBitmapPreviewEffect(numItem);
-
-					bitmap.reset(bitmapViewer->GetBitmap(true));
-
-					if(filtreEffect == nullptr)
-						filtreEffect = new CFiltreEffect(bitmapViewer, treeWindow, isVideo, bitmapWindowId);
-
-					filtreEffect->Init(effectParameter, bitmap->GetMatImage().clone(), filename, numItem);
-
-					if (previewWindow != nullptr)
-					{
-						wxCommandEvent evt(wxEVENT_SHOWTOOLBARFILTRE);
-						evt.SetInt(numItem);
-						previewWindow->GetEventHandler()->AddPendingEvent(evt);
-					}
-
-					//if (previewWindow != nullptr)
-					//	previewWindow->ShowValidationToolbar(true, numItem);
-
-					if (panelInfos != nullptr)
-					{
-						wxCommandEvent evt(wxEVENT_SHOWFILTRE);
-						evt.SetInt(numItem);
-						panelInfos->GetEventHandler()->AddPendingEvent(evt);
-					}
-					//panelInfos->ShowFiltre(CFiltreData::GetFilterLabel(numItem));
-					treeWindow->SetTreeControl(filtreEffect);
-
-					filtreEffectOld.reset(filtreEffect);
-
-
-					break;
+					wxCommandEvent evt(wxEVENT_SHOWTOOLBARFILTRE);
+					evt.SetInt(numItem);
+					previewWindow->GetEventHandler()->AddPendingEvent(evt);
 				}
 
-			default:
+				if (panelInfos != nullptr)
 				{
-					CImageLoadingFormat* imageLoad = CFilterWindowParam::RenderEffect(
-						effectParameter, bitmapViewer, numItem);
-
-					historyEffectWnd->AddModification(numItem, effectParameter, CFiltreData::GetFilterLabel(numItem));
-
-					if (imageLoad != nullptr)
-						SetBitmapToViewer(imageLoad);
+					wxCommandEvent evt(wxEVENT_SHOWFILTRE);
+					evt.SetInt(numItem);
+					panelInfos->GetEventHandler()->AddPendingEvent(evt);
 				}
+				treeWindow->SetTreeControl(filtreEffect);
+
+				filtreEffectOld.reset(filtreEffect);
 				break;
 			}
+
+			default:
+			{
+				// Note : Si vous effectuez un traitement direct sans aperçu interactif,
+				// assurez-vous d'avoir accès à la liste des calques courante si besoin pour l'historique.
+				CImageLoadingFormat* imageLoad = CFilterWindowParam::RenderEffect(
+					effectParameter, bitmapViewer, numItem);
+
+				if (imageLoad != nullptr)
+					SetBitmapToViewer(imageLoad);
+			}
+			break;
+			}
 		}
-		
 	}
 	else
 	{
 		auto showVideo = static_cast<CShowElement*>(this->FindWindowById(SHOWBITMAPVIEWERID));
-		
+
 		switch (numItem)
 		{
 		case IDM_FILTRE_VIDEO:
-			{
-				auto filtreEffect = new CFiltreEffect(showVideo, treeWindow, isVideo, bitmapWindowId);
-
-				effectParameter = showVideo->GetParameter();
-				showVideo->SetVideoPreviewEffect(effectParameter);
-				cv::Mat bitmap;
-				filtreEffect->Init(effectParameter, bitmap, filename, numItem);
-
-				if (panelInfos != nullptr)
-				{
-					wxCommandEvent evt(wxEVENT_SHOWFILTRE);
-					evt.SetInt(numItem);
-					panelInfos->GetEventHandler()->AddPendingEvent(evt);
-				}
-
-				treeWindow->SetTreeControl(filtreEffect);
-				filtreEffectOld.reset(filtreEffect);
-				break;
-			}
-
 		case IDM_FILTRE_AUDIOVIDEO:
+		{
+			auto filtreEffect = new CFiltreEffect(showVideo, treeWindow, isVideo, bitmapWindowId);
+
+			effectParameter = showVideo->GetParameter();
+			showVideo->SetVideoPreviewEffect(effectParameter);
+			cv::Mat bitmap;
+			filtreEffect->Init(effectParameter, bitmap, filename, numItem);
+
+			if (panelInfos != nullptr)
 			{
-				auto filtreEffect = new CFiltreEffect(showVideo, treeWindow, isVideo, bitmapWindowId);
-
-				effectParameter = showVideo->GetParameter();
-				showVideo->SetVideoPreviewEffect(effectParameter);
-				cv::Mat bitmap;
-				filtreEffect->Init(effectParameter, bitmap, filename, numItem);
-
-				if (panelInfos != nullptr)
-				{
-					wxCommandEvent evt(wxEVENT_SHOWFILTRE);
-					evt.SetInt(numItem);
-					panelInfos->GetEventHandler()->AddPendingEvent(evt);
-				}
-				//panelInfos->ShowFiltre(CFiltreData::GetFilterLabel(numItem));
-
-
-				treeWindow->SetTreeControl(filtreEffect);
-				filtreEffectOld.reset(filtreEffect);
-				break;
+				wxCommandEvent evt(wxEVENT_SHOWFILTRE);
+				evt.SetInt(numItem);
+				panelInfos->GetEventHandler()->AddPendingEvent(evt);
 			}
-		default: ;
+
+			treeWindow->SetTreeControl(filtreEffect);
+			filtreEffectOld.reset(filtreEffect);
+			break;
+		}
+		default:;
 		}
 	}
 	this->Resize();
 }
-
 
 CFiltreEffect* CFiltreEffectScrollWnd::GetFiltreEffect()
 {

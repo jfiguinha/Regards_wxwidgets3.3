@@ -113,10 +113,10 @@ void CMediaLoader::SetPanelInfos(const bool& isThumbnail)
     if (panelInfosWindow->GetFilename() != filename)
     {
         if (isVideo)
-            panelInfosWindow->SetVideoFile(filename);
+            panelInfosWindow->SetVideoFile(filename, nullptr);
         else
         {
-            panelInfosWindow->SetBitmapFile(filename, isThumbnail);
+            panelInfosWindow->SetBitmapFile(filename, isThumbnail, previewWindow->GetLayerList());
             
         }
         panelInfosWindow->Refresh();
@@ -124,7 +124,7 @@ void CMediaLoader::SetPanelInfos(const bool& isThumbnail)
     }
     else if (!isThumbnail)
     {
-        panelInfosWindow->SetBitmapFile(filename, isThumbnail);
+        panelInfosWindow->SetBitmapFile(filename, isThumbnail, previewWindow->GetLayerList());
         panelInfosWindow->Refresh();
         panelInfosWindow->Update();
         panelPhotoWindow->SetPanelBitmap(true);

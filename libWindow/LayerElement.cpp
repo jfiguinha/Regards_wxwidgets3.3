@@ -6,10 +6,10 @@
 #include <algorithm>
 #include <atomic>
 #include <LayerFonction.h>
-// ============================================================================
-// Implémentation : LayerElement (Mère)
-// ============================================================================
 
+// ============================================================================
+// Implémentation : LayerElement (Classe Mère)
+// ============================================================================
 
 std::atomic<uint64_t> LayerElement::counter{ 0 };
 
@@ -17,22 +17,57 @@ LayerElement::LayerElement() {}
 
 LayerElement::LayerElement(const LayerElement& other)
 {
+    // 1. Propriétés graphiques et d'affichage
     numLayer = other.numLayer;
     isVisible = other.isVisible;
     blendMode = other.blendMode;
     opacity = other.opacity;
     layerName = other.layerName + " _copy";
+    typeLayer = other.typeLayer;
 
-    if (other.picture)
-        picture = new CImageLoadingFormat(*other.picture);
+    // 2. Gestion de l'invalidation et des versions
+    needTextureUpdate = true; // Forcé à true pour reconstruire la texture GPU sur la nouvelle liste
+    pictureVersion = other.pictureVersion;
 
-    needTextureUpdate = true;
+    // 3. Dimensions et Positionnement géométrique
+    textureWidth = other.textureWidth;
+    textureHeight = other.textureHeight;
+    x = other.x;
+    y = other.y;
+
+    // 4. Copie stricte de l'identifiant unique du calque (indispensable pour FindElementByLayerId)
+    layerId = other.layerId;
+
+    // 5. Copie profonde de l'image de travail CPU (buffer de pixels indépendant)
+    picture = CloneImage(other.picture);
+
+    // 6. Copie profonde de l'image d'origine CPU (Source brute, buffer indépendant de 'picture')
+    originalPicture = CloneImage(other.originalPicture);
 }
+
+CImageLoadingFormat* LayerElement::CloneImage(CImageLoadingFormat* source)
+{
+    if (source == nullptr)
+        return nullptr;
+
+    auto* copy = new CImageLoadingFormat();
+
+    // clone() alloue un nouveau buffer : plus aucun partage de pixels avec la source
+    cv::Mat mat = source->GetMatrix().getMat().clone();
+    copy->SetPicture(mat);
+    copy->SetOrientation(source->GetOrientation());
+    copy->SetFilename(source->GetFilename());
+    return copy;
+}
+
 
 LayerElement::~LayerElement()
 {
     if (picture)
         delete picture;
+
+    if (originalPicture)
+        delete originalPicture;
 }
 
 void LayerElement::SetPicture(CImageLoadingFormat* source)
@@ -41,6 +76,14 @@ void LayerElement::SetPicture(CImageLoadingFormat* source)
         delete picture;
 
     picture = source;
+
+    // Si originalPicture n'a pas encore été initialisé, on verrouille l'image d'origine
+    // en créant une instance profonde à partir de la source reçue.
+    if (originalPicture == nullptr && source != nullptr)
+    {
+        originalPicture = CloneImage(source);
+    }
+
     pictureVersion++;
     needTextureUpdate = true;
 }
@@ -64,12 +107,21 @@ uint64_t LayerElement::GetLayerId()
 }
 
 // ============================================================================
-// Implémentation : LayerElementUMat
+// Implémentation : LayerElementUMat (Classe Dérivée OpenCV)
 // ============================================================================
 LayerElementUMat::LayerElementUMat(const LayerElementUMat& other) : LayerElement(other)
 {
-    // Réinitialisation de la texture spécifique
-    m_umatTexture = cv::UMat();
+    // Partage sécurisé de la texture UMat via l'incrémentation du compteur de référence d'OpenCV
+    if (!other.m_umatTexture.empty())
+    {
+        m_umatTexture = other.m_umatTexture;
+        needTextureUpdate = false;
+    }
+    else
+    {
+        m_umatTexture = cv::UMat();
+        needTextureUpdate = true;
+    }
 }
 
 void LayerElementUMat::SetUMatTexture(const cv::UMat& texture)
@@ -88,12 +140,14 @@ cv::UMat LayerElementUMat::DetachUMatTexture()
 }
 
 // ============================================================================
-// Implémentation : LayerElementGL
+// Implémentation : LayerElementGL (Classe Dérivée OpenGL)
 // ============================================================================
 LayerElementGL::LayerElementGL(const LayerElementGL& other) : LayerElement(other)
 {
-    // Réinitialisation du pointeur spécifique OpenGL pour éviter le double-free
+    // Une texture OpenGL ne peut pas être partagée par simple copie de pointeur.
+    // On met à plat le pointeur pour forcer le thread graphique à recréer sa ressource.
     m_glTexture = nullptr;
+    needTextureUpdate = true;
 }
 
 void LayerElementGL::DeleteTexture()
@@ -121,16 +175,32 @@ Regards::OpenGL::GLTexture* LayerElementGL::DetachOpenGLTexture()
 }
 
 // ============================================================================
-// Implémentation : CLayerList (Utilisation polymorphique)
+// Implémentation : CLayerList (Gestionnaire Polymorphique de Calques)
 // ============================================================================
+
+CLayerList::CLayerList(const CLayerList& other)
+{
+    canvasWidth = other.canvasWidth;
+    canvasHeight = other.canvasHeight;
+    isChanged = true;
+    finalImage = nullptr;
+
+    // Le clonage polymorphique évite l'Object Slicing et conserve les types dérivés réels
+    for (const LayerElement* layer : other.m_layers)
+    {
+        if (layer != nullptr)
+        {
+            m_layers.push_back(layer->Clone());
+        }
+    }
+}
 
 CLayerList::~CLayerList()
 {
     delete finalImage;
     for (LayerElement* layer : m_layers)
-        delete layer; // Appelle le destructeur virtuel de la classe fille appropriée
+        delete layer; // Appelle le destructeur virtuel de la classe dérivée appropriée
 }
-
 
 bool CLayerList::erase(size_t index)
 {
@@ -138,7 +208,7 @@ bool CLayerList::erase(size_t index)
 
     if (m_layers[index])
     {
-        delete m_layers[index]; // Destructeur virtuel appelé
+        delete m_layers[index];
     }
     m_layers.erase(m_layers.begin() + index);
 
@@ -154,7 +224,6 @@ bool CLayerList::copy(size_t index)
 {
     if (index >= m_layers.size() || m_layers[index] == nullptr) return false;
 
-    // Utilisation du clonage polymorphique à la place du constructeur de copie direct
     LayerElement* clonedLayer = m_layers[index]->Clone();
     clonedLayer->numLayer = m_layers.size();
     m_layers.push_back(clonedLayer);
@@ -167,7 +236,6 @@ void CLayerList::CreateLayer(wxString layerName, BackendType type)
 {
     LayerElement* newLayer = nullptr;
 
-    // Instanciation de la bonne classe fille selon le besoin de votre application
     if (type == BackendType::UMat)
         newLayer = new LayerElementUMat();
     else
@@ -191,44 +259,42 @@ void CLayerList::CreateLayer(wxString layerName, BackendType type)
     isChanged = true;
 }
 
-// Les fonctions UpdatePictureToShow, FusionLayers, MoveUp/Down, SetPropertiesLayer et SetPicture
-// restent identiques à vos implémentations précédentes, car elles n'appellent que des propriétés
-// de la classe de base ou délèguent le traitement matriciel (cv::Mat) à LayerFonction.
-
-
 void CLayerList::UpdatePictureToShow()
 {
     if (m_layers.empty() || canvasWidth <= 0 || canvasHeight <= 0)
         return;
 
+    if (!finalImage)
+        finalImage = new CImageLoadingFormat();
+
+    // SÉCURITÉ : Gestion propre du cas avec un seul calque
     if (m_layers.size() == 1)
     {
+        if (m_layers.front() && m_layers.front()->GetPicture())
+        {
+            *finalImage = *(m_layers.front()->GetPicture());
+        }
         isChanged = false;
         return;
     }
 
-    cv::Mat canvas = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
+    cv::Mat canvas(canvasHeight, canvasWidth, CV_8UC4, cv::Scalar(0, 0, 0, 0));
 
-    // Le vecteur est ordonné du premier plan (index 0) vers l'arrière-plan.
-    // La composition se fait donc du fond vers le premier plan.
+    // Composition du fond vers le premier plan.
     for (auto it = m_layers.rbegin(); it != m_layers.rend(); ++it)
-        LayerFonction::CompositeOneLayer(canvas, *it, canvasWidth, canvasHeight);
+    {
+        if (*it == nullptr)
+            continue;
 
-    if (!finalImage)
-        finalImage = new CImageLoadingFormat();
+        LayerFonction::CompositeOneLayer(canvas, *it, canvasWidth, canvasHeight);
+    }
 
     finalImage->SetPicture(canvas);
     isChanged = false;
 }
 
-
-/**
- * Modifie les propriétés d'un calque spécifique et demande un rafraîchissement.
- * Retourne true si le calque a été mis à jour avec succès.
- */
 bool CLayerList::SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity)
 {
-    // 1. Validation de l'index du calque
     if (numLayer < 0 || static_cast<size_t>(numLayer) >= m_layers.size())
         return false;
 
@@ -236,26 +302,18 @@ bool CLayerList::SetPropertiesLayer(int numLayer, wxString layerName, LayerBlend
     if (!layer)
         return false;
 
-    // 2. Validation et encadrement de l'opacité (ex: entre 0 et 100)
     int validOpacity = opacity;
     if (validOpacity < 0) validOpacity = 0;
     if (validOpacity > 100) validOpacity = 100;
 
-    // 3. Application des nouvelles propriétés
     layer->layerName = layerName;
     layer->blendMode = blendMode;
     layer->opacity = validOpacity;
 
-    // 4. Signaler le changement pour recalculer le rendu final (dans GetPictureToShow)
     isChanged = true;
-
     return true;
 }
 
-/**
- * Fusionne une liste d'indices de calques en un seul calque unique.
- * Le calque final est placé à la position du calque le plus haut de la sélection.
- */
 bool CLayerList::FusionLayers(std::vector<int>* listLayer)
 {
     if (!listLayer || listLayer->size() < 2 || canvasWidth <= 0 || canvasHeight <= 0)
@@ -264,7 +322,6 @@ bool CLayerList::FusionLayers(std::vector<int>* listLayer)
     std::vector<int> indices = *listLayer;
     std::sort(indices.begin(), indices.end());
 
-    // Refuser les doublons et tous les indices invalides avant de modifier la liste.
     if (std::adjacent_find(indices.begin(), indices.end()) != indices.end())
         return false;
 
@@ -276,8 +333,6 @@ bool CLayerList::FusionLayers(std::vector<int>* listLayer)
 
     cv::Mat merged = cv::Mat::zeros(canvasHeight, canvasWidth, CV_8UC4);
 
-    // Même ordre que l'aperçu : fond vers premier plan, en conservant
-    // visibilité, opacité et mode de fusion de chaque calque sélectionné.
     for (auto it = indices.rbegin(); it != indices.rend(); ++it)
         LayerFonction::CompositeOneLayer(merged, m_layers[*it], canvasWidth, canvasHeight);
 
@@ -292,7 +347,6 @@ bool CLayerList::FusionLayers(std::vector<int>* listLayer)
     target->blendMode = LayerBlendMode::Normal;
     target->isVisible = true;
 
-    // Suppression en ordre décroissant pour ne pas décaler les indices restants.
     for (auto it = indices.rbegin(); it != indices.rend(); ++it)
     {
         if (static_cast<size_t>(*it) == targetIndex)
@@ -320,19 +374,12 @@ LayerElement* CLayerList::FindElementByLayerId(const uint64_t& layerId)
     return nullptr;
 }
 
-/**
- * Déplace un calque vers le haut visuellement (diminue son index dans le vecteur).
- */
 bool CLayerList::MoveUpLayer(size_t index)
 {
-    // Index 0 est déjà au sommet du vecteur (premier plan visuel)
     if (index == 0 || index >= m_layers.size())
         return false;
 
-    // Échanger le calque avec celui du dessus (index - 1)
     std::swap(m_layers[index], m_layers[index - 1]);
-
-    // Mettre à jour les numéros de calque internes
     m_layers[index]->numLayer = index;
     m_layers[index - 1]->numLayer = index - 1;
 
@@ -340,65 +387,42 @@ bool CLayerList::MoveUpLayer(size_t index)
     return true;
 }
 
-/**
- * Déplace un calque vers le bas visuellement (augmente son index dans le vecteur).
- */
-bool CLayerList::MoveDownLayer(size_t index)
-{
-    // Le dernier index est déjà tout au fond
-    if (m_layers.empty() || index >= m_layers.size() - 1)
-        return false;
-
-    // Échanger le calque avec celui du dessous (index + 1)
+bool CLayerList::MoveDownLayer(size_t index) {
+    if (m_layers.empty() || index >= m_layers.size() - 1) return false;
     std::swap(m_layers[index], m_layers[index + 1]);
-
-    // Mettre à jour les numéros de calque internes
     m_layers[index]->numLayer = index;
     m_layers[index + 1]->numLayer = index + 1;
-
     isChanged = true;
     return true;
 }
-
-
-
-void CLayerList::push_back(LayerElement* element)
-{
-    if (!element)
-        return;
-
-    if (!element->GetPicture())
-        return;
-
-    if (m_layers.size() == 0 && element->GetPicture())
-    {
+void CLayerList::push_back(LayerElement* element) {
+    if (!element || !element->GetPicture()) return;
+    if (m_layers.size() == 0) {
         canvasWidth = element->GetPicture()->GetWidth();
         canvasHeight = element->GetPicture()->GetHeight();
     }
-
     isChanged = true;
-
     m_layers.push_back(element);
 }
-
-
-
-CImageLoadingFormat* CLayerList::GetPictureToShow()
-{
-    if (m_layers.empty())
-        return nullptr;
-
+CImageLoadingFormat* CLayerList::GetPictureToShow() {
+    if (m_layers.empty()) return nullptr;
     if (m_layers.size() == 1 && m_layers.front())
         return m_layers.front()->GetPicture();
-
-    if (canvasWidth <= 0 || canvasHeight <= 0)
-        return nullptr;
-
-    if (!finalImage)
+    if (canvasWidth <= 0 || canvasHeight <= 0) return nullptr;
+    if (finalImage == nullptr) {
         finalImage = new CImageLoadingFormat();
-
-    if (isChanged)
+        isChanged = true;
+    }
+    if (isChanged) {
         UpdatePictureToShow();
-
+    }
     return finalImage;
+}
+CImageLoadingFormat* CLayerList::ClonePictureToShow() {
+    if (isChanged) {
+        UpdatePictureToShow();
+    }
+    CImageLoadingFormat* currentPicture = GetPictureToShow();
+    if (currentPicture == nullptr) return nullptr;
+    return new CImageLoadingFormat(*currentPicture);
 }

@@ -191,6 +191,15 @@ void CShowElement::FlipHorizontal() { ActiveViewer()->FlipHorizontal(); }
 void CShowElement::Rotate90()       { ActiveViewer()->Rotate90();       }
 void CShowElement::Rotate270()      { ActiveViewer()->Rotate270();      }
 
+
+CLayerList* CShowElement::GetLayerList()
+{
+    if (bitmapWindow)
+        return bitmapWindow->GetLayerList();
+
+    return nullptr;
+}
+
 // ============================================================================
 // Affichage / plein écran
 // ============================================================================

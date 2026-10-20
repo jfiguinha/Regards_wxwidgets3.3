@@ -2,6 +2,10 @@
 #pragma once
 #include <ImageLoadingFormat.h>
 #include "LayerBlend.h"
+#include <vector>
+#include <memory>
+#include <atomic>
+#include <wx/string.h>
 
 #define TYPE_OPENGL 1
 #define TYPE_OPENCL 2
@@ -9,11 +13,8 @@
 // Forward declaration pour éviter d'inclure les headers OpenGL partout
 namespace Regards { namespace OpenGL { class GLTexture; } }
 
-
-
-
 // ============================================================================
-// CLASSE MÈRE : LayerElement
+// CLASSE MÈRE ANCRÉE : LayerElement
 // ============================================================================
 class LayerElement
 {
@@ -21,9 +22,7 @@ public:
     LayerElement();
     virtual ~LayerElement();
 
-
-
-    // Constructeur de copie "virtuel" (Pattern Prototype)
+    // Constructeur de copie "virtuel" (Pattern Prototype) pour éviter le Slicing
     virtual LayerElement* Clone() const = 0;
 
     // Interface virtuelle pour la gestion des ressources spécifiques
@@ -35,9 +34,21 @@ public:
         return typeLayer;
     }
 
-    // Accesseurs communs
+    // Accesseurs communs de gestion des images CPU
     void SetPicture(CImageLoadingFormat* source);
     CImageLoadingFormat* GetPicture() const { return picture; }
+    CImageLoadingFormat* GetOriginalPicture() const { return originalPicture; }
+
+    // Restaure le calque à son état initial non modifié (Source brute)
+    void ResetToOriginal()
+    {
+        if (originalPicture != nullptr)
+        {
+            // On écrase 'picture' avec une copie neuve de 'originalPicture'
+            // SetPicture n'écrasera pas originalPicture car il est déjà initialisé
+            SetPicture(CloneImage(originalPicture));
+        }
+    }
 
     // Propriétés publiques communes
     LayerBlendMode blendMode = LayerBlendMode::Normal;
@@ -58,10 +69,16 @@ public:
     static uint64_t GetLayerId();
 
 protected:
-    // Constructeur de copie protégé utilisé par les classes dérivées
+    // Constructeur de copie protégé utilisé par le mécanisme de clonage des classes dérivées
     LayerElement(const LayerElement& other);
 
+    // Copie profonde garantie : nouveau buffer de pixels (cv::Mat::clone) + métadonnées.
+    // Ne dépend pas de la profondeur de CImageLoadingFormat::operator= / constructeur de copie.
+    // Retourne nullptr si source est nullptr. L'appelant devient propriétaire du résultat.
+    static CImageLoadingFormat* CloneImage(CImageLoadingFormat* source);
+
     CImageLoadingFormat* picture = nullptr;
+    CImageLoadingFormat* originalPicture = nullptr; // <--- Stockage persistant de l'image de départ
 
     static std::atomic<uint64_t> counter;
     int typeLayer = 0;
@@ -91,7 +108,6 @@ protected:
 
 private:
     cv::UMat m_umatTexture;
-
 };
 
 // ============================================================================
@@ -102,7 +118,6 @@ class LayerElementGL : public LayerElement
 public:
     LayerElementGL() : LayerElement(), m_glTexture(nullptr) {
         typeLayer = TYPE_OPENGL;
-
     }
     virtual ~LayerElementGL() { DeleteTexture(); }
 
@@ -122,12 +137,16 @@ private:
 };
 
 // ============================================================================
-// GESTIONNAIRE DE LISTE : CLayerList (Inchangé dans ses algorithmes)
+// GESTIONNAIRE DE LISTE : CLayerList (Sécurisé pour l'historique)
 // ============================================================================
 class CLayerList
 {
 public:
     CLayerList() = default;
+
+    // Constructeur par recopie profonde indispensable pour le ModificationManager
+    CLayerList(const CLayerList& other);
+
     ~CLayerList();
 
     LayerElement* FindElementByLayerId(const uint64_t& layerId);
@@ -145,10 +164,13 @@ public:
     auto end() const { return m_layers.end(); }
 
     CImageLoadingFormat* GetPictureToShow();
+
+    // Extrait une copie d'export ou d'affichage isolée de l'image finale composite
+    CImageLoadingFormat* ClonePictureToShow();
+
     int GetWidth() const { return canvasWidth; }
     int GetHeight() const { return canvasHeight; }
     void IsChanged(bool changed) { this->isChanged = changed; }
-
 
     void UpdateCanvasSize(const int& width, const int& height)
     {
@@ -158,8 +180,8 @@ public:
             canvasHeight = height;
             isChanged = true;
         }
-        
     }
+
     void UpdatePictureToShow();
     bool erase(size_t index);
     bool copy(size_t index);
@@ -167,10 +189,7 @@ public:
     bool MoveUpLayer(size_t index);
     bool MoveDownLayer(size_t index);
 
-    // Ajout d'un enum ou paramètre pour savoir quel type instancier par défaut
-    
     void CreateLayer(wxString layerName, BackendType type = BackendType::UMat);
-
     bool SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity);
 
 private:
@@ -180,4 +199,3 @@ private:
     int canvasWidth = 0;
     int canvasHeight = 0;
 };
-

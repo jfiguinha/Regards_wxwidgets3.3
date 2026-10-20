@@ -270,7 +270,7 @@ void CViewerPDF::LoadAnimationBitmap(const wxString& filename, const int& numFra
 	}
 
 	if (panelInfosWindow != nullptr)
-		panelInfosWindow->SetFile(filename);
+		panelInfosWindow->SetFile(filename, showBitmapWindow->GetLayerList());
 }
 
 void CViewerPDF::ImageSuivante()

@@ -13,6 +13,7 @@
 #include <wx/webview.h>
 #include <wx/animate.h>
 #include "CriteriaWindow.h"
+#include <LayerElement.h>
 #include "PicturePanel.h"
 #include <InfosFileWnd.h>
 #include "FiltreEffect.h"
@@ -43,9 +44,9 @@ namespace Regards
 			~CPanelInfosWnd() = default;
 			void OnFiltreOk(const int& numFiltre);
 			void OnFiltreCancel();
-			void SetBitmapFile(const wxString& filename, const bool& isThumbnail);
-			void SetVideoFile(const wxString& filename);
-			void SetAnimationFile(const wxString& filename);
+			void SetBitmapFile(const wxString& filename, const bool& isThumbnail, CLayerList* layers);
+			void SetVideoFile(const wxString& filename, CLayerList* layers);
+			void SetAnimationFile(const wxString& filename, CLayerList* layers);
 			void ShowFiltre(const wxString& title);
 
 			CFiltreEffect* GetFilterWindow(int& numFiltre);
@@ -73,6 +74,7 @@ namespace Regards
 			CFiltreEffectScrollWnd * filtreEffectWnd;
 			CCriteriaWindow * criteriaTreeWnd;
 			CPicturePanel * picturePanel;
+			CLayerList* layers;
 
 			wxWebView * webBrowser = nullptr;
 			CToolbarInfos * infosToolbar;

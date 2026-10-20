@@ -2,6 +2,7 @@
 #include <FiltreEffectWnd.h>
 #include <InfoEffectWnd.h>
 #include <FiltreToolbar.h>
+#include <ListLayer.h>
 using namespace Regards::Control;
 
 #define TYPE_DRAWING 1
@@ -11,6 +12,8 @@ using namespace Regards::Control;
 class ParameterDialog : public wxDialog {
 public:
     ParameterDialog(wxWindow* parent);
+
+    void SetListLayer(CLayerList * listLayer);
     void SetFiltre(const int& numFiltre, const int64_t& numLayerId, CInfoEffectWnd* historyEffectWnd, const wxString& filename, const int& bitmapViewerId, const int& mainViewerId);
     void SetTypeFiltre(const int& typeFiltre);
     void SetColor(const wxColour& color1, const wxColour& color2);
@@ -24,6 +27,7 @@ private:
     CInfoEffectWnd* historyEffectWnd = nullptr;
     CFiltreEffectScrollWnd* filtreEffectWnd = nullptr;
     CFiltreToolbar* filtreToolbar = nullptr;
+    CLayerList * listLayer;
 
     int numLayer = 0;
     int64_t numLayerId = 0;

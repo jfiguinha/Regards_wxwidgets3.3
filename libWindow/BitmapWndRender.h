@@ -163,6 +163,10 @@ namespace Regards::Window
 
 		virtual void ApplyEffectOnMouseRelease() {};
 
+		LayerElement* GetElement(const int& numLayer);
+
+		CLayerList* GetLayerList();
+
 	protected:
 
 		void OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL) override;
@@ -189,8 +193,8 @@ namespace Regards::Window
 		virtual void OnMoveBottom(wxCommandEvent& event);
 		virtual void OnScrollMove(wxCommandEvent& event);
 		virtual void OnUpdateFiltre(wxCommandEvent& event);
-		virtual void OnUpdateLayerBitmap(wxCommandEvent& event) {};
-
+		virtual void OnUpdateLayerBitmap(wxCommandEvent& event);
+		virtual void OnUpdateLayerModification(wxCommandEvent& event);
 		void UpdateLayer(CImageLoadingFormat* bitmapIn);
 		int IsSupportCuda();
 
@@ -370,7 +374,7 @@ namespace Regards::Window
 		int copyY = 0;
 		int numLayerCopy = 0;
 
-		CLayerList listOfLayer;
+		std::unique_ptr<CLayerList> listOfLayer;
 		int numActifLayer = 0;
 	};
 }

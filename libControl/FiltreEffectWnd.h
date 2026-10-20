@@ -1,5 +1,5 @@
 //
-//  FiltreEffectWnd.hpp
+//  FiltreEffectWnd.h
 //  Regards.libViewer
 //
 //  Created by figuinha jacques on 02/10/2015.
@@ -10,6 +10,7 @@
 #include "FiltreEffect.h"
 #include <TreeWithScrollbar.h>
 #include <ImageLoadingFormat.h>
+#include "LayerElement.h" // Nécessaire pour manipuler CLayerList
 using namespace Regards::Window;
 
 
@@ -21,12 +22,15 @@ namespace Regards::Control
 	{
 	public:
 		CFiltreEffectScrollWnd(wxWindow* parent, wxWindowID id, const CThemeScrollBar& themeScroll,
-		                       const CThemeTree& themeTree, int bitmapWindowId);
+			const CThemeTree& themeTree, int bitmapWindowId);
 		~CFiltreEffectScrollWnd(void) = default;
 
 		void ApplyEffect(const int& numItem, CInfoEffectWnd* historyEffectWnd, const wxString& filename,
-		                 const int& isVideo, int panelId, int previewId);
-		void OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, int numLayer = -1);
+			const int& isVideo, int panelId, int previewId);
+
+		// Mise à jour de la signature pour accepter la liste des calques actuelle (currentLayers)
+		void OnFiltreOk(const int& numFiltre, CInfoEffectWnd* historyEffectWnd, CLayerList * currentLayers, int numLayer = -1);
+
 		void OnFiltreCancel();
 		CFiltreEffect* GetFiltreEffect();
 		int GetNumFiltre();
@@ -37,13 +41,13 @@ namespace Regards::Control
 	private:
 		void OnUpdateFilter(wxCommandEvent& event);
 		void SetBitmapToViewer(CImageLoadingFormat* bitmap);
-		//CImageLoadingFormat * SetBitmapEffect(const int &effect, CEffectParameter * effectParameter, CRegardsBitmap * bitmap);
+
 		std::unique_ptr<CImageLoadingFormat> bitmap;
-		CEffectParameter * effectParameter;
+		CEffectParameter* effectParameter;
 		std::unique_ptr<CFiltreEffect> filtreEffectOld;
 		int numFiltre;
 		int layerId = 0;
-		int numLayer =0;
+		int numLayer = 0;
 		int bitmapWindowId;
 	};
 }

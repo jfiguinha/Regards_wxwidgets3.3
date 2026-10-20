@@ -51,7 +51,7 @@ namespace Regards::Control
 		void SetNormalMode();
 		void SetNextPictureMove(const bool& value);
 		void UpdateFiltre(CEffectParameter* effectParameter) override;
-		void OnFiltreOk();
+		virtual void OnFiltreOk();
 		void OnFiltreCancel();
 		CRgbaquad GetBackColor() override;
 		int GetOrientation() override;
@@ -71,6 +71,8 @@ namespace Regards::Control
 		static std::unique_ptr<IAfterEffect> AfterEffectPt(const int& numFilter);
 
 	protected:
+
+		LayerElement* GetActiveLayerElement();
 
 		void SetTransitionBitmap(CImageLoadingFormat* bmpSecond) override;
 		void StartTransitionEffect(CImageLoadingFormat* bmpSecond, const bool& setPicture) override;

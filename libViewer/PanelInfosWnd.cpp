@@ -314,10 +314,12 @@ wxString CPanelInfosWnd::GetFilename()
 	return filename;
 }
 
-void CPanelInfosWnd::SetAnimationFile(const wxString& filename)
+void CPanelInfosWnd::SetAnimationFile(const wxString& filename, CLayerList* layers)
 {
 	if (this->filename != filename)
 	{
+		this->layers = layers;
+
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
 		infosToolbar->SetPictureThumbnailToolbar();
@@ -333,10 +335,12 @@ void CPanelInfosWnd::SetAnimationFile(const wxString& filename)
 	}
 }
 
-void CPanelInfosWnd::SetVideoFile(const wxString& filename)
+void CPanelInfosWnd::SetVideoFile(const wxString& filename, CLayerList* layers)
 {
 	if (this->filename != filename)
 	{
+		this->layers = layers;
+
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
 
@@ -372,7 +376,7 @@ void CPanelInfosWnd::SetVideoFile(const wxString& filename)
 	}
 }
 
-void CPanelInfosWnd::SetBitmapFile(const wxString& filename, const bool& isThumbnail)
+void CPanelInfosWnd::SetBitmapFile(const wxString& filename, const bool& isThumbnail, CLayerList* layers)
 {
 	if (!isThumbnail)
 		infosToolbar->SetPictureToolbar();
@@ -381,6 +385,8 @@ void CPanelInfosWnd::SetBitmapFile(const wxString& filename, const bool& isThumb
 
 	if (this->filename != filename)
 	{
+		this->layers = layers;
+
 		infosToolbar->SetEffectParameterInactif();
 		this->filename = filename;
 
@@ -452,7 +458,7 @@ void CPanelInfosWnd::OnFiltreOk(const int& numFiltre)
 		
 		
 		wxBusyInfo wait(CLibResource::LoadStringFromResource("LBLSTOPWORKINGMSG", 1));
-		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
+		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd, layers);
 		bitmapViewer->SetBitmapPreviewEffect(0);
 	}
 
@@ -539,7 +545,7 @@ void CPanelInfosWnd::HistoryUpdate()
 		if (bitmapViewer != nullptr)
 		{
 			CImageLoadingFormat* bitmap = bitmapViewer->GetBitmap(true);
-			historyEffectWnd->HistoryUpdate(bitmap, layerId, filename, historyLibelle, modificationManager.get());
+			historyEffectWnd->HistoryUpdate(bitmap, layers, layerId, filename, historyLibelle, modificationManager.get());
 		}
 	}
 }

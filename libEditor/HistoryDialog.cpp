@@ -7,7 +7,7 @@ using namespace Regards::Viewer;
 using namespace Regards::Control;
 
 HistoryDialog::HistoryDialog(wxWindow* parent)
-    : wxDialog(parent, wxID_ANY, "History", wxDefaultPosition, wxSize(250, 350),
+    : wxDialog(parent, HISTORYWINDOWID, "History", wxDefaultPosition, wxSize(250, 350),
         wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER | wxSTAY_ON_TOP) // wxSTAY_ON_TOP la garde visible au-dessus des images
 {
 	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
@@ -25,10 +25,16 @@ HistoryDialog::HistoryDialog(wxWindow* parent)
 
 
 	Connect(wxEVT_SIZE, wxSizeEventHandler(HistoryDialog::OnSize));
+	Connect(wxEVENT_REFRESHHISTORYLIST, wxCommandEventHandler(HistoryDialog::OnRefreshHistory));
 
 	m_statusBar = new wxStatusBar(this, wxID_ANY);
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
 	m_statusBar->SetStatusText("");
+}
+
+void HistoryDialog::OnRefreshHistory(wxCommandEvent& event)
+{
+
 }
 
 void HistoryDialog::SetHistoryControl(CInfoEffect* infoEffect)

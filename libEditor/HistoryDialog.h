@@ -13,7 +13,7 @@ public:
 
 private:
 	void OnSize(wxSizeEvent& event);
-
+    void OnRefreshHistory(wxCommandEvent& event);
     wxStatusBar* m_statusBar;
     Regards::Control::CInfoEffectWnd* historyEffectWnd;
     wxString filename;

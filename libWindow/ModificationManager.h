@@ -3,48 +3,57 @@
 #include <memory>
 #include <wx/string.h>
 #include <RGBAQuad.h>
+#include "LayerElement.h" // Nécessaire pour manipuler CLayerList
+
 class CImageLoadingFormat;
 class CEffectParameter;
 
 class CModificationManager
 {
 public:
-	CModificationManager(const wxString& folder);
-	~CModificationManager();
+    CModificationManager(const wxString& folder);
+    ~CModificationManager();
 
-	void SetNumModification(const unsigned int& numModification);
-	unsigned int GetNbModification();
-	unsigned int GetNumModification();
+    void SetNumModification(const unsigned int& numModification);
+    unsigned int GetNbModification() const;
+    unsigned int GetNumModification() const;
 
-	// Prend désormais l'image de base en paramètre pour rejouer les filtres dessus
-	CImageLoadingFormat* GetModification(const unsigned int& numModification, int64_t& layerId);
+    // Récupère l'état des calques pour une modification donnée (pour Undo/Redo/Navigation dans l'historique).
+    // Retourne une copie profonde allouée avec new : l'appelant en devient propriétaire.
+    // Retourne nullptr si l'index est invalide (jamais une liste vide, qui effacerait l'affichage).
+    CLayerList* GetLayersForModification(const unsigned int& targetModification);
 
-	// Enregistre l'ID du filtre et ses paramètres au lieu d'écrire un fichier PNG
-	void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle);
+    // Ajout d'une modification basée sur un effet (filtre)
+    void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers);
 
-	void Init(CImageLoadingFormat* bitmap);
-	wxString GetModificationLibelle(const unsigned int& numModification);
+    // Ajout d'une modification globale directe de l'état des calques (ex: Collage, Suppression, Redimensionnement, etc.)
+    // currentLayers est copié (profondeur) : l'appelant garde la propriété de son pointeur.
+    void AddModificationState(const wxString& libelle, CLayerList* currentLayers);
 
-	// Dans ModificationManager.h [2]
+    void Init(CImageLoadingFormat* bitmap, CLayerList* currentLayers);
+    wxString GetModificationLibelle(const unsigned int& numModification) const;
+
+    void EraseData();
+
 private:
-	void EraseData();
+    struct ModificationStep {
+        int filterId = -1;
+        uint64_t targetLayerId = 0; // <--- Optionnel : pour savoir quel calque précis a subi l'effet
+        std::unique_ptr<CEffectParameter> parameter;
+        wxString libelle;
+        std::unique_ptr<CLayerList> layers; // Propriétaire de l'instantané : libéré avec l'étape
+        bool hasLayerState = false;
+    };
 
-	struct ModificationStep {
-		int filterId;
-		std::unique_ptr<CEffectParameter> parameter;
-		wxString libelle;
-	};
+    int nbModification;
+    int numModification;
+    int orientation;
+    wxString folder;
+    wxString filenameBitmap;
+    CRgbaquad color_quad;
 
-	int nbModification;
-	int numModification;
-	int orientation;
-	wxString folder;
-	wxString filenameBitmap;
-	CRgbaquad color_quad;
+    CImageLoadingFormat* baseBitmap;    // Image originale décodée en RAM
+    CImageLoadingFormat* currentBitmap; // Image courante en cache
 
-	CImageLoadingFormat* baseBitmap;    // AJOUT : Stocke l'image originale décodée en RAM
-	CImageLoadingFormat* currentBitmap; // MODIFICATION : Stockera l'image à l'étape 'numModification' [1, 2]
-
-	std::vector<ModificationStep> historySteps;
-
+    std::vector<ModificationStep> historySteps;
 };

@@ -2,9 +2,6 @@
 //  InfoEffectWnd.cpp
 //  Regards.libViewer
 //
-//  Created by figuinha jacques on 02/10/2015.
-//  Copyright © 2015 figuinha jacques. All rights reserved.
-//
 #include <header.h>
 #include "InfoEffectWnd.h"
 #include <TreeWindow.h>
@@ -28,7 +25,6 @@ CTreeElementControlInterface* CInfoEffectWnd::GetTreeInterface()
 	return treeWindow;
 }
 
-
 CInfoEffectWnd::~CInfoEffectWnd(void)
 {
 	if (eraseMemory && historyEffectOld)
@@ -45,16 +41,16 @@ void CInfoEffectWnd::SetHistoryEffect(CInfoEffect* infoEffect)
 
 	if (treeWindow)
 	{
-		CTreeElementControlInterface * treeInterface = static_cast<CTreeElementControlInterface*>(treeWindow);
+		CTreeElementControlInterface* treeInterface = static_cast<CTreeElementControlInterface*>(treeWindow);
 		if (treeInterface)
 			treeInterface->UpdateTreeControl();
 	}
 }
 
-void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle)
+void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList * currentLayers)
 {
 	if (historyEffectOld != nullptr)
-		historyEffectOld->AddModification(numEffect, effectParameter, libelle);
+		historyEffectOld->AddModification(numEffect, effectParameter, libelle, currentLayers);
 
 	if (treeWindow)
 	{
@@ -64,14 +60,14 @@ void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* eff
 	}
 }
 
-void CInfoEffectWnd::HistoryUpdate(CImageLoadingFormat* bitmap, const int64_t& layerId, const wxString& filename,
-                                   const wxString& historyLibelle,
-                                   CModificationManager* modificationManager)
+void CInfoEffectWnd::HistoryUpdate(CImageLoadingFormat* bitmap, CLayerList* initialLayers, const int64_t& layerId, const wxString& filename,
+	const wxString& historyLibelle,
+	CModificationManager* modificationManager)
 {
 	if (historyEffectOld == nullptr || historyEffectOld->GetFilename() != filename)
 	{
 		auto historyEffect = new CInfoEffect(treeWindow, modificationManager, bitmapWindowId, filename);
-		historyEffect->Init(bitmap, layerId, filename, historyLibelle);
+		historyEffect->Init(bitmap, initialLayers, layerId, filename, historyLibelle);
 		treeWindow->SetTreeControl(historyEffect);
 
 		if (historyEffectOld)

@@ -418,6 +418,13 @@ void CPreviewWnd::SetFullscreen(const bool& fullscreen)
 	Resize();
 }
 
+CLayerList* CPreviewWnd::GetLayerList()
+{
+	if(showElement)
+		return showElement->GetLayerList();
+	return nullptr;
+}
+
 void CPreviewWnd::UpdateInfos()
 {
 	if (bitmapInfos != nullptr)

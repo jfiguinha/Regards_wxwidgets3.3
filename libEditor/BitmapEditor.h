@@ -2,20 +2,22 @@
 #pragma once
 #include <BitmapWndViewer.h>
 #include "LayerElement.h"
-#include "LayerCompositorGL.h"
-#include "LayerCompositorOpenCL.h"
-
+#include "LayerRenderer.h"
+#include "LayerRendererCPU.h"
+#include "LayerRendererGL.h"
+#include "LayerRendererOpenCL.h"
+#include <ModificationManager.h>
 #include <CanvasSizeDialog.h>
 
 #include <memory>
 
 class CSelectFilterParameter;
 
-class CBitmapEditor : public Regards::Control::CBitmapWndViewer
+class CBitmapEditor : public Regards::Control::CBitmapWndViewer, private ILayerScene
 {
 public:
     CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId, const CThemeBitmapWindow& theme,
-        CBitmapInterface* bitmapInterface);
+        CBitmapInterface* bitmapInterface, CModificationManager * modificationManager);
     ~CBitmapEditor(void);
 
     // --- Image / géométrie ---
@@ -31,13 +33,13 @@ public:
     void OnUpdateLayerBitmap(wxCommandEvent& event) override;
 
     CRenderOpenGL* GetRenderOpenGL() const { return renderOpenGL; }
-    CLayerList* GetListOfLayer() { return &listOfLayer; }
+    CLayerList* GetListOfLayer() { return listOfLayer.get(); }
 
     // --- Presse-papiers / sélection ---
     bool Copy();
     bool Cut();
     bool Paste();
-    bool Delete();
+    bool DeleteSelect();
 
     void SelectAll();
     void InverseAll();
@@ -54,6 +56,7 @@ public:
     void Redo();
     void ClearHistory();
 
+
 private:
     // --- Evènements ---
     void OnSetBitmap(wxCommandEvent& event) override;
@@ -63,9 +66,7 @@ private:
     void SetKey(const int& iKey) override;
     int GetKey() override;
 
-    // --- Accès au calque actif / à l'outil de sélection ---
-    // nullptr si l'index du calque actif est invalide ou si le calque est nul
-    LayerElement* GetActiveLayerElement();
+    void OnFiltreOk() override;
     // nullptr si l'outil de sélection n'est pas actif
     CSelectFilterParameter* GetSelectFilter();
     // Outil de sélection actif + calque actif avec image de taille valide
@@ -85,6 +86,7 @@ private:
     // Régénère le bitmap d'écran du calque actif si nécessaire. Retourne true si le calque actif a changé.
     bool UpdateScreenBitmap(LayerElement* activeLayer, int& widthOutput, int& heightOutput, bool bitmapIsLoad);
 
+
     // --- Etat de la vue / géométrie (communs à Resize, CanvasResize, OnUpdateLayerBitmap) ---
     void ResetViewState();
     bool UpdateBitmapSizeFromLayers();
@@ -92,49 +94,39 @@ private:
 
     // --- Composition : routage selon le backend du calque, avec repli CPU ---
     void ComposeLayers(LayerElement* typeSource, GLTexture* textureDisplay, int width, int height, bool activeDirty);
-    
-    void OnFiltreOk() override;
+    void ComposeLayersCPU(ILayerScene& scene, GLTexture* textureDisplay, int width, int height);
 
-    // --- Briques communes aux backends ---
-    bool IsActiveLayer(size_t index) const
-    {
-        return static_cast<int>(index) == numActifLayer;
-    }
+    // --- Préparation des images (utilisée via ILayerScene par les renderers) ---
     bool PrepareFilteredLayer(LayerElement* layer, CFiltreEffet* filter, int width, int height);
     cv::Mat PrepareBackgroundMat(int width, int height);
     cv::Mat PrepareLayerSource(LayerElement* layer, int width, int height, CFiltreEffet* filter);
     cv::UMat PrepareLayerSourceOpenCL(LayerElement* layer, int width, int height, CFiltreEffet* filter);
     cv::Mat PrepareActiveLayerImage(int width, int height);
     cv::UMat PrepareActiveLayerImageOpenCL(int width, int height);
-
     bool UploadToTexture(GLTexture& texture, const cv::Mat& image);
 
-    // --- Backend OpenGL ---
-    bool ComposeLayersGPU(GLTexture* textureDisplay, int width, int height, bool activeDirty);
-    void ComposeLayersCPU(GLTexture* textureDisplay, int width, int height);
-    GLTexture* GetLayerTexture(LayerElement* layer, int width, int height);
-    GLTexture* GetActiveLayerTexture(int width, int height, bool activeDirty);
-
-    // --- Backend OpenCL ---
-    bool ComposeLayersOpenCL(GLTexture* textureDisplay, int width, int height, bool activeDirty);
-    cv::UMat GetLayerUMat(LayerElement* layer, int width, int height);
-    cv::UMat GetActiveLayerUMat(int width, int height, bool activeDirty);
+    // --- ILayerScene (implémentation privée, consommée par les CLayerRenderer*) ---
+    CLayerList * SceneLayers() override;
+    int SceneActiveIndex() const override;
+    cv::Mat SceneBackground(int width, int height) override;
+    cv::Mat SceneActiveLayer(int width, int height) override;
+    cv::UMat SceneActiveLayerOpenCL(int width, int height) override;
+    cv::Mat SceneLayer(LayerElement* layer, int width, int height, bool useGLContext) override;
+    cv::UMat SceneLayerOpenCL(LayerElement* layer, int width, int height) override;
+    bool SceneHasFloating() override;
+    cv::Mat SceneFloatingMat() override;
+    cv::UMat SceneFloatingUMat() override;
+    float SceneRatio() const override;
+    cv::Point SceneFloatingPosition() const override;
+    bool SceneHasRenderContext() const override;
+    bool SceneUpload(GLTexture& texture, const cv::Mat& image) override;
 
     Regards::Picture::CPictureArray pictureBackground;
 
-    // Ressources OpenGL
-    std::unique_ptr<CLayerCompositorGL> layerCompositor;
-    std::unique_ptr<GLTexture> backgroundTexture;
-    cv::Size backgroundTextureSize;
-    std::unique_ptr<GLTexture> activeLayerTexture;
-    cv::Size activeLayerTextureSize;
-
-    // Ressources OpenCL
-    std::unique_ptr<CLayerCompositorOpenCL> layerCompositorOpenCL;
-    cv::UMat backgroundUMat;
-    cv::Size backgroundUMatSize;
-    cv::UMat activeLayerUMat;
-    cv::Size activeLayerUMatSize;
+    // Renderers d'affichage des calques (créés à la demande)
+    std::unique_ptr<CLayerRendererCPU> rendererCPU;
+    std::unique_ptr<CLayerRendererGL> rendererGL;
+    std::unique_ptr<CLayerRendererOpenCL> rendererOpenCL;
 
     bool testPaste = false;
 
@@ -143,14 +135,5 @@ private:
     bool gpuComposeFallbackLogged = false;
     bool openclComposeFallbackLogged = false;
 
-
-    // Structure pour associer un état à un libellé
-    struct HistoryItem {
-        CLayerList layers;
-        wxString label;
-    };
-
-    std::vector<HistoryItem> historyUndoStack;
-    std::vector<HistoryItem> historyRedoStack;
-    const size_t maxHistoryDepth = 20;
+    CModificationManager * modificationManager = nullptr;
 };

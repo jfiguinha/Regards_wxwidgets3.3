@@ -29,6 +29,10 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     CLibPicture libPicture;
     CImageLoadingFormat* pictureLocal = libPicture.LoadPicture(filename);
 
+    wxString historyLibelle = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1);
+    wxString folder = CFileUtility::GetDocumentFolderPath();
+    modificationManager = std::make_unique<CModificationManager>(folder);
+
     id = bitmapViewerId;
     this->mainviewerid = bitmapViewerId;
 
@@ -38,24 +42,22 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
         config->GetBitmapWindowTheme(&themeBitmap);
     }
 
-	m_filename = filename;
+    m_filename = filename;
 
     this->bitmapInterface = bitmapInterfaceIn;
 
-    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface);
+    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface, modificationManager.get());
     bitmapWindow->SetTabValue(zoomValues);
 
     bitmapWindowRender = new CBitmapWnd3D(this, bitmapViewerId);
     bitmapWindowRender->SetBitmapRenderInterface(bitmapWindow);
-	
+
     scrollbar = new CScrollbarWnd(this, bitmapWindowRender, wxID_ANY, "BitmapScroll");
 
     scrollbar->Show(true);
     bitmapWindowRender->Show(true);
 
-	bitmapWindow->SetBitmap(pictureLocal);
-
-
+    bitmapWindow->SetBitmap(pictureLocal);
 
     Connect(wxEVT_SIZE, wxSizeEventHandler(ImageDocument::OnSize));
     Connect(wxEVENT_REFRESH, wxCommandEventHandler(ImageDocument::OnRefresh));
@@ -63,37 +65,24 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocument::OnEraseBackground));
     Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocument::OnIdle));
     Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
-    // --- CORRECTION : Création manuelle de la Status Bar ---
+
+    // --- Création manuelle de la Status Bar ---
     m_statusBar = new wxStatusBar(this, wxID_ANY);
-     
-    // En passant 'this' en parent, le wxStatusBar se place automatiquement tout en bas du dialogue
-    // Définition de 3 champs : 
-    // Champ 0 (texte libre/chemin/etc.) -> Taille variable (-1)
-    // Champ 1 (Dimensions de l'image)  -> Taille fixe (120px)
-    // Champ 2 (Emplacement du Slider)  -> Taille fixe (200px)
+
     int widths[] = { -1, 120, 200 };
     m_statusBar->SetFieldsCount(3);
     m_statusBar->SetStatusWidths(3, widths);
 
-    // Création du Slider sur le Champ index 2 de la StatusBar
-    // On prend la plage d'index du vecteur zoomValues (de 0 à zoomValues.size() - 1)
     int maxZoomIndex = static_cast<int>(zoomValues.size()) - 1;
     m_zoomSlider = new wxCustomSlider(m_statusBar, wxID_ANY, zoomValues.size(), 0, zoomValues.size());
-
-    // Initialiser le slider à la position actuelle (ex: 100%)
-    // Si 100% est la 15ème valeur (index 14) :
     m_zoomSlider->SetValue(14);
-
-    // Connexion de l'événement de défilement du Slider
     m_zoomSlider->Bind(wxEVT_CUSTOM_SLIDER_CHANGED, &ImageDocument::OnSliderScroll, this);
 
-    wxString historyLibelle = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1);
-    wxString folder = CFileUtility::GetDocumentFolderPath();
-    modificationManager = std::make_unique<CModificationManager>(folder);
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, filename);
 
-    historyEffect->Init(pictureLocal, layerId, filename, historyLibelle);
-    // Mettre à jour les textes pour la première fois
+    // Initialisation avec la liste des calques actuelle du visualiseur
+    historyEffect->Init(pictureLocal, bitmapWindow->GetListOfLayer(), layerId, filename, historyLibelle);
+
     UpdateStatusText();
 }
 
@@ -114,7 +103,7 @@ bool ImageDocument::Paste()
 
 void ImageDocument::SelectAll()
 {
-    if(bitmapWindow)
+    if (bitmapWindow)
         bitmapWindow->SelectAll();
 }
 
@@ -136,7 +125,6 @@ void ImageDocument::SetPropertiesLayer(int numLayer, wxString layerName, LayerBl
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
-       // listLayer->UpdatePictureToShow();
     }
 }
 
@@ -152,7 +140,6 @@ void ImageDocument::DeleteLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->erase(numLayer);
-        //listLayer->UpdatePictureToShow();
     }
 }
 
@@ -162,7 +149,6 @@ void ImageDocument::CopyLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->copy(numLayer);
-        //listLayer->UpdatePictureToShow();
     }
 }
 
@@ -174,21 +160,19 @@ void ImageDocument::CreateLayer(wxString layerName)
 
         CRegardsConfigParam* regardsParam = CParamInit::getInstance();
         const bool openCLAvailable = cv::ocl::haveOpenCL() && regardsParam->GetIsOpenCLSupport();
-        if(openCLAvailable)
+        if (openCLAvailable)
             listLayer->CreateLayer(layerName, BackendType::UMat);
         else
             listLayer->CreateLayer(layerName, BackendType::OpenGL);
-        //listLayer->UpdatePictureToShow();
     }
 }
 
-void ImageDocument::FusionLayer(vector<int> * listLayers)
+void ImageDocument::FusionLayer(vector<int>* listLayers)
 {
     if (bitmapWindow)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->FusionLayers(listLayers);
-        //listLayer->UpdatePictureToShow();
     }
 }
 
@@ -198,7 +182,6 @@ void ImageDocument::MoveUpLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->MoveUpLayer(numLayer);
-       // listLayer->UpdatePictureToShow();
     }
 }
 
@@ -208,7 +191,6 @@ void ImageDocument::MoveDownLayer(int numLayer)
     {
         CLayerList* listLayer = bitmapWindow->GetListOfLayer();
         listLayer->MoveDownLayer(numLayer);
-     //   listLayer->UpdatePictureToShow();
     }
 }
 
@@ -241,7 +223,7 @@ CLayerList* ImageDocument::GetListOfLayer()
 {
     if (bitmapWindow)
         return bitmapWindow->GetListOfLayer();
-       
+
     return nullptr;
 }
 
@@ -253,6 +235,9 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
 {
     CLibPicture libPicture;
 
+    wxString historyLibelle = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1);
+    wxString folder = CFileUtility::GetDocumentFolderPath();
+    modificationManager = std::make_unique<CModificationManager>(folder);
 
     id = bitmapViewerId;
     this->mainviewerid = bitmapViewerId;
@@ -267,7 +252,7 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
 
     this->bitmapInterface = bitmapInterfaceIn;
 
-    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface);
+    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface, modificationManager.get());
     bitmapWindow->SetTabValue(zoomValues);
 
     bitmapWindowRender = new CBitmapWnd3D(this, bitmapViewerId);
@@ -286,37 +271,23 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocument::OnEraseBackground));
     Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocument::OnIdle));
     Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
-    // --- CORRECTION : Création manuelle de la Status Bar ---
+
     m_statusBar = new wxStatusBar(this, wxID_ANY);
 
-    // En passant 'this' en parent, le wxStatusBar se place automatiquement tout en bas du dialogue
-    // Définition de 3 champs : 
-    // Champ 0 (texte libre/chemin/etc.) -> Taille variable (-1)
-    // Champ 1 (Dimensions de l'image)  -> Taille fixe (120px)
-    // Champ 2 (Emplacement du Slider)  -> Taille fixe (200px)
     int widths[] = { -1, 120, 200 };
     m_statusBar->SetFieldsCount(3);
     m_statusBar->SetStatusWidths(3, widths);
 
-    // Création du Slider sur le Champ index 2 de la StatusBar
-    // On prend la plage d'index du vecteur zoomValues (de 0 à zoomValues.size() - 1)
     int maxZoomIndex = static_cast<int>(zoomValues.size()) - 1;
     m_zoomSlider = new wxCustomSlider(m_statusBar, wxID_ANY, zoomValues.size(), 0, zoomValues.size());
-
-    // Initialiser le slider à la position actuelle (ex: 100%)
-    // Si 100% est la 15ème valeur (index 14) :
     m_zoomSlider->SetValue(14);
-
-    // Connexion de l'événement de défilement du Slider
     m_zoomSlider->Bind(wxEVT_CUSTOM_SLIDER_CHANGED, &ImageDocument::OnSliderScroll, this);
 
-    wxString historyLibelle = CLibResource::LoadStringFromResource(L"LBLHISTORY", 1);
-    wxString folder = CFileUtility::GetDocumentFolderPath();
-    modificationManager = std::make_unique<CModificationManager>(folder);
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, m_filename);
 
-    historyEffect->Init(pictureLocal, layerId, m_filename, historyLibelle);
-    // Mettre à jour les textes pour la première fois
+    // Initialisation avec la liste des calques actuelle du visualiseur
+    historyEffect->Init(pictureLocal, bitmapWindow->GetListOfLayer(), layerId, m_filename, historyLibelle);
+
     UpdateStatusText();
 }
 
@@ -326,14 +297,11 @@ CInfoEffect* ImageDocument::GetHistoryPt()
 }
 
 void ImageDocument::OnCrop()
-{
-
-}
+{}
 
 void ImageDocument::OnResize()
-{
+{}
 
-}
 
 void ImageDocument::OnCanvas()
 {
@@ -353,7 +321,7 @@ void ImageDocument::Save()
         this->SetTitle(this->m_filename);
         bitmapWindow->SetFilename(m_filename);
     }
-    
+
 }
 
 void ImageDocument::OnFlipVertical()
@@ -396,7 +364,7 @@ void ImageDocument::UpdateStatusText()
     {
         imgW = bitmapWindow->GetBitmapWidth();
         imgH = bitmapWindow->GetBitmapHeight();
-		zoomPos = bitmapWindow->GetPosRatio(); // Récupère la position du zoom
+        zoomPos = bitmapWindow->GetPosRatio(); // Récupère la position du zoom
     }
 
     wxString sizeText = wxString::Format("%dx%d", imgW, imgH);
@@ -435,20 +403,20 @@ void ImageDocument::OnSliderScroll(wxCommandEvent& event)
 
 int ImageDocument::GetBitmapWidth() const
 {
-	if (bitmapWindow)
-	{
-		return bitmapWindow->GetBitmapWidth();
-	}
-	return 0;
+    if (bitmapWindow)
+    {
+        return bitmapWindow->GetBitmapWidth();
+    }
+    return 0;
 }
 
 int ImageDocument::GetBitmapHeight() const
 {
-	if (bitmapWindow)
-	{
-		return bitmapWindow->GetBitmapHeight();
-	}
-	return 0;
+    if (bitmapWindow)
+    {
+        return bitmapWindow->GetBitmapHeight();
+    }
+    return 0;
 }
 
 void ImageDocument::Resize(int newWidth, int newHeight, int interpolation)
@@ -485,12 +453,12 @@ void ImageDocument::Shrink()
         bitmapWindow->ShrinkImage(true);
     }
     else
-	    bitmapWindow->SetShrinkImage(!shrink);
+        bitmapWindow->SetShrinkImage(!shrink);
 }
 
 void ImageDocument::RealSize()
 {
-	bitmapWindow->SetRealSize();
+    bitmapWindow->SetRealSize();
 }
 
 // Implémentation de la fonction OnActivate
@@ -514,7 +482,7 @@ void ImageDocument::OnActivate(wxActivateEvent& event)
 
 void ImageDocument::OnResize(wxCommandEvent& event)
 {
-   // this->Resize();
+    // this->Resize();
 }
 
 void ImageDocument::OnRefresh(wxCommandEvent& event)
@@ -574,7 +542,7 @@ void ImageDocument::OnSize(wxSizeEvent& event)
 
 
     ResizeImage(_width, _height);
-    
+
 
 }
 

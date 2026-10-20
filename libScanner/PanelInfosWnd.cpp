@@ -170,7 +170,7 @@ void CPanelInfosWnd::HistoryUpdate()
 		if (bitmap != nullptr)
 		{
 			wxString filename = bitmap->GetFilename();
-			historyEffectWnd->HistoryUpdate(bitmap, 0, filename, historyLibelle, modificationManager.get());
+			historyEffectWnd->HistoryUpdate(bitmap, layers, 0, filename, historyLibelle, modificationManager.get());
 			delete bitmap;
 		}
 	}
@@ -193,7 +193,7 @@ void CPanelInfosWnd::ApplyEffect(wxCommandEvent& event)
 
 void CPanelInfosWnd::OnFiltreOk(const int& numFiltre)
 {
-	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd);
+	filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd, layers);
 	ClickShowButton(WM_EFFECT);
 	infosToolbar->SetEffectParameterInactif();
 }
@@ -250,10 +250,12 @@ wxString CPanelInfosWnd::GetFilename()
 }
 
 
-void CPanelInfosWnd::SetFile(wxString filename)
+void CPanelInfosWnd::SetFile(wxString filename, CLayerList* layers)
 {
 	if (_filename != filename)
 	{
+		this->layers = layers;
+
 		_filename = wxString(filename);
 
 		infosToolbar->SetInfosActif();

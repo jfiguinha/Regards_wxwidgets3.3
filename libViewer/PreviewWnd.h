@@ -2,9 +2,8 @@
 #include <WindowMain.h>
 #include <BitmapInterface.h>
 #include <ToolbarInterface.h>
-;
+#include <LayerElement.h>
 
-;
 class CImageLoadingFormat;
 
 namespace Regards
@@ -73,6 +72,8 @@ namespace Regards
 			{
 				return mediaMode_ == MediaMode::Animation;
 			}
+
+			CLayerList* GetLayerList();
 
 		protected:
 			void ShowScreenButton(wxCommandEvent& event);

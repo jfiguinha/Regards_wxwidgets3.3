@@ -70,11 +70,16 @@ void ParameterDialog::SetColor(const wxColour& color1, const wxColour& color2)
 	}
 }
 
+void ParameterDialog::SetListLayer(CLayerList * listLayer)
+{
+	this->listLayer = listLayer;
+}
+
 void ParameterDialog::OnFiltreOk(wxCommandEvent& event)
 {
 	if (filtreEffectWnd)
 	{
-		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd, numLayer);
+		filtreEffectWnd->OnFiltreOk(numFiltre, historyEffectWnd, listLayer, numLayer);
 	}
 	if(typeFiltre == TYPE_EFFECT)
 		this->Show(false);
