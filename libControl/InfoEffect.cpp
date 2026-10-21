@@ -44,6 +44,63 @@ void CInfoEffect::SetTreeInterface(CTreeElementControlInterface* interfaceContro
 	eventControl = interfaceControl;
 }
 
+
+void CInfoEffect::Redo()
+{
+	if (modificationManager && modificationManager->GetNumModification() < modificationManager->GetNbModification() - 1)
+	{
+		unsigned int currentModif = modificationManager->GetNumModification();
+		currentModif++;
+
+		CLayerList* layers =
+			modificationManager->GetLayersForModification(currentModif);
+
+		if (layers == nullptr)
+			return;
+
+		modificationManager->SetNumModification(currentModif);
+		RestoreLayersToViewer(layers, initLayerId);
+
+		//SetActifElement(key);
+	}
+}
+
+void CInfoEffect::Undo()
+{
+	if (modificationManager && modificationManager->GetNumModification() > 0)
+	{
+		unsigned int currentModif = modificationManager->GetNumModification();
+		if (currentModif > 0)
+		{
+			currentModif--;
+			//modificationManager->SetNumModification(currentModif);
+
+			CLayerList* layers =
+				modificationManager->GetLayersForModification(currentModif);
+
+			if (layers == nullptr)
+				return;
+
+			modificationManager->SetNumModification(currentModif);
+			RestoreLayersToViewer(layers, initLayerId);
+
+
+			//SetActifElement(key);
+
+		}
+	}
+}
+
+void CInfoEffect::CancelHistory()
+{
+	if (modificationManager)
+	{
+		modificationManager->EraseData();
+	}
+
+}
+
+
 void CInfoEffect::Init(CImageLoadingFormat* bitmap, CLayerList * initialLayers, const int64_t& layerId, const wxString& libelle, const wxString& key)
 {
 	initLayerId = layerId;
@@ -52,6 +109,45 @@ void CInfoEffect::Init(CImageLoadingFormat* bitmap, CLayerList * initialLayers, 
 		modificationManager->Init(bitmap, initialLayers);
 	}
 	InitTree(libelle, key);
+}
+
+
+void CInfoEffect::AddModificationState(const wxString& libelle, CLayerList* currentLayers)
+{
+	if (modificationManager == nullptr)
+		return;
+
+	const unsigned int numModification = modificationManager->GetNumModification();
+	const unsigned int nbModification = modificationManager->GetNbModification();
+
+	// Si l'utilisateur était revenu en arrière (Undo), on nettoie l'arbre graphique
+	if (numModification < nbModification)
+	{
+		ClearData();
+
+		InitTree(modificationManager->GetModificationLibelle(0), to_string(0));
+
+		for (unsigned int i = 1; i <= numModification; i++)
+		{
+			wxString modificationString = modificationManager->GetModificationLibelle(i);
+			modificationString.Replace(".", "@99");
+			AddEvent("Effect." + modificationString, to_string(i));
+			index++;
+		}
+	}
+
+	wxString localLibelle = libelle;
+	localLibelle.Replace(".", "@99");
+
+	// Enregistrement de la modification avec le nouveau ModificationManager
+	modificationManager->AddModificationState(libelle, currentLayers);
+
+	// Récupération du nouvel index généré par le manager
+	wxString currentModifKey = GetNumModification();
+
+	AddEvent("Effect." + localLibelle, currentModifKey);
+	index++;
+	SetActifElement(currentModifKey);
 }
 
 void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers)

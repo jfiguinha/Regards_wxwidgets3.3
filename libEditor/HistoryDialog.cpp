@@ -1,6 +1,6 @@
 #include <header.h>
 #include "HistoryDialog.h"
-
+#include "HistoryState.h"
 #include <ViewerTheme.h>
 #include <ViewerThemeInit.h>
 using namespace Regards::Viewer;
@@ -27,14 +27,63 @@ HistoryDialog::HistoryDialog(wxWindow* parent)
 	Connect(wxEVT_SIZE, wxSizeEventHandler(HistoryDialog::OnSize));
 	Connect(wxEVENT_REFRESHHISTORYLIST, wxCommandEventHandler(HistoryDialog::OnRefreshHistory));
 
+	Connect(wxEVENT_REDOHISTORY, wxCommandEventHandler(HistoryDialog::OnRedo));
+	Connect(wxEVENT_UNDOHISTORY, wxCommandEventHandler(HistoryDialog::OnUndo));
+	Connect(wxEVENT_CANCELHISTORY, wxCommandEventHandler(HistoryDialog::OnCancelHistory));
+
+
 	m_statusBar = new wxStatusBar(this, wxID_ANY);
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
 	m_statusBar->SetStatusText("");
 }
 
+void HistoryDialog::OnUndo(wxCommandEvent& event)
+{
+	Undo();
+}
+
+void HistoryDialog::OnRedo(wxCommandEvent& event)
+{
+	Redo();
+}
+
+void HistoryDialog::OnCancelHistory(wxCommandEvent& event)
+{
+	CancelHistory();
+}
+
+
+
+void HistoryDialog::Redo()
+{
+	if (historyEffectWnd)
+		historyEffectWnd->Redo();
+}
+
+void HistoryDialog::Undo()
+{
+	if (historyEffectWnd)
+		historyEffectWnd->Undo();
+}
+
+void HistoryDialog::CancelHistory()
+{
+	if (historyEffectWnd)
+		historyEffectWnd->CancelHistory();
+}
+
 void HistoryDialog::OnRefreshHistory(wxCommandEvent& event)
 {
-
+	if (historyEffectWnd)
+	{
+		CHistoryState* historyState = (CHistoryState*)event.GetClientData();
+		if (historyState)
+		{
+			historyEffectWnd->AddModificationState(historyState->libelle, historyState->currentLayers);
+			delete historyState;
+		}
+		
+	}
 }
 
 void HistoryDialog::SetHistoryControl(CInfoEffect* infoEffect)

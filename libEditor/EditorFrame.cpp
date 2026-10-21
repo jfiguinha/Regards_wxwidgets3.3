@@ -275,6 +275,9 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate180, this, wxID_ROTATE180);
     Bind(wxEVT_MENU, &CEditorFrame::OnWindowRotate270, this, wxID_ROTATE270);
 
+    Bind(wxEVT_MENU, &CEditorFrame::OnUndo, this, wxID_UNDO);
+    Bind(wxEVT_MENU, &CEditorFrame::OnRedo, this, wxID_REDO);
+
     Bind(wxEVT_MENU, &CEditorFrame::OnCopy, this, wxID_COPY);
     Bind(wxEVT_MENU, &CEditorFrame::OnPaste, this, wxID_PASTE);
     Bind(wxEVT_MENU, &CEditorFrame::OnCut, this, wxID_CUT);
@@ -308,6 +311,19 @@ void CEditorFrame::OnInverseAll(wxCommandEvent& event)
 {
     if (m_activeDocument)
         m_activeDocument->InverseAll();
+}
+
+
+void CEditorFrame::OnUndo(wxCommandEvent& event)
+{
+    if (m_activeDocument && historyDialog)
+        historyDialog->Undo();
+}
+
+void CEditorFrame::OnRedo(wxCommandEvent& event)
+{
+    if (m_activeDocument && historyDialog)
+        historyDialog->Redo();
 }
 
 void CEditorFrame::OnCancelSelect(wxCommandEvent& event)

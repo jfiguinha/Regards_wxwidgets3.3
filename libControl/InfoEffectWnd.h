@@ -22,10 +22,18 @@ namespace Regards::Control
 
 		CTreeElementControlInterface* GetTreeInterface();
 
+		void HistoryRefresh();
+
 		void SetHistoryEffect(CInfoEffect* infoEffect);
+
+		void Redo();
+		void Undo();
+		void CancelHistory();
 
 		// Prise en compte du paramètre currentLayers pour alimenter le gestionnaire d'historique
 		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers);
+
+		void AddModificationState(const wxString& libelle, CLayerList* currentLayers);
 
 		// Prise en compte de initialLayers lors de l'initialisation de l'historique
 		void HistoryUpdate(CImageLoadingFormat* bitmap, CLayerList* currentLayers, const int64_t& layerId, const wxString& filename,

@@ -24,8 +24,8 @@
 #include <wx/clipbrd.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
-#include <algorithm>
-#include <vector>
+#include <HistoryState.h>
+
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 
@@ -717,17 +717,16 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
 //-----------------------------------------------------------------
 void CBitmapEditor::SaveHistoryState(const wxString& actionLabel)
 {
-    if (modificationManager)
-    {
-        modificationManager->AddModificationState(actionLabel, listOfLayer.get());
-
-        // Notifier ou mettre à jour l'interface de l'historique (HistoryDialog / CInfoEffectWnd)
-        wxWindow* mainWindow = parentRender->FindWindowById(HISTORYWINDOWID); // ID de votre fenêtre d'historique si applicable
-        // Ou via le gestionnaire d'effets/historique actif
-        if (mainWindow) {
-            wxCommandEvent evt(wxEVENT_REFRESHHISTORYLIST);
-            mainWindow->GetEventHandler()->AddPendingEvent(evt);
-        }
+    CHistoryState* historyState = new CHistoryState();
+    historyState->libelle = actionLabel;
+    historyState->currentLayers = listOfLayer.get();
+    // Notifier ou mettre à jour l'interface de l'historique (HistoryDialog / CInfoEffectWnd)
+    wxWindow* mainWindow = parentRender->FindWindowById(HISTORYWINDOWID); // ID de votre fenêtre d'historique si applicable
+    // Ou via le gestionnaire d'effets/historique actif
+    if (mainWindow) {
+        wxCommandEvent evt(wxEVENT_REFRESHHISTORYLIST);
+        evt.SetClientData(historyState);
+        mainWindow->GetEventHandler()->AddPendingEvent(evt);
     }
 }
 
@@ -761,11 +760,10 @@ void CBitmapEditor::OnFiltreOk()
 
 CBitmapEditor::CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId,
     const CThemeBitmapWindow& theme,
-    CBitmapInterface* bitmapInterface, CModificationManager* modificationManager)
+    CBitmapInterface* bitmapInterface)
     : Regards::Control::CBitmapWndViewer(slider, mainViewerId, theme,
         bitmapInterface) {
     fixArrow = false;
-    this->modificationManager = modificationManager;
 }
 
 bool CBitmapEditor::ApplySelectEffect(int& widthOutput, int& heightOutput) {
@@ -881,51 +879,36 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
 //-----------------------------------------------------------------
 void CBitmapEditor::Undo()
 {
-    if (modificationManager && modificationManager->GetNumModification() > 0)
-    {
-        unsigned int currentModif = modificationManager->GetNumModification();
-        if (currentModif > 0)
-        {
-            currentModif--;
-            modificationManager->SetNumModification(currentModif);
-            listOfLayer.reset(modificationManager->GetLayersForModification(currentModif));
-
-            // Appliquer les changements graphiques
-            listOfLayer->IsChanged(true);
-            UpdateBitmapSizeFromLayers();
-            ApplyGeometryChange();
-            needToRefresh = true;
-            if (parentRender) parentRender->Refresh();
-        }
+    wxWindow* mainWindow = parentRender->FindWindowById(HISTORYWINDOWID); // ID de votre fenêtre d'historique si applicable
+    // Ou via le gestionnaire d'effets/historique actif
+    if (mainWindow) {
+        wxCommandEvent evt(wxEVENT_UNDOHISTORY);
+        mainWindow->GetEventHandler()->AddPendingEvent(evt);
     }
+
 }
 
 //-----------------------------------------------------------------
 // REFAIRE (Redo)
 void CBitmapEditor::Redo()
 {
-    if (modificationManager && modificationManager->GetNumModification() < modificationManager->GetNbModification() - 1)
-    {
-        unsigned int currentModif = modificationManager->GetNumModification();
-        currentModif++;
-        modificationManager->SetNumModification(currentModif);
-        listOfLayer.reset(modificationManager->GetLayersForModification(currentModif));
-
-        // Appliquer les changements graphiques
-        listOfLayer->IsChanged(true);
-        UpdateBitmapSizeFromLayers();
-        ApplyGeometryChange();
-        needToRefresh = true;
-        if (parentRender) parentRender->Refresh();
+    wxWindow* mainWindow = parentRender->FindWindowById(HISTORYWINDOWID); // ID de votre fenêtre d'historique si applicable
+    // Ou via le gestionnaire d'effets/historique actif
+    if (mainWindow) {
+        wxCommandEvent evt(wxEVENT_REDOHISTORY);
+        mainWindow->GetEventHandler()->AddPendingEvent(evt);
     }
 }
 
 void CBitmapEditor::ClearHistory()
 {
-    if (modificationManager)
-    {
-        modificationManager->EraseData();
+    wxWindow* mainWindow = parentRender->FindWindowById(HISTORYWINDOWID); // ID de votre fenêtre d'historique si applicable
+    // Ou via le gestionnaire d'effets/historique actif
+    if (mainWindow) {
+        wxCommandEvent evt(wxEVENT_CANCELHISTORY);
+        mainWindow->GetEventHandler()->AddPendingEvent(evt);
     }
+
 }
 
 //-----------------------------------------------------------------
@@ -1267,6 +1250,7 @@ void CBitmapEditor::SetKey(const int& iKey)
     if (iKey == WXK_DELETE)
     {
         DeleteSelect();
+        CancelSelect();
         return;
     }
 

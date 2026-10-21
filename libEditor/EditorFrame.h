@@ -53,6 +53,8 @@ private:
 	void OnClose(wxCloseEvent& event);
 	void Exit();
 
+	void OnUndo(wxCommandEvent& event);
+	void OnRedo(wxCommandEvent& event);
 	void OnCopy(wxCommandEvent& event);
 	void OnPaste(wxCommandEvent& event);
 	void OnCut(wxCommandEvent& event);

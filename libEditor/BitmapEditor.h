@@ -17,7 +17,7 @@ class CBitmapEditor : public Regards::Control::CBitmapWndViewer, private ILayerS
 {
 public:
     CBitmapEditor(CSliderInterface* slider, wxWindowID mainViewerId, const CThemeBitmapWindow& theme,
-        CBitmapInterface* bitmapInterface, CModificationManager * modificationManager);
+        CBitmapInterface* bitmapInterface);
     ~CBitmapEditor(void);
 
     // --- Image / géométrie ---
@@ -135,5 +135,5 @@ private:
     bool gpuComposeFallbackLogged = false;
     bool openclComposeFallbackLogged = false;
 
-    CModificationManager * modificationManager = nullptr;
+    //CModificationManager * modificationManager = nullptr;
 };

@@ -13,6 +13,11 @@ namespace Regards::Control
 			int bitmapWindowId, wxString filename);
 		~CInfoEffect() = default;
 
+
+		void Redo();
+		void Undo();
+		void CancelHistory();
+
 		wxString GetFilename();
 		void Init(CImageLoadingFormat* bitmap, CLayerList* currentLayers, const int64_t& layerId, const wxString& libelle, const wxString& key);
 		void AddEvent(const wxString& libelle, const wxString& key);
@@ -21,6 +26,8 @@ namespace Regards::Control
 
 		// Ajout d'une modification en passant l'état actuel des calques au manager
 		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers);
+
+		void AddModificationState(const wxString& libelle, CLayerList* currentLayers);
 
 		void UpdateScreenRatio() override;
 

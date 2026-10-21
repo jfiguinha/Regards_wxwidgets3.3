@@ -46,7 +46,7 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
 
     this->bitmapInterface = bitmapInterfaceIn;
 
-    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface, modificationManager.get());
+    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface);
     bitmapWindow->SetTabValue(zoomValues);
 
     bitmapWindowRender = new CBitmapWnd3D(this, bitmapViewerId);
@@ -252,7 +252,7 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
 
     this->bitmapInterface = bitmapInterfaceIn;
 
-    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface, modificationManager.get());
+    bitmapWindow = new CBitmapEditor(nullptr, mainViewerId, themeBitmap, bitmapInterface);
     bitmapWindow->SetTabValue(zoomValues);
 
     bitmapWindowRender = new CBitmapWnd3D(this, bitmapViewerId);

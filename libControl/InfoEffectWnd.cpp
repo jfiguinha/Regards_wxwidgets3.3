@@ -31,6 +31,45 @@ CInfoEffectWnd::~CInfoEffectWnd(void)
 		delete historyEffectOld;
 }
 
+void CInfoEffectWnd::HistoryRefresh()
+{
+	if (treeWindow)
+	{
+		CTreeElementControlInterface* treeInterface = static_cast<CTreeElementControlInterface*>(treeWindow);
+		if (treeInterface)
+			treeInterface->UpdateTreeControl();
+	}
+}
+
+
+
+void CInfoEffectWnd::Redo()
+{
+	if (historyEffectOld != nullptr)
+		historyEffectOld->Redo();
+}
+
+void CInfoEffectWnd::Undo()
+{
+	if (historyEffectOld != nullptr)
+		historyEffectOld->Undo();
+
+}
+
+void CInfoEffectWnd::CancelHistory()
+{
+	if (historyEffectOld != nullptr)
+		historyEffectOld->CancelHistory();
+
+	if (treeWindow)
+	{
+		CTreeElementControlInterface* treeInterface = static_cast<CTreeElementControlInterface*>(treeWindow);
+		if (treeInterface)
+			treeInterface->UpdateTreeControl();
+	}
+}
+
+
 void CInfoEffectWnd::SetHistoryEffect(CInfoEffect* infoEffect)
 {
 	if (infoEffect != nullptr)
@@ -51,6 +90,20 @@ void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* eff
 {
 	if (historyEffectOld != nullptr)
 		historyEffectOld->AddModification(numEffect, effectParameter, libelle, currentLayers);
+
+	if (treeWindow)
+	{
+		CTreeElementControlInterface* treeInterface = static_cast<CTreeElementControlInterface*>(treeWindow);
+		if (treeInterface)
+			treeInterface->UpdateTreeControl();
+	}
+}
+
+
+void CInfoEffectWnd::AddModificationState(const wxString& libelle, CLayerList* currentLayers)
+{
+	if (historyEffectOld != nullptr)
+		historyEffectOld->AddModificationState(libelle, currentLayers);
 
 	if (treeWindow)
 	{
