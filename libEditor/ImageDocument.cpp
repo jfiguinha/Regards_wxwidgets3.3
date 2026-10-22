@@ -296,20 +296,69 @@ CInfoEffect* ImageDocument::GetHistoryPt()
     return historyEffect.get();
 }
 
-void ImageDocument::OnCrop()
-{}
-
-void ImageDocument::OnResize()
-{}
-
-
-void ImageDocument::OnCanvas()
-{
-
-}
 
 
 void ImageDocument::Save()
+{
+    if (bitmapWindow)
+    {
+        CLayerList* layerList = bitmapWindow->GetListOfLayer();
+        if (layerList)
+        {
+            wxFileName inputFilename(m_filename);
+
+            // Correction de la chaîne du filtre pour s'assurer que wxFileDialog applique bien l'extension
+            wxFileDialog saveFileDialog(this,
+                CLibResource::LoadStringFromResource("LBLSAVEFILE", 1), // Titre de la boîte
+                wxEmptyString,
+                inputFilename.GetName(),
+                "Regards Project (*.rgd)|*.rgd", // Filtre explicite au format wxWidgets
+                wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+
+            const wxString documentPath = CFileUtility::GetDocumentFolderPath();
+            if (!documentPath.empty())
+                saveFileDialog.SetDirectory(documentPath);
+
+            if (saveFileDialog.ShowModal() != wxID_OK)
+                return;
+
+            // Récupération du chemin complet sélectionné par l'utilisateur
+            wxString fullSavePath = saveFileDialog.GetPath();
+
+            // Sécurité : S'assurer que le fichier possède bien l'extension .rgd
+            wxFileName saveFile(fullSavePath);
+            if (saveFile.GetExt().Lower() != "rgd")
+            {
+                saveFile.SetExt("rgd");
+                fullSavePath = saveFile.GetFullPath();
+            }
+
+            // CORRECTION : On passe le chemin complet du fichier et non le dossier
+            if (layerList->SaveToFile(fullSavePath))
+            {
+                // Optionnel : Mettre à jour le nom du document actuel avec le nouveau fichier sauvegardé
+                this->m_filename = fullSavePath;
+                this->SetTitle(fullSavePath);
+                bitmapWindow->SetFilename(fullSavePath);
+
+                const wxString savecompleted =
+                    CLibResource::LoadStringFromResource("LBLSAVEFILECOMPLETED", 1);
+
+                const wxString infos =
+                    CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
+
+                wxMessageBox(savecompleted, infos, wxOK | wxICON_INFORMATION, this);
+            }
+            else
+            {
+                // Gestion d'erreur si la sérialisation OpenCV échoue
+                wxMessageBox("Erreur lors de la sauvegarde du fichier.", "Erreur", wxOK | wxICON_ERROR, this);
+            }
+        }
+    }
+}
+
+void ImageDocument::Export()
 {
     std::unique_ptr<CImageLoadingFormat> imageLoading;
     imageLoading.reset(bitmapWindow->GetBitmap(true));
@@ -417,6 +466,14 @@ int ImageDocument::GetBitmapHeight() const
         return bitmapWindow->GetBitmapHeight();
     }
     return 0;
+}
+
+void ImageDocument::Crop()
+{
+    if (bitmapWindow)
+    {
+        bitmapWindow->Crop();
+    }
 }
 
 void ImageDocument::Resize(int newWidth, int newHeight, int interpolation)

@@ -568,7 +568,7 @@ void CEditorFrame::OnWindowCrop(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        //m_activeDocument->Crop();
+        m_activeDocument->Crop();
     }
 }
 
@@ -887,7 +887,7 @@ void CEditorFrame::OnExport(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-        m_activeDocument->Save();
+        m_activeDocument->Export();
     }
 }
 

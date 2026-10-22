@@ -36,17 +36,17 @@ public:
 	int GetBitmapHeight() const;
 
     void Save();
+    void Export();
 	void ZoomIn();
 	void ZoomOut();
 	void Shrink();
 	void RealSize();
 
+    void Crop();
 	void Resize(int newWidth, int newHeight, int interpolation);
     void CanvasResize(CanvasSizeParameter canvasSize);
 
-    void OnCrop();
-    void OnResize();
-    void OnCanvas();
+
     void OnFlipVertical();
     void OnFlipHorizontal();
     void OnRotate90();

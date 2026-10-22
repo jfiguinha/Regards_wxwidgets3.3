@@ -56,6 +56,9 @@ public:
     void Redo();
     void ClearHistory();
 
+    void Crop();
+
+
 
 private:
     // --- Evènements ---

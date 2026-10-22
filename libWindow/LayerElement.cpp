@@ -364,6 +364,163 @@ bool CLayerList::FusionLayers(std::vector<int>* listLayer)
     return true;
 }
 
+
+// 1. Ajoutez ces méthodes virtuelles dans la classe 'LayerElement' (Section public) :
+void LayerElement::Write(cv::FileStorage& fs) const {
+    fs << "typeLayer" << typeLayer;
+    fs << "numLayer" << numLayer;
+    fs << "isVisible" << (isVisible ? 1 : 0);
+    fs << "opacity" << opacity;
+    fs << "layerName" << layerName.ToStdString(); // Conversion wxString -> std::string
+    fs << "x" << x;
+    fs << "y" << y;
+    fs << "textureWidth" << textureWidth;
+    fs << "textureHeight" << textureHeight;
+
+    // Sérialisation des matrices OpenCV via CImageLoadingFormat
+    if (picture)
+        fs << "picture" << picture->GetMatrix().getMat();
+    else
+        fs << "picture" << cv::Mat();
+
+    if (originalPicture)
+        fs << "originalPicture" << originalPicture->GetMatrix().getMat();
+    else
+        fs << "originalPicture" << cv::Mat();
+}
+
+void LayerElement::Read(const cv::FileNode& node) {
+    typeLayer = (int)node["typeLayer"];
+    numLayer = (int)node["numLayer"];
+    isVisible = ((int)node["isVisible"] == 1);
+    opacity = (int)node["opacity"];
+
+    std::string name;
+    node["layerName"] >> name;
+    layerName = wxString::FromUTF8(name.c_str()); // Recréation de la wxString
+
+    x = (int)node["x"];
+    y = (int)node["y"];
+    textureWidth = (int)node["textureWidth"];
+    textureHeight = (int)node["textureHeight"];
+
+    // Restauration des images
+    cv::Mat matPicture, matOriginal;
+    node["picture"] >> matPicture;
+    node["originalPicture"] >> matOriginal;
+
+    if (!matPicture.empty()) {
+        picture = new CImageLoadingFormat();
+        picture->SetPicture(matPicture);
+    }
+    if (!matOriginal.empty()) {
+        originalPicture = new CImageLoadingFormat();
+        originalPicture->SetPicture(matOriginal);
+    }
+
+    pictureVersion = 1;
+    needTextureUpdate = true;
+}
+
+
+bool CLayerList::SaveToFile(const wxString& filename) const
+{
+    try
+    {
+        // cv::FileStorage supporte les extensions .xml, .yml, .yaml, ou .json
+        // On convertit le chemin wxString en format compatible standard
+        std::string filePath = filename.ToStdString();
+        cv::FileStorage fs(filePath, cv::FileStorage::WRITE);
+
+        if (!fs.isOpened())
+            return false;
+
+        // Écriture des métadonnées du Canvas
+        fs << "canvasWidth" << canvasWidth;
+        fs << "canvasHeight" << canvasHeight;
+
+        // Écriture de la liste des calques
+        fs << "layers" << "["; // Début de séquence YAML/JSON/XML
+        for (const LayerElement* layer : m_layers)
+        {
+            if (layer != nullptr)
+            {
+                fs << "{"; // Début d'un objet calque
+                layer->Write(fs);
+                fs << "}";
+            }
+        }
+        fs << "]"; // Fin de séquence
+
+        fs.release();
+        return true;
+    }
+    catch (const cv::Exception&)
+    {
+        return false;
+    }
+}
+
+bool CLayerList::LoadFromFile(const wxString& filename)
+{
+    try
+    {
+        std::string filePath = filename.ToStdString();
+        cv::FileStorage fs(filePath, cv::FileStorage::READ);
+
+        if (!fs.isOpened())
+            return false;
+
+        // Nettoyage de la liste actuelle avant chargement
+        if (finalImage) {
+            delete finalImage;
+            finalImage = nullptr;
+        }
+        for (LayerElement* layer : m_layers) {
+            delete layer;
+        }
+        m_layers.clear();
+
+        // Lecture des dimensions du Canvas
+        fs["canvasWidth"] >> canvasWidth;
+        fs["canvasHeight"] >> canvasHeight;
+
+        // Lecture de la séquence de calques
+        cv::FileNode layersNode = fs["layers"];
+        if (layersNode.type() == cv::FileNode::SEQ)
+        {
+            for (cv::FileNodeIterator it = layersNode.begin(); it != layersNode.end(); ++it)
+            {
+                cv::FileNode layerNode = *it;
+                int typeLayer = (int)layerNode["typeLayer"];
+
+                LayerElement* newLayer = nullptr;
+
+                // Pattern Factory de restauration basée sur la constante de type
+                if (typeLayer == TYPE_OPENCL) {
+                    newLayer = new LayerElementUMat();
+                }
+                else if (typeLayer == TYPE_OPENGL) {
+                    newLayer = new LayerElementGL();
+                }
+
+                if (newLayer != nullptr) {
+                    newLayer->Read(layerNode);
+                    m_layers.push_back(newLayer);
+                }
+            }
+        }
+
+        fs.release();
+        isChanged = true;
+        return true;
+    }
+    catch (const cv::Exception&)
+    {
+        return false;
+    }
+}
+
 LayerElement* CLayerList::FindElementByLayerId(const uint64_t& layerId)
 {
     for (LayerElement* element : m_layers)

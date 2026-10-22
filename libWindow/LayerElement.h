@@ -68,6 +68,9 @@ public:
     static uint64_t NextLayerId();
     static uint64_t GetLayerId();
 
+    virtual void Write(cv::FileStorage& fs) const;
+    virtual void Read(const cv::FileNode& node);
+
 protected:
     // Constructeur de copie protégé utilisé par le mécanisme de clonage des classes dérivées
     LayerElement(const LayerElement& other);
@@ -149,6 +152,9 @@ public:
 
     ~CLayerList();
 
+    bool SaveToFile(const wxString& filename) const;
+    bool LoadFromFile(const wxString& filename);
+
     LayerElement* FindElementByLayerId(const uint64_t& layerId);
 
     void push_back(LayerElement* element);
@@ -193,6 +199,8 @@ public:
     bool SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity);
 
 private:
+
+
     std::vector<LayerElement*> m_layers;
     CImageLoadingFormat* finalImage = nullptr;
     bool isChanged = false;

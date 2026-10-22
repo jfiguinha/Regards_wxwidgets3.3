@@ -92,13 +92,8 @@ CImageLoadingFormat* CBitmapWndRender::GetBitmap(const bool& source)
 {
 	//
 	CImageLoadingFormat* sourceBitmap = nullptr;
-	if (listOfLayer != nullptr && numActifLayer >= 0 &&
-		static_cast<size_t>(numActifLayer) < listOfLayer->size())
-	{
-		LayerElement* activeLayer = (*listOfLayer)[static_cast<size_t>(numActifLayer)];
-		if (activeLayer != nullptr)
-			sourceBitmap = activeLayer->GetPicture();
-	}
+
+	sourceBitmap = listOfLayer->GetPictureToShow();
 
 	if (filtreEffet != nullptr && bitmapLoad && sourceBitmap != nullptr)
 	{

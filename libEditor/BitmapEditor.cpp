@@ -535,6 +535,113 @@ bool CBitmapEditor::DeleteSelect()
     return false;
 }
 
+
+
+// ============================================================================
+// CBITMAPEDITOR : Implémentation du Recadrage (Crop) basé sur la sélection
+// ============================================================================
+void CBitmapEditor::Crop()
+{
+    // 1. Récupération du filtre de sélection actif
+    CSelectFilterParameter* filter = GetSelectFilter();
+    if (filter == nullptr || filter->listSelections.empty())
+    {
+        wxMessageBox(L"Veuillez effectuer une sélection avant de recadrer l'image.",
+            L"Recadrage impossible", wxOK | wxICON_WARNING, parentRender);
+        return;
+    }
+
+    // 2. Détermination de la taille de référence (taille globale actuelle du document)
+    if (bitmapwidth <= 0 || bitmapheight <= 0)
+        return;
+
+    cv::Size globalSize(bitmapwidth, bitmapheight);
+
+    // 3. Calcul de la boîte englobante (ROI) de toutes les sélections accumulées
+    cv::Rect cropROI = SelectionBounds(filter->listSelections, globalSize);
+
+    // Sécurité : Vérifier que la zone de recadrage est valide et non vide
+    if (cropROI.width <= 0 || cropROI.height <= 0)
+    {
+        wxMessageBox(L"La zone de sélection est invalide pour un recadrage.",
+            L"Erreur", wxOK | wxICON_ERROR, parentRender);
+        return;
+    }
+
+    // 4. Sauvegarde de l'état actuel dans l'historique avant modification irréversible
+    SaveHistoryState(L"Recadrage de l'image (Crop)");
+
+    // 5. Parcourir et découper TOUS les calques du projet
+    for (size_t i = 0; i < listOfLayer->size(); ++i)
+    {
+        LayerElement* layer = GetElement(i);
+        if (!layer) continue;
+
+        CImageLoadingFormat* layerPicture = layer->GetPicture();
+        if (!layerPicture || !layerPicture->IsOk()) continue;
+
+        cv::Mat sourceMat = layerPicture->GetMatImage();
+        if (sourceMat.empty()) continue;
+
+        // On s'assure de l'intersection entre le ROI global et la matrice réelle du calque
+        cv::Rect layerROI = cropROI & cv::Rect(0, 0, sourceMat.cols, sourceMat.rows);
+
+        cv::Mat croppedMat;
+        if (!layerROI.empty())
+        {
+            // Extraction de la sous-zone sélectionnée
+            croppedMat = sourceMat(layerROI).clone();
+        }
+        else
+        {
+            // Si le calque est complètement en dehors de la sélection, 
+            // on crée une matrice transparente vide aux dimensions du recadrage
+            croppedMat = cv::Mat::zeros(cropROI.height, cropROI.width, sourceMat.type());
+            if (croppedMat.channels() == 4)
+            {
+                croppedMat.setTo(cv::Scalar(0, 0, 0, 0));
+            }
+        }
+
+        // Réassignation de la nouvelle image découpée au calque
+        layerPicture->SetPicture(croppedMat);
+
+        // Réinitialisation des coordonnées locales du calque (le calque est recalé à l'origine 0,0)
+        layer->x = 0;
+        layer->y = 0;
+        layer->textureWidth = cropROI.width;
+        layer->textureHeight = cropROI.height;
+
+        // Invalidation obligatoire des caches graphiques / textures GPU
+        layer->InvalidatePicture();
+        layer->needTextureUpdate = true;
+        layer->pictureVersion++;
+    }
+
+    // 6. Mise à jour des dimensions du Canvas global de la liste
+    listOfLayer->UpdateCanvasSize(cropROI.width, cropROI.height);
+    listOfLayer->IsChanged(true);
+
+    // 7. Vider la sélection active puisqu'elle a été consommée par le Crop
+    filter->listSelections.clear();
+
+    // 8. Forcer la mise à jour des métadonnées du Viewer (`bitmapwidth` et `bitmapheight`)
+    if (!UpdateBitmapSizeFromLayers())
+    {
+        bitmapwidth = cropROI.width;
+        bitmapheight = cropROI.height;
+    }
+
+    // 9. Forcer la réinitialisation complète des filtres et du pipeline d'affichage
+    widthOutputOld = -1;
+    heightOutputOld = -1;
+
+    // 10. Application finale des changements géométriques (Reset Zoom, curseurs, rafraîchissement)
+    ApplyGeometryChange();
+    NotifyLayerPictureUpdated();
+}
+
+
 //-----------------------------------------------------------------
 // CUT : copie la sélection puis efface le contenu par transparence
 //-----------------------------------------------------------------
