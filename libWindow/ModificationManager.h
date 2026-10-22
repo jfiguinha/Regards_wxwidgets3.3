@@ -18,6 +18,8 @@ public:
     unsigned int GetNbModification() const;
     unsigned int GetNumModification() const;
 
+    wxString GetCurrentKey();
+
     // Récupère l'état des calques pour une modification donnée (pour Undo/Redo/Navigation dans l'historique).
     // Retourne une copie profonde allouée avec new : l'appelant en devient propriétaire.
     // Retourne nullptr si l'index est invalide (jamais une liste vide, qui effacerait l'affichage).

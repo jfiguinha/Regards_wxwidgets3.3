@@ -52,6 +52,8 @@ void CInfoEffect::Redo()
 		unsigned int currentModif = modificationManager->GetNumModification();
 		currentModif++;
 
+		wxString key = modificationManager->GetCurrentKey();
+
 		CLayerList* layers =
 			modificationManager->GetLayersForModification(currentModif);
 
@@ -61,7 +63,7 @@ void CInfoEffect::Redo()
 		modificationManager->SetNumModification(currentModif);
 		RestoreLayersToViewer(layers, initLayerId);
 
-		//SetActifElement(key);
+		SetActifElement(key);
 	}
 }
 
@@ -75,6 +77,8 @@ void CInfoEffect::Undo()
 			currentModif--;
 			//modificationManager->SetNumModification(currentModif);
 
+			wxString key = modificationManager->GetCurrentKey();
+
 			CLayerList* layers =
 				modificationManager->GetLayersForModification(currentModif);
 
@@ -85,7 +89,7 @@ void CInfoEffect::Undo()
 			RestoreLayersToViewer(layers, initLayerId);
 
 
-			//SetActifElement(key);
+			SetActifElement(key);
 
 		}
 	}

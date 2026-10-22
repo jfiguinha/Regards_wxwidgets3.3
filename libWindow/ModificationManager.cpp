@@ -186,6 +186,14 @@ unsigned int CModificationManager::GetNumModification() const
     return numModification;
 }
 
+
+wxString CModificationManager::GetCurrentKey()
+{
+    if (numModification < historySteps.size())
+        return historySteps.at(numModification).libelle;
+    return "";
+}
+
 void CModificationManager::SetNumModification(const unsigned int& numModification)
 {
     this->numModification = numModification;

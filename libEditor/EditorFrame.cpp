@@ -62,7 +62,8 @@ enum {
     wxID_ROTATE180,
     wxID_ROTATE270,
     wxID_INVERSESELECT,
-    wxID_CANCELSELECT
+    wxID_CANCELSELECT,
+    wxID_EXPORT
 };
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
@@ -115,6 +116,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     menuFile->Append(wxID_OPEN, "Open...\tCtrl+O");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_SAVE, "Save...\tCtrl+S");
+    menuFile->Append(wxID_SAVE, "Export...\tCtrl+S");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_CLOSE, "Close\tCtrl+Q");
     menuFile->AppendSeparator();
@@ -250,6 +252,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnNewImage, this, wxID_NEW);
     Bind(wxEVT_MENU, &CEditorFrame::OnOpenImage, this, wxID_OPEN);
     Bind(wxEVT_MENU, &CEditorFrame::OnSave, this, wxID_SAVE);
+    Bind(wxEVT_MENU, &CEditorFrame::OnExport, this, wxID_EXPORT);
     Bind(wxEVT_MENU, &CEditorFrame::OnCloseImage, this, wxID_CLOSE);
     Bind(wxEVT_MENU, &CEditorFrame::OnQuit, this, wxID_EXIT);
 
@@ -879,6 +882,16 @@ void CEditorFrame::OnOpenImage(wxCommandEvent& event)
 {
     OnOpen();
 }
+
+void CEditorFrame::OnExport(wxCommandEvent& event)
+{
+    if (m_activeDocument)
+    {
+        m_activeDocument->Save();
+    }
+}
+
+
 
 void CEditorFrame::OnSave(wxCommandEvent& event)
 {

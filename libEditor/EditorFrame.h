@@ -49,6 +49,7 @@ private:
 	void OnOpenImage(wxCommandEvent& event);
 	void OnCloseImage(wxCommandEvent& event);
 	void OnSave(wxCommandEvent& event);
+	void OnExport(wxCommandEvent& event);
 	void OnQuit(wxCommandEvent& event);
 	void OnClose(wxCloseEvent& event);
 	void Exit();
