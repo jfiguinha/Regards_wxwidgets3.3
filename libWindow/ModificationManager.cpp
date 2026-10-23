@@ -101,10 +101,26 @@ static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffe
         return std::make_unique<CInpaintFilterParameter>(*static_cast<CInpaintFilterParameter*>(effectParameter));
     case IDM_PENFILTER:
         return std::make_unique<CPenFilterParameter>(*static_cast<CPenFilterParameter*>(effectParameter));
-    case IDM_RECTANGLEFILTER:
+    case IDM_GEOMETRICFILTER:
         return std::make_unique<CRectangleFilterParameter>(*static_cast<CRectangleFilterParameter*>(effectParameter));
-    case IDM_SELECTFILTER:
-        return std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
+    case IDM_RECTANGLESELECT:
+    {
+        std::unique_ptr<CSelectFilterParameter> selectFilter = std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
+        selectFilter->selectType = SELECT_RECTANGLE;
+        return selectFilter;
+    }
+    case IDM_ELLIPSESELECT:
+    {
+        std::unique_ptr<CSelectFilterParameter> selectFilter = std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
+        selectFilter->selectType = SELECT_ELLIPSE;
+        return selectFilter;
+    }
+    case IDM_LASSOSELECT:
+    {
+        std::unique_ptr<CSelectFilterParameter> selectFilter = std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
+        selectFilter->selectType = SELECT_LASSO;
+        return selectFilter;
+    }
     case IDM_TEXTFILTER:
         return std::make_unique<Regards::Filter::CTextFilterParameter>(*static_cast<Regards::Filter::CTextFilterParameter*>(effectParameter));
     case IDM_GRADIENTFILTER:

@@ -25,7 +25,7 @@
 #include <wx/bitmap.h>
 #include <wx/image.h>
 #include <HistoryState.h>
-
+#include <LibResource.h>
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 
@@ -282,7 +282,7 @@ namespace {
 
 
 CSelectFilterParameter* CBitmapEditor::GetSelectFilter() {
-    if (effectParameter == nullptr || preview != IDM_SELECTFILTER)
+    if (effectParameter == nullptr || preview != IDM_RECTANGLESELECT || preview != IDM_ELLIPSESELECT || preview != IDM_LASSOSELECT)
         return nullptr;
     return static_cast<CSelectFilterParameter*>(effectParameter);
 }
@@ -845,8 +845,16 @@ void CBitmapEditor::OnFiltreOk()
     {
         // Détermination du nom de l'effet appliqué
         wxString effectName = L"Application d'un effet";
-        if (preview == IDM_SELECTFILTER) {
-            effectName = L"Filtre de sélection / détourage";
+        if (preview == IDM_RECTANGLESELECT) {
+            effectName = CLibResource::LoadStringFromResource("IDM_RECTANGLESELECT", 1);
+        }
+        else  if (preview == IDM_ELLIPSESELECT)
+        {
+            effectName = CLibResource::LoadStringFromResource("IDM_ELLIPSESELECT", 1);
+        }
+        else  if (preview == IDM_LASSOSELECT)
+        {
+            effectName = CLibResource::LoadStringFromResource("IDM_LASSOSELECT", 1);
         }
         else if (preview > 0) {
             effectName = wxString::Format(L"Effet ou Filtre (ID: %d)", preview);

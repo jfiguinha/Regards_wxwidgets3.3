@@ -119,8 +119,10 @@ const std::unordered_map<int, CFiltreData::FilterFactory>& CFiltreData::GetFacto
 		FILTER_ENTRY(IDM_INPAINT, CInpaintFilter),
 		FILTER_ENTRY(IDM_PENFILTER, CPenFilter),
 		FILTER_ENTRY(IDM_MAGICHANDFILTER, CMagicHandFilter),
-		FILTER_ENTRY(IDM_RECTANGLEFILTER, CRectangleFilter),
-		FILTER_ENTRY(IDM_SELECTFILTER, CSelectFilter),
+		FILTER_ENTRY(IDM_GEOMETRICFILTER, CRectangleFilter),
+		FILTER_ENTRY(IDM_RECTANGLESELECT, CSelectFilter),
+		FILTER_ENTRY(IDM_ELLIPSESELECT, CSelectFilter),
+		FILTER_ENTRY(IDM_LASSOSELECT, CSelectFilter),
 		FILTER_ENTRY(IDM_TEXTFILTER, CTextFilter),
 		FILTER_ENTRY(IDM_GRADIENTFILTER, CGradientFilter),
 		FILTER_ENTRY(IDM_PAINTBUCKETFILTER, CPaintBucketFilter),
@@ -134,7 +136,18 @@ std::unique_ptr<CFilterWindowParam> CFiltreData::CreateEffectPointer(const int& 
 	const auto& factoryMap = GetFactoryMap();
 	auto it = factoryMap.find(numFilter);
 	if (it != factoryMap.end())
-		return it->second();
+	{
+		std::unique_ptr<CFilterWindowParam> filterparam = it->second();
+		switch (numFilter)
+		{
+		case IDM_ELLIPSESELECT:
+		case IDM_LASSOSELECT:
+		case IDM_RECTANGLESELECT:
+			filterparam->SetNameFilter(numFilter);
+			filterparam->SetTypeFilter(numFilter);
+		}
+		return filterparam;
+	}
 	return nullptr;
 }
 
@@ -163,7 +176,19 @@ CFilterWindowParam* CFiltreData::GetFilter(const int& numFilter)
 {
 	auto it = filterList.find(numFilter);
 	if (it != filterList.end())
-		return it->second.get();
+	{
+		CFilterWindowParam * filterparam = it->second.get();
+		switch (numFilter)
+		{
+		case IDM_ELLIPSESELECT:
+		case IDM_LASSOSELECT:
+		case IDM_RECTANGLESELECT:
+			filterparam->SetNameFilter(numFilter);
+			filterparam->SetTypeFilter(numFilter);
+		}
+		return filterparam;
+	}
+		
 	return nullptr;
 }
 

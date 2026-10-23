@@ -44,8 +44,8 @@ void CRectangleFilter::AddMetadataElement(vector<CMetadata>& element, wxString v
 
 CEffectParameter* CRectangleFilter::GetEffectPointer() { return new CRectangleFilterParameter(); }
 CDraw* CRectangleFilter::GetDrawingPt() { return new Regards::FiltreEffet::CRectangleDraw(); }
-int CRectangleFilter::GetTypeFilter() { return IDM_RECTANGLEFILTER; } // Garder ID ou mettre à jour effect_id.h
-int CRectangleFilter::GetNameFilter() { return IDM_RECTANGLEFILTER; }
+int CRectangleFilter::GetTypeFilter() { return IDM_GEOMETRICFILTER; } // Garder ID ou mettre à jour effect_id.h
+int CRectangleFilter::GetNameFilter() { return IDM_GEOMETRICFILTER; }
 wxString CRectangleFilter::GetFilterLabel() { return CLibResource::LoadStringFromResource("LBLRECTANGLEFILTER", 1); }
 
 void CRectangleFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, const wxString& filename, IFiltreEffectInterface* filtreInterface)

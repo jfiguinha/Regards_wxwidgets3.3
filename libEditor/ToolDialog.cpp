@@ -63,8 +63,8 @@ void ToolDialog::OnSize(wxSizeEvent& event)
 
 
 	//280
-	toolbarTools->SetSize(0, 0, _width, 280);
+	toolbarTools->SetSize(0, 0, _width, 300);
 	toolbarTools->Refresh();
-	colorSelector->SetSize(0, 280, _width, 120);
+	colorSelector->SetSize(0, 300, _width, 100);
 	colorSelector->Refresh();
 }

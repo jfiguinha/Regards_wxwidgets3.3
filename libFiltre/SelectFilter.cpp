@@ -38,10 +38,26 @@ void CSelectFilter::AddMetadataElement(vector<CMetadata>& element, wxString valu
 	element.push_back(linear);
 }
 
-CEffectParameter* CSelectFilter::GetEffectPointer() { return new CSelectFilterParameter(); }
+CEffectParameter* CSelectFilter::GetEffectPointer() 
+{ 
+	CSelectFilterParameter * selectFilter = new CSelectFilterParameter();
+	switch (typeFilter)
+	{
+	case IDM_ELLIPSESELECT:
+		selectFilter->selectType = SELECT_ELLIPSE;
+		break;
+	case IDM_LASSOSELECT:
+		selectFilter->selectType = SELECT_LASSO;
+		break;
+	case IDM_RECTANGLESELECT:
+		selectFilter->selectType = SELECT_RECTANGLE;
+		break;
+	}
+	return selectFilter;
+}
 CDraw* CSelectFilter::GetDrawingPt() { return new Regards::FiltreEffet::CSelectDraw(); }
-int CSelectFilter::GetTypeFilter() { return IDM_SELECTFILTER; }
-int CSelectFilter::GetNameFilter() { return IDM_SELECTFILTER; }
+int CSelectFilter::GetTypeFilter() { return typeFilter; }
+int CSelectFilter::GetNameFilter() { return nameFilter; }
 wxString CSelectFilter::GetFilterLabel() { return CLibResource::LoadStringFromResource("LBLSELECTFILTER", 1); }
 
 void CSelectFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, const wxString& filename, IFiltreEffectInterface* filtreInterface)
@@ -49,13 +65,14 @@ void CSelectFilter::Filter(CEffectParameter* effectParameter, cv::Mat& source, c
 	CSelectFilterParameter* param = (CSelectFilterParameter*)effectParameter;
 	this->source = source;
 	this->filename = filename;
-
+	/*/
 	// Seule la ComboBox du type de sélection apparaît dans l'arbre
 	vector<CMetadata> selectOptions;
 	AddMetadataElement(selectOptions, CLibResource::LoadStringFromResource("LBLSELECTRECT", 1), SELECT_RECTANGLE);
 	AddMetadataElement(selectOptions, CLibResource::LoadStringFromResource("LBLSELECTELLIPSE", 1), SELECT_ELLIPSE);
 	AddMetadataElement(selectOptions, CLibResource::LoadStringFromResource("LBLSELECTLASSO", 1), SELECT_LASSO);
 	filtreInterface->AddTreeInfos(libelleSelectType, new CTreeElementValueInt(param->selectType), &selectOptions, 3, TYPE_COMBOBOX);
+	*/
 }
 
 void CSelectFilter::FilterChangeParam(CEffectParameter* effectParameter, CTreeElementValue* valueData, const wxString& key)

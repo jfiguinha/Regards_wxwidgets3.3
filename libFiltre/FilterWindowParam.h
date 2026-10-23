@@ -36,6 +36,17 @@ public:
 		return 3;
 	};
 
+	virtual void SetTypeFilter(const int & typeFilter)
+	{
+		this->typeFilter = typeFilter;
+	}
+
+	virtual void SetNameFilter(const int& nameFilter)
+	{
+		this->nameFilter = nameFilter;
+	}
+
+
 	virtual CEffectParameter* GetDefaultEffectParameter()
 	{
 		return new CEffectParameter();
@@ -125,5 +136,6 @@ protected:
 	cv::Mat source;
 	wxString filename = "";
 	int orientation;
-
+	int typeFilter;
+	int nameFilter;
 };

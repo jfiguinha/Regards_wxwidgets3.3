@@ -536,6 +536,19 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                     }
                     break;
 
+                case IDM_LASSOSELECT:
+                case IDM_ELLIPSESELECT:
+                case IDM_RECTANGLESELECT:
+                {
+                    parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+                    parameterDialog->SetActifLayer(numLayer);
+                    parameterDialog->SetActifLayerId(numLayerId);
+                    parameterDialog->SetTypeFiltre(numEffect);
+                    parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+                    parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+                    parameterDialog->Show(false);
+                    break;
+                }
                 case WM_SELECTZOOM:
                     m_activeDocument->SetZoomTool();
                     break;

@@ -21,7 +21,9 @@ namespace Regards::Editor
 
 		wxWindow* frameToSend;
 
-		std::unique_ptr<CToolbarButton> selection = nullptr;
+		std::unique_ptr<CToolbarButton> selectionRectangle = nullptr;
+		std::unique_ptr<CToolbarButton> selectionEllipse = nullptr;
+		std::unique_ptr<CToolbarButton> selectionLasso = nullptr;
 		std::unique_ptr<CToolbarButton> selectionCrop = nullptr;
 		std::unique_ptr<CToolbarButton> selectMove = nullptr;
 		std::unique_ptr<CToolbarButton> drawingTools = nullptr;

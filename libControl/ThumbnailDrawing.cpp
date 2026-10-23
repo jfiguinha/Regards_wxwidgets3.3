@@ -146,20 +146,21 @@ void CThumbnailDrawing::Init() {
             thumbnailData->SetBitmap(pBitmap);
             break;
         }
-        case IDM_RECTANGLEFILTER: {
+        case IDM_GEOMETRICFILTER: {
             cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_RECTANGLE");
             thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
             infosSeparationDrawingTools->AddPhotoToList(numElement);
             thumbnailData->SetBitmap(pBitmap);
             break;
         }
-        case IDM_SELECTFILTER: {
-            cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_SELECTFILTER");
+        case IDM_RECTANGLESELECT: {
+            cv::Mat pBitmap = loadingResource.LoadResourceCV("IDB_RECTANGLESELECT");
             thumbnailData->SetFilename(CFiltreData::GetFilterLabel(numEffect));
             infosSeparationDrawingTools->AddPhotoToList(numElement);
             thumbnailData->SetBitmap(pBitmap);
             break;
         }
+
 
         default:
             break;
