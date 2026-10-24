@@ -67,6 +67,7 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
 
     // --- Création manuelle de la Status Bar ---
+    // ... (votre code existant)
     m_statusBar = new wxStatusBar(this, wxID_ANY);
 
     int widths[] = { -1, 120, 200 };
@@ -75,8 +76,18 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
 
     int maxZoomIndex = static_cast<int>(zoomValues.size()) - 1;
     m_zoomSlider = new wxCustomSlider(m_statusBar, wxID_ANY, zoomValues.size(), 0, zoomValues.size());
-    m_zoomSlider->SetValue(14);
+
+    // CORRECTION : Récupérer l'index réel calculé après l'affectation du bitmap
+    int initialZoomPos = 0;
+    if (bitmapWindow)
+    {
+        initialZoomPos = bitmapWindow->GetPosRatio();
+    }
+    m_zoomSlider->SetValue(initialZoomPos); // Au lieu de SetValue(14)
+
     m_zoomSlider->Bind(wxEVT_CUSTOM_SLIDER_CHANGED, &ImageDocument::OnSliderScroll, this);
+    // ... (reste du constructeur)
+
 
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, filename);
 
@@ -85,6 +96,52 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
 
     UpdateStatusText();
 }
+
+void ImageDocument::Undo()
+{
+    if (modificationManager && modificationManager->Undo())
+    {
+        CLayerList* restoredLayers = modificationManager->GetLayersForModification(modificationManager->GetNumModification());
+        if (restoredLayers && bitmapWindow)
+        {
+            // Attribution de la nouvelle liste de calques à l'éditeur graphique
+            bitmapWindow->SetListOfLayer(restoredLayers);
+            needToRefresh = true;
+            UpdateStatusText();
+
+            // Notification vers CEditorFrame pour synchroniser l'affichage des fenêtres d'outils
+            CEditorFrame* frame = dynamic_cast<CEditorFrame*>(GetParent());
+            if (frame)
+            {
+                // Force la mise à jour de l'arbre des calques dans le LayerDialog
+                wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
+                frame->GetEventHandler()->AddPendingEvent(evt);
+            }
+        }
+    }
+}
+
+void ImageDocument::Redo()
+{
+    if (modificationManager && modificationManager->Redo())
+    {
+        CLayerList* restoredLayers = modificationManager->GetLayersForModification(modificationManager->GetNumModification());
+        if (restoredLayers && bitmapWindow)
+        {
+            bitmapWindow->SetListOfLayer(restoredLayers);
+            needToRefresh = true;
+            UpdateStatusText();
+
+            CEditorFrame* frame = dynamic_cast<CEditorFrame*>(GetParent());
+            if (frame)
+            {
+                wxCommandEvent evt(wxEVENT_UPDATELAYERPICTURE);
+                frame->GetEventHandler()->AddPendingEvent(evt);
+            }
+        }
+    }
+}
+
 
 bool ImageDocument::Copy()
 {
@@ -272,6 +329,7 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocument::OnIdle));
     Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
 
+    // ... (votre code existant)
     m_statusBar = new wxStatusBar(this, wxID_ANY);
 
     int widths[] = { -1, 120, 200 };
@@ -280,8 +338,18 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
 
     int maxZoomIndex = static_cast<int>(zoomValues.size()) - 1;
     m_zoomSlider = new wxCustomSlider(m_statusBar, wxID_ANY, zoomValues.size(), 0, zoomValues.size());
-    m_zoomSlider->SetValue(14);
+
+    // CORRECTION : Récupérer l'index réel calculé après l'affectation du bitmap
+    int initialZoomPos = 0;
+    if (bitmapWindow)
+    {
+        initialZoomPos = bitmapWindow->GetPosRatio();
+    }
+    m_zoomSlider->SetValue(initialZoomPos); // Au lieu de SetValue(14)
+
     m_zoomSlider->Bind(wxEVT_CUSTOM_SLIDER_CHANGED, &ImageDocument::OnSliderScroll, this);
+    // ... (reste du constructeur)
+
 
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, m_filename);
 
@@ -407,25 +475,25 @@ void ImageDocument::UpdateStatusText()
 {
     if (!m_statusBar || !bitmapWindow) return;
 
-    // 1. Récupération de la taille de l'image depuis votre interface
     int imgW = 0, imgH = 0, zoomPos = 0;
     if (bitmapWindow)
     {
         imgW = bitmapWindow->GetBitmapWidth();
         imgH = bitmapWindow->GetBitmapHeight();
-        zoomPos = bitmapWindow->GetPosRatio(); // Récupère la position du zoom
+        zoomPos = bitmapWindow->GetPosRatio(); // Récupère la position du zoom réel
     }
 
     wxString sizeText = wxString::Format("%dx%d", imgW, imgH);
-    m_statusBar->SetStatusText(sizeText, 0); // Écrit dans le champ index 1
+    m_statusBar->SetStatusText(sizeText, 0);
 
     sizeText = wxString::Format("Zoom : %d", zoomValues[zoomPos]);
-    m_statusBar->SetStatusText(sizeText, 1); // Écrit dans le champ index 2
+    m_statusBar->SetStatusText(sizeText, 1);
 
-    // 2. Récupération du facteur de zoom pour l'afficher au début du statut
-    // (Ajustez selon les méthodes réelles de CBitmapEditor pour obtenir le zoom actuel)
-    // Exemple : m_statusBar->SetStatusText("Zoom actuel: 100%", 0);
-   // m_statusBar->SetStatusText("Prêt.", 0);
+    // NOUVEAU : Met à jour la position visuelle du slider pour correspondre aux changements internes
+    if (m_zoomSlider)
+    {
+        m_zoomSlider->SetValue(zoomPos);
+    }
 }
 
 void ImageDocument::OnSliderScroll(wxCommandEvent& event)
@@ -564,6 +632,9 @@ void ImageDocument::OnIdle(wxIdleEvent& evt)
 void ImageDocument::ResizeImage(int w, int h)
 {
     scrollbar->SetSize(0, 0, w, h);
+
+    UpdateStatusText();
+
     scrollbar->Refresh();
 }
 

@@ -34,6 +34,10 @@ public:
 
     CRenderOpenGL* GetRenderOpenGL() const { return renderOpenGL; }
     CLayerList* GetListOfLayer() { return listOfLayer.get(); }
+    void SetListOfLayer(CLayerList* newLayers);
+
+    bool IsSelectionEnable();
+    bool IsPasteEnable();
 
     // --- Presse-papiers / sélection ---
     bool Copy();
@@ -61,6 +65,8 @@ public:
 
 
 private:
+
+    
     // --- Evènements ---
     void OnSetBitmap(wxCommandEvent& event) override;
     void SetBitmapByLayerId(CImageLoadingFormat* bitmapIn, const uint64_t& layerId);

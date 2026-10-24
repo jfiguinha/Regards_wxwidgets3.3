@@ -67,6 +67,8 @@ public:
     void SetMoveTool();
     void SetSelectMoveTool();
 
+    void Undo();
+    void Redo();
 
     bool Copy();
     bool Cut();
@@ -75,6 +77,11 @@ public:
     void SelectAll();
     void InverseAll();
     void CancelSelect();
+
+    CModificationManager* GetModificationManager()
+    {
+        return modificationManager.get();
+    }
 
     CLayerList* GetListOfLayer();
 private:

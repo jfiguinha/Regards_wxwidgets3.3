@@ -210,6 +210,39 @@ wxString CModificationManager::GetCurrentKey()
     return "";
 }
 
+bool CModificationManager::CanUndo() const
+{
+    // On peut annuler si on n'est pas déjà sur l'état initial (0)
+    return numModification > 0;
+}
+
+bool CModificationManager::CanRedo() const
+{
+    // On peut rétablir si on n'est pas déjà sur la dernière modification disponible
+    return !historySteps.empty() && numModification < (historySteps.size() - 1);
+}
+
+bool CModificationManager::Undo()
+{
+    if (CanUndo())
+    {
+        numModification--;
+        return true;
+    }
+    return false;
+}
+
+bool CModificationManager::Redo()
+{
+    if (CanRedo())
+    {
+        numModification++;
+        return true;
+    }
+    return false;
+}
+
+
 void CModificationManager::SetNumModification(const unsigned int& numModification)
 {
     this->numModification = numModification;

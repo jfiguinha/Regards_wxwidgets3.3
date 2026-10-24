@@ -321,8 +321,33 @@ void CEditorFrame::OnInverseAll(wxCommandEvent& event)
 void CEditorFrame::UpdateMenusState()
 {
     bool hasImage = (m_activeDocument != nullptr);
+    bool canUndo = false;
+    bool canRedo = false;
+    bool hasSelection = false;
+    bool canPaste = false;
 
-    // 1. Mise à jour de la barre de menus
+    // 1. Récupération des états depuis le document actif et son éditeur graphique
+    if (hasImage)
+    {
+        // États de l'historique (Undo / Redo) via le ModificationManager
+
+        CModificationManager* modManager = m_activeDocument->GetModificationManager();
+        if (modManager)
+        {
+            canUndo = modManager->CanUndo();
+            canRedo = modManager->CanRedo();
+        }
+
+        // États de la sélection et du collage via CBitmapEditor
+        CBitmapEditor* bitmapEditor = m_activeDocument->GetBitmapEditor();
+        if (bitmapEditor)
+        {
+            hasSelection = bitmapEditor->IsSelectionEnable();
+            canPaste = bitmapEditor->IsPasteEnable();
+        }
+    }
+
+    // 2. Parcours et mise à jour de la barre de menus
     wxMenuBar* menuBar = GetMenuBar();
     if (menuBar)
     {
@@ -339,35 +364,54 @@ void CEditorFrame::UpdateMenusState()
 
                 int id = item->GetId();
 
-                // Si le menu contient un sous-menu (comme le menu Effect -> Color, Convolution, etc.)
                 if (item->IsSubMenu())
                 {
-                    // wxWidgets désactive automatiquement l'accès au sous-menu si le parent est désactivé
                     item->Enable(hasImage);
                 }
                 else
                 {
-                    // Autorise uniquement Open et Exit si aucune image n'est chargée
-                    if (id == wxID_OPEN || id == wxID_EXIT)
+                    switch (id)
+                    {
+                    case wxID_OPEN:
+                    case wxID_EXIT:
                         item->Enable(true);
-                    else
+                        break;
+
+                    case wxID_UNDO:
+                        item->Enable(canUndo);
+                        break;
+
+                    case wxID_REDO:
+                        item->Enable(canRedo);
+                        break;
+
+                    case wxID_COPY:
+                    case wxID_CUT:
+                    case wxID_INVERSESELECT: // NOUVEAU : Activé si une sélection existe
+                    case wxID_CANCELSELECT:  // NOUVEAU : Activé si une sélection existe
+                        item->Enable(hasSelection);
+                        break;
+
+                    case wxID_PASTE:
+                        item->Enable(canPaste);
+                        break;
+
+                    default:
                         item->Enable(hasImage);
+                        break;
+                    }
                 }
             }
         }
     }
 
-    // 2. Mise à jour de la barre d'outils principale (Toolbar)
+    // 3. Mise à jour de la barre d'outils (Toolbar)
     wxToolBar* toolBar = GetToolBar();
     if (toolBar)
     {
-        // Active/Désactive le bouton "New" (wxID_NEW) en fonction de la présence d'une image
         toolBar->EnableTool(wxID_NEW, hasImage);
-
-        // Le bouton Exit reste toujours actif
         toolBar->EnableTool(wxID_EXIT, true);
-
-        toolBar->Refresh(); // Force le rafraîchissement visuel des icônes
+        toolBar->Refresh();
     }
 }
 

@@ -415,6 +415,13 @@ void CBitmapEditor::CancelSelect()
     if (parentRender) parentRender->Refresh();
 }
 
+bool CBitmapEditor::IsSelectionEnable()
+{
+    CSelectFilterParameter* filter = GetSelectFilter();
+    if (filter != nullptr && !filter->listSelections.empty())
+        return true;
+}
+
 //-----------------------------------------------------------------
 // COPY : copie l'image (ou la sélection détourée) dans le presse-papiers
 //-----------------------------------------------------------------
@@ -656,6 +663,19 @@ bool CBitmapEditor::Cut()
     // Appelle Delete pour effacer le contenu de la sélection par transparence
     return DeleteSelect();
 }
+
+bool CBitmapEditor::IsPasteEnable()
+{
+    bool isOk = false;
+    if (wxTheClipboard->Open())
+    {
+        if (wxTheClipboard->IsSupported(wxDF_BITMAP))
+            isOk = true;
+        wxTheClipboard->Close();
+    }
+    return isOk;
+}
+
 
 
 //-----------------------------------------------------------------
@@ -1307,6 +1327,43 @@ void CBitmapEditor::ApplyGeometryChange() {
     if (parentRender) parentRender->Refresh();
     RefreshWindow();
 }
+
+void CBitmapEditor::SetListOfLayer(CLayerList* newLayers)
+{
+    if (newLayers == nullptr) return;
+
+    // Remplacement sécurisé du pointeur unique
+    listOfLayer.reset(newLayers);
+
+    // Synchronisation obligatoire des dimensions internes de l'éditeur
+    UpdateBitmapSizeFromLayers();
+
+    // Invalidation globale des textures GPU de la nouvelle liste de calques
+    for (size_t i = 0; i < listOfLayer->size(); ++i)
+    {
+        LayerElement* element = GetElement(i);
+        if (element != nullptr)
+        {
+            element->InvalidatePicture();
+            element->needTextureUpdate = true;
+            element->pictureVersion++;
+        }
+    }
+
+    // Réinitialisation des paramètres d'écran pour forcer le rafraîchissement GL
+    widthOutputOld = -1;
+    heightOutputOld = -1;
+    loadBitmap = true;
+    forceUpdateFilter = true;
+    updateFilter = true;
+
+    // Notification de rafraîchissement visuel à l'UI
+    NotifyLayerPictureUpdated();
+    if (parentRender) parentRender->Refresh();
+    RefreshWindow();
+}
+
+
 void CBitmapEditor::ApplyEffectOnMouseRelease() {
     wxWindow* parameterWindow = parentRender->FindWindowById(PARAMETERWINDOWID);
     if (parameterWindow) {
@@ -1314,6 +1371,7 @@ void CBitmapEditor::ApplyEffectOnMouseRelease() {
         parameterWindow->GetEventHandler()->AddPendingEvent(evt);
     }
 }
+
 void CBitmapEditor::RemoveListener(const bool& applyCancel) {
     if (m_cDessin)
         if (m_cDessin->ApplyEffectOnMouseRelease()) return;
@@ -1331,6 +1389,7 @@ void CBitmapEditor::RemoveListener(const bool& applyCancel) {
     loadBitmap = true;
     needToRefresh = true;
 }
+
 void CBitmapEditor::SetActifLayer(const int& numLayer) {
     if (numLayer >= 0 && static_cast<size_t>(numLayer) < listOfLayer->size())
     {
@@ -1339,6 +1398,7 @@ void CBitmapEditor::SetActifLayer(const int& numLayer) {
         needToRefresh = true;
     }
 }
+
 void CBitmapEditor::RenderTexture(GLTexture* textureDisplay,
     const bool& invertPos, int width,
     int height) {

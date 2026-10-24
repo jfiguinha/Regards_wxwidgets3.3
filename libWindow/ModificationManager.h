@@ -14,6 +14,12 @@ public:
     CModificationManager(const wxString& folder);
     ~CModificationManager();
 
+
+    bool Undo();
+    bool Redo();
+    bool CanUndo() const;
+    bool CanRedo() const;
+
     void SetNumModification(const unsigned int& numModification);
     unsigned int GetNbModification() const;
     unsigned int GetNumModification() const;
