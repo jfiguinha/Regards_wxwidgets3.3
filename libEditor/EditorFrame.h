@@ -98,7 +98,7 @@ private:
 	void UpdateLayerPicture(wxCommandEvent& event);
 
 
-
+	void UpdateMenusState();
 
 
 	std::map<int, STImageDoc> m_openedDocuments;

@@ -116,7 +116,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     menuFile->Append(wxID_OPEN, "Open...\tCtrl+O");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_SAVE, "Save...\tCtrl+S");
-    menuFile->Append(wxID_SAVE, "Export...\tCtrl+S");
+    menuFile->Append(wxID_EXPORT, "Export...\tCtrl+S");
     menuFile->AppendSeparator();
     menuFile->Append(wxID_CLOSE, "Close\tCtrl+Q");
     menuFile->AppendSeparator();
@@ -301,6 +301,8 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Connect(wxEVENT_COLORCHANGE, wxCommandEventHandler(CEditorFrame::OnColorChange));
     Connect(wxEVENT_CHANGELAYERPICTURE, wxCommandEventHandler(CEditorFrame::OnLayerChange));
     this->Maximize();
+
+    UpdateMenusState();
 }
 
 
@@ -314,6 +316,59 @@ void CEditorFrame::OnInverseAll(wxCommandEvent& event)
 {
     if (m_activeDocument)
         m_activeDocument->InverseAll();
+}
+
+void CEditorFrame::UpdateMenusState()
+{
+    bool hasImage = (m_activeDocument != nullptr);
+
+    // 1. Mise à jour de la barre de menus
+    wxMenuBar* menuBar = GetMenuBar();
+    if (menuBar)
+    {
+        for (size_t i = 0; i < menuBar->GetMenuCount(); ++i)
+        {
+            wxMenu* menu = menuBar->GetMenu(i);
+            if (!menu) continue;
+
+            wxMenuItemList& items = menu->GetMenuItems();
+            for (wxMenuItemList::iterator it = items.begin(); it != items.end(); ++it)
+            {
+                wxMenuItem* item = *it;
+                if (!item || item->IsSeparator()) continue;
+
+                int id = item->GetId();
+
+                // Si le menu contient un sous-menu (comme le menu Effect -> Color, Convolution, etc.)
+                if (item->IsSubMenu())
+                {
+                    // wxWidgets désactive automatiquement l'accès au sous-menu si le parent est désactivé
+                    item->Enable(hasImage);
+                }
+                else
+                {
+                    // Autorise uniquement Open et Exit si aucune image n'est chargée
+                    if (id == wxID_OPEN || id == wxID_EXIT)
+                        item->Enable(true);
+                    else
+                        item->Enable(hasImage);
+                }
+            }
+        }
+    }
+
+    // 2. Mise à jour de la barre d'outils principale (Toolbar)
+    wxToolBar* toolBar = GetToolBar();
+    if (toolBar)
+    {
+        // Active/Désactive le bouton "New" (wxID_NEW) en fonction de la présence d'une image
+        toolBar->EnableTool(wxID_NEW, hasImage);
+
+        // Le bouton Exit reste toujours actif
+        toolBar->EnableTool(wxID_EXIT, true);
+
+        toolBar->Refresh(); // Force le rafraîchissement visuel des icônes
+    }
 }
 
 
@@ -529,6 +584,7 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                         parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
                         parameterDialog->SetActifLayer(numLayer);
                         parameterDialog->SetActifLayerId(numLayerId);
+                        parameterDialog->SetListLayer(m_activeDocument->GetListOfLayer());
                         parameterDialog->SetTypeFiltre(IDM_CROP);
                         parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
                         parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
@@ -542,6 +598,7 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                 {
                     parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
                     parameterDialog->SetActifLayer(numLayer);
+                    parameterDialog->SetListLayer(m_activeDocument->GetListOfLayer());
                     parameterDialog->SetActifLayerId(numLayerId);
                     parameterDialog->SetTypeFiltre(numEffect);
                     parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
@@ -562,6 +619,7 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
 
                 default:
                     parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+                    parameterDialog->SetListLayer(m_activeDocument->GetListOfLayer());
                     parameterDialog->SetActifLayer(numLayer);
                     parameterDialog->SetActifLayerId(numLayerId);
                     parameterDialog->SetTypeFiltre(TYPE_DRAWING);
@@ -739,6 +797,8 @@ void CEditorFrame::OnOpen()
     historyDialog->SetHistoryControl(m_activeDocument->GetHistoryPt());
     infoDialog->SetFilename(m_activeDocument->GetFileName());
     layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
+
+    UpdateMenusState();
 }
 
 void CEditorFrame::SetActiveDocument(ImageDocument* doc)
@@ -759,7 +819,7 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
 
         m_activeDocument->SetActifLayer(layerDialog->GetActifLayer());
 
-        
+        UpdateMenusState();
        // layerDialog->SetBitmapEditor(m_activeDocument->GetBitmapEditor());
     }
 }
@@ -887,6 +947,8 @@ void CEditorFrame::OnNewImage(wxCommandEvent& event) {
             historyDialog->SetHistoryControl(m_activeDocument->GetHistoryPt());
             infoDialog->SetFilename(m_activeDocument->GetFileName());
             layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
+
+            UpdateMenusState();
         }
     }
 }
