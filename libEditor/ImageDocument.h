@@ -95,6 +95,7 @@ private:
     void OnActivate(wxActivateEvent& event);
     void OnSliderScroll(wxCommandEvent& event);
     void UpdateStatusText();
+    void OnUpdateStatusText(wxCommandEvent& event);
 
     bool needToRefresh = false;
     CScrollbarWnd * scrollbar = nullptr;

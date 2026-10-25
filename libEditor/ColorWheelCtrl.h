@@ -23,6 +23,7 @@ private:
     void OnMouseDown(wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent& event);
     void OnMouseUp(wxMouseEvent& event);
+    void OnCaptureLost(wxMouseCaptureLostEvent& event);
 
     void GenerateWheel();
     void UpdateHueFromMouse(const wxPoint& point);
@@ -30,6 +31,9 @@ private:
     wxBitmap m_bitmap;
 
     double m_hue = 0.0;
+
+    // Distance du marqueur au centre, en fraction du rayon (0 = centre, 1 = bord)
+    double m_markerDistance = 0.9;
 
     bool m_dragging = false;
 

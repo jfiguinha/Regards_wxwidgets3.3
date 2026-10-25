@@ -64,7 +64,9 @@ wxBEGIN_EVENT_TABLE(CColorWheelCtrl, wxPanel)
 EVT_PAINT(CColorWheelCtrl::OnPaint) EVT_SIZE(CColorWheelCtrl::OnSize)
 EVT_LEFT_DOWN(CColorWheelCtrl::OnMouseDown)
 EVT_LEFT_UP(CColorWheelCtrl::OnMouseUp)
-EVT_MOTION(CColorWheelCtrl::OnMouseMove) wxEND_EVENT_TABLE()
+EVT_MOTION(CColorWheelCtrl::OnMouseMove)
+EVT_MOUSE_CAPTURE_LOST(CColorWheelCtrl::OnCaptureLost)
+wxEND_EVENT_TABLE()
 
 CColorWheelCtrl::CColorWheelCtrl(wxWindow* parent,
     wxWindowID id,
@@ -204,8 +206,12 @@ void CColorWheelCtrl::OnPaint(wxPaintEvent&) {
     const double angle =
         (m_hue - 90.0) * PI / 180.0;
 
-    const double radius =
-        static_cast<double>(m_radius - 8);
+    // Le marqueur suit la position reelle du clic dans le disque,
+    // borne pour rester entierement visible dans le controle
+    const double radius = std::max(
+        0.0,
+        std::min(m_markerDistance * static_cast<double>(m_radius),
+            static_cast<double>(m_radius) - 6.0));
 
     const int x =
         static_cast<int>(
@@ -235,44 +241,27 @@ void CColorWheelCtrl::UpdateHueFromMouse(const wxPoint& point) {
 
     const double distance = std::sqrt(dx * dx + dy * dy);
 
-    // En dehors du cercle
-    if (distance > static_cast<double>(m_radius)) return;
+    // Au centre, l'angle n'a pas de sens mathematique :
+    // on conserve la teinte actuelle.
+    if (distance >= 1.0) {
+        double angle = std::atan2(dy, dx) * 180.0 / PI;
 
-    // ---------------------------------------------------------
-    // Centre du cercle
-    // ---------------------------------------------------------
-    //
-    // Au centre, l'angle n'a pas de sens mathématique.
-    // On conserve donc la teinte actuelle.
-    //
-    if (distance < 1.0) {
-        Refresh();
+        // Rouge en haut
+        angle += 90.0;
 
-        wxCommandEvent event(wxEVT_COMMAND_SLIDER_UPDATED, GetId());
+        if (angle < 0.0) angle += 360.0;
 
-        event.SetInt(static_cast<int>(std::round(m_hue)));
+        if (angle >= 360.0) angle -= 360.0;
 
-        event.SetEventObject(this);
-
-        ProcessWindowEvent(event);
-
-        return;
+        m_hue = angle;
     }
 
-    // ---------------------------------------------------------
-    // Calcul de la teinte
-    // ---------------------------------------------------------
-
-    double angle = std::atan2(dy, dx) * 180.0 / PI;
-
-    // Rouge en haut
-    angle += 90.0;
-
-    if (angle < 0.0) angle += 360.0;
-
-    if (angle >= 360.0) angle -= 360.0;
-
-    m_hue = angle;
+    // Position du marqueur : suit la souris dans tout le disque.
+    // Pendant un drag, si la souris sort du cercle, la teinte continue
+    // d'etre mise a jour (angle) et le marqueur reste borne au bord.
+    m_markerDistance =
+        m_radius > 0 ? std::min(distance / static_cast<double>(m_radius), 1.0)
+        : 0.0;
 
     Refresh();
 
@@ -286,11 +275,23 @@ void CColorWheelCtrl::UpdateHueFromMouse(const wxPoint& point) {
 }
 
 void CColorWheelCtrl::OnMouseDown(wxMouseEvent& event) {
+    const wxPoint point = event.GetPosition();
+
+    const double dx = static_cast<double>(point.x - m_centerX);
+
+    const double dy = static_cast<double>(point.y - m_centerY);
+
+    // Un clic initial en dehors du disque ne demarre pas de drag
+    if (std::sqrt(dx * dx + dy * dy) > static_cast<double>(m_radius)) {
+        event.Skip();
+        return;
+    }
+
     m_dragging = true;
 
-    CaptureMouse();
+    if (!HasCapture()) CaptureMouse();
 
-    UpdateHueFromMouse(event.GetPosition());
+    UpdateHueFromMouse(point);
 }
 
 void CColorWheelCtrl::OnMouseMove(wxMouseEvent& event) {
@@ -303,4 +304,8 @@ void CColorWheelCtrl::OnMouseUp(wxMouseEvent&) {
     m_dragging = false;
 
     if (HasCapture()) ReleaseMouse();
+}
+
+void CColorWheelCtrl::OnCaptureLost(wxMouseCaptureLostEvent&) {
+    m_dragging = false;
 }

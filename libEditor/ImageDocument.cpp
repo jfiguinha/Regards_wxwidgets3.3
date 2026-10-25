@@ -60,6 +60,7 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     bitmapWindow->SetBitmap(pictureLocal);
 
     Connect(wxEVT_SIZE, wxSizeEventHandler(ImageDocument::OnSize));
+    Connect(wxEVENT_UPDATESTATUSTEXT, wxCommandEventHandler(ImageDocument::OnUpdateStatusText));
     Connect(wxEVENT_REFRESH, wxCommandEventHandler(ImageDocument::OnRefresh));
     Connect(wxEVENT_RESIZE, wxCommandEventHandler(ImageDocument::OnResize));
     Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocument::OnEraseBackground));
@@ -323,6 +324,7 @@ ImageDocument::ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowI
     bitmapWindow->SetBitmap(pictureLocal);
 
     Connect(wxEVT_SIZE, wxSizeEventHandler(ImageDocument::OnSize));
+    Connect(wxEVENT_UPDATESTATUSTEXT, wxCommandEventHandler(ImageDocument::OnUpdateStatusText));
     Connect(wxEVENT_REFRESH, wxCommandEventHandler(ImageDocument::OnRefresh));
     Connect(wxEVENT_RESIZE, wxCommandEventHandler(ImageDocument::OnResize));
     Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocument::OnEraseBackground));
@@ -457,18 +459,21 @@ void ImageDocument::OnRotate90()
 {
     if (bitmapWindow)
         bitmapWindow->Rotate90();
+    UpdateStatusText();
 }
 
 void ImageDocument::OnRotate180()
 {
     if (bitmapWindow)
         bitmapWindow->Rotate180();
+    UpdateStatusText();
 }
 
 void ImageDocument::OnRotate270()
 {
     if (bitmapWindow)
         bitmapWindow->Rotate270();
+    UpdateStatusText();
 }
 
 void ImageDocument::UpdateStatusText()
@@ -494,6 +499,11 @@ void ImageDocument::UpdateStatusText()
     {
         m_zoomSlider->SetValue(zoomPos);
     }
+}
+
+void ImageDocument::OnUpdateStatusText(wxCommandEvent& event)
+{
+    UpdateStatusText();
 }
 
 void ImageDocument::OnSliderScroll(wxCommandEvent& event)
@@ -542,6 +552,7 @@ void ImageDocument::Crop()
     {
         bitmapWindow->Crop();
     }
+    UpdateStatusText();
 }
 
 void ImageDocument::Resize(int newWidth, int newHeight, int interpolation)
@@ -550,6 +561,7 @@ void ImageDocument::Resize(int newWidth, int newHeight, int interpolation)
     {
         bitmapWindow->Resize(newWidth, newHeight, interpolation);
     }
+    UpdateStatusText();
 }
 
 void ImageDocument::CanvasResize(CanvasSizeParameter canvasSize)
@@ -558,16 +570,19 @@ void ImageDocument::CanvasResize(CanvasSizeParameter canvasSize)
     {
         bitmapWindow->CanvasResize(canvasSize);
     }
+    UpdateStatusText();
 }
 
 void ImageDocument::ZoomIn()
 {
     bitmapWindow->ZoomOn();
+    UpdateStatusText();
 }
 
 void ImageDocument::ZoomOut()
 {
     bitmapWindow->ZoomOut();
+    UpdateStatusText();
 }
 void ImageDocument::Shrink()
 {
@@ -579,11 +594,14 @@ void ImageDocument::Shrink()
     }
     else
         bitmapWindow->SetShrinkImage(!shrink);
+
+    UpdateStatusText();
 }
 
 void ImageDocument::RealSize()
 {
     bitmapWindow->SetRealSize();
+    UpdateStatusText();
 }
 
 // Implémentation de la fonction OnActivate
