@@ -87,7 +87,6 @@
     <File Name="MediaLoader.cpp"/>
     <File Name="ViewerNavigationController.cpp"/>
     <File Name="ScannerLauncher.cpp"/>
-    <File Name="PrintService.cpp"/>
     <File Name="ModelManager.cpp"/>
     <File Name="FileWatcherService.cpp"/>
     <File Name="PicturePanel.cpp"/>
@@ -123,7 +122,6 @@
     <File Name="MediaLoader.h"/>
     <File Name="ViewerNavigationController.h"/>
     <File Name="ScannerLauncher.h"/>
-    <File Name="PrintService.h"/>
     <File Name="ModelManager.h"/>
     <File Name="FileWatcherService.h"/>
     <File Name="window_mode_id.h"/>
