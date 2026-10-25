@@ -36,7 +36,7 @@ extern AppContext application_context;
 // outils de sélection)
 //-----------------------------------------------------------------
 namespace {
-    // Couleur des tracés de sélection (blanc opaque)
+    // Couleur des tracés de sélection (noir opaque)
     const cv::Scalar kSelectionColor(0, 0, 0, 255);
 
     void LogFallbackOnce(bool& alreadyLogged, const char* message) {
@@ -282,7 +282,7 @@ namespace {
 
 
 CSelectFilterParameter* CBitmapEditor::GetSelectFilter() {
-    if (effectParameter == nullptr || preview != IDM_RECTANGLESELECT || preview != IDM_ELLIPSESELECT || preview != IDM_LASSOSELECT)
+    if (effectParameter == nullptr || (preview != IDM_RECTANGLESELECT && preview != IDM_ELLIPSESELECT && preview != IDM_LASSOSELECT))
         return nullptr;
     return static_cast<CSelectFilterParameter*>(effectParameter);
 }
@@ -418,8 +418,7 @@ void CBitmapEditor::CancelSelect()
 bool CBitmapEditor::IsSelectionEnable()
 {
     CSelectFilterParameter* filter = GetSelectFilter();
-    if (filter != nullptr && !filter->listSelections.empty())
-        return true;
+    return filter != nullptr && !filter->listSelections.empty();
 }
 
 //-----------------------------------------------------------------
@@ -654,13 +653,12 @@ void CBitmapEditor::Crop()
 //-----------------------------------------------------------------
 bool CBitmapEditor::Cut()
 {
-    SaveHistoryState(L"Cut la sélection");
-
     // Appelle Copy pour mettre la sélection dans le presse-papiers
     if (!Copy())
         return false;
 
     // Appelle Delete pour effacer le contenu de la sélection par transparence
+    // (DeleteSelect enregistre lui-même l'état d'historique)
     return DeleteSelect();
 }
 
@@ -707,7 +705,7 @@ bool CBitmapEditor::Paste()
                     copyY = (bitmapheight - dataCopy.getHeight()) / 2;
                 }
 
-                
+
             }
         }
         wxTheClipboard->Close();
@@ -796,7 +794,6 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
             loadBitmap = true;
             forceUpdateFilter = true;
             updateFilter = true;
-            testPaste = true;
         }
 
         needToRefresh = true;
@@ -854,17 +851,22 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
 //-----------------------------------------------------------------
 void CBitmapEditor::SaveHistoryState(const wxString& actionLabel)
 {
-    CHistoryState* historyState = new CHistoryState();
+    if (parentRender == nullptr)
+        return;
+
+    // Fenêtre d'historique (HistoryDialog / CInfoEffectWnd) à notifier
+    wxWindow* mainWindow = parentRender->FindWindowById(HISTORYWINDOWID);
+    if (mainWindow == nullptr)
+        return;
+
+    auto historyState = std::make_unique<CHistoryState>();
     historyState->libelle = actionLabel;
     historyState->currentLayers = listOfLayer.get();
-    // Notifier ou mettre à jour l'interface de l'historique (HistoryDialog / CInfoEffectWnd)
-    wxWindow* mainWindow = parentRender->FindWindowById(HISTORYWINDOWID); // ID de votre fenêtre d'historique si applicable
-    // Ou via le gestionnaire d'effets/historique actif
-    if (mainWindow) {
-        wxCommandEvent evt(wxEVENT_REFRESHHISTORYLIST);
-        evt.SetClientData(historyState);
-        mainWindow->GetEventHandler()->AddPendingEvent(evt);
-    }
+
+    wxCommandEvent evt(wxEVENT_REFRESHHISTORYLIST);
+    // La propriété de l'état passe au destinataire de l'événement
+    evt.SetClientData(historyState.release());
+    mainWindow->GetEventHandler()->AddPendingEvent(evt);
 }
 
 
@@ -1005,7 +1007,7 @@ bool CBitmapEditor::UpdateScreenBitmap(LayerElement* activeLayer,
         // changement d'affichage global
         for (size_t i = 0; i < listOfLayer->size(); ++i) {
 
-            LayerElement * element = GetElement(i);
+            LayerElement* element = GetElement(i);
             if (element != nullptr)
                 element->needTextureUpdate = true;
         }
@@ -1147,7 +1149,9 @@ void CBitmapEditor::ComposeLayers(LayerElement* typeSource,
     }
     else if (typeLayer == TYPE_OPENCL) {
         if (!rendererOpenCL)
-            rendererOpenCL = std::make_unique<CLayerRendererOpenCL>();
+        {
+            rendererOpenCL = std::make_unique<CLayerRendererOpenCL>(renderOpenGL->GetOpenCLContext());
+        }
         if (!rendererOpenCL->Compose(scene, textureDisplay, width, height, activeDirty)) {
             LogFallbackOnce(openclComposeFallbackLogged,
                 "CBitmapEditor : composition OpenCL indisponible ou "
@@ -1167,7 +1171,7 @@ void CBitmapEditor::ComposeLayersCPU(ILayerScene& scene, GLTexture* textureDispl
 //-----------------------------------------------------------------
 // ILayerScene : services fournis aux renderers
 //-----------------------------------------------------------------
-CLayerList * CBitmapEditor::SceneLayers() { return listOfLayer.get(); }
+CLayerList* CBitmapEditor::SceneLayers() { return listOfLayer.get(); }
 int CBitmapEditor::SceneActiveIndex() const { return numActifLayer; }
 float CBitmapEditor::SceneRatio() const { return ratio; }
 
@@ -1425,7 +1429,7 @@ void CBitmapEditor::SetKey(const int& iKey)
 {
     this->iKey = iKey;
 
-    // 1. Gestion de la touche Suppr (Delete) autonome pour annuler la sélection
+    // 1. Échap : annule la sélection ; Suppr : efface le contenu sélectionné puis annule la sélection
     if (iKey == WXK_ESCAPE)
     {
         CancelSelect();

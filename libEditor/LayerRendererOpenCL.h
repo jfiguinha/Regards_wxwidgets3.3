@@ -11,7 +11,7 @@
 class CLayerRendererOpenCL : public CLayerRenderer
 {
 public:
-    CLayerRendererOpenCL();
+    CLayerRendererOpenCL(COpenCLContext* openCLContext);
     ~CLayerRendererOpenCL() override;
 
     bool Compose(ILayerScene& scene, Regards::OpenGL::GLTexture* textureDisplay,
@@ -22,6 +22,7 @@ private:
     cv::UMat GetLayerUMat(ILayerScene& scene, LayerElement* layer, int width, int height);
     cv::UMat GetActiveLayerUMat(ILayerScene& scene, int width, int height, bool activeDirty);
 
+    COpenCLContext* openCLContext;
     std::unique_ptr<CLayerCompositorOpenCL> compositor;
     cv::UMat backgroundUMat;
     cv::Size backgroundUMatSize;

@@ -3,164 +3,14 @@
 #include "LayerCompositorOpenCL.h"
 
 
-namespace
-{
-    constexpr float INV_255 = 1.0f / 255.0f;
-    constexpr float ALPHA_EPSILON = 1.0e-6f;
 
-    // Les matrices d'entrée et de sortie sont en CV_32F, avec des
-    // valeurs normalisées dans [0, 1].
-    void BlendChannelsOpenCL(
-        const cv::UMat& src,
-        const cv::UMat& dst,
-        cv::UMat& out,
-        int mode)
-    {
-        switch (mode)
-        {
-        case 1: // Multiply
-            cv::multiply(src, dst, out);
-            break;
 
-        case 2: // Screen
-        {
-            cv::UMat sum, product;
-            cv::add(src, dst, sum);
-            cv::multiply(src, dst, product);
-            cv::subtract(sum, product, out);
-            break;
-        }
-
-        case 4: // Darken
-            cv::min(src, dst, out);
-            break;
-
-        case 5: // Lighten
-            cv::max(src, dst, out);
-            break;
-
-        case 6: // Add
-        {
-            cv::UMat sum;
-            cv::add(src, dst, sum);
-            cv::min(sum, 1.0, out);
-            break;
-        }
-
-        case 7: // Subtract : destination - source
-        {
-            cv::UMat difference;
-            cv::subtract(dst, src, difference);
-            cv::max(difference, 0.0, out);
-            break;
-        }
-
-        case 0: // Normal
-        default:
-            out = src;
-            break;
-        }
-    }
-
-    // Composition W3C en espace couleur non prémultiplié.
-    // Toutes les entrées sont normalisées dans [0, 1].
-    void CompositeLayerOpenCL(
-        const cv::UMat& src,
-        cv::UMat& dst,
-        float opacity,
-        int blendMode)
-    {
-        std::vector<cv::UMat> srcChannels;
-        std::vector<cv::UMat> dstChannels;
-
-        cv::split(src, srcChannels);
-        cv::split(dst, dstChannels);
-
-        // Alpha de la source tenant compte de l'opacité du calque.
-        cv::UMat sa;
-        cv::multiply(srcChannels[3], opacity, sa);
-
-        // Alpha de destination.
-        const cv::UMat& da = dstChannels[3];
-
-        // Facteurs communs à tous les canaux couleur.
-        cv::UMat invSa, invDa;
-        cv::subtract(1.0, sa, invSa);
-        cv::subtract(1.0, da, invDa);
-
-        // Ao = As + Ad * (1 - As)
-        cv::UMat termAlpha, oa;
-        cv::multiply(da, invSa, termAlpha);
-        cv::add(sa, termAlpha, oa);
-
-        // Calcul des couleurs de fusion.
-        std::vector<cv::UMat> srcRGB = {
-            srcChannels[0], srcChannels[1], srcChannels[2]
-        };
-
-        std::vector<cv::UMat> dstRGB = {
-            dstChannels[0], dstChannels[1], dstChannels[2]
-        };
-
-        cv::UMat srcColor, dstColor, blendedColor;
-        cv::merge(srcRGB, srcColor);
-        cv::merge(dstRGB, dstColor);
-
-        BlendChannelsOpenCL(
-            srcColor, dstColor, blendedColor, blendMode);
-
-        std::vector<cv::UMat> blendedChannels;
-        cv::split(blendedColor, blendedChannels);
-
-        // Co = (1-As)*Ad*Cd
-        //    + (1-Ad)*As*Cs
-        //    + As*Ad*B(Cs,Cd)
-        //
-        // Toutes les opérations sont en flottant :
-        // aucun écrêtage à 8 bits n'a lieu entre les étapes.
-
-        cv::UMat factorDestination, factorSource;
-        cv::multiply(invSa, da, factorDestination);
-        cv::multiply(invDa, sa, factorSource);
-        cv::UMat factorBlend;
-        cv::multiply(sa, da, factorBlend);
-
-        std::vector<cv::UMat> outputChannels(4);
-
-        // Évite les divisions par zéro lorsque Ao = 0.
-        cv::UMat safeAlpha;
-        cv::max(oa, ALPHA_EPSILON, safeAlpha);
-
-        for (int c = 0; c < 3; ++c)
-        {
-            cv::UMat t1, t2, t3, sum, premultiplied;
-
-            cv::multiply(
-                factorDestination, dstRGB[c], t1);
-
-            cv::multiply(
-                factorSource, srcRGB[c], t2);
-
-            cv::multiply(
-                factorBlend, blendedChannels[c], t3);
-
-            cv::add(t1, t2, sum);
-            cv::add(sum, t3, premultiplied);
-
-            cv::divide(premultiplied, safeAlpha,
-                outputChannels[c]);
-        }
-
-        outputChannels[3] = oa;
-
-        cv::merge(outputChannels, dst);
-    }
-}
-
-CLayerCompositorOpenCL::CLayerCompositorOpenCL()
+CLayerCompositorOpenCL::CLayerCompositorOpenCL(COpenCLContext* openCLContext)
 {
     if (cv::ocl::haveOpenCL())
         cv::ocl::setUseOpenCL(true);
+
+    this->openCLContext = openCLContext;
 }
 
 CLayerCompositorOpenCL::~CLayerCompositorOpenCL()
@@ -173,6 +23,7 @@ void CLayerCompositorOpenCL::Release()
     // Les UMat libèrent leurs ressources par comptage de références.
 }
 
+
 bool CLayerCompositorOpenCL::Compose(
     const cv::UMat& background,
     const std::vector<LayerPassOpenCL>& layers,
@@ -180,83 +31,93 @@ bool CLayerCompositorOpenCL::Compose(
     int width,
     int height)
 {
-    if (!IsValid() ||
-        background.empty() ||
-        width <= 0 ||
-        height <= 0 ||
-        background.type() != CV_8UC4)
-    {
+    if (!IsValid() || background.empty() || width <= 0 || height <= 0 || background.type() != CV_8UC4)
         return false;
-    }
 
-    const cv::Size canvasSize(width, height);
-
-    // Préparation du fond.
-    cv::UMat resizedBackground;
-
-    if (background.size() != canvasSize)
-    {
-        cv::resize(
-            background,
-            resizedBackground,
-            canvasSize,
-            0.0,
-            0.0,
-            cv::INTER_LINEAR);
-    }
-    else
-    {
-        resizedBackground = background;
-    }
-
-    // Une seule conversion de l'image de fond vers le flottant.
-    // La composition complète reste ensuite en CV_32FC4.
-    cv::UMat working;
-    resizedBackground.convertTo(
-        working, CV_32FC4, INV_255);
-
-    for (const auto& layer : layers)
-    {
-        const float opacity = std::clamp(
-            layer.opacity, 0.0f, 1.0f);
-
-        if (layer.texture.empty() || opacity <= 0.0f)
-            continue;
-
-        if (layer.texture.type() != CV_8UC4)
-            return false;
-
-        cv::UMat resizedLayer;
-
-        if (layer.texture.size() != canvasSize)
-        {
-            cv::resize(
-                layer.texture,
-                resizedLayer,
-                canvasSize,
-                0.0,
-                0.0,
-                cv::INTER_LINEAR);
+    // 1. Filtrer les calques actifs pour éviter d'allouer de la mémoire vidéo inutilement
+    std::vector<LayerPassOpenCL> activeLayers;
+    for (const auto& layer : layers) {
+        if (!layer.texture.empty() && layer.opacity > 0.0f) {
+            activeLayers.push_back(layer);
         }
-        else
-        {
-            resizedLayer = layer.texture;
+    }
+
+    // S'il n'y a pas de calques, un simple redimensionnement ou copie suffit
+    if (activeLayers.empty()) {
+        if (background.size() == cv::Size(width, height)) background.copyTo(target);
+        else cv::resize(background, target, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
+        return true;
+    }
+
+    // 2. Préparer le conteneur de destination global (Contrat de sortie)
+    if (target.empty() || target.cols != width || target.rows != height || target.type() != CV_8UC4) {
+        target = cv::UMat(height, width, CV_8UC4);
+    }
+
+    // Ajuster le fond si nécessaire
+    cv::UMat resizedBG = background;
+    if (background.cols != width || background.rows != height) {
+        cv::resize(background, resizedBG, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
+    }
+
+    // 3. Concaténer tous les calques actifs dans un unique Buffer GPU 3D/Continu
+    // Cette étape élimine les 40 allocations OpenCL/UMat intermédiaires par frame.
+    size_t layerSizeInBytes = (size_t)width * height * 4; // 4 canaux (BGRA) 8 bits
+    cv::UMat megaBuffer(height * activeLayers.size(), width, CV_8UC4);
+
+    std::vector<float> h_opacities;
+    std::vector<int> h_modes;
+
+    for (size_t i = 0; i < activeLayers.size(); ++i) {
+        cv::UMat targetROI = megaBuffer(cv::Rect(0, i * height, width, height));
+
+        if (activeLayers[i].texture.cols != width || activeLayers[i].texture.rows != height) {
+            cv::resize(activeLayers[i].texture, targetROI, cv::Size(width, height), 0, 0, cv::INTER_LINEAR);
+        }
+        else {
+            activeLayers[i].texture.copyTo(targetROI);
         }
 
-        // Conversion du calque courant.
-        cv::UMat srcFloat;
-        resizedLayer.convertTo(
-            srcFloat, CV_32FC4, INV_255);
-
-        CompositeLayerOpenCL(
-            srcFloat,
-            working,
-            opacity,
-            layer.blendMode);
+        h_opacities.push_back(std::clamp(activeLayers[i].opacity, 0.0f, 1.0f));
+        h_modes.push_back(activeLayers[i].blendMode);
     }
 
-    // Une seule conversion finale vers le format BGRA 8 bits.
-    working.convertTo(target, CV_8UC4, 255.0);
+    // Envoi des métadonnées vers le GPU
+    cv::Mat matOpacities(1, activeLayers.size(), CV_32FC1, h_opacities.data());
+    cv::Mat matModes(1, activeLayers.size(), CV_32SC1, h_modes.data());
+    cv::UMat gpuOpacities = matOpacities.getUMat(cv::ACCESS_READ);
+    cv::UMat gpuModes = matModes.getUMat(cv::ACCESS_READ);
 
-    return true;
+    // 4. Compilation à la volée du programme OpenCL via OpenCV (Mise en cache automatique par le driver)
+    //cv::ocl::ProgramSource programSource("layer_compositor", kernelSource);
+    cv::String errmsg;
+    cv::String buildopt = "";
+    cv::ocl::Program program = openCLContext->GetProgram("IDR_OPENCL_LAYERCOMPOSITOR.cl");// cv::ocl::Context::getDefault().getProg(programSource, buildopt, errmsg);
+
+    cv::ocl::Kernel kernel("compositeLayersKernel", program);
+    if (kernel.empty()) {
+        return false; // Échec de compilation du Kernel OpenCL
+    }
+
+    // 5. Configurer et exécuter les dimensions du Grid de threads (1 thread par pixel)
+    size_t globalThreads[2] = { (size_t)width, (size_t)height };
+    long layerStridePixels = (long)width * height;
+    int numLayers = (int)activeLayers.size();
+
+    // Injection des arguments mémoire dans l'exécuteur matériel
+    kernel.args(
+        cv::ocl::KernelArg::PtrReadOnly(resizedBG),
+        cv::ocl::KernelArg::PtrReadOnly(megaBuffer),
+        cv::ocl::KernelArg::PtrReadOnly(gpuOpacities),
+        cv::ocl::KernelArg::PtrReadOnly(gpuModes),
+        cv::ocl::KernelArg::PtrWriteOnly(target),
+        numLayers,
+        width,
+        height,
+        layerStridePixels
+    );
+
+    // Lancement du Kernel asynchrone sur le GPU
+    return kernel.run(2, globalThreads, nullptr, true);
 }
+

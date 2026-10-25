@@ -66,7 +66,7 @@ public:
 
 private:
 
-    
+
     // --- Evènements ---
     void OnSetBitmap(wxCommandEvent& event) override;
     void SetBitmapByLayerId(CImageLoadingFormat* bitmapIn, const uint64_t& layerId);
@@ -115,7 +115,7 @@ private:
     bool UploadToTexture(GLTexture& texture, const cv::Mat& image);
 
     // --- ILayerScene (implémentation privée, consommée par les CLayerRenderer*) ---
-    CLayerList * SceneLayers() override;
+    CLayerList* SceneLayers() override;
     int SceneActiveIndex() const override;
     cv::Mat SceneBackground(int width, int height) override;
     cv::Mat SceneActiveLayer(int width, int height) override;
@@ -136,8 +136,6 @@ private:
     std::unique_ptr<CLayerRendererCPU> rendererCPU;
     std::unique_ptr<CLayerRendererGL> rendererGL;
     std::unique_ptr<CLayerRendererOpenCL> rendererOpenCL;
-
-    bool testPaste = false;
 
     uint64_t lastSourceLayerId = 0;
     uint64_t lastSourceVersion = 0;

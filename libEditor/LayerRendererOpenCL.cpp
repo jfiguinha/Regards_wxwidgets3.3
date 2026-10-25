@@ -5,7 +5,10 @@
 
 using Regards::OpenGL::GLTexture;
 
-CLayerRendererOpenCL::CLayerRendererOpenCL() = default;
+CLayerRendererOpenCL::CLayerRendererOpenCL(COpenCLContext* openCLContext)
+{
+    this->openCLContext = openCLContext;
+}
 CLayerRendererOpenCL::~CLayerRendererOpenCL() = default;
 
 void CLayerRendererOpenCL::Release()
@@ -59,7 +62,7 @@ bool CLayerRendererOpenCL::Compose(ILayerScene& scene, GLTexture* textureDisplay
 {
     if (width <= 0 || height <= 0 || textureDisplay == nullptr) return false;
     if (!compositor)
-        compositor = std::make_unique<CLayerCompositorOpenCL>();
+        compositor = std::make_unique<CLayerCompositorOpenCL>(openCLContext);
     if (!compositor->IsValid()) return false;
 
     const cv::Size size(width, height);

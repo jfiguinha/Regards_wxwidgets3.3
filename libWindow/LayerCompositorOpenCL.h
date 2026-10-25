@@ -1,12 +1,14 @@
 // ==================== LayerCompositorOpenCL.h ====================
 #pragma once
 #include "LayerCompositor.h"
-#include <opencv2/core/ocl.hpp>
+#include <OpenCLContext.h>
+
+using namespace Regards::OpenCL;
 
 class CLayerCompositorOpenCL : public CLayerCompositor
 {
 public:
-    CLayerCompositorOpenCL();
+    CLayerCompositorOpenCL(COpenCLContext* openCLContext);
     virtual ~CLayerCompositorOpenCL() override;
 
     // Vérifie si OpenCL est disponible et actif sur la machine
@@ -15,4 +17,7 @@ public:
 
     bool Compose(const cv::UMat& background, const std::vector<LayerPassOpenCL>& layers,
         cv::UMat& target, int width, int height);
+
+private:
+    COpenCLContext* openCLContext = nullptr;
 };

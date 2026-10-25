@@ -54,74 +54,57 @@ cl_int CTextureGLPriv::CreateTextureInterop(GLTexture* glTexture) {
     return CL_SUCCESS;
 }
 
+
 bool CTextureGLPriv::convertToGLTexture2D(cv::UMat& u, GLTexture* glTexture) {
     bool isOk = true;
     cl_int status = 0;
 
     if (isOpenCLCompatible) {
         try {
-            cv::UMat bitmapMatrix;
-            if (u.channels() == 3) {
-                cvtColor(u, bitmapMatrix, cv::COLOR_BGR2RGBA);
+            // SÉCURITÉ : Assurer la continuité du buffer sans conversion de couleur
+            cv::UMat bitmapMatrix = u;
+            if (!bitmapMatrix.isContinuous()) {
+                bitmapMatrix = bitmapMatrix.clone();
             }
-            else if (u.channels() == 1) {
-                cvtColor(u, bitmapMatrix, cv::COLOR_GRAY2RGBA);
-            }
-            else {
-                cvtColor(u, bitmapMatrix, cv::COLOR_BGRA2RGBA);
-            }
-
-            cv::ocl::finish();
-
-            if (!bitmapMatrix.isContinuous()) bitmapMatrix = bitmapMatrix.clone();
 
             cl_command_queue q = openCLContext->GetCommandQueue();
 
             status = CreateTextureInterop(glTexture);
-
             if (status != CL_SUCCESS)
-                CV_Error(cv::Error::OpenCLApiCallError,
-                    "OpenCL: clCreateFromGLTexture failed");
+                CV_Error(cv::Error::OpenCLApiCallError, "OpenCL: clCreateFromGLTexture failed");
 
+            // 1. Verrouiller la texture OpenGL pour OpenCL (Sans bloquer le CPU)
             status = clEnqueueAcquireGLObjects(q, 1, &clImage, 0, nullptr, nullptr);
             if (status != CL_SUCCESS)
-                CV_Error(cv::Error::OpenCLApiCallError,
-                    "OpenCL: clEnqueueAcquireGLObjects failed");
+                CV_Error(cv::Error::OpenCLApiCallError, "OpenCL: clEnqueueAcquireGLObjects failed");
             isAcquired = true;
 
+            // Récupération directe du descripteur OpenCL natif depuis le UMat d'OpenCV
             auto clBuffer = static_cast<cl_mem>(bitmapMatrix.handle(cv::ACCESS_READ));
             size_t offset = 0;
             size_t dst_origin[3] = { 0, 0, 0 };
             size_t region[3] = { static_cast<size_t>(bitmapMatrix.cols),
-                                static_cast<size_t>(bitmapMatrix.rows), 1 };
-            status =
-                clEnqueueCopyBufferToImage(q, clBuffer, clImage, offset, dst_origin,
-                    region, 0, nullptr, nullptr);
+                                 static_cast<size_t>(bitmapMatrix.rows), 1 };
 
+            // 2. Copie directe de VRAM à VRAM (BGRA natif vers texture OpenGL)
+            status = clEnqueueCopyBufferToImage(q, clBuffer, clImage, offset, dst_origin,
+                region, 0, nullptr, nullptr);
             if (status != CL_SUCCESS)
-                CV_Error(cv::Error::OpenCLApiCallError,
-                    "OpenCL: clEnqueueCopyBufferToImage failed");
+                CV_Error(cv::Error::OpenCLApiCallError, "OpenCL: clEnqueueCopyBufferToImage failed");
 
-            status = clFinish(q);
-            if (status != CL_SUCCESS)
-                CV_Error(cv::Error::OpenCLApiCallError,
-                    "OpenCL: clFinish after copy failed");
-
+            // 3. Relâcher la texture pour qu'OpenGL reprenne la main (Opération asynchrone push)
             status = clEnqueueReleaseGLObjects(q, 1, &clImage, 0, nullptr, nullptr);
             if (status != CL_SUCCESS)
-                CV_Error(cv::Error::OpenCLApiCallError,
-                    "OpenCL: clEnqueueReleaseGLObjects failed");
+                CV_Error(cv::Error::OpenCLApiCallError, "OpenCL: clEnqueueReleaseGLObjects failed");
             isAcquired = false;
 
-            status = clFinish(q);
-            if (status != CL_SUCCESS)
-                CV_Error(cv::Error::OpenCLApiCallError,
-                    "OpenCL: clFinish after release failed");
+            // NOTE : Suppression de clFinish(q) ici. On laisse la file d'attente s'exécuter de manière 
+            // fluide. OpenGL se synchronise automatiquement lors du draw via l'acquisition des GL Objects.
         }
         catch (cv::Exception& e) {
             if (isAcquired) DeleteTextureInterop();
             const char* err_msg = e.what();
-            std::cout << "exception caught: " << err_msg << std::endl;
+            std::cout << "CTextureGLPriv interop exception: " << err_msg << std::endl;
             status = -1;
             isOk = false;
         }
@@ -129,6 +112,7 @@ bool CTextureGLPriv::convertToGLTexture2D(cv::UMat& u, GLTexture* glTexture) {
 
     return isOk;
 }
+
 
 // ---------------------------------------------------------------------------
 void CTextureGLPriv::DeleteTextureInterop() {
