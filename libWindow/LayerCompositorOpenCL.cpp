@@ -92,7 +92,7 @@ bool CLayerCompositorOpenCL::Compose(
     //cv::ocl::ProgramSource programSource("layer_compositor", kernelSource);
     cv::String errmsg;
     cv::String buildopt = "";
-    cv::ocl::Program program = openCLContext->GetProgram("IDR_OPENCL_LAYERCOMPOSITOR.cl");// cv::ocl::Context::getDefault().getProg(programSource, buildopt, errmsg);
+    cv::ocl::Program program = openCLContext->GetProgram("IDR_OPENCL_LAYERCOMPOSITOR");// cv::ocl::Context::getDefault().getProg(programSource, buildopt, errmsg);
 
     cv::ocl::Kernel kernel("compositeLayersKernel", program);
     if (kernel.empty()) {
