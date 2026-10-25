@@ -96,7 +96,6 @@ namespace Regards::Window
 		};
 		virtual int GetKey();
 
-		Regards::Picture::CPictureArray* GetCachePicture() override;
 
 		void SetOpenGLOutput(const bool& value);
 

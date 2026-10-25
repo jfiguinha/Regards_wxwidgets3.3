@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="libEditor" Version="11000" InternalType="Library">
+  <VirtualDirectory Name="Render">
+    <File Name="LayerRendererOpenCL.h"/>
+    <File Name="LayerRendererGL.h"/>
+    <File Name="LayerRendererCPU.h"/>
+    <File Name="LayerRenderer.h"/>
+    <File Name="HistoryState.h"/>
+    <File Name="LayerRendererOpenCL.cpp"/>
+    <File Name="LayerRendererGL.cpp"/>
+    <File Name="LayerRendererCPU.cpp"/>
+  </VirtualDirectory>
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">

@@ -32,11 +32,11 @@
     <Project Name="libWindow" Path="libWindow/libWindow.project" Active="No"/>
     <Project Name="libDialog" Path="libDialog/libDialog.project" Active="No"/>
     <Project Name="libScanner" Path="libScanner/libScanner.project" Active="No"/>
-    <Project Name="libEditor" Path="libEditor/libEditor.project" Active="No"/>
+    <Project Name="libEditor" Path="libEditor/libEditor.project" Active="Yes"/>
   </VirtualDirectory>
   <VirtualDirectory Name="RegardsViewer_exe">
     <Project Name="RegardsViewer" Path="RegardsViewer/RegardsViewer.project" Active="No"/>
-    <Project Name="RegardsViewer_linux" Path="RegardsViewer_linux/RegardsViewer_linux.project" Active="Yes"/>
+    <Project Name="RegardsViewer_linux" Path="RegardsViewer_linux/RegardsViewer_linux.project" Active="No"/>
     <Project Name="MacOsLibExplorer" Path="MacOsLibExplorer/MacOsLibExplorer.project" Active="No"/>
     <Project Name="RegardsViewer_macsilicon" Path="RegardsViewer_macsilicon/RegardsViewer_macsilicon.project" Active="No"/>
   </VirtualDirectory>

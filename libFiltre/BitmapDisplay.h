@@ -39,5 +39,5 @@ public:
 	virtual void StopTransitionEffect(CImageLoadingFormat* bmpSecond) = 0;
 	virtual void CalculCenterPositionPicture() = 0;
 	virtual CEffectParameter * GetEffectPointer() = 0;
-	virtual Regards::Picture::CPictureArray* GetCachePicture() = 0;
+
 };

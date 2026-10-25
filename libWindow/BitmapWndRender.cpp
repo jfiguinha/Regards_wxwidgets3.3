@@ -1878,10 +1878,7 @@ void CBitmapWndRender::ReloadResource()
 	//reloadResource = true;
 }
 
-Regards::Picture::CPictureArray* CBitmapWndRender::GetCachePicture()
-{
-	return &filtreEffet->GetMatrix();
-}
+
 
 void CBitmapWndRender::SetOpenGLOutput(const bool& value)
 {

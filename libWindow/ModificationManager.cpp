@@ -300,7 +300,8 @@ CLayerList* CModificationManager::GetLayersForModification(const unsigned int& t
                 CFiltreData::RenderEffect(step.filterId, &filtreEffet, step.parameter.get(), false);
 
                 CImageLoadingFormat* picture = layer->GetPicture();
-                picture->SetPicture(filtreEffet.GetBitmap(true));
+                cv::Mat matrix = filtreEffet.GetBitmap(true);
+                picture->SetPicture(matrix);
                 //cv::Mat matrix = filtreEffet.GetBitmap(true);
                 //layer->SetPicture(new CImageLoadingFormat(matrix));
                 layer->InvalidatePicture();
