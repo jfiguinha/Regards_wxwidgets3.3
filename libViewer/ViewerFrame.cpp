@@ -95,7 +95,7 @@ CViewerFrame::CViewerFrame(const wxString& title, const wxPoint& pos, const wxSi
 
     // 5. Services
     fileWatcherService_  = std::make_unique<CFileWatcherService>(this);
-    printService_        = std::make_unique<CPrintService>(this);
+    printService_        = std::make_unique<Regards::Control::CPrintService>(this);
     scannerLauncher_     = std::make_unique<CScannerLauncher>();
     navigationCtrl_      = std::make_unique<CViewerNavigationController>(this, mainWindow_);
 

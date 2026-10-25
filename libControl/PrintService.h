@@ -9,7 +9,7 @@ namespace Regards
         class CBitmapPrintout;
     }
 }
-namespace Regards::Viewer
+namespace Regards::Control
 {
     // Encapsule toute la logique d'impression et d'aperçu.
     class CPrintService

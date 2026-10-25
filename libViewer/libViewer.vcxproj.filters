@@ -189,9 +189,6 @@
     <ClInclude Include="myFrame.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
-    <ClInclude Include="PrintService.h">
-      <Filter>Fichiers d%27en-tête</Filter>
-    </ClInclude>
     <ClInclude Include="ScannerLauncher.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
@@ -357,9 +354,6 @@
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="ModelManager.cpp">
-      <Filter>Fichiers sources</Filter>
-    </ClCompile>
-    <ClCompile Include="PrintService.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="ScannerLauncher.cpp">

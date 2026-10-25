@@ -1,7 +1,7 @@
 #include <header.h>
 #include "PrintService.h"
-#include <BitmapPrintout.h>
-#include <PrintEngine.h>
+#include "BitmapPrintout.h"
+#include "PrintEngine.h"
 #include <LibResource.h>
 #include <wx/printdlg.h>
 
@@ -9,7 +9,7 @@
 #include <wx/osx/printdlg.h>
 #endif
 
-using namespace Regards::Viewer;
+
 using namespace Regards::Control;
 using namespace Regards::Print;
 

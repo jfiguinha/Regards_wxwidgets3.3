@@ -63,7 +63,12 @@ enum {
     wxID_ROTATE270,
     wxID_INVERSESELECT,
     wxID_CANCELSELECT,
-    wxID_EXPORT
+    wxID_EXPORT,
+    WXPRINT_PAGE_SETUP,
+    WXPRINT_PAGE_SETUP_PS,
+#ifdef __WXMAC__
+    WXPRINT_PAGE_MARGINS
+#endif
 };
 
 //Connect(wxEVT_MOVE, wxMoveEventHandler(Move::OnMove));
@@ -92,7 +97,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     CFiltreData::CreateFilterList();
 
-
+    printService_ = std::make_unique<Regards::Control::CPrintService>(this);
     layerDialog = new LayerDialog(this);
     infoDialog = new InfoDialog(this);
     parameterDialog = new ParameterDialog(this);
@@ -110,6 +115,10 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     viewerTheme = CMainThemeInit::getInstance();
     this->mainInterface = mainInterface;
 
+    const wxString labelPageSetup = CLibResource::LoadStringFromResource(L"labelPageSetup", 1);
+    const wxString labelPageSetup_link = CLibResource::LoadStringFromResource(L"labelPageSetup_link", 1);
+    const wxString labelPageMargins = CLibResource::LoadStringFromResource(L"labelPageMargins", 1); // L"Page margins";
+    const wxString labelPageMargins_link = CLibResource::LoadStringFromResource(L"labelPageMargins_link", 1);
     // 1. Configuration de la barre de menus
     wxMenu* menuFile = new wxMenu;
     menuFile->Append(wxID_NEW, "New ..\tCtrl+N");
@@ -117,6 +126,12 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     menuFile->AppendSeparator();
     menuFile->Append(wxID_SAVE, "Save...\tCtrl+S");
     menuFile->Append(wxID_EXPORT, "Export...\tCtrl+S");
+    menuFile->AppendSeparator();
+    menuFile->Append(WXPRINT_PAGE_SETUP, labelPageSetup_link, labelPageSetup);
+#ifdef __WXMAC__
+    menuFile->Append(WXPRINT_PAGE_MARGINS, labelPageMargins_link, labelPageMargins);
+#endif
+    menuFile->Append(wxID_PRINT, wxT("&Print..."), wxT("Print"));
     menuFile->AppendSeparator();
     menuFile->Append(wxID_CLOSE, "Close\tCtrl+Q");
     menuFile->AppendSeparator();
@@ -289,6 +304,9 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Bind(wxEVT_MENU, &CEditorFrame::OnInverseAll, this, wxID_INVERSESELECT);
     Bind(wxEVT_MENU, &CEditorFrame::OnCancelSelect, this, wxID_CANCELSELECT);
 
+
+    Bind(wxEVT_MENU, &CEditorFrame::OnPrint, this, wxID_PRINT);
+    Bind(wxEVT_MENU, &CEditorFrame::OnPageSetup, this, WXPRINT_PAGE_SETUP);
     Connect(wxEVENT_CREATELAYER, wxCommandEventHandler(CEditorFrame::CreateLayer));
     Connect(wxEVENT_DELETELAYER, wxCommandEventHandler(CEditorFrame::DeleteLayer));
     Connect(wxEVENT_COPYLAYER, wxCommandEventHandler(CEditorFrame::CopyLayer));
@@ -478,9 +496,20 @@ void CEditorFrame::DeleteLayer(wxCommandEvent& event)
             }
         }
     }
-
-
 }
+
+
+
+void CEditorFrame::PrintPreview(const wxString& filename)
+{
+    printService_->ShowImagePreview(filename);
+}
+
+void CEditorFrame::PrintImagePreview(cv::Mat& picture)
+{
+    printService_->ShowMatrixPreview(picture);
+}
+
 
 void CEditorFrame::CopyLayer(wxCommandEvent& event)
 {
@@ -1028,3 +1057,30 @@ void CEditorFrame::OnCloseImage(wxCommandEvent& event)
 
     }
 }
+
+
+void CEditorFrame::OnPrint(wxCommandEvent&)
+{
+    if (m_activeDocument)
+    {
+        CLayerList* listLayer = m_activeDocument->GetListOfLayer();
+        if (listLayer)
+        {
+            CImageLoadingFormat* image = listLayer->GetPictureToShow();
+            printService_->ShowMatrixPreview(image->GetMatImage());
+        }
+    }
+        
+}
+
+void CEditorFrame::OnPageSetup(wxCommandEvent&)
+{
+    printService_->ShowPageSetup();
+}
+
+#ifdef __WXMAC__
+void CViewerFrame::OnPageMargins(wxCommandEvent&)
+{
+    printService_->ShowPageMargins();
+}
+#endif

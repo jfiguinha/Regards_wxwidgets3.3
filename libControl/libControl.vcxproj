@@ -891,6 +891,7 @@
     <ClInclude Include="PageCurlFilter.h" />
     <ClInclude Include="PhotoCriteriaUtility.h" />
     <ClInclude Include="PrintEngine.h" />
+    <ClInclude Include="PrintService.h" />
     <ClInclude Include="ShowElement.h" />
     <ClInclude Include="SliderVideo.h" />
     <ClInclude Include="SlideToolbar.h" />
@@ -950,6 +951,7 @@
     <ClCompile Include="PageCurlFilter.cpp" />
     <ClCompile Include="PhotoCriteriaUtility.cpp" />
     <ClCompile Include="PrintEngine.cpp" />
+    <ClCompile Include="PrintService.cpp" />
     <ClCompile Include="ShowElement.cpp" />
     <ClCompile Include="SliderVideo.cpp" />
     <ClCompile Include="SlideToolbar.cpp" />

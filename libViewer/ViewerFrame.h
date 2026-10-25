@@ -1,8 +1,7 @@
 #pragma once
 #include <StatusBarInterface.h>
 #include <MainInterface.h>
-
-
+#include <PrintService.h>
 // Services extraits
 #include "ModelManager.h"
 #include "FileWatcherService.h"
@@ -167,7 +166,7 @@ namespace Regards::Viewer
         // Services
         std::unique_ptr<CModelManager>               modelManager_;
         std::unique_ptr<CFileWatcherService>         fileWatcherService_;
-        std::unique_ptr<CPrintService>               printService_;
+        std::unique_ptr<Regards::Control::CPrintService>               printService_;
         std::unique_ptr<CScannerLauncher>            scannerLauncher_;
         std::unique_ptr<CViewerNavigationController> navigationCtrl_;
 

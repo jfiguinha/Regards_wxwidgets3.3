@@ -4,6 +4,7 @@
 #include <ViewerParamInit.h>
 #include <ViewerTheme.h>
 #include <ViewerThemeInit.h>
+#include <PrintService.h>
 using namespace Regards::Viewer;
 
 class LayerDialog;
@@ -36,12 +37,15 @@ public:
 
 	// Permet aux ImageDocument de notifier la frame principale qu'ils ont le focus
 	void SetActiveDocument(ImageDocument* doc);
-
+	void PrintPreview(const wxString& filename);
+	void PrintImagePreview(cv::Mat& picture);
 	// Permet à vos boîtes de dialogue (Effets, Couleurs...) de récupérer l'image active
 	ImageDocument* GetActiveDocument() const { return m_activeDocument; }
 
 private:
-
+#ifdef __WXMAC__
+	void OnPageMargins(wxCommandEvent& event);
+#endif
 	void OnColorChange(wxCommandEvent& event);
 	void OnAbout(wxCommandEvent& WXUNUSED(event));
 	void OnToolsEffect(wxCommandEvent& event);
@@ -99,15 +103,18 @@ private:
 
 
 	void UpdateMenusState();
-
+	void OnPrint(wxCommandEvent&);
+	void OnPageSetup(wxCommandEvent&);
 
 	std::map<int, STImageDoc> m_openedDocuments;
    
 	Regards::Viewer::CMainParam * viewerParam;
 	Regards::Viewer::CMainTheme * viewerTheme;
+	
+
+	std::unique_ptr<Regards::Control::CPrintService>   printService_;
 
 	ImageDocument* m_activeDocument = nullptr; 
-
 	LayerDialog* layerDialog = nullptr;
 	ToolDialog* toolDialog = nullptr;
 	EffectsDialog* effectsDialog = nullptr;

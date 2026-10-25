@@ -913,7 +913,6 @@
     <ClInclude Include="PicturePanel.h" />
     <ClInclude Include="PreviewToolbar.h" />
     <ClInclude Include="PreviewWnd.h" />
-    <ClInclude Include="PrintService.h" />
     <ClInclude Include="ScannerLauncher.h" />
     <ClInclude Include="SlideshowController.h" />
     <ClInclude Include="SqlBatchOps.h" />
@@ -983,7 +982,6 @@
     <ClCompile Include="PicturePanel.cpp" />
     <ClCompile Include="PreviewToolbar.cpp" />
     <ClCompile Include="PreviewWnd.cpp" />
-    <ClCompile Include="PrintService.cpp" />
     <ClCompile Include="ScannerLauncher.cpp" />
     <ClCompile Include="SlideshowController.cpp" />
     <ClCompile Include="SqlBatchOps.cpp" />

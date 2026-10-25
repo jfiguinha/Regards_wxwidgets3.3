@@ -136,6 +136,9 @@
     <ClCompile Include="LayerIcone.cpp">
       <Filter>Layer\Source</Filter>
     </ClCompile>
+    <ClCompile Include="PrintService.cpp">
+      <Filter>Print</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CriteriaTree.h">
@@ -290,6 +293,9 @@
     </ClInclude>
     <ClInclude Include="LayerIcone.h">
       <Filter>Layer\Include</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintService.h">
+      <Filter>Print</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
