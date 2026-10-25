@@ -94,30 +94,42 @@ bool CLayerCompositorOpenCL::Compose(
     cv::String buildopt = "";
     cv::ocl::Program program = openCLContext->GetProgram("IDR_OPENCL_LAYERCOMPOSITOR");// cv::ocl::Context::getDefault().getProg(programSource, buildopt, errmsg);
 
+
+    // ... (Votre logique de préparation de megaBuffer, gpuOpacities, etc. reste identique)
+
     cv::ocl::Kernel kernel("compositeLayersKernel", program);
     if (kernel.empty()) {
-        return false; // Échec de compilation du Kernel OpenCL
+        return false;
     }
 
-    // 5. Configurer et exécuter les dimensions du Grid de threads (1 thread par pixel)
-    size_t globalThreads[2] = { (size_t)width, (size_t)height };
-    long layerStridePixels = (long)width * height;
+    int layerStridePixels = width * height;
     int numLayers = (int)activeLayers.size();
 
-    // Injection des arguments mémoire dans l'exécuteur matériel
+    // EXTRACTION DES POINTEURS CL_MEM BRUTS DE LA VRAM
+    // handle(ACCESS_...) extrait l'objet cl_mem sous-jacent géré par OpenCV
+    cl_mem bgBuffer = (cl_mem)resizedBG.handle(cv::ACCESS_READ);
+    cl_mem layersBuffer = (cl_mem)megaBuffer.handle(cv::ACCESS_READ);
+    cl_mem opacBuffer = (cl_mem)gpuOpacities.handle(cv::ACCESS_READ);
+    cl_mem modesBuffer = (cl_mem)gpuModes.handle(cv::ACCESS_READ);
+    cl_mem dstBuffer = (cl_mem)target.handle(cv::ACCESS_WRITE);
+
+    // INJECTION DIRECTE ET SÉCURISÉE : 1 variable C++ = 1 argument exact dans le .cl
+    // On passe directement les types primitifs OpenCL reconnus nativement par le driver.
     kernel.args(
-        cv::ocl::KernelArg::PtrReadOnly(resizedBG),
-        cv::ocl::KernelArg::PtrReadOnly(megaBuffer),
-        cv::ocl::KernelArg::PtrReadOnly(gpuOpacities),
-        cv::ocl::KernelArg::PtrReadOnly(gpuModes),
-        cv::ocl::KernelArg::PtrWriteOnly(target),
-        numLayers,
-        width,
-        height,
-        layerStridePixels
+        bgBuffer,          // Correspond à : __global const uchar* bg
+        layersBuffer,      // Correspond à : __global const uchar* layers
+        opacBuffer,        // Correspond à : __global const float* opacities
+        modesBuffer,       // Correspond à : __global const int* modes
+        dstBuffer,         // Correspond à : __global uchar* dst
+        numLayers,         // Correspond à : int numLayers
+        width,             // Correspond à : int width
+        height,            // Correspond à : int height
+        layerStridePixels  // Correspond à : int layerStridePixels
     );
 
-    // Lancement du Kernel asynchrone sur le GPU
+    // Lancement du Kernel à 2 dimensions (Largeur, Hauteur)
+    size_t globalThreads[2] = { (size_t)width, (size_t)height };
     return kernel.run(2, globalThreads, nullptr, true);
+
 }
 
