@@ -12,6 +12,8 @@
 #include <HistoryDialog.h>
 #include <ToolDialog.h>
 #include <wx/spinctrl.h>
+#include <wx/display.h>
+#include <algorithm>
 #include <effect_id.h>
 #include <FilterData.h>
 #include <ResizeDialog.h>
@@ -47,10 +49,10 @@ enum {
     ID_WINDOW_INFOS,
     ID_WINDOW_COLOR,
     ID_WINDOW_PARAMETER,
-	ID_WINDOW_LAYER,
+    ID_WINDOW_LAYER,
     ID_WINDOW_HISTORY,
     wxID_ZOOMIN,
-	wxID_ZOOMOUT,
+    wxID_ZOOMOUT,
     wxID_SHRINK,
     wxID_REALSIZE,
     wxID_CROP,
@@ -101,13 +103,15 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     layerDialog = new LayerDialog(this);
     infoDialog = new InfoDialog(this);
     parameterDialog = new ParameterDialog(this);
-	historyDialog = new HistoryDialog(this);
+    historyDialog = new HistoryDialog(this);
     toolDialog = new ToolDialog(this);
 
-    toolDialog->Show(true);
+    // La frame n'a pas encore sa géométrie finale (Maximize() en fin de constructeur) :
+    // la boîte à outils est ancrée à gauche une fois la frame affichée.
+    CallAfter([this]() { ShowDocked(toolDialog, DockSide::Left); });
     historyDialog->Show(false);
     layerDialog->Show(false);
-	infoDialog->Show(false);    
+    infoDialog->Show(false);
     parameterDialog->Show(false);
 
 
@@ -195,7 +199,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
 
     for (int numEffect = FILTER_START; numEffect < FILTER_END; numEffect++)
     {
-		int numMenu = wxID_HIGHEST + numEffect + 100;
+        int numMenu = wxID_HIGHEST + numEffect + 100;
         int typeEffect = CFiltreData::GetTypeEffect(numEffect);
         switch (typeEffect) {
         case SPECIAL_EFFECT:
@@ -238,7 +242,7 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     menuBar->Append(menuEdit, "&Edit");
     menuBar->Append(menuDisplay, "&Display");
     menuBar->Append(menuPicture, "&Picture");
- //  menuBar->Append(menuEdit, "&Ajustment");
+    //  menuBar->Append(menuEdit, "&Ajustment");
     menuBar->Append(menuEffect, "&Effect");
     menuBar->Append(menuWindow, "&Window"); // Ajout du menu à la barre globale
     SetMenuBar(menuBar);
@@ -614,9 +618,9 @@ void CEditorFrame::OnSelectEffect(wxCommandEvent& event)
             parameterDialog->SetActifLayerId(numLayerId);
             parameterDialog->SetTypeFiltre(TYPE_EFFECT);
             parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
-           
+
             parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
-            parameterDialog->Show(true);
+            ShowDocked(parameterDialog, DockSide::Right);
         }
         //m_activeDocument->Crop();
     }
@@ -652,18 +656,18 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                 switch (numEffect)
                 {
                 case IDM_PAINTCROP:
-                    {
-                        numEffect = IDM_CROP;
-                        parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
-                        parameterDialog->SetActifLayer(numLayer);
-                        parameterDialog->SetActifLayerId(numLayerId);
-                        parameterDialog->SetListLayer(m_activeDocument->GetListOfLayer());
-                        parameterDialog->SetTypeFiltre(IDM_CROP);
-                        parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
-                        parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
-                        parameterDialog->Show(false);
-                    }
-                    break;
+                {
+                    numEffect = IDM_CROP;
+                    parameterDialog->SetTitle(CFiltreData::GetFilterLabel(numEffect));
+                    parameterDialog->SetActifLayer(numLayer);
+                    parameterDialog->SetActifLayerId(numLayerId);
+                    parameterDialog->SetListLayer(m_activeDocument->GetListOfLayer());
+                    parameterDialog->SetTypeFiltre(IDM_CROP);
+                    parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
+                    parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
+                    parameterDialog->Show(false);
+                }
+                break;
 
                 case IDM_LASSOSELECT:
                 case IDM_ELLIPSESELECT:
@@ -698,9 +702,9 @@ void CEditorFrame::OnToolsEffect(wxCommandEvent& event)
                     parameterDialog->SetTypeFiltre(TYPE_DRAWING);
                     parameterDialog->SetFiltre(numEffect, numLayerId, historyDialog->GetHistoryEffectWnd(), m_activeDocument->GetFileName(), m_activeDocument->GetBitmapViewerId(), m_activeDocument->GetMainViewerId());
                     parameterDialog->SetColor(toolDialog->GetColor1(), toolDialog->GetColor2());
-                    parameterDialog->Show(true);
+                    ShowDocked(parameterDialog, DockSide::Right);
                 }
-               
+
 
             }
         }
@@ -805,7 +809,7 @@ void CEditorFrame::OnWindowZoomIn(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
-		m_activeDocument->ZoomIn();
+        m_activeDocument->ZoomIn();
     }
 }
 
@@ -857,13 +861,13 @@ void CEditorFrame::OnOpen()
 
 
     CMainTheme* viewerTheme = CMainThemeInit::getInstance();
-    ImageDocument* imgDoc = new ImageDocument(this, LayerElement::GetLayerId(),  SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, openFileDialog.GetPath());
+    ImageDocument* imgDoc = new ImageDocument(this, LayerElement::GetLayerId(), SHOWBITMAPVIEWERID + imageCount, BITMAPWINDOWVIEWERID + imageCount, nullptr, viewerTheme, openFileDialog.GetPath());
     imgDoc->Show(true);
 
     STImageDoc imageDoc;
     imageDoc.doc = imgDoc;
-	imageDoc.mainId = SHOWBITMAPVIEWERID + imageCount;
-	imageDoc.bitmapId = BITMAPWINDOWVIEWERID + imageCount;
+    imageDoc.mainId = SHOWBITMAPVIEWERID + imageCount;
+    imageDoc.bitmapId = BITMAPWINDOWVIEWERID + imageCount;
     m_openedDocuments[imageDoc.mainId] = imageDoc;
 
     m_activeDocument = imgDoc;
@@ -879,9 +883,9 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
     if (doc)
     {
         m_activeDocument = doc;
-        
+
         wxString filename = m_activeDocument->GetFileName();
-        if(filename != historyDialog->GetFilename())
+        if (filename != historyDialog->GetFilename())
             historyDialog->SetHistoryControl(doc->GetHistoryPt());
 
         if (filename != infoDialog->GetFilename())
@@ -893,7 +897,7 @@ void CEditorFrame::SetActiveDocument(ImageDocument* doc)
         m_activeDocument->SetActifLayer(layerDialog->GetActifLayer());
 
         UpdateMenusState();
-       // layerDialog->SetBitmapEditor(m_activeDocument->GetBitmapEditor());
+        // layerDialog->SetBitmapEditor(m_activeDocument->GetBitmapEditor());
     }
 }
 
@@ -904,7 +908,7 @@ void CEditorFrame::OnWindowHistory(wxCommandEvent& event)
     {
         historyDialog = new HistoryDialog(this);
     }
-    historyDialog->Show(true);
+    ShowDocked(historyDialog, DockSide::Right);
 }
 
 
@@ -916,38 +920,72 @@ void CEditorFrame::OnWindowTools(wxCommandEvent& event)
         toolDialog = new ToolDialog(this);
         // infoDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");  
     }
-    toolDialog->Show(true);
+    ShowDocked(toolDialog, DockSide::Left);
 }
 
 void CEditorFrame::OnWindowInfos(wxCommandEvent& event)
 {
     SetStatusText("Affichage des Informations du document...");
-    if(!infoDialog)
+    if (!infoDialog)
     {
-		infoDialog = new InfoDialog(this);
-       // infoDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");  
+        infoDialog = new InfoDialog(this);
+        // infoDialog->SetFilename(m_activeDocument ? m_activeDocument->GetFileName() : "");  
     }
-    infoDialog->Show(true); 
+    ShowDocked(infoDialog, DockSide::Right);
 }
 
 void CEditorFrame::OnWindowLayer(wxCommandEvent& event)
 {
-	SetStatusText("Ouverture de la gestion des Couches...");
-	if (!layerDialog)
-	{
-		layerDialog = new LayerDialog(this);
-	}
-	layerDialog->Show(true);
+    SetStatusText("Ouverture de la gestion des Couches...");
+    if (!layerDialog)
+    {
+        layerDialog = new LayerDialog(this);
+    }
+    ShowDocked(layerDialog, DockSide::Right);
 }
 
 void CEditorFrame::OnWindowParameter(wxCommandEvent& event)
 {
     SetStatusText("Ouverture des Paramètres...");
-	if (!parameterDialog)
-	{
+    if (!parameterDialog)
+    {
         parameterDialog = new ParameterDialog(this);
-	}
-    parameterDialog->Show(true);
+    }
+    ShowDocked(parameterDialog, DockSide::Right);
+}
+
+void CEditorFrame::ShowDocked(wxWindow* dialog, DockSide side)
+{
+    if (!dialog)
+        return;
+
+    // Placement uniquement à la première ouverture : on respecte ensuite
+    // la position choisie par l'utilisateur.
+    if (m_dockedDialogs.insert(dialog).second)
+    {
+        // Origine de la zone cliente (sous la barre d'outils), en coordonnées écran
+        const wxPoint origin = ClientToScreen(wxPoint(0, 0));
+        const wxSize clientSize = GetClientSize();
+        const wxSize dialogSize = dialog->GetSize();
+
+        int x = (side == DockSide::Left)
+            ? origin.x
+            : origin.x + clientSize.GetWidth() - dialogSize.GetWidth();
+        int y = origin.y;
+
+        // Rester dans la zone utile de l'écran
+        int displayIndex = wxDisplay::GetFromWindow(this);
+        if (displayIndex == wxNOT_FOUND)
+            displayIndex = 0;
+        const wxRect area = wxDisplay(displayIndex).GetClientArea();
+
+        x = std::max(area.GetLeft(), std::min(x, area.GetRight() - dialogSize.GetWidth() + 1));
+        y = std::max(area.GetTop(), std::min(y, area.GetBottom() - dialogSize.GetHeight() + 1));
+
+        dialog->Move(x, y);
+    }
+
+    dialog->Show(true);
 }
 
 // event handlers
@@ -1070,7 +1108,7 @@ void CEditorFrame::OnPrint(wxCommandEvent&)
             printService_->ShowMatrixPreview(image->GetMatImage());
         }
     }
-        
+
 }
 
 void CEditorFrame::OnPageSetup(wxCommandEvent&)

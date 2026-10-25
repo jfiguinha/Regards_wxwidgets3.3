@@ -5,7 +5,11 @@
 #include <ViewerTheme.h>
 #include <ViewerThemeInit.h>
 #include <PrintService.h>
+#include <set>
 using namespace Regards::Viewer;
+
+// Côté d'ancrage des boîtes de dialogue flottantes par rapport à la frame
+enum class DockSide { Left, Right };
 
 class LayerDialog;
 class EffectsDialog;
@@ -27,10 +31,10 @@ class CEditorFrame : public wxFrame
 {
 public:
 	// ctor(s)
-	CEditorFrame(const wxString &title, const wxString& openfile, IMainInterface* mainInterface, const wxPoint &pos, const wxSize &size,
+	CEditorFrame(const wxString& title, const wxString& openfile, IMainInterface* mainInterface, const wxPoint& pos, const wxSize& size,
 		long style = wxDEFAULT_FRAME_STYLE);
 
-    ~CEditorFrame() = default;
+	~CEditorFrame() = default;
 
 	void OnOpen();
 	void OnClose();
@@ -67,7 +71,7 @@ private:
 	void OnSelectAll(wxCommandEvent& event);
 	void OnInverseAll(wxCommandEvent& event);
 	void OnCancelSelect(wxCommandEvent& event);
-	
+
 	void OnWindowEffects(wxCommandEvent& event);
 	void OnWindowTools(wxCommandEvent& event);
 	void OnWindowInfos(wxCommandEvent& event);
@@ -102,23 +106,28 @@ private:
 	void UpdateLayerPicture(wxCommandEvent& event);
 
 
+	// Affiche la boîte de dialogue ancrée au bord gauche/droit de la frame
+	// (positionnée à la première ouverture uniquement)
+	void ShowDocked(wxWindow* dialog, DockSide side);
+
 	void UpdateMenusState();
 	void OnPrint(wxCommandEvent&);
 	void OnPageSetup(wxCommandEvent&);
 
 	std::map<int, STImageDoc> m_openedDocuments;
-   
-	Regards::Viewer::CMainParam * viewerParam;
-	Regards::Viewer::CMainTheme * viewerTheme;
-	
+	std::set<const wxWindow*> m_dockedDialogs; // boîtes déjà positionnées par ShowDocked
+
+	Regards::Viewer::CMainParam* viewerParam;
+	Regards::Viewer::CMainTheme* viewerTheme;
+
 
 	std::unique_ptr<Regards::Control::CPrintService>   printService_;
 
-	ImageDocument* m_activeDocument = nullptr; 
+	ImageDocument* m_activeDocument = nullptr;
 	LayerDialog* layerDialog = nullptr;
 	ToolDialog* toolDialog = nullptr;
 	EffectsDialog* effectsDialog = nullptr;
-	InfoDialog* infoDialog = nullptr;	
+	InfoDialog* infoDialog = nullptr;
 	ParameterDialog* parameterDialog = nullptr;
 	HistoryDialog* historyDialog = nullptr;
 	wxString lastFolder = "";
