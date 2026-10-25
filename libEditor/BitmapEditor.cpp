@@ -833,6 +833,16 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
         needToRefresh = true;
     }
 
+    if (toolOption == ZOOMPICTURE)
+    {
+        wxWindow* mainWindow = parentRender->GetParent(); // ID de votre fenêtre d'historique si applicable
+        // Ou via le gestionnaire d'effets/historique actif
+        if (mainWindow) {
+            wxCommandEvent evt(wxEVENT_UPDATESTATUSTEXT);
+            mainWindow->GetEventHandler()->AddPendingEvent(evt);
+        }
+    }
+
     if (clickTimer->IsRunning())
         clickTimer->Stop();
 }

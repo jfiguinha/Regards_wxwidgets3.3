@@ -22,28 +22,28 @@ public:
     ImageDocument(wxWindow* parent, const int64_t& layerId, wxWindowID bitmapViewerId,
         wxWindowID mainViewerId, CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, CImageLoadingFormat* pictureLocal);
 
-    CInfoEffect * GetHistoryPt();
-	wxString GetFileName() const { return m_filename; }
+    CInfoEffect* GetHistoryPt();
+    wxString GetFileName() const { return m_filename; }
     CBitmapEditor* GetBitmapEditor()
     {
         return bitmapWindow;
     }
 
-	int GetBitmapViewerId() const { return id; }
-	int GetMainViewerId() const { return mainviewerid; }
+    int GetBitmapViewerId() const { return id; }
+    int GetMainViewerId() const { return mainviewerid; }
 
-	int GetBitmapWidth() const;
-	int GetBitmapHeight() const;
+    int GetBitmapWidth() const;
+    int GetBitmapHeight() const;
 
     void Save();
     void Export();
-	void ZoomIn();
-	void ZoomOut();
-	void Shrink();
-	void RealSize();
+    void ZoomIn();
+    void ZoomOut();
+    void Shrink();
+    void RealSize();
 
     void Crop();
-	void Resize(int newWidth, int newHeight, int interpolation);
+    void Resize(int newWidth, int newHeight, int interpolation);
     void CanvasResize(CanvasSizeParameter canvasSize);
 
 
@@ -53,11 +53,11 @@ public:
     void OnRotate180();
     void OnRotate270();
 
-    void SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode,int opacity);
+    void SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity);
     void DeleteLayer(int numLayer);
     void CopyLayer(int numLayer);
     void CreateLayer(wxString layerName);
-    void FusionLayer(vector<int> * listLayer);
+    void FusionLayer(vector<int>* listLayer);
     void MoveUpLayer(int numLayer);
     void MoveDownLayer(int numLayer);
 
@@ -86,6 +86,20 @@ public:
     CLayerList* GetListOfLayer();
 private:
 
+    // --- Initialisation commune aux deux constructeurs ---
+    void InitDocument(const int64_t& layerId, wxWindowID bitmapViewerId, wxWindowID mainViewerId,
+        CBitmapInterface* bitmapInterfaceIn, CThemeParam* config, CImageLoadingFormat* pictureLocal,
+        const wxString& filename);
+    void CreateStatusBarControls();
+
+    // --- Helpers : exécutent fn si l'éditeur / la liste de calques existe ---
+    template <typename Fn> void WithEditor(Fn&& fn);
+    template <typename Fn> void WithEditorAndStatus(Fn&& fn); // + UpdateStatusText()
+    template <typename Fn> void WithLayers(Fn&& fn);
+
+    void RestoreLayersFromHistory();
+    void SetDocumentFilename(const wxString& filename);
+
     void ResizeImage(int w, int h);
     void OnRefresh(wxCommandEvent& event);
     void OnResize(wxCommandEvent& event);
@@ -98,16 +112,16 @@ private:
     void OnUpdateStatusText(wxCommandEvent& event);
 
     bool needToRefresh = false;
-    CScrollbarWnd * scrollbar = nullptr;
+    CScrollbarWnd* scrollbar = nullptr;
     CBitmapEditor* bitmapWindow = nullptr;
-    CBitmapWnd3D *     bitmapWindowRender = nullptr;
-    CBitmapInterface * bitmapInterface = nullptr;
+    CBitmapWnd3D* bitmapWindowRender = nullptr;
+    CBitmapInterface* bitmapInterface = nullptr;
     std::unique_ptr<CModificationManager> modificationManager;
     std::unique_ptr<CInfoEffect> historyEffect;
 
     wxString m_filename;
     int id = 0;
-	int mainviewerid = 0;
-    wxCustomSlider * m_zoomSlider = nullptr; // Le slider pour le zoom
-    wxStatusBar* m_statusBar;
+    int mainviewerid = 0;
+    wxCustomSlider* m_zoomSlider = nullptr; // Le slider pour le zoom
+    wxStatusBar* m_statusBar = nullptr;
 };
