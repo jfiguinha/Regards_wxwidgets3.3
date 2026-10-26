@@ -652,6 +652,8 @@ void CBitmapWndViewer::MouseRelease(const int& xPos, const int& yPos)
 		needToRefresh = true;
 	}
 
+
+
 	if (clickTimer->IsRunning())
 		clickTimer->Stop();
 }
@@ -855,6 +857,21 @@ void CBitmapWndViewer::MouseMove(const int& xPos, const int& yPos)
 			needToRefresh = true;
 		}
 	}
+	else if (ZOOMPICTURE == toolOption && mouseBlock)
+	{
+		int x = (xPos);
+		int y = (yPos);
+
+		int deplacement = x - xPos + y - yPos;
+
+		if (deplacement > 0)
+			ZoomOn();
+		else
+			ZoomOut();
+
+		//mouseScrollX = xPos;
+		//mouseScrollY = yPos;
+	}
 	else
 	{
 		if (fixArrow && etape == 0)
@@ -877,6 +894,9 @@ void CBitmapWndViewer::MouseMove(const int& xPos, const int& yPos)
 			}
 		}
 		else
+		{
 			wxSetCursor(*wxSTANDARD_CURSOR);
+		}
+			
 	}
 }

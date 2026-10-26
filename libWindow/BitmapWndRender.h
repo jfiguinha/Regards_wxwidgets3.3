@@ -314,6 +314,7 @@ namespace Regards::Window
 
 		bool externBitmap;
 
+
 		wxWindowID idWindowMain;
 		CSliderInterface* sliderInterface;
 		CThemeBitmapWindow themeBitmap;

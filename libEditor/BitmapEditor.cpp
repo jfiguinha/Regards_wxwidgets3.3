@@ -1378,6 +1378,7 @@ void CBitmapEditor::SetListOfLayer(CLayerList* newLayers)
 }
 
 
+
 void CBitmapEditor::ApplyEffectOnMouseRelease() {
     wxWindow* parameterWindow = parentRender->FindWindowById(PARAMETERWINDOWID);
     if (parameterWindow) {

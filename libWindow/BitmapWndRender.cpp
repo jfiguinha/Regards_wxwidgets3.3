@@ -1284,6 +1284,11 @@ void CBitmapWndRender::OnLButtonDown(wxMouseEvent& event)
 		CalculPositionPictureAtMouse(xPos, yPos);
 
 		UpdateScrollBar();
+
+		mouseBlock = true;
+		mouseScrollX = xPos;
+		mouseScrollY = yPos;
+		parentRender->CaptureMouse();
 		break;
 	}
 
@@ -1310,6 +1315,7 @@ void CBitmapWndRender::OnLButtonUp(wxMouseEvent& event)
 
 	switch (toolOption)
 	{
+	case ZOOMPICTURE:
 	case WM_SELECTMOVE:
 	case MOVEPICTURE:
 	{
@@ -1605,6 +1611,16 @@ void CBitmapWndRender::OnMouseMove(wxMouseEvent& event)
 		else
 			wxSetCursor(hCursorZoomIn);
 
+		if(mouseBlock)
+		{
+			//const int diffX = mouseScrollX - xPos;
+			const int diffY = mouseScrollY - yPos;
+
+			if (diffY > 0)
+				ZoomOn();
+			else
+				ZoomOut();
+		}
 		break;
 	}
 
