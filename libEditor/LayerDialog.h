@@ -22,6 +22,7 @@ public:
     vector<int> GetSelectLayer();
     void UpdateLayerList();
     int64_t GetActifLayerId();
+    void SetActifLayer(const int& numElement);
 
 private:
     void OnSize(wxSizeEvent& event);

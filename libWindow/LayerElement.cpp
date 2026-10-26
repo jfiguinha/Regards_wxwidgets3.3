@@ -226,6 +226,7 @@ bool CLayerList::copy(size_t index)
 
     LayerElement* clonedLayer = m_layers[index]->Clone();
     clonedLayer->numLayer = m_layers.size();
+    clonedLayer->layerId = clonedLayer->NextLayerId();
     m_layers.push_back(clonedLayer);
 
     isChanged = true;
@@ -531,7 +532,7 @@ LayerElement* CLayerList::FindElementByLayerId(const uint64_t& layerId)
     return nullptr;
 }
 
-bool CLayerList::MoveUpLayer(size_t index)
+bool CLayerList::MoveDownLayer(size_t index)
 {
     if (index == 0 || index >= m_layers.size())
         return false;
@@ -544,7 +545,7 @@ bool CLayerList::MoveUpLayer(size_t index)
     return true;
 }
 
-bool CLayerList::MoveDownLayer(size_t index) {
+bool CLayerList::MoveUpLayer(size_t index) {
     if (m_layers.empty() || index >= m_layers.size() - 1) return false;
     std::swap(m_layers[index], m_layers[index + 1]);
     m_layers[index]->numLayer = index;

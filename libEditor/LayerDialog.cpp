@@ -71,6 +71,12 @@ int64_t LayerDialog::GetActifLayerId()
 }
 
 
+void LayerDialog::SetActifLayer(const int& numElement)
+{
+	if (listLayer)
+		listLayer->SetActifLayer(numElement);
+}
+
 vector<int> LayerDialog::GetSelectLayer()
 {
 	if (listLayer)

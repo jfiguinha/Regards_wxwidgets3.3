@@ -30,6 +30,8 @@ namespace Regards::Control
 		vector<int> GetSelectLayer();
 		int64_t GetActifLayerId();
 
+		void SetActifLayer(const int& numElement);
+
 	private:
 		CScrollbarWnd * thumbnailEffectScroll;
 		CThumbnailCalque * thumbnailCalque;

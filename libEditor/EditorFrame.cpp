@@ -556,11 +556,13 @@ void CEditorFrame::MoveUpLayer(wxCommandEvent& event)
 {
     if (m_activeDocument)
     {
+        CLayerList* list = m_activeDocument->GetListOfLayer();
         int numSelect = layerDialog->GetActifLayer();
-        if (numSelect != -1)
+        if (numSelect != -1 && numSelect < list->size() - 1)
         {
             m_activeDocument->MoveUpLayer(numSelect);
             layerDialog->UpdateLayerList();
+            layerDialog->SetActifLayer(numSelect + 1);
         }
     }
 }
@@ -570,10 +572,11 @@ void CEditorFrame::MoveDownLayer(wxCommandEvent& event)
     if (m_activeDocument)
     {
         int numSelect = layerDialog->GetActifLayer();
-        if (numSelect != -1)
+        if (numSelect > 0)
         {
             m_activeDocument->MoveDownLayer(numSelect);
             layerDialog->UpdateLayerList();
+            layerDialog->SetActifLayer(numSelect - 1);
         }
     }
 }
@@ -585,21 +588,34 @@ void CEditorFrame::PropertiesLayer(wxCommandEvent& event)
         int numLayer = layerDialog->GetActifLayer();
         if (numLayer != -1)
         {
-            CLayerPropertiesDialog dialog(
-                this,
-                "Mon calque",
-                LayerBlendMode::Normal,
-                80);
+            int numLayerId = layerDialog->GetActifLayerId();
 
-            if (dialog.ShowModal() == wxID_OK)
+            CLayerList * list = m_activeDocument->GetListOfLayer();
+            if (list)
             {
-                const wxString layerName = dialog.GetLayerName();
-                const auto blendMode = dialog.GetBlendMode();
-                const int opacity = dialog.GetOpacity();
+                LayerElement* layerElement = list->FindElementByLayerId(numLayerId);
+                if (layerElement)
+                {
+                    CLayerPropertiesDialog dialog(
+                        this,
+                        layerElement->layerName,
+                        LayerBlendMode::Normal,
+                        80);
 
-                m_activeDocument->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
-                layerDialog->UpdateLayerList();
+                    if (dialog.ShowModal() == wxID_OK)
+                    {
+                        const wxString layerName = dialog.GetLayerName();
+                        const auto blendMode = dialog.GetBlendMode();
+                        const int opacity = dialog.GetOpacity();
+
+                        m_activeDocument->SetPropertiesLayer(numLayer, layerName, blendMode, opacity);
+                        layerDialog->UpdateLayerList();
+                    }
+                }
             }
+           
+
+
         }
     }
 }

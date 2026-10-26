@@ -84,6 +84,13 @@ void CListLayer::UpdateScreenRatio()
 }
 
 
+void CListLayer::SetActifLayer(const int& numElement)
+{
+	if (thumbnailCalqueWnd)
+		thumbnailCalqueWnd->SetActifLayer(numElement);
+}
+
+
 void CListLayer::RefreshList()
 {
 	if(thumbnailCalqueWnd)

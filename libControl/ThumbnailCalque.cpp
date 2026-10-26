@@ -171,6 +171,7 @@ void CThumbnailCalque::UpdateLayerList()
             // --- CAS 2 : RÉUTILISATION DE L'ICÔNE ---
             listOfLayerFind.insert(layerElement->layerId);
             pBitmapIcone->SetNumElement(numElement);
+            pBitmapIcone->SetLibelle(layerElement->layerName);
             pBitmapIcone->SetChecked(layerElement->isVisible); // Synchro de l'état de visibilité
             pBitmapIcone->SetSelected(numElement == numClickIcone);
 
@@ -272,6 +273,24 @@ vector<int> CThumbnailCalque::GetSelectLayer()
 int CThumbnailCalque::GetActifLayer()
 {
     return numClickIcone;
+}
+
+
+void CThumbnailCalque::SetActifLayer(const int& numElement)
+{
+
+    
+    {
+        CIcone* icone = iconeList->GetElement(numClickIcone);
+        if (icone)
+            icone->SetSelected(false);
+    }
+
+    {
+        CIcone* icone = iconeList->GetElement(numElement);
+        if (icone)
+            icone->SetSelected(true);
+    }
 }
 
 int64_t CThumbnailCalque::GetActifLayerId()

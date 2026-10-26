@@ -21,6 +21,7 @@ namespace Regards::Control
 		void SetLayer(CLayerList * listOfLayer);
 		void RefreshList();
 		void UpdateLayerList();
+		void SetActifLayer(const int& numElement);
 		void Resize();
 		int GetActifLayer();
 		void OnPictureClick(const int& numPhotoId) override;

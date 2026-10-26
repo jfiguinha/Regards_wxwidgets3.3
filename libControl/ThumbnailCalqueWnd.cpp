@@ -40,6 +40,13 @@ void CThumbnailCalqueWnd::UpdateScreenRatio()
 		thumbnailCalque->UpdateScreenRatio();
 }
 
+
+void CThumbnailCalqueWnd::SetActifLayer(const int& numElement)
+{
+	if (thumbnailCalque != nullptr)
+		thumbnailCalque->SetActifLayer(numElement);
+}
+
 void CThumbnailCalqueWnd::Resize()
 {
 	if (thumbnailEffectScroll != nullptr)

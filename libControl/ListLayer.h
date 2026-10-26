@@ -26,6 +26,7 @@ namespace Regards
 			void SetLayer(CLayerList * listOfLayer);
 			void Resize() override;
 			void RefreshList();
+			void SetActifLayer(const int& numElement);
 			int GetActifLayer();
 			int64_t GetActifLayerId();
 			vector<int> GetSelectLayer();
