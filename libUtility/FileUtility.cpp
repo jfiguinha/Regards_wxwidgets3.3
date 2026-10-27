@@ -158,6 +158,11 @@ wxString CFileUtility::GetVideoThumbnailPath(const wxString& videoPath, const in
 	return thumbnailFile.GetFullPath();
 }
 
+wxString CFileUtility::GetHistoryPath()
+{
+	return GetOrCreateSubFolder("history");
+}
+
 wxString CFileUtility::GetThumbnailPath(const wxString& path)
 {
 	wxFileName sourceFile(path);

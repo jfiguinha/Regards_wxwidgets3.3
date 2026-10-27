@@ -1,9 +1,10 @@
 #pragma once
 #include <vector>
 #include <memory>
+#include <cstdint>
 #include <wx/string.h>
 #include <RGBAQuad.h>
-#include "LayerElement.h" // Nécessaire pour manipuler CLayerList
+#include "LayerElement.h"
 
 class CImageLoadingFormat;
 class CEffectParameter;
@@ -14,7 +15,6 @@ public:
     CModificationManager(const wxString& folder);
     ~CModificationManager();
 
-
     bool Undo();
     bool Redo();
     bool CanUndo() const;
@@ -23,20 +23,12 @@ public:
     void SetNumModification(const unsigned int& numModification);
     unsigned int GetNbModification() const;
     unsigned int GetNumModification() const;
-
     wxString GetCurrentKey();
 
-    // Récupère l'état des calques pour une modification donnée (pour Undo/Redo/Navigation dans l'historique).
-    // Retourne une copie profonde allouée avec new : l'appelant en devient propriétaire.
-    // Retourne nullptr si l'index est invalide (jamais une liste vide, qui effacerait l'affichage).
     CLayerList* GetLayersForModification(const unsigned int& targetModification);
 
-    // Ajout d'une modification basée sur un effet (filtre)
-    void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
-
-    // Ajout d'une modification globale directe de l'état des calques (ex: Collage, Suppression, Redimensionnement, etc.)
-    // currentLayers est copié (profondeur) : l'appelant garde la propriété de son pointeur.
-    void AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
+    void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int64_t targetLayerId);
+    void AddModificationState(const wxString& libelle, CLayerList* currentLayers, int64_t targetLayerId);
 
     void Init(CImageLoadingFormat* bitmap, CLayerList* currentLayers);
     wxString GetModificationLibelle(const unsigned int& numModification) const;
@@ -46,22 +38,21 @@ public:
 private:
     struct ModificationStep {
         int filterId = -1;
-        uint64_t targetLayerId = 0; // <--- Optionnel : pour savoir quel calque précis a subi l'effet
-        std::unique_ptr<CEffectParameter> parameter;
+        int64_t targetLayerId = 0;
         wxString libelle;
-        std::unique_ptr<CLayerList> layers; // Propriétaire de l'instantané : libéré avec l'étape
-        bool hasLayerState = false;
+
+        // Stockage des chemins de fichiers au lieu des objets
+        wxString layersFilePath;
+        wxString parameterFilePath;
     };
 
-    int nbModification;
-    int numModification;
-    int orientation;
-    wxString folder;
-    wxString filenameBitmap;
+    void AddStep(int filterId, CEffectParameter* parameter, size_t parameterSize, const wxString& libelle,
+        CLayerList* currentLayers, int64_t targetLayerId);
+
+    void DeleteStepFiles(const ModificationStep& step);
+
+    unsigned int numModification = 0;
     CRgbaquad color_quad;
-
-    CImageLoadingFormat* baseBitmap;    // Image originale décodée en RAM
-    CImageLoadingFormat* currentBitmap; // Image courante en cache
-
+    wxString m_sessionFolder; // Dossier unique pour cette session d'image
     std::vector<ModificationStep> historySteps;
 };

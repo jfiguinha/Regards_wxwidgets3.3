@@ -1,10 +1,19 @@
 #include <header.h>
 #include "ModificationManager.h"
-#include <FilterData.h> 
-#include <ImageLoadingFormat.h>
+
 #include <EffectParameter.h>
+#include <FileUtility.h>
+#include <FilterData.h>
 #include <FiltreEffet.h>
+#include <ImageLoadingFormat.h>
+
 #include <libPicture.h>
+#include <wx/dir.h>
+#include <wx/file.h>
+
+#include <fstream>
+
+
 
 // Inclusion des fichiers d'en-tête de vos paramètres spécifiques
 #include <BilateralEffectParameter.h>
@@ -13,348 +22,329 @@
 #include <BrightAndContrastEffectParameter.h>
 #include <CartoonEffectParameter.h>
 #include <CloudsEffectParameter.h>
-#include <RgbEffectParameter.h>
+#include <CropEffectParameter.h>
+#include <FreeRotateEffectParameter.h>
 #include <GaussianBlurEffectParameter.h>
-#include <hqdn3dEffectParameter.h>
+#include <GradientFilterParameter.h>
+#include <InpaintFilterParam.h>
 #include <LensDistortionEffectParameter.h>
 #include <LensFlareEffectParameter.h>
 #include <MosaicFilterParameter.h>
 #include <MotionBlurEffectParameter.h>
 #include <NlmeansEffectParameter.h>
 #include <OilPaintingEffectParameter.h>
+#include <PaintBucketFilterParameter.h>
+#include <PenEffectParameter.h>
 #include <PhotoFiltreEffectParameter.h>
 #include <PosterisationEffectParameter.h>
-#include <FreeRotateEffectParameter.h>
+#include <RectangleFilterParameter.h>
+#include <RgbEffectParameter.h>
+#include <SelectFilterParameter.h>
 #include <SharpenMaskingParameter.h>
 #include <SolarisationEffectParameter.h>
 #include <StylizationParameter.h>
 #include <SwirlEffectParameter.h>
+#include <TextEffectParameter.h>
 #include <VignetteEffectParameter.h>
-#include <InpaintFilterParam.h>
 #include <WaveEffectParameter.h>
 #include <effect_id.h>
-#include <CropEffectParameter.h>
-#include <SelectFilterParameter.h>
-#include <RectangleFilterParameter.h>
-#include <PenEffectParameter.h>
-#include <TextEffectParameter.h>
-#include <PaintBucketFilterParameter.h>
-#include <GradientFilterParameter.h>
+#include <hqdn3dEffectParameter.h>
 
 using namespace Regards::Picture;
 
-// Fonction helper interne pour cloner le paramètre selon le type réel de l'effet
-static std::unique_ptr<CEffectParameter> CloneEffectParameter(const int& numEffect, CEffectParameter* effectParameter)
-{
-    if (effectParameter == nullptr)
-        return nullptr;
+// Clone un paramètre en connaissant son type réel T
+template <class T>
+static std::unique_ptr<CEffectParameter> CloneAs(
+    CEffectParameter* effectParameter) {
+    return std::make_unique<T>(*static_cast<T*>(effectParameter));
+}
 
-    switch (numEffect)
-    {
+// Les trois sélections ne diffèrent que par selectType.
+template <class TSelectType>
+static std::unique_ptr<CEffectParameter> CloneSelect(
+    CEffectParameter* effectParameter, TSelectType selectType) {
+    auto selectFilter = std::make_unique<CSelectFilterParameter>(
+        *static_cast<CSelectFilterParameter*>(effectParameter));
+    selectFilter->selectType = selectType;
+    return selectFilter;
+}
+
+// Fonction helper interne pour cloner le paramètre selon le type réel de
+// l'effet
+static std::unique_ptr<CEffectParameter> CloneEffectParameter(
+    const int& numEffect, CEffectParameter* effectParameter) {
+    if (effectParameter == nullptr) return nullptr;
+
+    switch (numEffect) {
     case IDM_FILTRE_BILATERAL:
-        return std::make_unique<CBilateralEffectParameter>(*static_cast<CBilateralEffectParameter*>(effectParameter));
+        return CloneAs<CBilateralEffectParameter>(effectParameter);
     case IDM_FILTRE_FLOU:
-        return std::make_unique<CBlurEffectParameter>(*static_cast<CBlurEffectParameter*>(effectParameter));
+        return CloneAs<CBlurEffectParameter>(effectParameter);
     case IDM_FILTRE_BOKEH:
-        return std::make_unique<CBokehEffectParameter>(*static_cast<CBokehEffectParameter*>(effectParameter));
+        return CloneAs<CBokehEffectParameter>(effectParameter);
     case IDM_IMAGE_LIGHTCONTRAST:
-        return std::make_unique<CBrightAndContrastEffectParameter>(*static_cast<CBrightAndContrastEffectParameter*>(effectParameter));
+        return CloneAs<CBrightAndContrastEffectParameter>(effectParameter);
     case IDM_FILTER_CARTOON:
-        return std::make_unique<CCartoonEffectParameter>(*static_cast<CCartoonEffectParameter*>(effectParameter));
+        return CloneAs<CCartoonEffectParameter>(effectParameter);
     case IDM_FILTRE_CLOUDS:
-        return std::make_unique<CCloudsEffectParameter>(*static_cast<CCloudsEffectParameter*>(effectParameter));
+        return CloneAs<CCloudsEffectParameter>(effectParameter);
     case IDM_FILTRE_FLOUGAUSSIEN:
-        return std::make_unique<CGaussianBlurEffectParameter>(*static_cast<CGaussianBlurEffectParameter*>(effectParameter));
+        return CloneAs<CGaussianBlurEffectParameter>(effectParameter);
     case IDM_FILTREHQDN3D:
-        return std::make_unique<Chqdn3dEffectParameter>(*static_cast<Chqdn3dEffectParameter*>(effectParameter));
+        return CloneAs<Chqdn3dEffectParameter>(effectParameter);
     case IDM_FILTRELENSCORRECTION:
-        return std::make_unique<CLensDistortionEffectParameter>(*static_cast<CLensDistortionEffectParameter*>(effectParameter));
+        return CloneAs<CLensDistortionEffectParameter>(effectParameter);
     case IDM_FILTRELENSFLARE:
-        return std::make_unique<CLensFlareEffectParameter>(*static_cast<CLensFlareEffectParameter*>(effectParameter));
+        return CloneAs<CLensFlareEffectParameter>(effectParameter);
     case IDM_FILTRE_MOSAIQUE:
-        return std::make_unique<CMosaicEffectParameter>(*static_cast<CMosaicEffectParameter*>(effectParameter));
+        return CloneAs<CMosaicEffectParameter>(effectParameter);
     case IDM_FILTRE_MOTIONBLUR:
-        return std::make_unique<CMotionBlurEffectParameter>(*static_cast<CMotionBlurEffectParameter*>(effectParameter));
+        return CloneAs<CMotionBlurEffectParameter>(effectParameter);
     case IDM_FILTRE_NLMEAN:
-        return std::make_unique<CNlmeansEffectParameter>(*static_cast<CNlmeansEffectParameter*>(effectParameter));
+        return CloneAs<CNlmeansEffectParameter>(effectParameter);
     case IDM_FILTER_OILPAINTING:
-        return std::make_unique<COilPaintingEffectParameter>(*static_cast<COilPaintingEffectParameter*>(effectParameter));
+        return CloneAs<COilPaintingEffectParameter>(effectParameter);
     case ID_AJUSTEMENT_PHOTOFILTRE:
-        return std::make_unique<CPhotoFiltreEffectParameter>(*static_cast<CPhotoFiltreEffectParameter*>(effectParameter));
+        return CloneAs<CPhotoFiltreEffectParameter>(effectParameter);
     case ID_AJUSTEMENT_POSTERISATION:
-        return std::make_unique<CPosterisationEffectParameter>(*static_cast<CPosterisationEffectParameter*>(effectParameter));
+        return CloneAs<CPosterisationEffectParameter>(effectParameter);
     case IDM_ROTATE_FREE:
-        return std::make_unique<CFreeRotateEffectParameter>(*static_cast<CFreeRotateEffectParameter*>(effectParameter));
+        return CloneAs<CFreeRotateEffectParameter>(effectParameter);
     case IDM_SHARPENMASKING:
-        return std::make_unique<CSharpenMaskingEffectParameter>(*static_cast<CSharpenMaskingEffectParameter*>(effectParameter));
+        return CloneAs<CSharpenMaskingEffectParameter>(effectParameter);
     case IDM_AJUSTEMENT_SOLARISATION:
-        return std::make_unique<CSolarisationEffectParameter>(*static_cast<CSolarisationEffectParameter*>(effectParameter));
+        return CloneAs<CSolarisationEffectParameter>(effectParameter);
     case IDM_FILTRE_STYLISATION:
-        return std::make_unique<CStylizationEffectParameter>(*static_cast<CStylizationEffectParameter*>(effectParameter));
+        return CloneAs<CStylizationEffectParameter>(effectParameter);
     case IDM_FILTRE_SWIRL:
-        return std::make_unique<CSwirlEffectParameter>(*static_cast<CSwirlEffectParameter*>(effectParameter));
+        return CloneAs<CSwirlEffectParameter>(effectParameter);
     case IDM_FILTRE_VIGNETTE:
-        return std::make_unique<CVignetteEffectParameter>(*static_cast<CVignetteEffectParameter*>(effectParameter));
+        return CloneAs<CVignetteEffectParameter>(effectParameter);
     case IDM_WAVE_EFFECT:
-        return std::make_unique<CWaveEffectParameter>(*static_cast<CWaveEffectParameter*>(effectParameter));
+        return CloneAs<CWaveEffectParameter>(effectParameter);
     case IDM_INPAINT:
-        return std::make_unique<CInpaintFilterParameter>(*static_cast<CInpaintFilterParameter*>(effectParameter));
+        return CloneAs<CInpaintFilterParameter>(effectParameter);
     case IDM_PENFILTER:
-        return std::make_unique<CPenFilterParameter>(*static_cast<CPenFilterParameter*>(effectParameter));
+        return CloneAs<CPenFilterParameter>(effectParameter);
     case IDM_GEOMETRICFILTER:
-        return std::make_unique<CRectangleFilterParameter>(*static_cast<CRectangleFilterParameter*>(effectParameter));
+        return CloneAs<CRectangleFilterParameter>(effectParameter);
     case IDM_RECTANGLESELECT:
-    {
-        std::unique_ptr<CSelectFilterParameter> selectFilter = std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
-        selectFilter->selectType = SELECT_RECTANGLE;
-        return selectFilter;
-    }
+        return CloneSelect(effectParameter, SELECT_RECTANGLE);
     case IDM_ELLIPSESELECT:
-    {
-        std::unique_ptr<CSelectFilterParameter> selectFilter = std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
-        selectFilter->selectType = SELECT_ELLIPSE;
-        return selectFilter;
-    }
+        return CloneSelect(effectParameter, SELECT_ELLIPSE);
     case IDM_LASSOSELECT:
-    {
-        std::unique_ptr<CSelectFilterParameter> selectFilter = std::make_unique<CSelectFilterParameter>(*static_cast<CSelectFilterParameter*>(effectParameter));
-        selectFilter->selectType = SELECT_LASSO;
-        return selectFilter;
-    }
+        return CloneSelect(effectParameter, SELECT_LASSO);
     case IDM_TEXTFILTER:
-        return std::make_unique<Regards::Filter::CTextFilterParameter>(*static_cast<Regards::Filter::CTextFilterParameter*>(effectParameter));
+        return CloneAs<Regards::Filter::CTextFilterParameter>(effectParameter);
     case IDM_GRADIENTFILTER:
-        return std::make_unique<CGradientFilterParameter>(*static_cast<CGradientFilterParameter*>(effectParameter));
+        return CloneAs<CGradientFilterParameter>(effectParameter);
     case IDM_PAINTBUCKETFILTER:
-        return std::make_unique<CPaintBucketFilterParameter>(*static_cast<CPaintBucketFilterParameter*>(effectParameter));
+        return CloneAs<CPaintBucketFilterParameter>(effectParameter);
     case IDM_CROP:
-        return std::make_unique<CCropEffectParameter>(*static_cast<CCropEffectParameter*>(effectParameter));
+        return CloneAs<CCropEffectParameter>(effectParameter);
     default:
         return std::make_unique<CEffectParameter>(*effectParameter);
     }
 }
 
-CModificationManager::CModificationManager(const wxString& folder)
-{
-    orientation = 0;
-    nbModification = 0;
-    numModification = 0;
-    this->folder = folder;
-    this->baseBitmap = nullptr;
-    this->currentBitmap = nullptr;
-}
-
-CModificationManager::~CModificationManager()
-{
-    EraseData();
-    if (baseBitmap != nullptr)
-    {
-        delete baseBitmap;
-        baseBitmap = nullptr;
-    }
-    if (currentBitmap != nullptr)
-    {
-        delete currentBitmap;
-        currentBitmap = nullptr;
+CModificationManager::CModificationManager(const wxString& folder) {
+    // Récupère l'accès au répertoire d'historique général et crée une session
+    // dédiée
+    m_sessionFolder = CFileUtility::GetHistoryPath() + folder;
+    if (!wxDir::Exists(m_sessionFolder)) {
+        wxDir::Make(m_sessionFolder, wxS_DIR_DEFAULT, wxPATH_MKDIR_FULL);
     }
 }
 
+CModificationManager::~CModificationManager() = default;
 
-void CModificationManager::Init(CImageLoadingFormat* bitmap, CLayerList* initialLayers)
-{
+void CModificationManager::Init(CImageLoadingFormat* bitmap,
+    CLayerList* initialLayers) {
     EraseData();
 
-    if (bitmap == nullptr || initialLayers == nullptr)
-        return;
+    if (bitmap == nullptr || initialLayers == nullptr) return;
 
-    filenameBitmap = bitmap->GetFilename();
-    orientation = bitmap->GetOrientation();
-
-    ModificationStep rootStep;
-    rootStep.filterId = -1;
-    rootStep.targetLayerId = 0;
-    rootStep.parameter = nullptr;
-    rootStep.libelle = filenameBitmap;
-    // On stocke une copie profonde de la liste de calques initiale
-    rootStep.layers = std::make_unique<CLayerList>(*initialLayers);
-    rootStep.hasLayerState = true;
-
-    historySteps.push_back(std::move(rootStep));
+    // L'étape initiale (root) n'applique aucun effet à sa création
+    AddStep(-1, nullptr, 0, bitmap->GetFilename(), initialLayers, 0);
     numModification = 0;
-    nbModification = 1;
 }
 
-
-void CModificationManager::EraseData()
-{
-    nbModification = 0;
-    numModification = 0;
+void CModificationManager::EraseData() {
+    for (const auto& step : historySteps) {
+        DeleteStepFiles(step);
+    }
     historySteps.clear();
+    numModification = 0;
 }
 
-unsigned int CModificationManager::GetNbModification() const
-{
+void CModificationManager::DeleteStepFiles(const ModificationStep& step) {
+    if (!step.layersFilePath.IsEmpty() && wxFileExists(step.layersFilePath))
+        wxRemoveFile(step.layersFilePath);
+    if (!step.parameterFilePath.IsEmpty() && wxFileExists(step.parameterFilePath))
+        wxRemoveFile(step.parameterFilePath);
+}
+
+unsigned int CModificationManager::GetNbModification() const {
     return static_cast<unsigned int>(historySteps.size());
 }
 
-unsigned int CModificationManager::GetNumModification() const
-{
+unsigned int CModificationManager::GetNumModification() const {
     return numModification;
 }
 
-
-wxString CModificationManager::GetCurrentKey()
-{
+wxString CModificationManager::GetCurrentKey() {
     if (numModification < historySteps.size())
         return historySteps.at(numModification).libelle;
     return "";
 }
 
-bool CModificationManager::CanUndo() const
-{
-    // On peut annuler si on n'est pas déjà sur l'état initial (0)
-    return numModification > 0;
+bool CModificationManager::CanUndo() const { return numModification > 0; }
+
+bool CModificationManager::CanRedo() const {
+    return numModification + 1 < historySteps.size();
 }
 
-bool CModificationManager::CanRedo() const
-{
-    // On peut rétablir si on n'est pas déjà sur la dernière modification disponible
-    return !historySteps.empty() && numModification < (historySteps.size() - 1);
-}
-
-bool CModificationManager::Undo()
-{
-    if (CanUndo())
-    {
+bool CModificationManager::Undo() {
+    if (CanUndo()) {
         numModification--;
         return true;
     }
     return false;
 }
 
-bool CModificationManager::Redo()
-{
-    if (CanRedo())
-    {
+bool CModificationManager::Redo() {
+    if (CanRedo()) {
         numModification++;
         return true;
     }
     return false;
 }
 
-
-void CModificationManager::SetNumModification(const unsigned int& numModification)
-{
+void CModificationManager::SetNumModification(
+    const unsigned int& numModification) {
     this->numModification = numModification;
 }
 
-wxString CModificationManager::GetModificationLibelle(const unsigned int& numModification) const
-{
+wxString CModificationManager::GetModificationLibelle(
+    const unsigned int& numModification) const {
     if (numModification < historySteps.size())
         return historySteps.at(numModification).libelle;
     return "";
 }
 
-
-CLayerList* CModificationManager::GetLayersForModification(const unsigned int& targetModification)
-{
-    // Index invalide : nullptr (et non une liste vide, qui remplacerait puis effacerait l'affichage)
-    if (targetModification >= historySteps.size())
-        return nullptr;
+CLayerList* CModificationManager::GetLayersForModification(
+    const unsigned int& targetModification) {
+    if (targetModification >= historySteps.size()) return nullptr;
 
     const auto& step = historySteps.at(targetModification);
-    if (!step.layers)
+
+    // 1. Instanciation du conteneur et restauration polymorphique complète via
+    // OpenCV xml/yml/json
+    CLayerList* layerListCopy = new CLayerList();
+    if (!layerListCopy->LoadFromFile(step.layersFilePath)) {
+        delete layerListCopy;
         return nullptr;
+    }
 
-    this->numModification = targetModification;
-
-    // L'instantané stocké à cette étape contient déjà l'état exact des calques (pixels compris).
-    // On ne remet PAS les calques à leur image d'origine : cela effaçait les modifications
-    // propres à chaque calque (dessin, collage, effets des étapes précédentes).
-    // L'appelant reçoit la propriété de cette copie profonde.
-    CLayerList* layerListCopy = new CLayerList(*(step.layers));
-
-    // Étape 0 (état source) : on garantit l'image originale brute de chaque calque
-    // (originalPicture, figée au premier SetPicture), quel que soit l'état de l'instantané racine.
-    if (targetModification == 0)
-    {
-        for (size_t i = 0; i < layerListCopy->size(); ++i)
-        {
+    // Étape 0 (état source) : on garantit l'image originale brute de chaque
+    // calque
+    if (targetModification == 0) {
+        for (size_t i = 0; i < layerListCopy->size(); ++i) {
             LayerElement* layer = (*layerListCopy)[i];
-            if (layer != nullptr)
-                layer->ResetToOriginal();
+            if (layer != nullptr) layer->ResetToOriginal();
         }
     }
 
-    // Étapes > 0 : l'instantané est pris avant l'effet, on applique donc le filtre de l'étape
-    // par-dessus l'état sauvegardé (sans remise à l'original : le contenu des calques est conservé,
-    // y compris les effets des étapes précédentes déjà présents dans l'instantané).
-    if (step.filterId != -1 && step.parameter != nullptr)
-    {
-        for (size_t i = 0; i < layerListCopy->size(); ++i)
-        {
-            LayerElement* layer = (*layerListCopy)[i];
-            if (layer != nullptr && layer->GetPicture() != nullptr && layer->GetLayerId() == step.targetLayerId)
-            {
-                CFiltreEffet filtreEffet(color_quad, nullptr, layer->GetPicture());
-                CFiltreData::RenderEffect(step.filterId, &filtreEffet, step.parameter.get(), false);
+    // Étapes > 0 : Restauration dynamique du paramètre et application du filtre
+    // d'étape
+    if (step.filterId != -1 && !step.parameterFilePath.IsEmpty()) {
+        CEffectParameter dummyBase;
+        std::unique_ptr<CEffectParameter> parameter =
+            CloneEffectParameter(step.filterId, &dummyBase);
 
-                CImageLoadingFormat* picture = layer->GetPicture();
-                cv::Mat matrix = filtreEffet.GetBitmap(true);
-                picture->SetPicture(matrix);
-                //cv::Mat matrix = filtreEffet.GetBitmap(true);
-                //layer->SetPicture(new CImageLoadingFormat(matrix));
-                layer->InvalidatePicture();
+        std::ifstream inParam(step.parameterFilePath.fn_str(), std::ios::binary);
+        if (inParam.is_open() && parameter != nullptr) {
+            inParam.read(reinterpret_cast<char*>(parameter.get()),
+                sizeof(*parameter.get()));
+            inParam.close();
+        }
+
+        if (parameter != nullptr) {
+            for (size_t i = 0; i < layerListCopy->size(); ++i) {
+                LayerElement* layer = (*layerListCopy)[i];
+                if (layer != nullptr && layer->GetPicture() != nullptr &&
+                    layer->GetLayerId() == step.targetLayerId) {
+                    CFiltreEffet filtreEffet(color_quad, nullptr, layer->GetPicture());
+                    CFiltreData::RenderEffect(step.filterId, &filtreEffet,
+                        parameter.get(), false);
+                    CImageLoadingFormat* picture = layer->GetPicture();
+                    cv::Mat matrix = filtreEffet.GetBitmap(true);
+                    picture->SetPicture(matrix);
+                    layer->InvalidatePicture();
+                }
             }
         }
     }
-
     layerListCopy->IsChanged(true);
     return layerListCopy;
 }
 
-
-void CModificationManager::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId)
-{
+void CModificationManager::AddStep(int filterId, CEffectParameter* parameter,
+    size_t parameterSize,
+    const wxString& libelle,
+    CLayerList* currentLayers,
+    int64_t targetLayerId) {
     if (currentLayers == nullptr) return;
-
-    if (numModification + 1 < historySteps.size())
-    {
-        historySteps.erase(historySteps.begin() + (numModification + 1), historySteps.end());
+    // Nouvelle branche d'historique : suppression des étapes futures physiques
+    // sur le disque
+    if (numModification + 1 < historySteps.size()) {
+        for (auto it = historySteps.begin() + (numModification + 1);
+            it != historySteps.end(); ++it) {
+            DeleteStepFiles(*it);
+        }
+        historySteps.erase(historySteps.begin() + (numModification + 1),
+            historySteps.end());
     }
-
     ModificationStep newStep;
-    newStep.filterId = numEffect;
+    newStep.filterId = filterId;
     newStep.libelle = libelle;
-    newStep.parameter = CloneEffectParameter(numEffect, effectParameter);
     newStep.targetLayerId = targetLayerId;
-    // On génère une copie profonde pour isoler cette étape dans l'historique
-    newStep.layers = std::make_unique<CLayerList>(*currentLayers);
-    newStep.hasLayerState = true;
-
+    unsigned int stepIndex = historySteps.size();
+    // Utilisation d'un fichier .yml ou .xml géré par OpenCV pour sauvegarder le
+    // canvas et ses calques polymorphes
+    newStep.layersFilePath =
+        m_sessionFolder +
+        wxFILE_SEP_PATH + wxString::Format("step_%u_layers.bin", stepIndex);
+    currentLayers->SaveToFile(newStep.layersFilePath);
+    // Sauvegarde binaire du paramètre si applicable
+    if (parameter != nullptr && parameterSize > 0) {
+        newStep.parameterFilePath =
+            m_sessionFolder + wxFILE_SEP_PATH +
+            wxString::Format("step_%u_param.bin", stepIndex);
+        std::ofstream outParam(newStep.parameterFilePath.fn_str(),
+            std::ios::binary);
+        if (outParam.is_open()) {
+            outParam.write(reinterpret_cast<const char*>(parameter), parameterSize);
+            outParam.close();
+        }
+    }
     historySteps.push_back(std::move(newStep));
-    numModification = static_cast<unsigned int>(historySteps.size()) - 1;
-    nbModification = numModification + 1;
+    numModification = static_cast<int>(historySteps.size()) - 1;
 }
 
-void CModificationManager::AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId)
-{
-    if (currentLayers == nullptr) return;
+void CModificationManager::AddModification(const int& numEffect,
+    CEffectParameter* effectParameter,
+    const wxString& libelle,
+    CLayerList* currentLayers,
+    int64_t targetLayerId) {
+    auto cloned = CloneEffectParameter(numEffect, effectParameter);
+    size_t paramSize = (cloned != nullptr) ? sizeof(*cloned.get()) : 0;
+    AddStep(numEffect, cloned.get(), paramSize, libelle, currentLayers,
+        targetLayerId);
+}
 
-    if (numModification + 1 < historySteps.size())
-    {
-        historySteps.erase(historySteps.begin() + (numModification + 1), historySteps.end());
-    }
-
-    ModificationStep newStep;
-    newStep.filterId = -1;
-    newStep.targetLayerId = targetLayerId;
-    newStep.parameter = nullptr;
-    newStep.libelle = libelle;
-    newStep.layers = std::make_unique<CLayerList>(*currentLayers); // copie profonde, comme AddModification
-    newStep.hasLayerState = true;
-
-    historySteps.push_back(std::move(newStep));
-    numModification = static_cast<unsigned int>(historySteps.size()) - 1;
-    nbModification = numModification + 1;
+void CModificationManager::AddModificationState(const wxString& libelle,
+    CLayerList* currentLayers,
+    int64_t targetLayerId) {
+    AddStep(-1, nullptr, 0, libelle, currentLayers, targetLayerId);
 }

@@ -28,6 +28,10 @@
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
 #include <ModificationManager.h>
+#include <boost/uuid/uuid.hpp>
+#include <boost/uuid/uuid_generators.hpp>
+#include <boost/uuid/uuid_io.hpp>
+
 using namespace Regards::Picture;
 using namespace Regards::Internet;
 using namespace Regards::Window;
@@ -120,10 +124,9 @@ CPanelInfosWnd::CPanelInfosWnd(wxWindow* parent, wxWindowID id)
 
 	//CRegardsConfigParam * config = CParamInit::getInstance();
 	CMainTheme* viewerTheme = CMainThemeInit::getInstance();
-
-
-	wxString folder = CFileUtility::GetDocumentFolderPath();
-
+	boost::uuids::uuid localid = boost::uuids::random_generator()();
+	std::string uuid_str = boost::uuids::to_string(localid);
+	wxString folder = wxString::FromUTF8(uuid_str.c_str());
 	modificationManager = std::make_unique<CModificationManager>(folder);
 
 	if (viewerTheme != nullptr)

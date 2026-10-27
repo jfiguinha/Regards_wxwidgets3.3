@@ -21,7 +21,7 @@ public:
 	static wxString GetVideoThumbnailPath(const wxString& path, const int& numFrame);
 	static wxString GetFaceThumbnailPath(const int& numFace);
 	static wxString GetTempFile(wxString filename, const bool& removeFile = true);
-
+	static wxString GetHistoryPath();
 	static wxString GetFaceZScorePath(const int& numFace);
 	static wxString GetOrCreateSubFolder(const wxString& folderName);
 	static std::string GetFullpathModel(const wxString& filename);

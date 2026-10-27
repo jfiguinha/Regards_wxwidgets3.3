@@ -1,4 +1,6 @@
 #pragma once
+#include <memory>
+#include <cstdint>
 #include <TreeControl.h>
 #include "ModificationManager.h"
 #include "LayerElement.h" // Nécessaire pour manipuler CLayerList
@@ -25,9 +27,9 @@ namespace Regards::Control
 		void SetTreeInterface(CTreeElementControlInterface* interfaceControl);
 
 		// Ajout d'une modification en passant l'état actuel des calques au manager
-		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
+		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int64_t targetLayerId);
 
-		void AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
+		void AddModificationState(const wxString& libelle, CLayerList* currentLayers, int64_t targetLayerId);
 
 		void UpdateScreenRatio() override;
 
@@ -39,8 +41,21 @@ namespace Regards::Control
 		void InitTree(const wxString& libelle, const wxString& key);
 		wxString GetNumModification();
 
-		// Modifié pour transmettre la liste des calques restaurée au visualiseur
-		void RestoreLayersToViewer(CLayerList * layers, const int64_t& layerId);
+		// Clé de l'élément d'arbre correspondant à l'étape modif (la racine garde la clé donnée à InitTree)
+		wxString KeyForModification(unsigned int modif) const;
+
+		// Se positionne sur l'étape modif : récupère les calques, met à jour le manager,
+		// restaure dans le visualiseur et active l'élément activeKey. Retourne false si l'étape est invalide.
+		bool GoToModification(unsigned int modif, const wxString& activeKey);
+
+		// Si l'utilisateur est revenu en arrière (Undo), reconstruit l'arbre graphique jusqu'à l'étape courante
+		void RebuildTreeIfHistoryTruncated();
+
+		// Ajoute dans l'arbre l'étape qui vient d'être enregistrée par le manager et la rend active
+		void AppendEvent(const wxString& libelle);
+
+		// Transmet la liste des calques restaurée au visualiseur (prend la propriété de layers)
+		void RestoreLayersToViewer(std::unique_ptr<CLayerList> layers, const int64_t& layerId);
 
 		void ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
 			const int& posLargeur, const int& posHauteur) override;
@@ -63,5 +78,6 @@ namespace Regards::Control
 		int widthPosition;
 		wxString filename;
 		int bitmapWindowId;
+		wxString rootKey; // clé de l'élément racine (étape 0), mémorisée par InitTree
 	};
 }

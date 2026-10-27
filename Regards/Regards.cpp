@@ -128,7 +128,28 @@ void MyApp::MacOpenFile(const wxString &fileName)
 
 int MyApp::Close()
 {
-   
+	// --- NETTOYAGE DU RÉPERTOIRE HISTORY ---
+	wxString historyPath = CFileUtility::GetHistoryPath();
+	if (wxDir::Exists(historyPath))
+	{
+		wxDir dir(historyPath);
+		if (dir.IsOpened())
+		{
+			wxString filename;
+			// On énumère les sous-dossiers de session contenus dans history
+			bool cont = dir.GetFirst(&filename, wxEmptyString, wxDIR_DIRS);
+			while (cont)
+			{
+				wxString fullSubDirPath = historyPath + wxFILE_SEP_PATH + filename;
+
+				// Correction : Utilisation du flag natif exact de wxWidgets
+				wxFileName::Rmdir(fullSubDirPath, wxPATH_RMDIR_RECURSIVE);
+
+				cont = dir.GetNext(&filename);
+			}
+		}
+	}
+
 	CSqlInit::KillSqlEngine();
 	CPrintEngine::Kill();
 
