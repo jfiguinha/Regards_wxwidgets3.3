@@ -86,10 +86,10 @@ void CInfoEffectWnd::SetHistoryEffect(CInfoEffect* infoEffect)
 	}
 }
 
-void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList * currentLayers)
+void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList * currentLayers, int targetLayerId)
 {
 	if (historyEffectOld != nullptr)
-		historyEffectOld->AddModification(numEffect, effectParameter, libelle, currentLayers);
+		historyEffectOld->AddModification(numEffect, effectParameter, libelle, currentLayers, targetLayerId);
 
 	if (treeWindow)
 	{
@@ -100,10 +100,10 @@ void CInfoEffectWnd::AddModification(const int& numEffect, CEffectParameter* eff
 }
 
 
-void CInfoEffectWnd::AddModificationState(const wxString& libelle, CLayerList* currentLayers)
+void CInfoEffectWnd::AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId)
 {
 	if (historyEffectOld != nullptr)
-		historyEffectOld->AddModificationState(libelle, currentLayers);
+		historyEffectOld->AddModificationState(libelle, currentLayers, targetLayerId);
 
 	if (treeWindow)
 	{

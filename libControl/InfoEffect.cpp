@@ -116,7 +116,7 @@ void CInfoEffect::Init(CImageLoadingFormat* bitmap, CLayerList * initialLayers, 
 }
 
 
-void CInfoEffect::AddModificationState(const wxString& libelle, CLayerList* currentLayers)
+void CInfoEffect::AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId)
 {
 	if (modificationManager == nullptr)
 		return;
@@ -144,7 +144,7 @@ void CInfoEffect::AddModificationState(const wxString& libelle, CLayerList* curr
 	localLibelle.Replace(".", "@99");
 
 	// Enregistrement de la modification avec le nouveau ModificationManager
-	modificationManager->AddModificationState(libelle, currentLayers);
+	modificationManager->AddModificationState(libelle, currentLayers, targetLayerId);
 
 	// Récupération du nouvel index généré par le manager
 	wxString currentModifKey = GetNumModification();
@@ -154,7 +154,7 @@ void CInfoEffect::AddModificationState(const wxString& libelle, CLayerList* curr
 	SetActifElement(currentModifKey);
 }
 
-void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers)
+void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId)
 {
 	if (modificationManager == nullptr)
 		return;
@@ -182,7 +182,7 @@ void CInfoEffect::AddModification(const int& numEffect, CEffectParameter* effect
 	localLibelle.Replace(".", "@99");
 
 	// Enregistrement de la modification avec le nouveau ModificationManager
-	modificationManager->AddModification(numEffect, effectParameter, libelle, currentLayers);
+	modificationManager->AddModification(numEffect, effectParameter, libelle, currentLayers, targetLayerId);
 
 	// Récupération du nouvel index généré par le manager
 	wxString currentModifKey = GetNumModification();

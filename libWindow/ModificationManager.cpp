@@ -294,7 +294,7 @@ CLayerList* CModificationManager::GetLayersForModification(const unsigned int& t
         for (size_t i = 0; i < layerListCopy->size(); ++i)
         {
             LayerElement* layer = (*layerListCopy)[i];
-            if (layer != nullptr && layer->GetPicture() != nullptr)
+            if (layer != nullptr && layer->GetPicture() != nullptr && layer->GetLayerId() == step.targetLayerId)
             {
                 CFiltreEffet filtreEffet(color_quad, nullptr, layer->GetPicture());
                 CFiltreData::RenderEffect(step.filterId, &filtreEffet, step.parameter.get(), false);
@@ -314,7 +314,7 @@ CLayerList* CModificationManager::GetLayersForModification(const unsigned int& t
 }
 
 
-void CModificationManager::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers)
+void CModificationManager::AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId)
 {
     if (currentLayers == nullptr) return;
 
@@ -327,7 +327,7 @@ void CModificationManager::AddModification(const int& numEffect, CEffectParamete
     newStep.filterId = numEffect;
     newStep.libelle = libelle;
     newStep.parameter = CloneEffectParameter(numEffect, effectParameter);
-
+    newStep.targetLayerId = targetLayerId;
     // On génère une copie profonde pour isoler cette étape dans l'historique
     newStep.layers = std::make_unique<CLayerList>(*currentLayers);
     newStep.hasLayerState = true;
@@ -337,7 +337,7 @@ void CModificationManager::AddModification(const int& numEffect, CEffectParamete
     nbModification = numModification + 1;
 }
 
-void CModificationManager::AddModificationState(const wxString& libelle, CLayerList* currentLayers)
+void CModificationManager::AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId)
 {
     if (currentLayers == nullptr) return;
 
@@ -348,6 +348,7 @@ void CModificationManager::AddModificationState(const wxString& libelle, CLayerL
 
     ModificationStep newStep;
     newStep.filterId = -1;
+    newStep.targetLayerId = targetLayerId;
     newStep.parameter = nullptr;
     newStep.libelle = libelle;
     newStep.layers = std::make_unique<CLayerList>(*currentLayers); // copie profonde, comme AddModification

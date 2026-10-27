@@ -110,7 +110,7 @@ void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* hi
 			// Transmission de currentLayers au gestionnaire d'historique unifié
 			if (historyEffectWnd != nullptr)
 			{
-				historyEffectWnd->AddModification(numFiltre, effect, CFiltreData::GetFilterLabel(numFiltre), currentLayers);
+				historyEffectWnd->AddModification(numFiltre, effect, CFiltreData::GetFilterLabel(numFiltre), currentLayers, layerId);
 			}
 		}
 

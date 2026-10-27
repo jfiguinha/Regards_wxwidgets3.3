@@ -25,9 +25,9 @@ namespace Regards::Control
 		void SetTreeInterface(CTreeElementControlInterface* interfaceControl);
 
 		// Ajout d'une modification en passant l'état actuel des calques au manager
-		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers);
+		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
 
-		void AddModificationState(const wxString& libelle, CLayerList* currentLayers);
+		void AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
 
 		void UpdateScreenRatio() override;
 

@@ -52,8 +52,6 @@ void HistoryDialog::OnCancelHistory(wxCommandEvent& event)
 	CancelHistory();
 }
 
-
-
 void HistoryDialog::Redo()
 {
 	if (historyEffectWnd)
@@ -79,7 +77,8 @@ void HistoryDialog::OnRefreshHistory(wxCommandEvent& event)
 		CHistoryState* historyState = (CHistoryState*)event.GetClientData();
 		if (historyState)
 		{
-			historyEffectWnd->AddModificationState(historyState->libelle, historyState->currentLayers);
+			int layerId = event.GetInt();
+			historyEffectWnd->AddModificationState(historyState->libelle, historyState->currentLayers, layerId);
 			delete historyState;
 		}
 		

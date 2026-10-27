@@ -15,6 +15,7 @@ public:
     void Undo();
     void CancelHistory();
 
+
 private:
 	void OnSize(wxSizeEvent& event);
     void OnRefreshHistory(wxCommandEvent& event);
@@ -24,4 +25,5 @@ private:
     wxStatusBar* m_statusBar;
     Regards::Control::CInfoEffectWnd* historyEffectWnd;
     wxString filename;
+
 };

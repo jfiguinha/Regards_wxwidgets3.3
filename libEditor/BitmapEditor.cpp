@@ -866,6 +866,11 @@ void CBitmapEditor::SaveHistoryState(const wxString& actionLabel)
     wxCommandEvent evt(wxEVENT_REFRESHHISTORYLIST);
     // La propriété de l'état passe au destinataire de l'événement
     evt.SetClientData(historyState.release());
+
+
+    //Get numActifLayer ID : 
+    LayerElement* layerElement = GetActiveLayerElement();
+    evt.SetInt(layerElement->GetLayerId());
     mainWindow->GetEventHandler()->AddPendingEvent(evt);
 }
 

@@ -32,11 +32,11 @@ public:
     CLayerList* GetLayersForModification(const unsigned int& targetModification);
 
     // Ajout d'une modification basée sur un effet (filtre)
-    void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers);
+    void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
 
     // Ajout d'une modification globale directe de l'état des calques (ex: Collage, Suppression, Redimensionnement, etc.)
     // currentLayers est copié (profondeur) : l'appelant garde la propriété de son pointeur.
-    void AddModificationState(const wxString& libelle, CLayerList* currentLayers);
+    void AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
 
     void Init(CImageLoadingFormat* bitmap, CLayerList* currentLayers);
     wxString GetModificationLibelle(const unsigned int& numModification) const;

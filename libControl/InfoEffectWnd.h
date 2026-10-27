@@ -31,9 +31,9 @@ namespace Regards::Control
 		void CancelHistory();
 
 		// Prise en compte du paramètre currentLayers pour alimenter le gestionnaire d'historique
-		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers);
+		void AddModification(const int& numEffect, CEffectParameter* effectParameter, const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
 
-		void AddModificationState(const wxString& libelle, CLayerList* currentLayers);
+		void AddModificationState(const wxString& libelle, CLayerList* currentLayers, int targetLayerId);
 
 		// Prise en compte de initialLayers lors de l'initialisation de l'historique
 		void HistoryUpdate(CImageLoadingFormat* bitmap, CLayerList* currentLayers, const int64_t& layerId, const wxString& filename,
