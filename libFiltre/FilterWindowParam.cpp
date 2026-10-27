@@ -278,7 +278,7 @@ CImageLoadingFormat* CFilterWindowParam::RenderEffect(CEffectParameter* effectPa
 	}
 	else
 	{
-		CImageLoadingFormat* bitmap = bitmapViewer->GetBitmap(true);
+		CImageLoadingFormat* bitmap = bitmapViewer->GetLayerBitmap();
 		if (bitmap != nullptr)
 		{
 			bitmap->RotateExif(bitmapViewer->GetOrientation());

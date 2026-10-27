@@ -34,7 +34,7 @@ public:
 	virtual CRgbaquad GetBackColor() = 0;
 	virtual CFiltreEffet* GetFiltreEffet() = 0;
 	virtual int GetOrientation() = 0;
-	virtual CImageLoadingFormat* GetBitmap(const bool& source) = 0;
+	virtual CImageLoadingFormat* GetLayerBitmap() = 0;
 	virtual void StartTransitionEffect(CImageLoadingFormat* bmpSecond, const bool& setPicture) = 0;
 	virtual void StopTransitionEffect(CImageLoadingFormat* bmpSecond) = 0;
 	virtual void CalculCenterPositionPicture() = 0;

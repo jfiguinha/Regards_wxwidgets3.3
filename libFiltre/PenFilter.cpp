@@ -203,10 +203,13 @@ CImageLoadingFormat* CPenFilter::ApplyEffect(CEffectParameter* effectParameter, 
 	}
 
 
-	CImageLoadingFormat * src = bitmapViewer->GetBitmap(true);
+	CImageLoadingFormat * src = bitmapViewer->GetLayerBitmap();
 
 	if (src->IsOk())
 	{
+
+		//cv::Mat matrix = src->GetMatImage();
+		//cv::imwrite("d:\\test__source_layer.jpg", matrix);
 
 		imageLoad = new CImageLoadingFormat();
 		imageLoad->SetPicture(src->GetMatImage());

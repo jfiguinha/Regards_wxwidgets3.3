@@ -49,7 +49,10 @@ namespace Regards::Window
 		void ReloadResource();
 		CFiltreEffet* GetFiltreEffet() override;
 
-		CImageLoadingFormat* GetBitmap(const bool& source) override;
+
+		CImageLoadingFormat* GetLayerBitmap();
+
+		CImageLoadingFormat* GetBitmap(const bool& source);
 		virtual void SetPreview(const int& value);
 
 		void UpdateScreenRatio() override;

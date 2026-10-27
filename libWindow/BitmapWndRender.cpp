@@ -85,6 +85,31 @@ CBitmapWndRender::CBitmapWndRender(CSliderInterface* slider, wxWindowID idMain, 
 	parentRender = nullptr;
 }
 
+CImageLoadingFormat* CBitmapWndRender::GetLayerBitmap()
+{
+	CImageLoadingFormat* sourceBitmap = nullptr;
+	LayerElement* element = GetElement(numActifLayer);
+	if (element)
+	{
+		return element->GetPicture();
+		/*
+		if (filtreEffet != nullptr && bitmapLoad && sourceBitmap != nullptr)
+		{
+			CImageLoadingFormat* bitmap = new CImageLoadingFormat();
+			cv::Mat mat = sourceBitmap->GetMatrix().getMat();
+			bitmap->SetPicture(mat);
+			bitmap->SetOrientation(orientation);
+			bitmap->SetFilename(this->filename);
+			return bitmap;
+		}
+		*/
+	}
+	
+
+
+	return nullptr;
+}
+
 //-----------------------------------------------------------------
 //Obtention des dimensions du bitmap
 //-----------------------------------------------------------------
@@ -149,8 +174,6 @@ void CBitmapWndRender::OnUpdateLayerBitmap(wxCommandEvent& event)
 	LayerElement* element = GetElement(numActifLayer);
 	if (element)
 		element->SetPicture(picture);
-
-
 
 	loadBitmap = true;
 	updateFilter = true;

@@ -1496,6 +1496,9 @@ void CBitmapEditor::OnUpdateLayerBitmap(wxCommandEvent& event) {
     if (element)
         element->SetPicture(picture);
 
+    //cv::Mat matrix = picture->GetMatImage();
+    //cv::imwrite("d:\\test_layer.jpg", matrix);
+
     NotifyLayerPictureUpdated();
 }
 
