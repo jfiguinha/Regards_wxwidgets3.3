@@ -10,11 +10,10 @@
 #define TYPE_OPENGL 1
 #define TYPE_OPENCL 2
 
-// Forward declaration pour éviter d'inclure les headers OpenGL partout
 namespace Regards { namespace OpenGL { class GLTexture; } }
 
 // ============================================================================
-// CLASSE MÈRE ANCRÉE : LayerElement
+// CLASSE MÈRE : LayerElement
 // ============================================================================
 class LayerElement
 {
@@ -22,10 +21,7 @@ public:
     LayerElement();
     virtual ~LayerElement();
 
-    // Constructeur de copie "virtuel" (Pattern Prototype) pour éviter le Slicing
     virtual LayerElement* Clone() const = 0;
-
-    // Interface virtuelle pour la gestion des ressources spécifiques
     virtual void DeleteTexture() = 0;
     virtual void InvalidatePicture();
 
@@ -34,23 +30,9 @@ public:
         return typeLayer;
     }
 
-    // Accesseurs communs de gestion des images CPU
     void SetPicture(CImageLoadingFormat* source);
     CImageLoadingFormat* GetPicture() const { return picture; }
-    CImageLoadingFormat* GetOriginalPicture() const { return originalPicture; }
 
-    // Restaure le calque à son état initial non modifié (Source brute)
-    void ResetToOriginal()
-    {
-        if (originalPicture != nullptr)
-        {
-            // On écrase 'picture' avec une copie neuve de 'originalPicture'
-            // SetPicture n'écrasera pas originalPicture car il est déjà initialisé
-            SetPicture(CloneImage(originalPicture));
-        }
-    }
-
-    // Propriétés publiques communes
     LayerBlendMode blendMode = LayerBlendMode::Normal;
     int numLayer = 0;
     bool isVisible = true;
@@ -61,6 +43,8 @@ public:
     uint64_t pictureVersion = 0;
     int textureWidth = 0;
     int textureHeight = 0;
+    wxString filepath = "";
+
 
     int x = 0;
     int y = 0;
@@ -72,23 +56,17 @@ public:
     virtual void Read(const cv::FileNode& node);
 
 protected:
-    // Constructeur de copie protégé utilisé par le mécanisme de clonage des classes dérivées
     LayerElement(const LayerElement& other);
-
-    // Copie profonde garantie : nouveau buffer de pixels (cv::Mat::clone) + métadonnées.
-    // Ne dépend pas de la profondeur de CImageLoadingFormat::operator= / constructeur de copie.
-    // Retourne nullptr si source est nullptr. L'appelant devient propriétaire du résultat.
     static CImageLoadingFormat* CloneImage(CImageLoadingFormat* source);
 
     CImageLoadingFormat* picture = nullptr;
-    CImageLoadingFormat* originalPicture = nullptr; // <--- Stockage persistant de l'image de départ
 
     static std::atomic<uint64_t> counter;
     int typeLayer = 0;
 };
 
 // ============================================================================
-// CLASSE DÉRIVÉE 1 : Gestion OpenCV cv::UMat (OpenCL / Transparent API)
+// CLASSE DÉRIVÉE 1 : cv::UMat (OpenCL)
 // ============================================================================
 class LayerElementUMat : public LayerElement
 {
@@ -101,7 +79,6 @@ public:
     virtual LayerElement* Clone() const override { return new LayerElementUMat(*this); }
     virtual void DeleteTexture() override { m_umatTexture.release(); }
 
-    // Accesseurs spécifiques à cv::UMat
     cv::UMat GetUMatTexture() const { return m_umatTexture; }
     void SetUMatTexture(const cv::UMat& texture);
     cv::UMat DetachUMatTexture();
@@ -114,7 +91,7 @@ private:
 };
 
 // ============================================================================
-// CLASSE DÉRIVÉE 2 : Gestion OpenGL GLTexture
+// CLASSE DÉRIVÉE 2 : GLTexture (OpenGL)
 // ============================================================================
 class LayerElementGL : public LayerElement
 {
@@ -127,7 +104,6 @@ public:
     virtual LayerElement* Clone() const override { return new LayerElementGL(*this); }
     virtual void DeleteTexture() override;
 
-    // Accesseurs spécifiques à OpenGL
     Regards::OpenGL::GLTexture* GetOpenGLTexture() const { return m_glTexture; }
     void SetOpenGLTexture(Regards::OpenGL::GLTexture* texture);
     Regards::OpenGL::GLTexture* DetachOpenGLTexture();
@@ -140,16 +116,13 @@ private:
 };
 
 // ============================================================================
-// GESTIONNAIRE DE LISTE : CLayerList (Sécurisé pour l'historique)
+// GESTIONNAIRE DE LISTE : CLayerList
 // ============================================================================
 class CLayerList
 {
 public:
     CLayerList() = default;
-
-    // Constructeur par recopie profonde indispensable pour le ModificationManager
     CLayerList(const CLayerList& other);
-
     ~CLayerList();
 
     bool SaveToFile(const wxString& filename) const;
@@ -170,8 +143,6 @@ public:
     auto end() const { return m_layers.end(); }
 
     CImageLoadingFormat* GetPictureToShow();
-
-    // Extrait une copie d'export ou d'affichage isolée de l'image finale composite
     CImageLoadingFormat* ClonePictureToShow();
 
     int GetWidth() const { return canvasWidth; }
@@ -199,8 +170,6 @@ public:
     bool SetPropertiesLayer(int numLayer, wxString layerName, LayerBlendMode blendMode, int opacity);
 
 private:
-
-
     std::vector<LayerElement*> m_layers;
     CImageLoadingFormat* finalImage = nullptr;
     bool isChanged = false;

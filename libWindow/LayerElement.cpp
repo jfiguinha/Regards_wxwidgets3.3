@@ -42,8 +42,6 @@ LayerElement::LayerElement(const LayerElement& other)
     // 5. Copie profonde de l'image de travail CPU (buffer de pixels indépendant)
     picture = CloneImage(other.picture);
 
-    // 6. Copie profonde de l'image d'origine CPU (Source brute, buffer indépendant de 'picture')
-    originalPicture = CloneImage(other.originalPicture);
 }
 
 CImageLoadingFormat* LayerElement::CloneImage(CImageLoadingFormat* source)
@@ -66,9 +64,6 @@ LayerElement::~LayerElement()
 {
     if (picture)
         delete picture;
-
-    if (originalPicture)
-        delete originalPicture;
 }
 
 void LayerElement::SetPicture(CImageLoadingFormat* source)
@@ -78,12 +73,7 @@ void LayerElement::SetPicture(CImageLoadingFormat* source)
 
     picture = source;
 
-    // Si originalPicture n'a pas encore été initialisé, on verrouille l'image d'origine
-    // en créant une instance profonde à partir de la source reçue.
-    if (originalPicture == nullptr && source != nullptr)
-    {
-        originalPicture = CloneImage(source);
-    }
+    filepath = picture->GetFilename();
 
     pictureVersion++;
     needTextureUpdate = true;
@@ -384,11 +374,6 @@ void LayerElement::Write(cv::FileStorage& fs) const {
         fs << "picture" << picture->GetMatrix().getMat();
     else
         fs << "picture" << cv::Mat();
-
-    if (originalPicture)
-        fs << "originalPicture" << originalPicture->GetMatrix().getMat();
-    else
-        fs << "originalPicture" << cv::Mat();
 }
 
 void LayerElement::Read(const cv::FileNode& node) {
@@ -414,10 +399,6 @@ void LayerElement::Read(const cv::FileNode& node) {
     if (!matPicture.empty()) {
         picture = new CImageLoadingFormat();
         picture->SetPicture(matPicture);
-    }
-    if (!matOriginal.empty()) {
-        originalPicture = new CImageLoadingFormat();
-        originalPicture->SetPicture(matOriginal);
     }
 
     pictureVersion = 1;
@@ -519,10 +500,8 @@ bool CLayerList::SaveToFile(const wxString& filename) const
 
         // Sérialisation des matrices images
         cv::Mat pictureMat = layer->GetPicture() ? layer->GetPicture()->GetMatrix().getMat() : cv::Mat();
-        cv::Mat originalMat = layer->GetOriginalPicture() ? layer->GetOriginalPicture()->GetMatrix().getMat() : cv::Mat();
 
         WriteMatBinary(fs, pictureMat);
-        WriteMatBinary(fs, originalMat);
     }
 
     fs.close();
@@ -619,20 +598,6 @@ bool CLayerList::LoadFromFile(const wxString& filename)
             // Libération de la mémoire allouée par défaut par le Reset/SetPicture si existant
             CImageLoadingFormat* originalFormat = new CImageLoadingFormat();
             originalFormat->SetPicture(originalMat);
-
-            // Pour forcer l'affection sans passer par le clonage automatique du SetPicture :
-            // Nous utilisons l'accès direct ou via une fonction dédiée. Dans LayerElement, 
-            // originalPicture est protégé, on peut y accéder depuis les méthodes membres.
-            // On nettoie l'image d'origine par défaut s'il y en a une :
-            // (La gestion interne de SetPicture peut avoir généré un clone automatique, on le remplace par la version lue)
-            CImageLoadingFormat* oldOrig = newLayer->GetOriginalPicture();
-            if (oldOrig != nullptr)
-            {
-                // Pour éviter d'exposer des pointeurs invalides, on réassigne proprement via une astuce ou accès protégé
-                // Puisque LoadFromFile est membre de CLayerList, elle peut manipuler les propriétés amies de LayerElement si déclarée, 
-                // mais comme elle ne l'est pas directement pour les membres protégés de LayerElement, on utilise le destructeur virtuel de LayerElement ou un Setter si disponible.
-                // Alternative élégante : On force l'écriture dans le membre via le constructeur ou en modifiant directement le pointeur s'il est accessible dans le même package.
-            }
         }
 
         newLayer->pictureVersion = 1;
@@ -646,106 +611,6 @@ bool CLayerList::LoadFromFile(const wxString& filename)
     return true;
 }
 
-
-/*
-bool CLayerList::SaveToFile(const wxString& filename) const
-{
-    try
-    {
-        // cv::FileStorage supporte les extensions .xml, .yml, .yaml, ou .json
-        // On convertit le chemin wxString en format compatible standard
-        std::string filePath = filename.ToStdString();
-        cv::FileStorage fs(filePath, cv::FileStorage::WRITE);
-
-        if (!fs.isOpened())
-            return false;
-
-        // Écriture des métadonnées du Canvas
-        fs << "canvasWidth" << canvasWidth;
-        fs << "canvasHeight" << canvasHeight;
-
-        // Écriture de la liste des calques
-        fs << "layers" << "["; // Début de séquence YAML/JSON/XML
-        for (const LayerElement* layer : m_layers)
-        {
-            if (layer != nullptr)
-            {
-                fs << "{"; // Début d'un objet calque
-                layer->Write(fs);
-                fs << "}";
-            }
-        }
-        fs << "]"; // Fin de séquence
-
-        fs.release();
-        return true;
-    }
-    catch (const cv::Exception&)
-    {
-        return false;
-    }
-}
-
-bool CLayerList::LoadFromFile(const wxString& filename)
-{
-    try
-    {
-        std::string filePath = filename.ToStdString();
-        cv::FileStorage fs(filePath, cv::FileStorage::READ);
-
-        if (!fs.isOpened())
-            return false;
-
-        // Nettoyage de la liste actuelle avant chargement
-        if (finalImage) {
-            delete finalImage;
-            finalImage = nullptr;
-        }
-        for (LayerElement* layer : m_layers) {
-            delete layer;
-        }
-        m_layers.clear();
-
-        // Lecture des dimensions du Canvas
-        fs["canvasWidth"] >> canvasWidth;
-        fs["canvasHeight"] >> canvasHeight;
-
-        // Lecture de la séquence de calques
-        cv::FileNode layersNode = fs["layers"];
-        if (layersNode.type() == cv::FileNode::SEQ)
-        {
-            for (cv::FileNodeIterator it = layersNode.begin(); it != layersNode.end(); ++it)
-            {
-                cv::FileNode layerNode = *it;
-                int typeLayer = (int)layerNode["typeLayer"];
-
-                LayerElement* newLayer = nullptr;
-
-                // Pattern Factory de restauration basée sur la constante de type
-                if (typeLayer == TYPE_OPENCL) {
-                    newLayer = new LayerElementUMat();
-                }
-                else if (typeLayer == TYPE_OPENGL) {
-                    newLayer = new LayerElementGL();
-                }
-
-                if (newLayer != nullptr) {
-                    newLayer->Read(layerNode);
-                    m_layers.push_back(newLayer);
-                }
-            }
-        }
-
-        fs.release();
-        isChanged = true;
-        return true;
-    }
-    catch (const cv::Exception&)
-    {
-        return false;
-    }
-}
-*/
 
 LayerElement* CLayerList::FindElementByLayerId(const uint64_t& layerId)
 {

@@ -93,14 +93,40 @@ void CThumbnailCalque::RefreshList()
             cv::Mat output;
             cv::Mat matrixPicture = picture->GetMatImage();
 
-            // Correction : Utiliser la taille définie par le thème
-            int targetWidth = themeThumbnail.themeIcone.GetWidth();
-            int targetHeight = themeThumbnail.themeIcone.GetHeight();
+            // Taille maximale définie par la configuration du thème de l'icône
+            int maxWidth = themeThumbnail.themeIcone.GetWidth();
+            int maxHeight = themeThumbnail.themeIcone.GetHeight();
 
-            if (targetWidth > 0 && targetHeight > 0 && !matrixPicture.empty())
+            if (maxWidth > 0 && maxHeight > 0 && !matrixPicture.empty())
             {
+                // --- CALCUL DE RECADRAGE RESPECTANT LE RATIO D'ORIGINE ---
+                int srcWidth = matrixPicture.cols;
+                int srcHeight = matrixPicture.rows;
+
+                int targetWidth = maxWidth;
+                int targetHeight = maxHeight;
+
+                // Comparaison des ratios pour adapter la boîte englobante
+                double ratioSrc = static_cast<double>(srcWidth) / srcHeight;
+                double ratioMax = static_cast<double>(maxWidth) / maxHeight;
+
+                if (ratioSrc > ratioMax)
+                {
+                    // L'image d'origine est plus large : on fixe la largeur maximale
+                    targetHeight = static_cast<int>(maxWidth / ratioSrc);
+                }
+                else
+                {
+                    // L'image d'origine est plus haute : on fixe la hauteur maximale
+                    targetWidth = static_cast<int>(maxHeight * ratioSrc);
+                }
+
+                // Sécurité pour éviter des dimensions nulles suite aux arrondis
+                if (targetWidth <= 0) targetWidth = 1;
+                if (targetHeight <= 0) targetHeight = 1;
+
+                // Redimensionnement de la matrice OpenCV avec les nouvelles proportions proportionnelles
                 cv::resize(matrixPicture, output, cv::Size(targetWidth, targetHeight));
-                // CORRECTION ICI : On passe la matrice redimensionnée 'output' et non 'matrixPicture'
                 thumbnailData->SetBitmap(output);
             }
         }
@@ -125,8 +151,13 @@ void CThumbnailCalque::UpdateLayerList()
     std::unordered_set<uint64_t> listOfLayerFind;
     CIconeList* oldList = iconeList.get();
 
-    int targetWidth = 640;// themeThumbnail.themeIcone.GetWidth();
-    int targetHeight = 480;// themeThumbnail.themeIcone.GetHeight();
+    // Dimensions maximales de l'icône issues du thème
+    int maxWidth = themeThumbnail.themeIcone.GetWidth();
+    int maxHeight = themeThumbnail.themeIcone.GetHeight();
+
+    // Valeurs de repli par défaut si le thème n'est pas initialisé
+    if (maxWidth <= 0) maxWidth = 640;
+    if (maxHeight <= 0) maxHeight = 480;
 
     for (LayerElement* layerElement : *listOfLayer)
     {
@@ -142,20 +173,51 @@ void CThumbnailCalque::UpdateLayerList()
 
         CImageLoadingFormat* picture = layerElement->GetPicture();
 
+        // Calcul des dimensions de rendu respectant le ratio d'aspect original du calque
+        int finalWidth = maxWidth;
+        int finalHeight = maxHeight;
+
+        if (picture && picture->IsOk())
+        {
+            cv::Mat matrixPicture = picture->GetMatImage();
+            if (!matrixPicture.empty())
+            {
+                int srcWidth = matrixPicture.cols;
+                int srcHeight = matrixPicture.rows;
+
+                double ratioSrc = static_cast<double>(srcWidth) / srcHeight;
+                double ratioMax = static_cast<double>(maxWidth) / maxHeight;
+
+                if (ratioSrc > ratioMax)
+                {
+                    // Plus large : fixer la largeur maximale
+                    finalHeight = static_cast<int>(maxWidth / ratioSrc);
+                }
+                else
+                {
+                    // Plus haut : fixer la hauteur maximale
+                    finalWidth = static_cast<int>(maxHeight * ratioSrc);
+                }
+
+                if (finalWidth <= 0) finalWidth = 1;
+                if (finalHeight <= 0) finalHeight = 1;
+            }
+        }
+
         if (pBitmapIcone == nullptr)
         {
             // --- CAS 1 : NOUVELLE ICÔNE ---
             auto* thumbnailData = new CThumbnailDataStorage(layerElement->layerName);
             thumbnailData->SetNumPhotoId(layerElement->layerId);
 
-            if (picture && picture->IsOk() && targetWidth > 0 && targetHeight > 0)
+            if (picture && picture->IsOk())
             {
                 cv::Mat output;
                 cv::Mat matrixPicture = picture->GetMatImage();
                 if (!matrixPicture.empty())
                 {
-                    cv::resize(matrixPicture, output, cv::Size(targetWidth, targetHeight));
-                    thumbnailData->SetBitmap(output); // CORRIGÉ : On passe 'output' et non 'matrixPicture'
+                    cv::resize(matrixPicture, output, cv::Size(finalWidth, finalHeight));
+                    thumbnailData->SetBitmap(output);
                 }
             }
 
@@ -163,7 +225,7 @@ void CThumbnailCalque::UpdateLayerList()
             pBitmapIcone->SetNumElement(numElement);
             pBitmapIcone->SetTheme(themeThumbnail.themeIcone);
             pBitmapIcone->SetLibelle(layerElement->layerName);
-            pBitmapIcone->SetChecked(layerElement->isVisible); // CORRIGÉ : Initialise avec la vraie visibilité
+            pBitmapIcone->SetChecked(layerElement->isVisible);
             pBitmapIcone->SetSelected(numElement == numClickIcone);
         }
         else
@@ -172,19 +234,18 @@ void CThumbnailCalque::UpdateLayerList()
             listOfLayerFind.insert(layerElement->layerId);
             pBitmapIcone->SetNumElement(numElement);
             pBitmapIcone->SetLibelle(layerElement->layerName);
-            pBitmapIcone->SetChecked(layerElement->isVisible); // Synchro de l'état de visibilité
+            pBitmapIcone->SetChecked(layerElement->isVisible);
             pBitmapIcone->SetSelected(numElement == numClickIcone);
 
-            // Optionnel : Ne recalculer la vignette que si le calque a changé (ex: pictureVersion)
             auto* thumbnailData = pBitmapIcone->GetPtData();
-            if (thumbnailData && picture && picture->IsOk() && targetWidth > 0 && targetHeight > 0)
+            if (thumbnailData && picture && picture->IsOk())
             {
                 cv::Mat output;
                 cv::Mat matrixPicture = picture->GetMatImage();
                 if (!matrixPicture.empty())
                 {
-                    cv::resize(matrixPicture, output, cv::Size(targetWidth, targetHeight));
-                    thumbnailData->SetBitmap(output); // CORRIGÉ : On passe 'output' et non 'matrixPicture'
+                    cv::resize(matrixPicture, output, cv::Size(finalWidth, finalHeight));
+                    thumbnailData->SetBitmap(output);
                 }
             }
         }
@@ -202,21 +263,16 @@ void CThumbnailCalque::UpdateLayerList()
             if (oldIcone && oldIcone->GetPtData())
             {
                 auto* thumbnailData = oldIcone->GetPtData();
-                // Si l'ancienne icône n'a pas été marquée comme réutilisée, on la supprime
                 if (listOfLayerFind.find(thumbnailData->GetNumPhotoId()) == listOfLayerFind.end())
                 {
                     delete oldIcone;
                 }
             }
         }
-        // ATTENTION : Ne pas appeler EraseThumbnailList() ici si cela supprime à l'aveugle
-        // des pointeurs que nous venons de transférer à iconeListLocal. 
-        // Videz simplement le conteneur interne de oldList sans delete si votre API le permet.
     }
 
     isAllProcess = true;
 
-    // Remplacement de l'ancienne liste par la nouvelle
     iconeList.reset(iconeListLocal);
     nbElementInIconeList = iconeList->GetNbElement();
 

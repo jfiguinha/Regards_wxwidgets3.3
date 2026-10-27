@@ -249,9 +249,12 @@ CLayerList* CModificationManager::GetLayersForModification(
     // Étape 0 (état source) : on garantit l'image originale brute de chaque
     // calque
     if (targetModification == 0) {
-        for (size_t i = 0; i < layerListCopy->size(); ++i) {
-            LayerElement* layer = (*layerListCopy)[i];
-            if (layer != nullptr) layer->ResetToOriginal();
+        LayerElement* layer = (*layerListCopy)[0];
+        if (layer != nullptr)
+        {
+            CLibPicture libPicture;
+            CImageLoadingFormat* picture = libPicture.LoadPicture(layer->filepath);
+            layer->SetPicture(picture);
         }
     }
 
