@@ -246,6 +246,10 @@ void CBitmapWndRender::OnCommand(wxCommandEvent& event)
 		break;
 	case wxEVENT_UPDATELAYERMODIFICATION:
 		OnUpdateLayerModification(event);
+		{
+			auto event = new wxCommandEvent(wxEVENT_REFRESHLAYERLIST);
+			wxQueueEvent(parentRender->GetParent(), event);
+		}
 		break;
 	case wxEVENT_SETBITMAP:
 		OnSetBitmap(event);
@@ -1315,8 +1319,20 @@ void CBitmapWndRender::OnLButtonDown(wxMouseEvent& event)
 		break;
 	}
 
+
+	case IDM_PENFILTER:
+	case IDM_GEOMETRICFILTER:
+	case IDM_MAGICHANDFILTER:
+	case IDM_TEXTFILTER:
+	case IDM_GRADIENTFILTER:
+	case IDM_PAINTBUCKETFILTER:
+		wxSetCursor(*wxSTANDARD_CURSOR);
+		//preview = oldPreview;
+		break;
+
 	default:
 		wxSetCursor(*wxSTANDARD_CURSOR);
+		//oldPreview = 0;
 		break;
 	}
 

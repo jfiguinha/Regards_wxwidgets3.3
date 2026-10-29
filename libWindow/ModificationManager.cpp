@@ -163,7 +163,7 @@ void CModificationManager::Init(CImageLoadingFormat* bitmap,
     EraseData();
 
     if (bitmap == nullptr || initialLayers == nullptr) return;
-
+    filePath = bitmap->GetFilename();
     // L'étape initiale (root) n'applique aucun effet à sa création
     AddStep(-1, nullptr, 0, bitmap->GetFilename(), initialLayers, 0);
     numModification = 0;
@@ -241,21 +241,21 @@ CLayerList* CModificationManager::GetLayersForModification(
     // 1. Instanciation du conteneur et restauration polymorphique complète via
     // OpenCV xml/yml/json
     CLayerList* layerListCopy = new CLayerList();
+
+
+
     if (!layerListCopy->LoadFromFile(step.layersFilePath)) {
         delete layerListCopy;
         return nullptr;
     }
 
-    // Étape 0 (état source) : on garantit l'image originale brute de chaque
-    // calque
-    if (targetModification == 0) {
+    if (targetModification == 0)
+    {
+        CLibPicture libPicture;
         LayerElement* layer = (*layerListCopy)[0];
-        if (layer != nullptr)
-        {
-            CLibPicture libPicture;
-            CImageLoadingFormat* picture = libPicture.LoadPicture(layer->filepath);
-            layer->SetPicture(picture);
-        }
+        CImageLoadingFormat* picture = libPicture.LoadPicture(filePath);
+        layer->SetPicture(picture);
+        return layerListCopy;
     }
 
     // Étapes > 0 : Restauration dynamique du paramètre et application du filtre
@@ -292,54 +292,72 @@ CLayerList* CModificationManager::GetLayersForModification(
     return layerListCopy;
 }
 
+
+
 void CModificationManager::AddStep(int filterId, CEffectParameter* parameter,
-    size_t parameterSize,
-    const wxString& libelle,
-    CLayerList* currentLayers,
-    int64_t targetLayerId) {
+    size_t parameterSize, const wxString& libelle, CLayerList* currentLayers, int64_t targetLayerId) {
+
     if (currentLayers == nullptr) return;
-    // Nouvelle branche d'historique : suppression des étapes futures physiques
-    // sur le disque
+
+    // Élimination de la branche Redo obsolète
     if (numModification + 1 < historySteps.size()) {
-        for (auto it = historySteps.begin() + (numModification + 1);
-            it != historySteps.end(); ++it) {
+        for (auto it = historySteps.begin() + (numModification + 1); it != historySteps.end(); ++it) {
             DeleteStepFiles(*it);
         }
-        historySteps.erase(historySteps.begin() + (numModification + 1),
-            historySteps.end());
+        historySteps.erase(historySteps.begin() + (numModification + 1), historySteps.end());
     }
-    ModificationStep newStep;
-    newStep.filterId = filterId;
-    newStep.libelle = libelle;
-    newStep.targetLayerId = targetLayerId;
-    unsigned int stepIndex = historySteps.size();
-    // Utilisation d'un fichier .yml ou .xml géré par OpenCV pour sauvegarder le
-    // canvas et ses calques polymorphes
-    newStep.layersFilePath =
-        m_sessionFolder +
-        wxFILE_SEP_PATH + wxString::Format("step_%u_layers.bin", stepIndex);
-    currentLayers->SaveToFile(newStep.layersFilePath);
-    // Sauvegarde binaire du paramètre si applicable
-    if (parameter != nullptr && parameterSize > 0) {
-        newStep.parameterFilePath =
-            m_sessionFolder + wxFILE_SEP_PATH +
-            wxString::Format("step_%u_param.bin", stepIndex);
-        std::ofstream outParam(newStep.parameterFilePath.fn_str(),
-            std::ios::binary);
-        if (outParam.is_open()) {
-            outParam.write(reinterpret_cast<const char*>(parameter), parameterSize);
-            outParam.close();
+
+    if (numModification > 0)
+    {
+        ModificationStep newStep;
+        newStep.filterId = filterId;
+        newStep.libelle = libelle;
+        newStep.targetLayerId = targetLayerId;
+        unsigned int stepIndex = historySteps.size();
+
+        // Génère le fichier d'index spécifique à cette étape d'annulation/rétablissement (indique quel état utiliser en retour arrière)
+        newStep.layersFilePath = m_sessionFolder + wxFILE_SEP_PATH + wxString::Format("step_%u_layers.bin", stepIndex);
+
+        // Sauvegarde incrémentale gérée en interne par la liste de calques
+        currentLayers->SaveToFile(newStep.layersFilePath);
+
+        // Sauvegarde binaire du paramètre si applicable
+        if (parameter != nullptr && parameterSize > 0) {
+            newStep.parameterFilePath = m_sessionFolder + wxFILE_SEP_PATH + wxString::Format("step_%u_param.bin", stepIndex);
+            std::ofstream outParam(newStep.parameterFilePath.fn_str(), std::ios::binary);
+            if (outParam.is_open()) {
+                outParam.write(reinterpret_cast<const char*>(parameter), parameterSize);
+                outParam.close();
+            }
         }
+
+        historySteps.push_back(std::move(newStep));
     }
-    historySteps.push_back(std::move(newStep));
+    else
+    {
+
+        ModificationStep newStep;
+        newStep.filterId = filterId;
+        newStep.libelle = libelle;
+        newStep.targetLayerId = targetLayerId;
+        unsigned int stepIndex = historySteps.size();
+        // Génère le fichier d'index spécifique à cette étape d'annulation/rétablissement (indique quel état utiliser en retour arrière)
+        newStep.layersFilePath = m_sessionFolder + wxFILE_SEP_PATH + wxString::Format("step_%u_layers.bin", stepIndex);
+        // Sauvegarde incrémentale gérée en interne par la liste de calques
+        currentLayers->SaveToFile(newStep.layersFilePath, false);
+        historySteps.push_back(std::move(newStep));
+    }
     numModification = static_cast<int>(historySteps.size()) - 1;
 }
+
 
 void CModificationManager::AddModification(const int& numEffect,
     CEffectParameter* effectParameter,
     const wxString& libelle,
     CLayerList* currentLayers,
     int64_t targetLayerId) {
+
+    numModification++;
     auto cloned = CloneEffectParameter(numEffect, effectParameter);
     size_t paramSize = (cloned != nullptr) ? sizeof(*cloned.get()) : 0;
     AddStep(numEffect, cloned.get(), paramSize, libelle, currentLayers,

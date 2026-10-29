@@ -840,6 +840,20 @@ void CBitmapEditor::MouseRelease(const int& xPos, const int& yPos)
         }
     }
 
+    switch (toolOption)
+    {
+    case IDM_PENFILTER:
+    case IDM_GEOMETRICFILTER:
+    case IDM_MAGICHANDFILTER:
+    case IDM_TEXTFILTER:
+    case IDM_GRADIENTFILTER:
+    case IDM_PAINTBUCKETFILTER:
+        //oldPreview = preview;
+        //preview = 0;
+        break;
+    }
+
+
     if (clickTimer->IsRunning())
         clickTimer->Stop();
 }

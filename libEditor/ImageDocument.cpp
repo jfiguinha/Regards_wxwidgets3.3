@@ -167,7 +167,7 @@ void ImageDocument::InitDocument(const int64_t& layerId, wxWindowID bitmapViewer
     Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(ImageDocument::OnEraseBackground));
     Connect(wxEVT_IDLE, wxIdleEventHandler(ImageDocument::OnIdle));
     Connect(wxEVT_ACTIVATE, wxActivateEventHandler(ImageDocument::OnActivate));
-
+    Connect(wxEVENT_REFRESHLAYERLIST, wxCommandEventHandler(ImageDocument::OnRefreshList));
     CreateStatusBarControls();
 
     historyEffect = std::make_unique<CInfoEffect>(nullptr, modificationManager.get(), bitmapViewerId, m_filename);
@@ -176,6 +176,12 @@ void ImageDocument::InitDocument(const int64_t& layerId, wxWindowID bitmapViewer
     historyEffect->Init(pictureLocal, bitmapWindow->GetListOfLayer(), layerId, m_filename, historyLibelle);
 
     UpdateStatusText();
+}
+
+void ImageDocument::OnRefreshList(wxCommandEvent& event)
+{
+    auto event_ = new wxCommandEvent(wxEVENT_REFRESHLAYERLIST);
+    wxQueueEvent(this->GetParent(), event_);
 }
 
 // Création manuelle de la status bar (taille, zoom) et du slider de zoom

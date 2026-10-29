@@ -40,7 +40,6 @@ private:
         int filterId = -1;
         int64_t targetLayerId = 0;
         wxString libelle;
-
         // Stockage des chemins de fichiers au lieu des objets
         wxString layersFilePath;
         wxString parameterFilePath;
@@ -55,4 +54,5 @@ private:
     CRgbaquad color_quad;
     wxString m_sessionFolder; // Dossier unique pour cette session d'image
     std::vector<ModificationStep> historySteps;
+    wxString filePath = "";
 };

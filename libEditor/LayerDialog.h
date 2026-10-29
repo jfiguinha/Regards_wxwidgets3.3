@@ -25,6 +25,8 @@ public:
     void SetActifLayer(const int& numElement);
 
 private:
+
+    void OnRefresh(wxCommandEvent& event);
     void OnSize(wxSizeEvent& event);
     wxStatusBar* m_statusBar;
     Regards::Control::CListLayer* listLayer;

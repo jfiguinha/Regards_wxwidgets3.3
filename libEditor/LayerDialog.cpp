@@ -22,10 +22,17 @@ LayerDialog::LayerDialog(wxWindow* parent)
 	}
 
 	Connect(wxEVT_SIZE, wxSizeEventHandler(LayerDialog::OnSize));
+	Connect(wxEVENT_REFRESHLAYERLIST, wxCommandEventHandler(LayerDialog::OnRefresh));
 
 	m_statusBar = new wxStatusBar(this, wxID_ANY);
 	m_statusBar->SetFieldsCount(1); // 1 seule section textuelle
 	m_statusBar->SetStatusText("");
+}
+
+void LayerDialog::OnRefresh(wxCommandEvent& event)
+{
+	if (listLayer)
+		listLayer->RefreshList();
 }
 
 void LayerDialog::SetLayerList(CLayerList* listOfLayer)

@@ -117,6 +117,15 @@ void CFiltreEffectScrollWnd::OnFiltreOk(const int& numFiltre, CInfoEffectWnd* hi
 		if (imageLoad != nullptr)
 			SetBitmapToViewer(imageLoad);
 	}
+	else
+	{
+		if (historyEffectWnd != nullptr)
+		{
+			CEffectParameter* effectParameter = new CEffectParameter();
+			effectParameter->layerId = this->layerId;
+			historyEffectWnd->AddModification(numFiltre, effectParameter, CFiltreData::GetFilterLabel(numFiltre), currentLayers, layerId);
+		}
+	}
 
 	if (bitmapViewer != nullptr && CFiltreData::NeedPreview(numFiltre))
 		bitmapViewer->RemoveListener();
@@ -187,6 +196,8 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 				}
 				bitmapViewer->SetTool(numItem);
 				bitmapViewer->SetBitmapPreviewEffect(numItem);
+
+
 			}
 			break;
 
@@ -232,6 +243,10 @@ void CFiltreEffectScrollWnd::ApplyEffect(const int& numItem, CInfoEffectWnd* his
 
 				if (imageLoad != nullptr)
 					SetBitmapToViewer(imageLoad);
+
+				wxCommandEvent evt(wxEVENT_FILTREOK);
+				evt.SetInt(numFiltre);
+				previewWindow->GetEventHandler()->AddPendingEvent(evt);
 			}
 			break;
 			}

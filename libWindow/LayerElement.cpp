@@ -451,56 +451,46 @@ static void ReadMatBinary(std::ifstream& fs, cv::Mat& mat)
     }
 }
 
-bool CLayerList::SaveToFile(const wxString& filename) const
+// Ajout de deux nouvelles fonctions globales/statiques dans LayerElement.cpp pour gérer un calque seul
+bool SaveLayerToBinary(const LayerElement* layer, const wxString& filename, bool savePicture)
 {
     std::ofstream fs(filename.fn_str(), std::ios::binary);
-    if (!fs.is_open())
-        return false;
+    if (!fs.is_open()) return false;
 
-    // 1. Écriture des métadonnées globales de la liste
-    fs.write(reinterpret_cast<const char*>(&canvasWidth), sizeof(canvasWidth));
-    fs.write(reinterpret_cast<const char*>(&canvasHeight), sizeof(canvasHeight));
+    // Sauvegarde du type concret pour la factory
+    int typeLayer = const_cast<LayerElement*>(layer)->TypeLayer();
+    fs.write(reinterpret_cast<const char*>(&typeLayer), sizeof(typeLayer));
 
-    // 2. Écriture du nombre de calques
-    size_t layerCount = m_layers.size();
-    fs.write(reinterpret_cast<const char*>(&layerCount), sizeof(layerCount));
+    // Propriétés de structure du calque
+    fs.write(reinterpret_cast<const char*>(&layer->layerId), sizeof(layer->layerId));
+    fs.write(reinterpret_cast<const char*>(&layer->numLayer), sizeof(layer->numLayer));
+    fs.write(reinterpret_cast<const char*>(&layer->isVisible), sizeof(layer->isVisible));
 
-    // 3. Écriture séquentielle de chaque calque polymorphe
-    for (const LayerElement* layer : m_layers)
+    int blendModeInt = static_cast<int>(layer->blendMode);
+    fs.write(reinterpret_cast<const char*>(&blendModeInt), sizeof(blendModeInt));
+
+    fs.write(reinterpret_cast<const char*>(&layer->opacity), sizeof(layer->opacity));
+    fs.write(reinterpret_cast<const char*>(&layer->x), sizeof(layer->x));
+    fs.write(reinterpret_cast<const char*>(&layer->y), sizeof(layer->y));
+    fs.write(reinterpret_cast<const char*>(&layer->textureWidth), sizeof(layer->textureWidth));
+    fs.write(reinterpret_cast<const char*>(&layer->textureHeight), sizeof(layer->textureHeight));
+
+    // Sérialisation du nom
+    std::string nameStr = layer->layerName.ToStdString();
+    size_t nameLength = nameStr.size();
+    fs.write(reinterpret_cast<const char*>(&nameLength), sizeof(nameLength));
+    if (nameLength > 0) fs.write(nameStr.data(), nameLength);
+
+    // Sérialisation du filepath d'origine
+    std::string pathStr = layer->filepath.ToStdString();
+    size_t pathLength = pathStr.size();
+    fs.write(reinterpret_cast<const char*>(&pathLength), sizeof(pathLength));
+    if (pathLength > 0) fs.write(pathStr.data(), pathLength);
+
+    // Sérialisation de l'image du calque (pixels compressés PNG) si elle existe
+    if (savePicture)
     {
-        if (layer == nullptr)
-            continue;
-
-        // On sauvegarde impérativement le type concret en premier pour le polymorphisme
-        int typeLayer = const_cast<LayerElement*>(layer)->TypeLayer();
-        fs.write(reinterpret_cast<const char*>(&typeLayer), sizeof(typeLayer));
-
-        // Propriétés primitives scalaires et géométriques
-        fs.write(reinterpret_cast<const char*>(&layer->layerId), sizeof(layer->layerId));
-        fs.write(reinterpret_cast<const char*>(&layer->numLayer), sizeof(layer->numLayer));
-        fs.write(reinterpret_cast<const char*>(&layer->isVisible), sizeof(layer->isVisible));
-
-        int blendModeInt = static_cast<int>(layer->blendMode);
-        fs.write(reinterpret_cast<const char*>(&blendModeInt), sizeof(blendModeInt));
-
-        fs.write(reinterpret_cast<const char*>(&layer->opacity), sizeof(layer->opacity));
-        fs.write(reinterpret_cast<const char*>(&layer->x), sizeof(layer->x));
-        fs.write(reinterpret_cast<const char*>(&layer->y), sizeof(layer->y));
-        fs.write(reinterpret_cast<const char*>(&layer->textureWidth), sizeof(layer->textureWidth));
-        fs.write(reinterpret_cast<const char*>(&layer->textureHeight), sizeof(layer->textureHeight));
-
-        // Sérialisation de la chaîne de caractères (wxString -> std::string UTF-8)
-        std::string nameStr = layer->layerName.ToStdString();
-        size_t nameLength = nameStr.size();
-        fs.write(reinterpret_cast<const char*>(&nameLength), sizeof(nameLength));
-        if (nameLength > 0)
-        {
-            fs.write(nameStr.data(), nameLength);
-        }
-
-        // Sérialisation des matrices images
         cv::Mat pictureMat = layer->GetPicture() ? layer->GetPicture()->GetMatrix().getMat() : cv::Mat();
-
         WriteMatBinary(fs, pictureMat);
     }
 
@@ -508,101 +498,163 @@ bool CLayerList::SaveToFile(const wxString& filename) const
     return true;
 }
 
-bool CLayerList::LoadFromFile(const wxString& filename)
-{
-    std::ifstream fs(filename.fn_str(), std::ios::binary);
-    if (!fs.is_open())
-        return false;
 
-    // Nettoyage de la liste mémoire existante avant réimportation
-    if (finalImage)
+// Nettoyage et réécriture complète de SaveToFile et LoadFromFile pour travailler en mode décentralisé/indexé
+bool CLayerList::SaveToFile(const wxString& indexFilename, bool savePicture) const
+{
+    std::ofstream fs(indexFilename.fn_str(), std::ios::binary);
+    if (!fs.is_open()) return false;
+
+    // 1. Écriture des métadonnées globales du canvas
+    fs.write(reinterpret_cast<const char*>(&canvasWidth), sizeof(canvasWidth));
+    fs.write(reinterpret_cast<const char*>(&canvasHeight), sizeof(canvasHeight));
+
+    // 2. Écriture du nombre de calques référencés à cette étape
+    size_t layerCount = m_layers.size();
+    fs.write(reinterpret_cast<const char*>(&layerCount), sizeof(layerCount));
+
+    // Récupération du dossier parent pour y déposer les fichiers calques individuels
+    wxFileName fn(indexFilename);
+    wxString baseDir = fn.GetPath() + wxFILE_SEP_PATH;
+
+    // 3. Écriture du catalogue de l'étape
+    for (const LayerElement* layer : m_layers)
     {
-        delete finalImage;
-        finalImage = nullptr;
+        if (layer == nullptr) continue;
+
+        // On écrit l'ID unique et la version de modification du calque dans l'index de l'étape
+        uint64_t lId = layer->layerId;
+        uint64_t lVersion = layer->pictureVersion;
+        fs.write(reinterpret_cast<const char*>(&lId), sizeof(lId));
+        fs.write(reinterpret_cast<const char*>(&lVersion), sizeof(lVersion));
+
+        if (savePicture)
+        {
+            cv::Mat pictureMat = layer->GetPicture() ? layer->GetPicture()->GetMatrix().getMat() : cv::Mat();
+            bool hasPicture = !pictureMat.empty();
+            fs.write(reinterpret_cast<const char*>(&hasPicture), sizeof(hasPicture));
+        }
+        else
+            fs.write(reinterpret_cast<const char*>(&savePicture), sizeof(savePicture));
+
+        // Nom du fichier de données binaire propre à cet ID et à sa version de modification
+        wxString layerDataFile = wxString::Format("layer_%" PRIu64 "_v%" PRIu64 ".bin", lId, lVersion);
+        std::string layerDataFileStr = layerDataFile.ToStdString();
+        size_t pathLen = layerDataFileStr.size();
+
+        fs.write(reinterpret_cast<const char*>(&pathLen), sizeof(pathLen));
+        fs.write(layerDataFileStr.data(), pathLen);
+
+        // STRATÉGIE INCRÉMENTALE : On ne sauvegarde physiquement sur le disque que si ce fichier n'existe pas encore
+        wxString fullLayerPath = baseDir + layerDataFile;
+        if (!wxFileExists(fullLayerPath))
+        {
+            SaveLayerToBinary(layer, fullLayerPath, savePicture);
+        }
     }
-    for (LayerElement* layer : m_layers)
-    {
-        delete layer;
-    }
+
+    fs.close();
+    return true;
+}
+
+bool CLayerList::LoadFromFile(const wxString& indexFilename)
+{
+    std::ifstream fs(indexFilename.fn_str(), std::ios::binary);
+    if (!fs.is_open()) return false;
+
+    // Nettoyage de l'état mémoire courant
+    if (finalImage) { delete finalImage; finalImage = nullptr; }
+    for (LayerElement* layer : m_layers) delete layer;
     m_layers.clear();
 
-    // 1. Lecture des propriétés globales
+    // 1. Lecture des dimensions globales
     fs.read(reinterpret_cast<char*>(&canvasWidth), sizeof(canvasWidth));
     fs.read(reinterpret_cast<char*>(&canvasHeight), sizeof(canvasHeight));
 
-    // 2. Lecture du nombre de calques
+    // 2. Lecture du nombre de calques à reconstituer
     size_t layerCount = 0;
     fs.read(reinterpret_cast<char*>(&layerCount), sizeof(layerCount));
 
-    // 3. Restauration des instances dérivées abstraites
+    wxFileName fn(indexFilename);
+    wxString baseDir = fn.GetPath() + wxFILE_SEP_PATH;
+
+    // 3. Parcours de l'index pour charger chaque calque depuis son fichier unique dédié
     for (size_t i = 0; i < layerCount; ++i)
     {
+        uint64_t lId = 0, lVersion = 0;
+        bool savePicture = false;
+        fs.read(reinterpret_cast<char*>(&lId), sizeof(lId));
+        fs.read(reinterpret_cast<char*>(&lVersion), sizeof(lVersion));
+        fs.read(reinterpret_cast<char*>(&savePicture), sizeof(savePicture));
+
+        size_t pathLen = 0;
+        fs.read(reinterpret_cast<char*>(&pathLen), sizeof(pathLen));
+        std::string layerDataFileStr(pathLen, '\0');
+        fs.read(&layerDataFileStr[0], pathLen);
+
+        wxString fullLayerPath = baseDir + wxString::FromUTF8(layerDataFileStr.c_str());
+
+        // Lecture du fichier de calque séparé
+        std::ifstream fl(fullLayerPath.fn_str(), std::ios::binary);
+        if (!fl.is_open()) continue;
+
         int typeLayer = 0;
-        fs.read(reinterpret_cast<char*>(&typeLayer), sizeof(typeLayer));
+        fl.read(reinterpret_cast<char*>(&typeLayer), sizeof(typeLayer));
 
         LayerElement* newLayer = nullptr;
+        if (typeLayer == TYPE_OPENCL) newLayer = new LayerElementUMat();
+        else if (typeLayer == TYPE_OPENGL) newLayer = new LayerElementGL();
 
-        // Résolution de l'instanciation de la classe abstraite (Pattern Factory via typeLayer)
-        if (typeLayer == TYPE_OPENCL)
-        {
-            newLayer = new LayerElementUMat();
-        }
-        else if (typeLayer == TYPE_OPENGL)
-        {
-            newLayer = new LayerElementGL();
-        }
+        if (newLayer == nullptr) { fl.close(); continue; }
 
-        if (newLayer == nullptr)
-            continue;
-
-        // Lecture des primitives scalaires
-        fs.read(reinterpret_cast<char*>(&newLayer->layerId), sizeof(newLayer->layerId));
-        fs.read(reinterpret_cast<char*>(&newLayer->numLayer), sizeof(newLayer->numLayer));
-        fs.read(reinterpret_cast<char*>(&newLayer->isVisible), sizeof(newLayer->isVisible));
+        // Restauration des primitives
+        fl.read(reinterpret_cast<char*>(&newLayer->layerId), sizeof(newLayer->layerId));
+        fl.read(reinterpret_cast<char*>(&newLayer->numLayer), sizeof(newLayer->numLayer));
+        fl.read(reinterpret_cast<char*>(&newLayer->isVisible), sizeof(newLayer->isVisible));
 
         int blendModeInt = 0;
-        fs.read(reinterpret_cast<char*>(&blendModeInt), sizeof(blendModeInt));
+        fl.read(reinterpret_cast<char*>(&blendModeInt), sizeof(blendModeInt));
         newLayer->blendMode = static_cast<LayerBlendMode>(blendModeInt);
 
-        fs.read(reinterpret_cast<char*>(&newLayer->opacity), sizeof(newLayer->opacity));
-        fs.read(reinterpret_cast<char*>(&newLayer->x), sizeof(newLayer->x));
-        fs.read(reinterpret_cast<char*>(&newLayer->y), sizeof(newLayer->y));
-        fs.read(reinterpret_cast<char*>(&newLayer->textureWidth), sizeof(newLayer->textureWidth));
-        fs.read(reinterpret_cast<char*>(&newLayer->textureHeight), sizeof(newLayer->textureHeight));
+        fl.read(reinterpret_cast<char*>(&newLayer->opacity), sizeof(newLayer->opacity));
+        fl.read(reinterpret_cast<char*>(&newLayer->x), sizeof(newLayer->x));
+        fl.read(reinterpret_cast<char*>(&newLayer->y), sizeof(newLayer->y));
+        fl.read(reinterpret_cast<char*>(&newLayer->textureWidth), sizeof(newLayer->textureWidth));
+        fl.read(reinterpret_cast<char*>(&newLayer->textureHeight), sizeof(newLayer->textureHeight));
 
-        // Restauration de la wxString
+        // Chaîne : Nom
         size_t nameLength = 0;
-        fs.read(reinterpret_cast<char*>(&nameLength), sizeof(nameLength));
-        if (nameLength > 0)
-        {
+        fl.read(reinterpret_cast<char*>(&nameLength), sizeof(nameLength));
+        if (nameLength > 0) {
             std::string nameStr(nameLength, '\0');
-            fs.read(&nameStr[0], nameLength);
+            fl.read(&nameStr[0], nameLength);
             newLayer->layerName = wxString::FromUTF8(nameStr.c_str());
         }
 
-        // Restauration des matrices images
-        cv::Mat pictureMat, originalMat;
-        ReadMatBinary(fs, pictureMat);
-        ReadMatBinary(fs, originalMat);
-
-        if (!pictureMat.empty())
-        {
-            CImageLoadingFormat* pictureFormat = new CImageLoadingFormat();
-            pictureFormat->SetPicture(pictureMat);
-            newLayer->SetPicture(pictureFormat);
+        // Chaîne : Filepath
+        size_t pathLength = 0;
+        fl.read(reinterpret_cast<char*>(&pathLength), sizeof(pathLength));
+        if (pathLength > 0) {
+            std::string pathStr(pathLength, '\0');
+            fl.read(&pathStr[0], pathLength);
+            newLayer->filepath = wxString::FromUTF8(pathStr.c_str());
         }
 
-        // On initialise l'originalPicture si elle était sauvegardée
-        if (!originalMat.empty())
-        {
-            // Libération de la mémoire allouée par défaut par le Reset/SetPicture si existant
-            CImageLoadingFormat* originalFormat = new CImageLoadingFormat();
-            originalFormat->SetPicture(originalMat);
+        if (savePicture) {
+            cv::Mat pictureMat;
+            ReadMatBinary(fl, pictureMat);
+            if (!pictureMat.empty()) {
+                CImageLoadingFormat* pictureFormat = new CImageLoadingFormat();
+                pictureFormat->SetPicture(pictureMat);
+                newLayer->SetPicture(pictureFormat);
+            }
         }
 
-        newLayer->pictureVersion = 1;
+        fl.close();
+
+        // Réassignation de la version exacte d'historique lue pour préserver la cohérence des comparaisons suivantes
+        newLayer->pictureVersion = lVersion;
         newLayer->needTextureUpdate = true;
-
         m_layers.push_back(newLayer);
     }
 

@@ -104,7 +104,7 @@ private:
 	void PropertiesLayer(wxCommandEvent& event);
 
 	void UpdateLayerPicture(wxCommandEvent& event);
-
+	void OnRefreshList(wxCommandEvent& event);
 
 	// Affiche la boîte de dialogue ancrée au bord gauche/droit de la frame
 	// (positionnée à la première ouverture uniquement)

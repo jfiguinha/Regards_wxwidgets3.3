@@ -322,11 +322,17 @@ CEditorFrame::CEditorFrame(const wxString& title, const wxString& openfile, IMai
     Connect(wxEVENT_TOOLCHOOSE, wxCommandEventHandler(CEditorFrame::OnToolsEffect));
     Connect(wxEVENT_COLORCHANGE, wxCommandEventHandler(CEditorFrame::OnColorChange));
     Connect(wxEVENT_CHANGELAYERPICTURE, wxCommandEventHandler(CEditorFrame::OnLayerChange));
+    Connect(wxEVENT_REFRESHLAYERLIST, wxCommandEventHandler(CEditorFrame::OnRefreshList));
     this->Maximize();
 
     UpdateMenusState();
 }
 
+void CEditorFrame::OnRefreshList(wxCommandEvent& event)
+{
+    if (m_activeDocument && layerDialog)
+        layerDialog->SetLayerList(m_activeDocument->GetListOfLayer());
+}
 
 void CEditorFrame::OnSelectAll(wxCommandEvent& event)
 {

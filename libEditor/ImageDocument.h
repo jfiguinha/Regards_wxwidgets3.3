@@ -102,6 +102,7 @@ private:
 
     void ResizeImage(int w, int h);
     void OnRefresh(wxCommandEvent& event);
+    void OnRefreshList(wxCommandEvent& event);
     void OnResize(wxCommandEvent& event);
     void OnEraseBackground(wxEraseEvent& event);
     void OnIdle(wxIdleEvent& evt);

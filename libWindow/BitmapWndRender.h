@@ -295,7 +295,7 @@ namespace Regards::Window
 		bool isThumbnail;
 		bool isInUse;
 		int toolOption;
-
+		//int oldPreview = 0;
 
 		wxCursor hCursorHand;
 		wxCursor hCursorZoomIn;

@@ -125,7 +125,7 @@ public:
     CLayerList(const CLayerList& other);
     ~CLayerList();
 
-    bool SaveToFile(const wxString& filename) const;
+    bool SaveToFile(const wxString& filename, bool savePicture = true) const;
     bool LoadFromFile(const wxString& filename);
 
     LayerElement* FindElementByLayerId(const uint64_t& layerId);
