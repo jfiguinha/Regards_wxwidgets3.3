@@ -418,6 +418,10 @@ void CInfoEffect::CreateElement(RenderMode mode)
 				if (isOpen)
 					UpdateChildTree(it);
 			}
+			else
+			{
+				UpdateChildTree(it);
+			}
 		}
 		++it;
 	}
