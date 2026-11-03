@@ -34,6 +34,7 @@ cd vcpkg
 ./vcpkg install boost-lexical-cast
 ./vcpkg install lunasvg
 ./vcpkg install openal-soft
+./vcpkg install boost-uuid
 cd ..
 
 #Compile heif-master

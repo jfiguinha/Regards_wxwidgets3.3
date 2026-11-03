@@ -50,6 +50,7 @@ cd vcpkg
 ./vcpkg install tesseract
 ./vcpkg install lunasvg
 ./vcpkg install openal-soft
+./vcpkg install boost-uuid
 cd ..
 
 #Compile heif-master
