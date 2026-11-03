@@ -480,9 +480,12 @@ void CShowElement::SetBitmapToViewer(CImageLoadingFormat* bitmap, int eventType)
 bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail)
 {
     isVideo = false;
-    pictureToolbar->Show(true);
-    slideToolbar->Show(false);
-    videoSlider->Show(false);
+    if (!isDiaporama)
+    {
+        pictureToolbar->Show(true);
+        slideToolbar->Show(false);
+        videoSlider->Show(false);
+    }
     bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
 
     SendPreviewButtonEvents(this,
@@ -647,9 +650,13 @@ int CShowElement::GetAngleAndFlipFromExif(int exif, int& angle, int& flipH, int&
 bool CShowElement::SetVideo(const wxString& fn, const int& /*rotation*/, const bool& /*playNow*/)
 {
     isVideo = true;
-    pictureToolbar->Show(false);
-    slideToolbar->Show(true);
-    videoSlider->Show(true);
+
+    if (!isDiaporama)
+    {
+        pictureToolbar->Show(false);
+        slideToolbar->Show(true);
+        videoSlider->Show(true);
+    }
     bitmapWindowRender->UpdateRenderInterface(videoWindow.get());
 
     videoTotalTime = 0;
@@ -861,6 +868,7 @@ void CShowElement::OnPositionVideo(const int64_t& position)
 void CShowElement::SetDiaporamaMode()
 {
     isDiaporama = true;
+    HideToolbar();
     videoWindow->DiaporamaMode(true);
     bitmapWindow->SetDiaporamaMode();
     Resize();
@@ -869,6 +877,7 @@ void CShowElement::SetDiaporamaMode()
 void CShowElement::SetNormalMode()
 {
     isDiaporama = false;
+    ShowToolbar();
     videoWindow->DiaporamaMode(false);
     bitmapWindow->SetNormalMode();
     Resize();

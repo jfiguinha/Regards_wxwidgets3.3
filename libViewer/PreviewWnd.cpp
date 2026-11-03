@@ -259,6 +259,13 @@ void CPreviewWnd::SetDiaporamaMode()
 {
 	previewToolbar->EnableNavigationButton();
 	isDiaporama = true;
+	if (mediaMode_ == MediaMode::Animation)
+	{
+		if (showToolbar)
+			animationToolbar->Show(false);
+	}
+
+
 	showElement->SetDiaporamaMode();
 	this->Resize();
 }
@@ -266,6 +273,13 @@ void CPreviewWnd::SetDiaporamaMode()
 void CPreviewWnd::StopDiaporamaMode()
 {
 	previewToolbar->EnableNavigationButton();
+
+	if (mediaMode_ == MediaMode::Animation)
+	{
+		if (showToolbar)
+			animationToolbar->Show(true);
+	}
+
 	isDiaporama = false;
 	showElement->SetNormalMode();
 	this->Resize();
@@ -460,10 +474,14 @@ bool CPreviewWnd::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail
 
 			showElement->StopTransition();
 
-			if (!isAnimation)
-				animationToolbar->Show(false);
-			else if (showToolbar)
-				animationToolbar->Show(true);
+			if (!isDiaporama)
+			{
+				if (!isAnimation)
+					animationToolbar->Show(false);
+				else if (showToolbar)
+					animationToolbar->Show(true);
+			}
+
 
 			if (!showElement->IsShown())
 			{
