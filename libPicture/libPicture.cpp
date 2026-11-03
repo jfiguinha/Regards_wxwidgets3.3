@@ -112,7 +112,7 @@ int CLibPicture::SavePicture(const wxString& fileNameIn,
 
 int CLibPicture::SavePictureOption(const int& format, int& option, int& quality)
 {
-    return saver_->AskSaveOptions(format, option, quality);
+    return saver_->AskSaveOptions(format, option, quality, nullptr);
 }
 
 // =============================================================================

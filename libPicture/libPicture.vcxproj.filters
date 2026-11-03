@@ -130,6 +130,9 @@
     <ClCompile Include="CompressionOption.cpp">
       <Filter>Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="JpegExportDialog.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="raw.h">
@@ -280,6 +283,9 @@
       <Filter>libexif</Filter>
     </ClInclude>
     <ClInclude Include="CompressionOption.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="JpegExportDialog.h">
       <Filter>Dialog</Filter>
     </ClInclude>
   </ItemGroup>

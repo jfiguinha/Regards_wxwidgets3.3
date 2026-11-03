@@ -855,6 +855,7 @@
     <ClInclude Include="ImageLoadingFormat.h" />
     <ClInclude Include="ImageVideoThumbnail.h" />
     <ClInclude Include="J2kOption.h" />
+    <ClInclude Include="JpegExportDialog.h" />
     <ClInclude Include="JpegOption.h" />
     <ClInclude Include="jxl.h" />
     <ClInclude Include="JxrOption.h" />
@@ -912,6 +913,7 @@
     <ClCompile Include="hqdn3d.cpp" />
     <ClCompile Include="ImageLoadingFormat.cpp" />
     <ClCompile Include="J2kOption.cpp" />
+    <ClCompile Include="JpegExportDialog.cpp" />
     <ClCompile Include="JpegOption.cpp" />
     <ClCompile Include="jxl.cpp" />
     <ClCompile Include="JxrOption.cpp" />

@@ -68,6 +68,12 @@
     <ClCompile Include="xmemfile.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ximajpg.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ximaexif.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="xfile.h">
@@ -110,6 +116,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="xmemfile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ximajpg.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

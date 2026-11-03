@@ -67,8 +67,9 @@ using namespace Regards::exiv2;
 #include "imageinfo.hpp"
 #include "RegardsPDF.h"
 #include "MediaInfo.h"
+#include <ximajpg.h>
 
-
+#include <JpegExportDialog.h>
 #define NANOSVG_IMPLEMENTATION
 #include <nanosvg.h>
 #define NANOSVGRAST_IMPLEMENTATION
@@ -1523,7 +1524,7 @@ CImageLoadingFormat* ImageLoader::LoadToBGRA(const wxString& fileName,
 //  ImageSaver
 // =============================================================================
 
-int ImageSaver::AskSaveOptions(int format, int& option, int& quality)
+int ImageSaver::AskSaveOptions(int format, int& option, int& quality, CImageLoadingFormat* bitmap)
 {
     int ret = 0;
     switch (format)
@@ -1579,9 +1580,18 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality)
 
     case JPEG:
     {
-        JpegOption dlg(nullptr);
-        dlg.ShowModal();
-        if (dlg.IsOk()) { option = dlg.CompressionOption(); quality = dlg.CompressionLevel(); ret = 1; }
+        if (bitmap == nullptr)
+        {
+            JpegOption dlg(nullptr);
+            if (dlg.ShowModal() == wxID_OK) { option = dlg.CompressionOption(); quality = dlg.CompressionLevel(); ret = 1; }
+
+        }
+        else
+        {
+            CJpegExportDialog dlg(bitmap);
+            if (dlg.ShowModal() == wxID_OK) { option = dlg.CompressionOption(); quality = dlg.CompressionLevel(); ret = 1; }
+
+        }
         break;
     }
     case JP2:
@@ -1621,6 +1631,81 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality)
     }
     return ret;
 }
+
+
+bool ImageSaver::SaveJpeg(const wxString& fileName, CImageLoadingFormat* bitmap,
+    int option, int quality)
+{
+    if (fileName.IsEmpty()) return false;
+
+    CxImage cxImg = bitmap->GetCxImage();
+
+    cxImg.SetJpegQuality(static_cast<BYTE>(quality));
+
+    const int codecOption = option;
+
+    // Application des drapeaux de codec d'après les spécifications de ximajpg.h
+    switch (codecOption)
+    {
+    case 0: // Baseline
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_BASELINE, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 1: // Arithmetic
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_ARITHMETIC, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 2: // Grayscale
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_GRAYSCALE, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 3: // Optimize
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_OPTIMIZE, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 4: // Progressive
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_PROGRESSIVE, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 5: // Lossless
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_LOSSLESS, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 6: // Smoothing
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_SMOOTHING, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 7: // Subsample 422
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_SUBSAMPLE_422, CXIMAGE_FORMAT_JPG);
+        break;
+
+    case 8: // Subsample 444
+        cxImg.SetCodecOption(CxImageJPG::ENCODE_SUBSAMPLE_444, CXIMAGE_FORMAT_JPG);
+        break;
+
+    default:
+        break;
+    }
+
+    // Extraction sécurisée du chemin en const char* (encodage UTF-8)
+    // Le buffer doit rester vivant le temps de l'appel à Save()
+    const wxScopedCharBuffer utf8_path = fileName.utf8_str();
+    const char* nativePathPointer = utf8_path.data();
+
+    if (!nativePathPointer)
+    {
+        return false;
+    }
+
+    // Tentative d'enregistrement sur le disque en passant le pointeur brut
+    if (!cxImg.Save(nativePathPointer, CXIMAGE_FORMAT_JPG))
+    {
+        return false;
+    }
+
+    return true;
+}
+
 
 int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap,
                       int option, int quality)
@@ -1821,10 +1906,13 @@ int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap,
     }
     case JPEG:
     {
+		SaveJpeg(fileName, bitmap, option, quality);
+        /*
         wxLogNull logNo;
         wxImage img = bitmap->GetwxImage();
         img.SetOption("wxIMAGE_OPTION_QUALITY", quality);
         img.SaveFile(fileName, wxBITMAP_TYPE_JPEG);
+        */
         break;
     }
     case PCX:
@@ -1895,7 +1983,7 @@ int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap)
 {
     const int iFormat = FormatDetector::DetectFormat(fileName, false);
     int option = 0, quality = 0;
-    if (AskSaveOptions(iFormat, option, quality) == 1)
+    if (AskSaveOptions(iFormat, option, quality, bitmap) == 1)
         Save(fileName, bitmap, option, quality);
     return 0;
 }
@@ -1904,7 +1992,7 @@ int ImageSaver::Convert(const wxString& fileNameIn, const wxString& fileNameOut)
 {
     int option = 0, quality = 0;
     const int iFormat = FormatDetector::DetectFormat(fileNameOut, false);
-    if (AskSaveOptions(iFormat, option, quality) != 1)
+    if (AskSaveOptions(iFormat, option, quality, nullptr) != 1)
         return 0;
 
     ImageLoader loader;

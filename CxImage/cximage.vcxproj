@@ -647,6 +647,7 @@
   <ItemGroup>
     <ClCompile Include="ximadsp.cpp" />
     <ClCompile Include="ximaenc.cpp" />
+    <ClCompile Include="ximaexif.cpp" />
     <ClCompile Include="xImage.cpp" />
     <ClCompile Include="ximagif.cpp" />
     <ClCompile Include="ximahist.cpp" />
@@ -654,6 +655,7 @@
     <ClCompile Include="ximainfo.cpp" />
     <ClCompile Include="ximaint.cpp" />
     <ClCompile Include="ximajbg.cpp" />
+    <ClCompile Include="ximajpg.cpp" />
     <ClCompile Include="ximalpha.cpp" />
     <ClCompile Include="ximalyr.cpp" />
     <ClCompile Include="ximapal.cpp" />
@@ -674,6 +676,7 @@
     <ClInclude Include="ximaico.h" />
     <ClInclude Include="ximaiter.h" />
     <ClInclude Include="ximajbg.h" />
+    <ClInclude Include="ximajpg.h" />
     <ClInclude Include="ximapng.h" />
     <ClInclude Include="ximaska.h" />
     <ClInclude Include="ximath.h" />

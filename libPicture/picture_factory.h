@@ -230,7 +230,10 @@ public:
 
     // Affiche la boîte de dialogue d'options pour le format donné
     // Retourne 1 si l'utilisateur a validé, 0 sinon
-    int AskSaveOptions(int format, int& option, int& quality);
+    int AskSaveOptions(int format, int& option, int& quality, CImageLoadingFormat* bitmap);
+
+private:
+    bool SaveJpeg(const wxString& fileName, CImageLoadingFormat* bitmap, int option, int quality);
 };
 
 
