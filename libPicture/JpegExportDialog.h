@@ -38,7 +38,9 @@ private:
     void UpdatePreview();
     void UpdateQualityLabel();
 
-
+    void AdjustSzieToJpegScalingFactors(int& width, int& height);
+    float CalcFitRatio(int pictureWidth, int pictureHeight,
+        int targetWidth, int targetHeight);
     void OnOk(wxCommandEvent& event);
     void OnCancel(wxCommandEvent& event);
     void OnQualityChanged(wxCommandEvent& event);

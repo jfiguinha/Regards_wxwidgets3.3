@@ -13,7 +13,9 @@
 #include <libPicture.h>
 #include <ximage.h>
 #include <ximajpg.h>
-
+#ifdef TURBOJPEG
+#include <turbojpeg.h>
+#endif
 using namespace Regards::Picture;
 
 namespace
@@ -126,6 +128,71 @@ void CJpegExportDialog::OnCancel(wxCommandEvent& event)
 }
 
 
+
+void CJpegExportDialog::AdjustSzieToJpegScalingFactors(int& width, int& height)
+{
+    int tw, th;
+   // GetScreenThumbnailSize(tw, th);
+    wxSize size = m_compressedPreview->GetClientSize();
+    size.x -= 2 * PREVIEW_BORDER;
+    size.y -= 2 * PREVIEW_BORDER;
+
+    tw = size.x;
+	th = size.y;
+
+    tjscalingfactor* sf_list = nullptr;
+    tjscalingfactor  sf = { 1, 1 };
+    int              nsf = 0;
+
+    if ((sf_list = tjGetScalingFactors(&nsf)) == nullptr || nsf == 0)
+        throw("executing tjGetScalingFactors()");
+
+    float ratio = CalcFitRatio(width, height, tw, th);
+    int   match = 0;
+
+    for (int j = 0; j < nsf; j++)
+    {
+        sf = sf_list[j];
+        float local = static_cast<float>(sf.num) / static_cast<float>(sf.denom);
+        if (local < ratio)
+        {
+            if (j > 0) sf = sf_list[j - 1];
+            match = 1;
+            break;
+        }
+    }
+    if (match == 0)
+    {
+        sf = sf_list[nsf - 1];
+        match = 1;
+    }
+    if (match == 1)
+    {
+        width = TJSCALED(width, sf);
+        height = TJSCALED(height, sf);
+    }
+}
+
+
+
+float CJpegExportDialog::CalcFitRatio(int pictureWidth, int pictureHeight,
+    int targetWidth, int targetHeight)
+{
+    if (pictureWidth == 0 && pictureHeight == 0)
+        return 1.0f;
+
+    float ratio = (pictureWidth > pictureHeight)
+        ? static_cast<float>(targetWidth) / static_cast<float>(pictureWidth)
+        : static_cast<float>(targetHeight) / static_cast<float>(pictureHeight);
+
+    if ((pictureHeight * ratio) > targetHeight)
+        ratio = static_cast<float>(targetHeight) / static_cast<float>(pictureHeight);
+    else if ((pictureWidth * ratio) > targetWidth)
+        ratio = static_cast<float>(targetWidth) / static_cast<float>(pictureWidth);
+
+    return ratio;
+}
+
 // -------------------------------------------------------------
 // Génération JPEG en mémoire
 // (ne touche PAS à l'affichage : c'est le rôle de UpdatePreview)
@@ -192,53 +259,29 @@ void CJpegExportDialog::GenerateJpegPreview()
 
     m_jpegSize = static_cast<size_t>(bufferSize);
 
-    // Décodage pour la prévisualisation
-    CxImage decodedImg;
-    if (decodedImg.Decode(buffer, bufferSize, CXIMAGE_FORMAT_JPG)) {
 
-        const int w = decodedImg.GetWidth();
-        const int h = decodedImg.GetHeight();
-        const int bpp = decodedImg.GetBpp();
+    int jpegSubsamp, w = 0, h = 0;
+    tjhandle dec = tjInitDecompress();
+    tjDecompressHeader2(dec, buffer, bufferSize,
+        &w, &h, &jpegSubsamp);
 
-        // Un JPEG encodé en niveaux de gris (option GrayScale) est décodé par
-        // CxImage en 8 bits (1 octet/pixel). L'ancienne boucle lisait 3 octets
-        // par pixel => lecture hors limites. Dans ce cas, on copie la valeur
-        // de gris 3 fois (R = G = B).
-        if (bpp == 8 || bpp == 24) {
-            m_jpegPreview.Create(w, h, false);
-            unsigned char* dstRgb = m_jpegPreview.GetData();
 
-            for (int y = 0; y < h; ++y) {
-                unsigned char* srcLine = decodedImg.GetBits(h - 1 - y);
-                unsigned char* dstLine = &dstRgb[y * w * 3];
+    AdjustSzieToJpegScalingFactors(w, h);
+    
+    m_jpegPreview.Create(w, h, false);
 
-                if (bpp == 8) {
-                    for (int x = 0; x < w; ++x) {
-                        const unsigned char gray = srcLine[x];
-                        dstLine[x * 3 + 0] = gray; // R
-                        dstLine[x * 3 + 1] = gray; // G
-                        dstLine[x * 3 + 2] = gray; // B
-                    }
-                }
-                else {
-                    for (int x = 0; x < w; ++x) {
-                        dstLine[x * 3 + 0] = srcLine[x * 3 + 2]; // R
-                        dstLine[x * 3 + 1] = srcLine[x * 3 + 1]; // G
-                        dstLine[x * 3 + 2] = srcLine[x * 3 + 0]; // B
-                    }
-                }
-            }
-        }
+    try
+    {
+        tjDecompress2(dec, buffer, bufferSize,
+            m_jpegPreview.GetData(), w, 0, h,
+            TJPF_RGB, TJFLAG_FASTDCT);
+
     }
+    catch (...) {}
+    tjDestroy(dec);
 
     cxImg.FreeMemory(buffer);
 
-    // CORRECTION : suppression de l'ancien bloc "adaptation + SetBitmap +
-    // Refresh/Update" qui était ici. Il affichait l'image une première fois
-    // (calculée sur la taille du wxStaticBitmap, pas du panneau), puis
-    // UpdatePreview() l'affichait une seconde fois avec une autre taille
-    // => déplacement visible de l'image. L'affichage est désormais fait
-    // uniquement dans UpdatePreview().
 }
 
 // -------------------------------------------------------------
