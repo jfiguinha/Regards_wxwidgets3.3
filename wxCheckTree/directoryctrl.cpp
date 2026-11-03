@@ -377,6 +377,8 @@ bool wxGenericDirCtrl::Create(wxWindow* parent,
     Connect(wxEVT_TREE_SEL_CHANGED, wxTreeEventHandler( wxGenericDirCtrl::OnTreeSelChange));
     Connect(wxEVT_TREE_ITEM_ACTIVATED, wxTreeEventHandler( wxGenericDirCtrl::OnItemActivated));
     Connect(wxEVT_SIZE, wxSizeEventHandler( wxGenericDirCtrl::OnSize));
+    Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler( wxGenericDirCtrl::OnMouseEnter));
+    Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler( wxGenericDirCtrl::OnMouseLeave));
 #endif
 
 	Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(wxGenericDirCtrl::OnEraseBackground));
@@ -450,6 +452,23 @@ bool wxGenericDirCtrl::Create(wxWindow* parent,
 
 	return true;
 }
+
+#ifdef __WXGTK__
+void wxGenericDirCtrl::OnMouseEnter(wxMouseEvent& event)
+{
+    wxCursor cursor(wxCURSOR_CROSS);
+    wxSetCursor(cursor);
+
+    event.Skip();
+}
+
+void wxGenericDirCtrl::OnMouseLeave(wxMouseEvent& event)
+{
+    wxSetCursor(wxNullCursor);
+
+    event.Skip();
+}
+#endif
 
 void wxGenericDirCtrl::OnEraseBackground(wxEraseEvent& event)
 {

@@ -123,7 +123,10 @@ public:
 
 	~wxGenericDirCtrl() override;
 
-
+#ifdef __WXGTK__
+    void OnMouseEnter(wxMouseEvent& event);
+    void OnMouseLeave(wxMouseEvent& event);
+#endif
 	void OnExpandItem(wxTreeEvent& event);
 	void OnCollapseItem(wxTreeEvent& event);
 	void OnBeginEditItem(wxTreeEvent& event);
