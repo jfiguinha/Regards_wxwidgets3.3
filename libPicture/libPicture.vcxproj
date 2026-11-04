@@ -839,6 +839,7 @@
     <ClInclude Include="ascii.h" />
     <ClInclude Include="aspectratio.h" />
     <ClInclude Include="avif.h" />
+    <ClInclude Include="AvifHeifExportDialog.h" />
     <ClInclude Include="BmpOption.h" />
     <ClInclude Include="CompressionOption.h" />
     <ClInclude Include="DecodeRawParameter.h" />
@@ -900,6 +901,7 @@
     </ClCompile>
     <ClCompile Include="ascii.cpp" />
     <ClCompile Include="avif.cpp" />
+    <ClCompile Include="AvifHeifExportDialog.cpp" />
     <ClCompile Include="BmpOption.cpp" />
     <ClCompile Include="CompressionOption.cpp" />
     <ClCompile Include="DecodeRawPicture.cpp" />

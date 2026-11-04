@@ -1914,7 +1914,7 @@ void CBitmapWndRender::OnIdle(wxIdleEvent& evt)
 	needToRefresh = false;
 }
 
-void CBitmapWndRender::RenderTexture(const bool& invertPos)
+void CBitmapWndRender::RenderTexture(CImageLoadingFormat* source, const bool& invertPos)
 {
 	if (glTexture != nullptr)
 	{
@@ -2098,7 +2098,7 @@ void CBitmapWndRender::OnPaint3D(wxGLCanvas* canvas, CRenderOpenGL* renderOpenGL
 				CRgbaquad(themeBitmap.colorBack.Red(), themeBitmap.colorBack.Green(),
 					themeBitmap.colorBack.Blue()));
 
-			RenderTexture(invert);
+			RenderTexture(source, invert);
 		}
 
 		AfterRender();

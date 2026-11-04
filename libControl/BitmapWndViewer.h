@@ -81,7 +81,7 @@ namespace Regards::Control
 
 		bool IsOpenCLCompatible();
 		
-		void RenderTexture(const bool& invertPos) override;
+		void RenderTexture(CImageLoadingFormat* source, const bool& invertPos) override;
 		bool ApplyPreviewEffect(int& widthOutput, int& heightOutput) override;
 
 		void AfterRender() override;

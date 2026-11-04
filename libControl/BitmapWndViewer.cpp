@@ -777,9 +777,9 @@ void CBitmapWndViewer::AfterRender()
 	}
 }
 
-void CBitmapWndViewer::RenderTexture(const bool& invertPos)
+void CBitmapWndViewer::RenderTexture(CImageLoadingFormat* source, const bool& invertPos)
 {
-	CImageLoadingFormat* source = listOfLayer->GetPictureToShow();
+	//CImageLoadingFormat* source = listOfLayer->GetPictureToShow();
 
 	if (glTexture != nullptr)
 	{

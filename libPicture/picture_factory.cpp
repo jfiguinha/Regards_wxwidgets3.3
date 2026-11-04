@@ -68,7 +68,7 @@ using namespace Regards::exiv2;
 #include "RegardsPDF.h"
 #include "MediaInfo.h"
 #include <ximajpg.h>
-
+#include <AvifHeifExportDialog.h>
 #include <JpegExportDialog.h>
 #define NANOSVG_IMPLEMENTATION
 #include <nanosvg.h>
@@ -1570,6 +1570,22 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality, CImageLoad
 
     case HEIC:
     case AVIF:
+    {
+        if (bitmap == nullptr)
+        {
+            CompressionOption dlg(nullptr);
+            dlg.ShowModal();
+            if (dlg.IsOk()) { option = 0; quality = dlg.CompressionLevel(); ret = 1; }
+
+        }
+        else
+        {
+            CAvifHeifExportDialog dlg(bitmap);
+            if (dlg.ShowModal() == wxID_OK) { option = dlg.GetFormatSelection(); quality = dlg.GetQuality(); ret = 1; }
+
+        }
+        break;
+    }
     case JPEG2000:
     {
         CompressionOption dlg(nullptr);

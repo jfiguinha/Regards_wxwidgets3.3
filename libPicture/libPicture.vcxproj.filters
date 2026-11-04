@@ -133,6 +133,9 @@
     <ClCompile Include="JpegExportDialog.cpp">
       <Filter>Dialog</Filter>
     </ClCompile>
+    <ClCompile Include="AvifHeifExportDialog.cpp">
+      <Filter>Dialog</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="raw.h">
@@ -286,6 +289,9 @@
       <Filter>Dialog</Filter>
     </ClInclude>
     <ClInclude Include="JpegExportDialog.h">
+      <Filter>Dialog</Filter>
+    </ClInclude>
+    <ClInclude Include="AvifHeifExportDialog.h">
       <Filter>Dialog</Filter>
     </ClInclude>
   </ItemGroup>
