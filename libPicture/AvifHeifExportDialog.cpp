@@ -69,7 +69,7 @@ bool CAvifHeifExportDialog::CreateControlsFromXrc()
 
     m_imageInfo->SetLabel(wxString::Format("Original Image : %d x %d pixels", m_image->GetWidth(), m_image->GetHeight()));
 
-    m_qualitySlider->SetValue(DEFAULT_QUALITY);
+    m_qualitySlider->SetValue(DEFAUL_PICTURE_QUALITY);
     m_speedSlider->SetValue(DEFAULT_SPEED);
     UpdateLabels();
 

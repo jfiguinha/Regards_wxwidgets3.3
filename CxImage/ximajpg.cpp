@@ -66,7 +66,7 @@ bool CxImageJPG::DecodeExif(CxFile * hFile)
 	}
 }
 ////////////////////////////////////////////////////////////////////////////////
-bool CxImageJPG::GetExifThumbnail(const TCHAR *filename, const TCHAR *outname, int32_t type)
+bool CxImageJPG::GetExifThumbnail(const char *filename, const char *outname, int32_t type)
 {
   CxIOFile file;
   if (!file.Open(filename, _T("rb"))) return false;

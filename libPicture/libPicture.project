@@ -73,6 +73,10 @@
     <File Name="MetadataExiv2.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Dialog">
+    <File Name="JpegExportDialog.h"/>
+    <File Name="JpegExportDialog.cpp"/>
+    <File Name="AvifHeifExportDialog.h"/>
+    <File Name="AvifHeifExportDialog.cpp"/>
     <File Name="GifOption.h"/>
     <File Name="GifOption.cpp"/>
     <File Name="ExrOption.h"/>
@@ -174,6 +178,7 @@
         <Preprocessor Value="__NEW_JXL__"/>
         <Preprocessor Value="AVIF_LIBYUV_ENABLED"/>
         <Preprocessor Value="__NEW_EXIV2__"/>
+        <Preprocessor Value="_LINUX"/>
         <Preprocessor Value="__FREEIMAGE__"/>
         <Preprocessor Value="LIBRAW"/>
         <Preprocessor Value="LIBHEIC"/>

@@ -11,6 +11,10 @@
 
 #include "JpegExportDialog.h"
 #include <libPicture.h>
+#ifdef _LINUX
+using BYTE = uint8_t;
+#undef __FREEIMAGE__
+#endif
 #include <ximage.h>
 #include <ximajpg.h>
 #ifdef TURBOJPEG
