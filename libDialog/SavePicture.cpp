@@ -234,6 +234,9 @@ wxString CSavePicture::ExportPicture(wxWindow* window, const wxString& filename)
 
 wxString CSavePicture::SavePicture(wxWindow* window, CImageLoadingFormat* bitmap,
     const wxString& filename) {
+
+	int ret = 0;
+
     if (filename.empty()) return "";
 
     CLibPicture libPicture;
@@ -243,20 +246,22 @@ wxString CSavePicture::SavePicture(wxWindow* window, CImageLoadingFormat* bitmap
     if (file.empty()) return "";
 
     if (bitmap != nullptr) {
-        libPicture.SavePicture(file, bitmap);
+        ret = libPicture.SavePicture(file, bitmap);
     }
     else {
-        libPicture.SavePicture(filename, file);
+        ret = libPicture.SavePicture(filename, file);
     }
 
-    const wxString savecompleted =
-        CLibResource::LoadStringFromResource("LBLSAVEFILECOMPLETED", 1);
+    if (ret)
+    {
+        const wxString savecompleted =
+            CLibResource::LoadStringFromResource("LBLSAVEFILECOMPLETED", 1);
 
-    const wxString infos =
-        CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
+        const wxString infos =
+            CLibResource::LoadStringFromResource("LBLINFORMATIONS", 1);
 
-    wxMessageBox(savecompleted, infos, wxOK | wxICON_INFORMATION, window);
-
+        wxMessageBox(savecompleted, infos, wxOK | wxICON_INFORMATION, window);
+    }
 
     return file;
 }

@@ -1576,7 +1576,6 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality, CImageLoad
             CompressionOption dlg(nullptr);
             dlg.ShowModal();
             if (dlg.IsOk()) { option = 6; quality = dlg.CompressionLevel(); ret = 1; }
-
         }
         else
         {
@@ -2000,7 +1999,10 @@ int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap)
     const int iFormat = FormatDetector::DetectFormat(fileName, false);
     int option = 0, quality = 0;
     if (AskSaveOptions(iFormat, option, quality, bitmap) == 1)
+    {
         Save(fileName, bitmap, option, quality);
+        return 1;
+    }
     return 0;
 }
 
