@@ -169,7 +169,7 @@ vector<cv::Mat> CHeic::GetAllPicture(const char* filename, int& delay)
 */
 
 void CHeic::SavePicture(const char* filenameOut, const int& format, cv::Mat& source, std::vector<uint8_t>& exifBuffer,
-	const int& compression, const bool& hasExif)
+	const int& compression, const int& speed, const bool& hasExif)
 {
 	if (source.empty())
 		return;

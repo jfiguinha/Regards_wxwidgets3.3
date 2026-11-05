@@ -76,28 +76,7 @@
                     </object>
                 </object>
             </object>
-        </object>
-
-        <!-- Choix du Format -->
-        <object class="sizeritem">
-            <flag>wxEXPAND|wxALL</flag>
-            <border>10</border>
-            <object class="wxStaticBoxSizer">
-                <label>Container Format</label>
-                <orient>wxHORIZONTAL</orient>
-                <object class="sizeritem">
-                    <flag>wxALL|wxALIGN_CENTER_VERTICAL</flag>
-                    <border>5</border>
-                    <object class="wxChoice" name="formatChoice">
-                        <content>
-                            <item>AVIF (AV1 Image File Format)</item>
-                            <item>HEIF (High Efficiency Image Format)</item>
-                        </content>
-                    </object>
-                </object>
-            </object>
-        </object>
-		
+        </object>	
         <!-- Paramètres d'encodage (Qualité & Vitesse) -->
         <object class="sizeritem">
             <flag>wxEXPAND|wxALL</flag>

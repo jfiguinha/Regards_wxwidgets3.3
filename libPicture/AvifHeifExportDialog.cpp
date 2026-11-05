@@ -13,8 +13,10 @@ namespace
     constexpr int PREVIEW_BORDER = 2;
 }
 
-CAvifHeifExportDialog::CAvifHeifExportDialog(CImageLoadingFormat* bitmap)
+CAvifHeifExportDialog::CAvifHeifExportDialog(CImageLoadingFormat* bitmap, int formatChoice)
 {
+    m_formatChoice = formatChoice;
+
     if (bitmap == nullptr)
         return;
 
@@ -43,11 +45,10 @@ bool CAvifHeifExportDialog::CreateControlsFromXrc()
     m_qualityLabel = XRCCTRL(*this, "qualityLabel", wxStaticText);
     m_speedLabel = XRCCTRL(*this, "speedLabel", wxStaticText);
 
-    m_formatChoice = XRCCTRL(*this, "formatChoice", wxChoice);
     m_qualitySlider = XRCCTRL(*this, "qualitySlider", wxSlider);
     m_speedSlider = XRCCTRL(*this, "speedSlider", wxSlider);
 
-    if (!m_originalPreviewPanel || !m_compressedPreviewPanel || !m_qualitySlider || !m_speedSlider || !m_formatChoice) {
+    if (!m_originalPreviewPanel || !m_compressedPreviewPanel || !m_qualitySlider || !m_speedSlider) {
         wxLogError("Controls XRC missing");
         return false;
     }
@@ -68,13 +69,11 @@ bool CAvifHeifExportDialog::CreateControlsFromXrc()
 
     m_imageInfo->SetLabel(wxString::Format("Original Image : %d x %d pixels", m_image->GetWidth(), m_image->GetHeight()));
 
-    m_formatChoice->SetSelection(0); // AVIF par défaut
     m_qualitySlider->SetValue(DEFAULT_QUALITY);
     m_speedSlider->SetValue(DEFAULT_SPEED);
     UpdateLabels();
 
     // Événements
-    m_formatChoice->Bind(wxEVT_CHOICE, &CAvifHeifExportDialog::OnSettingsChanged, this);
     m_qualitySlider->Bind(wxEVT_SLIDER, &CAvifHeifExportDialog::OnSettingsChanged, this);
     m_speedSlider->Bind(wxEVT_SLIDER, &CAvifHeifExportDialog::OnSettingsChanged, this);
 
@@ -112,7 +111,7 @@ void CAvifHeifExportDialog::GeneratePreview()
     heif_context* ctx = heif_context_alloc();
     heif_encoder* encoder = nullptr;
 
-    if (m_formatChoice->GetSelection() == 0) {
+    if (m_formatChoice == 0) {
         heif_context_get_encoder_for_format(ctx, heif_compression_AV1, &encoder);
     }
     else {
@@ -211,7 +210,7 @@ void CAvifHeifExportDialog::UpdatePreview()
 
     m_originalSizeLabel->SetLabel(wxString::Format("%d x %d pixels", m_image->GetWidth(), m_image->GetHeight()));
 
-    wxString formatName = (m_formatChoice->GetSelection() == 0) ? "AVIF" : "HEIF";
+    wxString formatName = (m_formatChoice == 0) ? "AVIF" : "HEIF";
     m_compressedSizeLabel->SetLabel(wxString::Format("%s : %.2f Ko", formatName, static_cast<double>(m_compressedSize) / 1024.0));
 
     m_originalPreviewPanel->Layout();
@@ -240,4 +239,4 @@ void CAvifHeifExportDialog::OnResize(wxSizeEvent& event) { UpdatePreview(); even
 
 int CAvifHeifExportDialog::GetQuality() const { return m_qualitySlider->GetValue(); }
 int CAvifHeifExportDialog::GetSpeed() const { return m_speedSlider->GetValue(); }
-int CAvifHeifExportDialog::GetFormatSelection() const { return m_formatChoice->GetSelection(); }
+

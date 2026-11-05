@@ -22,7 +22,7 @@ namespace Regards
 			static void GetPictureDimension(const char* filename, int& width, int& height);
 
 			static void SavePicture(const char* filenameOut, const int& format, cv::Mat& source, std::vector<uint8_t> & exifBuffer,
-				const int& compression = 50, const bool& hasExif = false);
+				const int& compression = 50, const int& speed = 6, const bool& hasExif = false);
 
 
 		};

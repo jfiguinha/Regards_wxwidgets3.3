@@ -1575,13 +1575,13 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality, CImageLoad
         {
             CompressionOption dlg(nullptr);
             dlg.ShowModal();
-            if (dlg.IsOk()) { option = 0; quality = dlg.CompressionLevel(); ret = 1; }
+            if (dlg.IsOk()) { option = 6; quality = dlg.CompressionLevel(); ret = 1; }
 
         }
         else
         {
-            CAvifHeifExportDialog dlg(bitmap);
-            if (dlg.ShowModal() == wxID_OK) { option = dlg.GetFormatSelection(); quality = dlg.GetQuality(); ret = 1; }
+			CAvifHeifExportDialog dlg(bitmap, format == AVIF ? 0 : 1);
+            if (dlg.ShowModal() == wxID_OK) { option = dlg.GetSpeed(); quality = dlg.GetQuality(); ret = 1; }
 
         }
         break;
@@ -1917,7 +1917,7 @@ int ImageSaver::Save(const wxString& fileName, CImageLoadingFormat* bitmap,
             }
         }
         CHeic::SavePicture(CConvertUtility::ConvertToStdString(fileName).c_str(),
-                           iFormat, img, buffer, quality, hasExif);
+                           iFormat, img, buffer, quality, option, hasExif);
         break;
     }
     case JPEG:

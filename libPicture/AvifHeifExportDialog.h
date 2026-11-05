@@ -12,12 +12,12 @@ class CImageLoadingFormat;
 class CAvifHeifExportDialog : public wxDialog
 {
 public:
-    CAvifHeifExportDialog(CImageLoadingFormat* bitmap);
+    CAvifHeifExportDialog(CImageLoadingFormat* bitmap, int formatChoice);
 
     bool IsOk() const { return m_isOk; }
     int GetQuality() const;
     int GetSpeed() const;
-    int GetFormatSelection() const; // 0 = AVIF, 1 = HEIF
+  //int GetFormatSelection() const; // 0 = AVIF, 1 = HEIF
 
 private:
     bool CreateControlsFromXrc();
@@ -40,7 +40,6 @@ private:
     wxStaticBitmap* m_originalPreview = nullptr;
     wxStaticBitmap* m_compressedPreview = nullptr;
 
-    wxChoice* m_formatChoice = nullptr;
     wxSlider* m_qualitySlider = nullptr;
     wxSlider* m_speedSlider = nullptr;
 
@@ -49,7 +48,7 @@ private:
     wxStaticText* m_compressedSizeLabel = nullptr;
     wxStaticText* m_qualityLabel = nullptr;
     wxStaticText* m_speedLabel = nullptr;
-
+	int m_formatChoice = 0; // 0 = AVIF, 1 = HEIF
     size_t m_compressedSize = 0;
     bool m_isOk = false;
 
