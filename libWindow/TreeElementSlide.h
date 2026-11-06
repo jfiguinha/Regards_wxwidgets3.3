@@ -2,89 +2,82 @@
 #include "TreeControl.h"
 #include "TreeElement.h"
 #include "TreeElementSlideInterface.h"
-using namespace Regards::Window;
+#include "RegardsModernControls.h"
 
 namespace Regards::Window
 {
-	class CTreeElementSlide : public CTreeElement
-	{
-	public:
-		CTreeElementSlide(CTreeElementSlideInterface* eventInterface);
-		~CTreeElementSlide() = default;
+    class CTreeElementSlide : public CTreeElement
+    {
+    public:
+        CTreeElementSlide(CTreeElementSlideInterface* eventInterface);
+        virtual ~CTreeElementSlide();
 
-		CTreeElementSlide& operator=(const CTreeElementSlide& other);
+        CTreeElementSlide& operator=(const CTreeElementSlide& other);
 
-		void DrawElement(wxDC* deviceContext, const int& x, const int& y) override;
-		void SetTabValue(vector<CTreeElementValue*>* value);
-		void SetExifKey(const wxString& exifKey);
-		void SetVisible(const bool& visible) override;
-		void MouseOver(wxDC* deviceContext, const int& x, const int& y, bool& update) override;
-		void ClickElement(wxWindow* window, const int& x, const int& y) override;
-		void UnclickElement(wxWindow* window, const int& x, const int& y) override;
-		void SetInitValue(CTreeElementValue* value);
+        // Surcharges de CTreeElement
+        void DrawElement(wxDC* deviceContext, const int& x, const int& y) override;
+        void ClickElement(wxWindow* window, const int& x, const int& y) override;
+        void UnclickElement(wxWindow* window, const int& x, const int& y) override;
+        void MouseOver(wxDC* deviceContext, const int& x, const int& y, bool& update) override;
+        void SetVisible(const bool& visible) override;
+        void SetZoneSize(const int& width, const int& height) override;
+        void SetBackgroundColor(const wxColour& color) override;
+        void SetElementPos(const int& x, const int& y) override;
 
-		bool MouseBlock();
-		void SetElementPos(const int& x, const int& y) override;
-		void SetPosition(const int& position);
-		void SetTheme(CThemeTreeSlide* theme);
+        // Configuration du Slider
+        void SetTabValue(std::vector<CTreeElementValue*>* value);
+        void SetExifKey(const wxString& exifKey);
+        void SetInitValue(CTreeElementValue* value);
+        void SetPosition(const int& position);
+        void SetTheme(CThemeTreeSlide* theme);
 
-		void SetZoneSize(const int& width, const int& height) override;
+        bool MouseBlock();
+        int GetElementWidth() { return themeSlide.GetElementWidth(); }
+        int GetElementHeight() { return height; }
+        int GetWidth() override { return themeSlide.GetWidth(); }
+        int GetHeight() override { return height; }
 
-		void SetBackgroundColor(const wxColour& color) override;
+        // Gestion dynamique du thème identique à CTreeElementComboBox
+        bool IsDarkTheme() const {
+            if (skinMode == 0)
+            {
+                return isDarkTheme;
+            }
+            else if (skinMode == 1)
+            {
+                return false;
+            }
+            return true;
+        }
 
-		int GetElementWidth()
-		{
-			return themeSlide.GetElementWidth();
-		}
+    private:
+        bool TestEgality(CTreeElementValue* value1, CTreeElementValue* value2, int type);
+        void TestMaxMinValue();
+        CTreeElementValue* GetFirstValue();
+        CTreeElementValue* GetLastValue();
+        CTreeElementValue* GetPositionValue();
 
-		int GetElementHeight()
-		{
-			return height;
-		}
+        // Callback de notification pour l'événement du CModernSlider
+        void OnSliderChanged(wxCommandEvent& event);
 
-		int GetWidth() override
-		{
-			return themeSlide.GetWidth();
-		}
+        std::vector<CTreeElementValue*>* tabValue;
+        wxString exifKey;
+        int height;
+        int position;
+        CTreeElementSlideInterface* eventInterface;
+        CThemeTreeSlide themeSlide;
 
-		int GetHeight() override
-		{
-			return height;
-		}
+        // Variables pour la gestion du thème
+        int skinMode;
+        bool isDarkTheme;
+        bool mouseBlock = false;
+        // Nouveau widget de contrôle moderne éphémère
+        Regards::UI::CModernSlider* m_pSliderModern;
+        wxWindow* m_pParentWindow;
 
-	private:
-		bool TestEgality(CTreeElementValue* value1, CTreeElementValue* value2, int type);
-		bool FindCirclePos(wxWindow* window, const int& y, const int& x);
-		void ClickLeftPage(const int& x);
-		void ClickRightPage(const int& x);
-		void CalculZoomPosition(const int& x);
-		void CalculPositionButton(const int& x);
-		void CalculPositionButton();
-		void DrawShapeElement(wxDC* deviceContext, const wxRect& rc);
-		void RenderSlide(wxDC* deviceContext, const int& width, const int& height, const int& x, const int& y);
-		CTreeElementValue* GetFirstValue();
-		CTreeElementValue* GetLastValue();
-		CTreeElementValue* GetPositionValue();
-		void TestMaxMinValue();
-
-		wxCursor hCursorHand;
-		wxImage button;
-		wxImage buttonPlus;
-		wxImage buttonMoins;
-		wxRect positionButton;
-		wxRect positionSlider;
-		wxBitmap slideCacheBuffer;
-
-		vector<CTreeElementValue*>* tabValue;
-		wxString exifKey;
-		int height;
-		int position;
-		CTreeElementSlideInterface* eventInterface;
-		bool mouseBlock;
-		bool captureBall;
-		CThemeTreeSlide themeSlide;
-		wxRect plusPos;
-		wxRect moinsPos;
-		wxRect slidePos;
-	};
+        wxRect slidePos;
+        wxRect moinsPos;
+        wxRect plusPos;
+        wxBitmap slideCacheBuffer;
+    };
 }

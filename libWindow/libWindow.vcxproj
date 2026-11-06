@@ -879,7 +879,6 @@
     <ClInclude Include="ScrollbarVerticalWnd.h" />
     <ClInclude Include="ScrollbarWnd.h" />
     <ClInclude Include="SeparationBar.h" />
-    <ClInclude Include="Slider.h" />
     <ClInclude Include="Splitter.h" />
     <ClInclude Include="StatusBarInterface.h" />
     <ClInclude Include="ThreadLoadingBitmap.h" />
@@ -966,7 +965,6 @@
     <ClCompile Include="ScrollbarVerticalWnd.cpp" />
     <ClCompile Include="ScrollbarWnd.cpp" />
     <ClCompile Include="SeparationBar.cpp" />
-    <ClCompile Include="Slider.cpp" />
     <ClCompile Include="Splitter.cpp" />
     <ClCompile Include="SplitterImpl.cpp" />
     <ClCompile Include="TabWindow.cpp" />
