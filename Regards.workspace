@@ -29,7 +29,7 @@
   <VirtualDirectory Name="Window">
     <Project Name="libControl" Path="libControl/libControl.project" Active="No"/>
     <Project Name="libViewer" Path="libViewer/libViewer.project" Active="No"/>
-    <Project Name="libWindow" Path="libWindow/libWindow.project" Active="Yes"/>
+    <Project Name="libWindow" Path="libWindow/libWindow.project" Active="No"/>
     <Project Name="libDialog" Path="libDialog/libDialog.project" Active="No"/>
     <Project Name="libScanner" Path="libScanner/libScanner.project" Active="No"/>
     <Project Name="libEditor" Path="libEditor/libEditor.project" Active="No"/>
@@ -38,7 +38,7 @@
     <Project Name="RegardsViewer" Path="RegardsViewer/RegardsViewer.project" Active="No"/>
     <Project Name="RegardsViewer_linux" Path="RegardsViewer_linux/RegardsViewer_linux.project" Active="No"/>
     <Project Name="MacOsLibExplorer" Path="MacOsLibExplorer/MacOsLibExplorer.project" Active="No"/>
-    <Project Name="RegardsViewer_macsilicon" Path="RegardsViewer_macsilicon/RegardsViewer_macsilicon.project" Active="No"/>
+    <Project Name="RegardsViewer_macsilicon" Path="RegardsViewer_macsilicon/RegardsViewer_macsilicon.project" Active="Yes"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Apple">
     <Project Name="libAppleFunction" Path="libAppleFunction/libAppleFunction.project" Active="No"/>

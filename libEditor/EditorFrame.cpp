@@ -1139,7 +1139,7 @@ void CEditorFrame::OnPageSetup(wxCommandEvent&)
 }
 
 #ifdef __WXMAC__
-void CViewerFrame::OnPageMargins(wxCommandEvent&)
+void CEditorFrame::OnPageMargins(wxCommandEvent&)
 {
     printService_->ShowPageMargins();
 }
