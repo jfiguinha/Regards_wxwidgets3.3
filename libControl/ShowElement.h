@@ -105,7 +105,9 @@ namespace Regards
             CVideoControlSoft* GetVideoControl();
 
             // CSliderInterface
-            void SlidePosChange(const int& /*position*/, const wxString& /*key*/) override {}
+            int GetZoomIndex() override;
+            int GetVolume() override;
+            void SlidePosChange(const int& /*position*/, const wxString& /*key*/) override;
             void ZoomPos(const int& /*position*/) override {}
             void MoveSlider(const int64_t& position) override;
             void ClickButton(const int& id) override;

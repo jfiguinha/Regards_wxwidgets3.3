@@ -68,8 +68,6 @@ using namespace Regards::exiv2;
 #include "RegardsPDF.h"
 #include "MediaInfo.h"
 #include <ximajpg.h>
-#include <AvifHeifExportDialog.h>
-#include <JpegExportDialog.h>
 #include <JpegExportDialogModern.h>
 #include <AvifHeifExportDialogModern.h>
 

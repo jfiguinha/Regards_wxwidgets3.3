@@ -128,7 +128,7 @@ protected:
 	CxExifInfo* m_exif;
 	bool DecodeExif(CxFile * hFile);
 	bool DecodeExif(FILE * hFile) { CxIOFile file(hFile); return DecodeExif(&file); }
-    bool GetExifThumbnail(const TCHAR *filename, const TCHAR *outname, int32_t type);
+    bool GetExifThumbnail(const char *filename, const char *outname, int32_t type);
 
 #endif //CXIMAGEJPG_SUPPORT_EXIF
 

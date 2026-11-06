@@ -241,6 +241,8 @@ void CShowElement::Resize()
         ResizeImage(w, h);
     else
         ResizeVideo(w, h);
+
+    videoSlider->SetZoomIndex(videoWindow->GetZoomIndex());
 }
 
 void CShowElement::ResizeImage(int w, int h)
@@ -828,6 +830,7 @@ void CShowElement::OnVideoStart()
 {
     play = true;
     videoSlider->SetPlay();
+	videoSlider->SetZoomIndex(videoWindow->GetZoomIndex());
     if (wxWindow* w = FindWindowById(CENTRALVIEWERWINDOWID))
         w->GetEventHandler()->AddPendingEvent(wxCommandEvent(VIDEO_START));
     refreshSlider = true;
@@ -920,7 +923,7 @@ void CShowElement::ClickButton(const int& id)
         RepeatVideo();
         break;
     case SPEAKERBUTTONID:
-        slideToolbar->Show(true);
+        slideToolbar->Show(false);
         showToolbarSup = true;
         slideToolbar->SetSpeakerMode();
         slideToolbar->SetTabValue(sound_value);
@@ -953,6 +956,33 @@ void CShowElement::ClickButton(const int& id)
 void CShowElement::OnValueShrinkChange(wxCommandEvent& /*event*/)
 {
     slideToolbar->SetTrackBarPosition(videoWindow->GetZoomIndex());
+}
+
+
+int CShowElement::GetVolume()
+{
+    if (videoWindow)
+        return videoWindow->GetVolume();
+    else
+        return 0;
+}
+
+int CShowElement::GetZoomIndex()
+{
+    if (videoWindow)
+        return videoWindow->GetZoomIndex();
+    else
+        return bitmapWindow->GetZoom();
+}
+
+void CShowElement::SlidePosChange(const int& position, const wxString& key)
+{
+    if(key == "VOLUME")
+        videoWindow->SetVolume(position);
+	if (key == "ZOOM")
+		videoWindow->SetZoomIndex(position);
+	if (key == "SHRINK")    
+		videoWindow->ShrinkVideo();
 }
 
 void CShowElement::OnValueChange(wxCommandEvent& event)

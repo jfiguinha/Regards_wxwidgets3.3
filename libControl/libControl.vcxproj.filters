@@ -297,6 +297,9 @@
     <ClInclude Include="PrintService.h">
       <Filter>Print</Filter>
     </ClInclude>
+    <ClInclude Include="VolumePopup.h">
+      <Filter>Video\Core\Toolbar</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />

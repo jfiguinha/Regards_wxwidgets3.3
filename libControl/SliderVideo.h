@@ -2,6 +2,7 @@
 #include <theme.h>
 #include <SliderInterface.h>
 #include "WindowMain.h"
+#include "VolumePopup.h"
 using namespace Regards::Window;
 
 #define PLAYBUTTONID 1
@@ -26,7 +27,7 @@ namespace Regards::Video
 
 		void SetPlay();
 		void SetPause();
-
+		void SetZoomIndex(const int& index);
 		void SetTotalSecondTime(const int64_t& millisecondTime);
 		void SetPastSecondTime(const int64_t& millisecondTime);
 		void UpdatePositionEvent();
@@ -38,13 +39,14 @@ namespace Regards::Video
 	protected:
 		//Slider Event
 		CSliderInterface* sliderEvent;
-
+		Regards::UI::CVolumePopupModern* popup = nullptr;
 	private:
 		void OnMouseMove(wxMouseEvent& event);
 		void on_paint(wxPaintEvent& event);
 		void OnLButtonDown(wxMouseEvent& event);
 		void OnLButtonUp(wxMouseEvent& event);
-
+		void OnVolumeSliderChanged(wxCommandEvent &event);
+		void OnLButtonDoubleClick(wxMouseEvent& event);
 		void OnMouseCaptureLost(wxMouseEvent& event)
 		{
 		};
@@ -95,7 +97,7 @@ namespace Regards::Video
 		bool isPlay;
 		bool m_bMouseOver;
 		bool m_bTracking;
-
+		int zoomIndex = 0;
 		wxRect positionButton;
 		wxRect positionPlayOrPauseButton;
 		wxRect positionZoomButton;

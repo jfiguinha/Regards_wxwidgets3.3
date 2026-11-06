@@ -29,6 +29,8 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="ximaexif.cpp"/>
+    <File Name="ximajpg.cpp"/>
     <File Name="ximadsp.cpp"/>
     <File Name="ximaenc.cpp"/>
     <File Name="ximage.cpp"/>
@@ -50,6 +52,7 @@
     <File Name="xmemfile.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="ximajpg.h"/>
     <File Name="xfile.h"/>
     <File Name="ximabmp.h"/>
     <File Name="ximacfg.h"/>
@@ -77,6 +80,7 @@
         <IncludePath Value="../libextern/tiff/libtiff"/>
         <IncludePath Value="../libextern/libpng"/>
         <IncludePath Value="../Otherlib/libJbig"/>
+        <Preprocessor Value="_LINUX"/>
       </Compiler>
       <Linker Options="">
         <LibraryPath Value="."/>

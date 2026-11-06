@@ -910,6 +910,7 @@
     <ClInclude Include="VideoControlInterface.h" />
     <ClInclude Include="VideoControl_soft.h" />
     <ClInclude Include="VideoInterface.h" />
+    <ClInclude Include="VolumePopup.h" />
     <ClInclude Include="WaveTextureFilter.h" />
     <ClInclude Include="ZoomEffectTexture.h" />
   </ItemGroup>

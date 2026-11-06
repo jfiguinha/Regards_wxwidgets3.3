@@ -5,6 +5,7 @@
 #include <ClosedHandCursor.h>
 #include "WindowMain.h"
 #include <wx/dcbuffer.h>
+
 using namespace Regards::Video;
 
 CSliderVideo::CSliderVideo(wxWindow* parent, wxWindowID id, CSliderInterface* sliderEvent,
@@ -44,8 +45,71 @@ CSliderVideo::CSliderVideo(wxWindow* parent, wxWindowID id, CSliderInterface* sl
 	Connect(wxEVT_MOUSE_CAPTURE_LOST, wxMouseEventHandler(CSliderVideo::OnMouseCaptureLost));
 	Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(CSliderVideo::OnMouseHover));
 	Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(CSliderVideo::OnMouseLeave));
-
+	Connect(wxEVT_SLIDER, wxCommandEventHandler(CSliderVideo::OnVolumeSliderChanged));
+	Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(CSliderVideo::OnLButtonDoubleClick));
 	button.Create(0, 0);
+}
+
+void CSliderVideo::OnLButtonDoubleClick(wxMouseEvent& event)
+{
+	int xPos = event.GetX();
+
+	// 1. GESTION DU DOUBLE-CLIC SUR LE VOLUME (SPEAKER)
+	if (xPos >= positionSpeakerButton.x && xPos <= (positionSpeakerButton.x + positionSpeakerButton.width))
+	{
+		wxSetCursor(hCursorHand);
+		if (sliderEvent != nullptr)
+		{
+			// Option A : Force la valeur maximale du volume (100)
+			
+
+			if(popup)
+			{
+				if (popup->GetVolume() < 100)
+					popup->SetVolume(100);
+				else
+					popup->SetVolume(0);
+				sliderEvent->SlidePosChange(popup->GetVolume(), "VOLUME");
+			}
+			else
+				sliderEvent->SlidePosChange(100, "VOLUME");
+			// Option B (Alternative) : Si vous préférez envoyer une commande de bouton Muet / Mute :
+			// sliderEvent->ClickButton(SPEAKERBUTTONID);
+		}
+	}
+	// 2. GESTION DU DOUBLE-CLIC SUR LE ZOOM
+	else if (xPos >= positionZoomButton.x && xPos <= (positionZoomButton.x + positionZoomButton.width))
+	{
+		wxSetCursor(hCursorHand);
+		if (sliderEvent != nullptr)
+		{
+			// Force le zoom à revenir à sa taille normale instantanément
+			sliderEvent->SlidePosChange(0, "SHRINK");
+
+			if (popup)
+			{
+				popup->SetVolume(sliderEvent->GetZoomIndex());
+			}
+		}
+	}
+	// 3. GESTION DU DOUBLE-CLIC SUR LA BARRE DE PROGRESSION (Facultatif)
+	else if (xPos >= positionSlider.x && xPos <= (positionSlider.x + positionSlider.width))
+	{
+		// Réinitialise la vidéo au début (0) au double-clic sur la barre
+		secondTimePast = 0;
+		if (sliderEvent != nullptr)
+			sliderEvent->MoveSlider(0);
+	}
+
+	needToRefresh = true;
+	event.Skip(); // Permet à wxWidgets de propager l'événement si nécessaire
+}
+
+void CSliderVideo::OnVolumeSliderChanged(wxCommandEvent& event)
+{
+	wxCommandEvent event_local(wxEVENT_ZOOMPOS);
+	event_local.SetInt(event.GetInt());
+	this->GetParent()->GetEventHandler()->AddPendingEvent(event_local);
 }
 
 CSliderVideo::~CSliderVideo()
@@ -470,6 +534,11 @@ void CSliderVideo::OnMouseHover(wxMouseEvent& event)
 	m_bMouseOver = true;
 }
 
+void CSliderVideo::SetZoomIndex(const int& index)
+{
+	zoomIndex = index;
+}
+
 void CSliderVideo::OnLButtonDown(wxMouseEvent& event)
 {
 	int xPos = event.GetX();
@@ -511,7 +580,33 @@ void CSliderVideo::OnLButtonDown(wxMouseEvent& event)
 		else if (xPos >= positionSpeakerButton.x && xPos <= (positionSpeakerButton.x + positionSpeakerButton.width))
 		{
 			wxSetCursor(hCursorHand);
-			sliderEvent->ClickButton(SPEAKERBUTTONID);
+
+			Regards::UI::ModernTheme m_theme;
+			m_theme.background = themeSlider.colorBack;                    // Couleur de fond (30, 30, 30)
+			m_theme.secondaryText = themeSlider.colorInactifReplacement;    // Couleur secondaire (220, 224, 230)
+			// Note : Ajustez selon les propriétés réelles de votre structure ModernTheme
+
+
+			// Récupération de la position absolue de l'icône Speaker sur l'écran
+			wxPoint screenPos = ClientToScreen(wxPoint(positionSpeakerButton.x, positionSpeakerButton.y));
+
+			// Instanciation du pop-up moderne avec capture du changement de valeur
+			// Nous passons ici le 'themeSlider' (ou m_theme selon vos variables de classe d'interface)
+			popup = new Regards::UI::CVolumePopupModern(this, sliderEvent->GetVolume(), m_theme, 100, [this](int newVolume) {
+				if (sliderEvent)
+					sliderEvent->SlidePosChange(newVolume, "VOLUME");
+				});
+
+			// Calcul pour afficher le pop-up juste au-dessus du bouton de la toolbar
+			int popupHeight = popup->GetSize().y;
+			int popupWidth = popup->GetSize().x;
+
+			// Aligne le centre du pop-up avec le centre du bouton Speaker
+			int xOffset = screenPos.x + (positionSpeakerButton.width / 2) - (popupWidth / 2);
+			int yOffset = screenPos.y - popupHeight - 4; // 4 pixels de marge au-dessus
+
+			popup->Position(wxPoint(xOffset, yOffset), wxSize(0, 0));
+			popup->Popup();
 		}
 		else if (xPos >= positionRepeatButton.x && xPos <= (positionRepeatButton.x + positionRepeatButton.width))
 		{
@@ -525,7 +620,39 @@ void CSliderVideo::OnLButtonDown(wxMouseEvent& event)
 		else if (xPos >= positionZoomButton.x && xPos <= (positionZoomButton.x + positionZoomButton.width))
 		{
 			wxSetCursor(hCursorHand);
-			sliderEvent->ClickButton(ZOOMBUTTONID);
+
+
+			Regards::UI::ModernTheme m_theme;
+			m_theme.background = themeSlider.colorBack;                    // Couleur de fond (30, 30, 30)
+			m_theme.secondaryText = themeSlider.colorInactifReplacement;    // Couleur secondaire (220, 224, 230)
+			// Note : Ajustez selon les propriétés réelles de votre structure ModernTheme
+			const std::vector<int> zoomValues = {
+			1, 2, 3, 4, 5, 6, 8, 12, 16, 25, 33, 50, 66, 75, 100,
+			133, 150, 166, 200, 300, 400, 500, 600, 700, 800, 1200, 1600
+					};
+
+			// Récupération de la position absolue de l'icône Zoom sur l'écran
+			wxPoint screenPos = ClientToScreen(wxPoint(positionZoomButton.x, positionZoomButton.y));
+
+			// Instanciation du pop-up moderne avec capture du changement de valeur
+			// Nous passons ici le 'themeSlider' (ou m_theme selon vos variables de classe d'interface)
+			popup = new Regards::UI::CVolumePopupModern(this, sliderEvent->GetZoomIndex(), m_theme, zoomValues.size(), [this](int newVolume) {
+				if (sliderEvent)
+					sliderEvent->SlidePosChange(newVolume, "ZOOM");
+				});
+
+			// Calcul pour afficher le pop-up juste au-dessus du bouton de la toolbar
+			int popupHeight = popup->GetSize().y;
+			int popupWidth = popup->GetSize().x;
+
+			// Aligne le centre du pop-up avec le centre du bouton Speaker
+			int xOffset = screenPos.x + (positionZoomButton.width / 2) - (popupWidth / 2);
+			int yOffset = screenPos.y - popupHeight - 4; // 4 pixels de marge au-dessus
+
+			popup->Position(wxPoint(xOffset, yOffset), wxSize(0, 0));
+			popup->Popup();
+			//wxSetCursor(hCursorHand);
+			//sliderEvent->ClickButton(ZOOMBUTTONID);
 		}
 		else if (xPos >= positionScreenFormatButton.x && xPos <= (positionScreenFormatButton.x +
 			positionScreenFormatButton.width))
