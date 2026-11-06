@@ -33,7 +33,7 @@ CCriteriaWindow::CCriteriaWindow(wxWindow* parent, wxWindowID id,
 	keywordWnd->Show(true);
 
 	SetHorizontal(horizontal);
-	this->SetWindow1FixPosition(true, 160);
+	this->SetWindow1FixPosition(true, 200);
 	this->SetWindow(criteriaTreeWnd.get(), keywordWnd.get());
 }
 
