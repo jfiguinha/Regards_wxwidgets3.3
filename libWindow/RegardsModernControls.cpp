@@ -265,7 +265,7 @@ namespace Regards::UI
           m_value(std::clamp(value, m_min, m_max))
     {
         SetBackgroundStyle(wxBG_STYLE_CUSTOM);
-        SetMinSize(size == wxDefaultSize ? wxSize(180, 28) : size);
+        //SetSize(size == wxDefaultSize ? wxSize(180, 28) : size);
         Bind(wxEVT_PAINT, &CModernSlider::OnPaint, this);
         Bind(wxEVT_ERASE_BACKGROUND, &CModernSlider::OnEraseBackground, this);
         Bind(wxEVT_LEFT_DOWN, &CModernSlider::OnLeftDown, this);
@@ -352,7 +352,7 @@ namespace Regards::UI
         gc->SetPen(*wxTRANSPARENT_PEN);
         gc->SetBrush(wxBrush(m_theme.border));
 
-        if (sz.y > sz.x) // Dessin Vertical
+        if (isVertical) // Dessin Vertical
         {
             const int x = sz.x / 2;
             const int top = 9, bottom = std::max(top + 1, sz.y - 9);

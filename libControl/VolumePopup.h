@@ -13,13 +13,13 @@ namespace Regards::UI
         {
             // Application du fond du thème moderne
             SetBackgroundColour(theme.background);
-
+            
             // Création du slider moderne en mode vertical (0 à 100)
             // Note : Si votre CModernSlider ne gère pas nativement le flag wxSL_VERTICAL,
             // il s'adaptera à la boîte horizontale/verticale selon le sizer ou ses dimensions.
             m_slider = new CModernSlider(this, wxID_ANY, currentVolume, 0, maxValue);
             m_slider->SetTheme(theme);
-
+            m_slider->SetVertical(true);
             // Liaison de l'événement de défilement du slider moderne
             m_slider->Bind(wxEVT_SLIDER, [this](wxCommandEvent&) {
                 if (m_callback)

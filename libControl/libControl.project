@@ -51,6 +51,7 @@
   <VirtualDirectory Name="Video">
     <File Name="VideoCompressOption.h"/>
     <VirtualDirectory Name="Core">
+      <File Name="VolumePopup.h"/>
       <File Name="SlideToolbar.h"/>
       <File Name="SlideToolbar.cpp"/>
       <File Name="ffmfcpimpl.cpp"/>

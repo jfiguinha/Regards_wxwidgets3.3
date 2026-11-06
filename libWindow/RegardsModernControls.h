@@ -91,14 +91,16 @@ namespace Regards::UI
                       int value = 50, int minValue = 0, int maxValue = 100,
                       const wxPoint& pos = wxDefaultPosition,
                       const wxSize& size = wxDefaultSize);
-
         int GetValue() const { return m_value; }
         int GetMin() const { return m_min; }
         int GetMax() const { return m_max; }
         void SetValue(int value);
         void SetRange(int minValue, int maxValue);
         void SetTheme(const ModernTheme& theme);
-
+        void SetVertical(bool isVertical)
+        {
+            this->isVertical = isVertical;
+        }
     protected:
         void OnPaint(wxPaintEvent& event);
         void OnEraseBackground(wxEraseEvent& event);
@@ -113,6 +115,7 @@ namespace Regards::UI
         void UpdateFromMouse(int x);
         void SendChangedEvent();
 
+        bool isVertical = false;
         ModernTheme m_theme;
         int m_min = 0;
         int m_max = 100;
