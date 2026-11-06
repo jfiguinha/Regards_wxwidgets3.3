@@ -130,10 +130,10 @@
     <ClCompile Include="CompressionOption.cpp">
       <Filter>Dialog</Filter>
     </ClCompile>
-    <ClCompile Include="JpegExportDialog.cpp">
+    <ClCompile Include="JpegExportDialogModern.cpp">
       <Filter>Dialog</Filter>
     </ClCompile>
-    <ClCompile Include="AvifHeifExportDialog.cpp">
+    <ClCompile Include="AvifHeifExportDialogModern.cpp">
       <Filter>Dialog</Filter>
     </ClCompile>
   </ItemGroup>
@@ -288,10 +288,10 @@
     <ClInclude Include="CompressionOption.h">
       <Filter>Dialog</Filter>
     </ClInclude>
-    <ClInclude Include="JpegExportDialog.h">
+    <ClInclude Include="JpegExportDialogModern.h">
       <Filter>Dialog</Filter>
     </ClInclude>
-    <ClInclude Include="AvifHeifExportDialog.h">
+    <ClInclude Include="AvifHeifExportDialogModern.h">
       <Filter>Dialog</Filter>
     </ClInclude>
   </ItemGroup>

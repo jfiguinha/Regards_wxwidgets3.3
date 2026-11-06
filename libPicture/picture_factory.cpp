@@ -70,6 +70,12 @@ using namespace Regards::exiv2;
 #include <ximajpg.h>
 #include <AvifHeifExportDialog.h>
 #include <JpegExportDialog.h>
+#include <JpegExportDialogModern.h>
+#include <AvifHeifExportDialogModern.h>
+
+// Headers libheif
+#include <libheif/heif.h>
+
 #define NANOSVG_IMPLEMENTATION
 #include <nanosvg.h>
 #define NANOSVGRAST_IMPLEMENTATION
@@ -1579,8 +1585,121 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality, CImageLoad
         }
         else
         {
-			CAvifHeifExportDialog dlg(bitmap, format == AVIF ? 0 : 1);
+
+
+            CImageLoadingFormat* m_image = bitmap; // Votre image source existante
+
+            Regards::UI::CAvifHeifExportDialogModern* dialogPtr = nullptr;
+
+            // 2. Définition de la fonction de génération (Callback)
+            Regards::UI::CAvifHeifExportDialogModern::PreviewUpdateCallback previewCallback =
+                [m_image, &dialogPtr](int quality, int speed, int format)
+                {
+                    if (!m_image || !dialogPtr)
+                        return;
+
+                    wxImage m_compressedPreviewImage;
+                    wxImage srcImg = m_image->GetwxImage();
+                    if (!srcImg.IsOk()) return;
+
+                    int width = srcImg.GetWidth();
+                    int height = srcImg.GetHeight();
+
+                    // 2. Conversion wxImage -> heif_image
+                    heif_image* hImg = nullptr;
+                    heif_image_create(width, height, heif_colorspace_RGB, heif_chroma_interleaved_24bit, &hImg);
+                    heif_image_add_plane(hImg, heif_channel_interleaved, width, height, 24);
+
+                    int stride = 0;
+                    uint8_t* destData = heif_image_get_plane(hImg, heif_channel_interleaved, &stride);
+                    const unsigned char* srcData = srcImg.GetData();
+
+                    // Copie ligne par ligne pour respecter le stride potentiel de la libheif
+                    for (int y = 0; y < height; ++y) {
+                        memcpy(destData + (y * stride), srcData + (y * width * 3), width * 3);
+                    }
+
+                    // 3. Configuration de l'encodeur libheif
+                    heif_context* ctx = heif_context_alloc();
+                    heif_encoder* encoder = nullptr;
+
+                    if (format == 0) {
+                        heif_context_get_encoder_for_format(ctx, heif_compression_AV1, &encoder);
+                    }
+                    else {
+                        heif_context_get_encoder_for_format(ctx, heif_compression_HEVC, &encoder);
+                    }
+
+                    if (encoder) {
+                        // Application de la qualité (0 - 100)
+                        heif_encoder_set_lossy_quality(encoder, quality);
+
+                        // Application de l'effort / vitesse ("0" à "10")
+                        wxString speedStr = wxString::Format("%d", speed);
+                        heif_encoder_set_parameter_string(encoder, "speed", speedStr.utf8_str());
+
+                        // Encodage effectif
+                        heif_context_encode_image(ctx, hImg, encoder, nullptr, nullptr);
+                        heif_encoder_release(encoder);
+                    }
+
+                    // 4. Récupération du flux compressé en mémoire pour en mesurer la taille
+                    heif_writer writer;
+                    std::vector<uint8_t> compressedBuffer;
+
+                    writer.writer_api_version = 1;
+                    writer.write = [](heif_context* ctx, const void* data, size_t size, void* ref) -> heif_error {
+                        auto* buf = static_cast<std::vector<uint8_t>*>(ref);
+                        buf->insert(buf->end(), static_cast<const uint8_t*>(data), static_cast<const uint8_t*>(data) + size);
+                        heif_error error = { heif_error_Ok, heif_suberror_Unspecified, "Success" };
+                        return error;
+                        };
+
+                    heif_context_write(ctx, &writer, &compressedBuffer);
+                    int m_compressedSize = compressedBuffer.size();
+
+                    // 5. Décompression immédiate du flux pour générer la texture de prévisualisation
+                    heif_context* decodeCtx = heif_context_alloc();
+                    heif_context_read_from_memory_without_copy(decodeCtx, compressedBuffer.data(), compressedBuffer.size(), nullptr);
+
+                    heif_image_handle* handle = nullptr;
+                    heif_context_get_primary_image_handle(decodeCtx, &handle);
+
+                    if (handle) {
+                        heif_image* decodedImg = nullptr;
+                        heif_decode_image(handle, &decodedImg, heif_colorspace_RGB, heif_chroma_interleaved_24bit, nullptr);
+
+                        if (decodedImg) {
+                            int decStride = 0;
+                            uint8_t* decData = heif_image_get_plane(decodedImg, heif_channel_interleaved, &decStride);
+
+                            m_compressedPreviewImage.Create(width, height, false);
+                            unsigned char* previewDest = m_compressedPreviewImage.GetData();
+
+                            for (int y = 0; y < height; ++y) {
+                                memcpy(previewDest + (y * width * 3), decData + (y * decStride), width * 3);
+                            }
+                            heif_image_release(decodedImg);
+                        }
+                        heif_image_handle_release(handle);
+                    }
+
+                    // Nettoyage
+                    heif_context_free(decodeCtx);
+                    heif_image_release(hImg);
+                    heif_context_free(ctx);
+
+                    // --- ENVOI DE LA PREVIEW GÉNÉRÉE AU DIALOGUE MODERNE ---
+                    dialogPtr->SetCompressedPreview(m_compressedPreviewImage, m_compressedSize);
+                };
+
+            Regards::UI::CAvifHeifExportDialogModern dlg(nullptr, bitmap, format == AVIF ? 0 : 1, 75, 6, previewCallback);
+            dialogPtr = &dlg; // Stocke le pointeur du dialogue pour l'utiliser dans le callback
+            dlg.NotifyPreviewChanged();
             if (dlg.ShowModal() == wxID_OK) { option = dlg.GetSpeed(); quality = dlg.GetQuality(); ret = 1; }
+
+			//CAvifHeifExportDialog dlg(bitmap, format == AVIF ? 0 : 1);
+            //if (dlg.ShowModal() == wxID_OK) { option = dlg.GetSpeed(); quality = dlg.GetQuality(); ret = 1; }
 
         }
         break;
@@ -1603,8 +1722,113 @@ int ImageSaver::AskSaveOptions(int format, int& option, int& quality, CImageLoad
         }
         else
         {
-            CJpegExportDialog dlg(bitmap);
-            if (dlg.ShowModal() == wxID_OK) { option = dlg.CompressionOption(); quality = dlg.CompressionLevel(); ret = 1; }
+
+            CImageLoadingFormat* m_image = bitmap; // Votre image source existante
+
+            Regards::UI::CJpegExportDialogModern* dialogPtr = nullptr;
+
+            // 2. Définition de la fonction de génération (Callback)
+            Regards::UI::CJpegExportDialogModern::PreviewUpdateCallback previewCallback =
+                [m_image, &dialogPtr](int quality, int codecOption)
+                {
+                    if (!m_image || !dialogPtr)
+                        return;
+
+                    // --- LOGIQUE REPRISE DE GENERATE_JPEG_PREVIEW ---
+                    CxImage cxImg = m_image->GetCxImage();
+
+                    // Application de la qualité
+                    const int clampedQuality = std::clamp(quality, 0, 100);
+                    cxImg.SetJpegQuality(static_cast<BYTE>(clampedQuality));
+
+                    // Application des drapeaux de codec d'après les spécifications de ximajpg.h
+                    switch (codecOption) {
+                    case 0: cxImg.SetCodecOption(CxImageJPG::ENCODE_BASELINE, CXIMAGE_FORMAT_JPG); break;
+                    case 1: cxImg.SetCodecOption(CxImageJPG::ENCODE_ARITHMETIC, CXIMAGE_FORMAT_JPG); break;
+                    case 2: cxImg.SetCodecOption(CxImageJPG::ENCODE_GRAYSCALE, CXIMAGE_FORMAT_JPG); break;
+                    case 3: cxImg.SetCodecOption(CxImageJPG::ENCODE_OPTIMIZE, CXIMAGE_FORMAT_JPG); break;
+                    case 4: cxImg.SetCodecOption(CxImageJPG::ENCODE_PROGRESSIVE, CXIMAGE_FORMAT_JPG); break;
+                    case 5: cxImg.SetCodecOption(CxImageJPG::ENCODE_LOSSLESS, CXIMAGE_FORMAT_JPG); break;
+                    case 6: cxImg.SetCodecOption(CxImageJPG::ENCODE_SMOOTHING, CXIMAGE_FORMAT_JPG); break;
+                    case 7: cxImg.SetCodecOption(CxImageJPG::ENCODE_SUBSAMPLE_422, CXIMAGE_FORMAT_JPG); break;
+                    case 8: cxImg.SetCodecOption(CxImageJPG::ENCODE_SUBSAMPLE_444, CXIMAGE_FORMAT_JPG); break;
+                    default: break;
+                    }
+
+                    // Encodage en mémoire pour obtenir le poids réel (Ko)
+                    BYTE* buffer = nullptr;
+                    int32_t bufferSize = 0;
+
+                    if (!cxImg.Encode(buffer, bufferSize, CXIMAGE_FORMAT_JPG))
+                        return;
+
+                    size_t jpegSize = static_cast<size_t>(bufferSize);
+
+                    // Décompression TurboJPEG pour l'affichage de la preview
+                    int jpegSubsamp, w = 0, h = 0;
+                    tjhandle dec = tjInitDecompress();
+                    tjDecompressHeader2(dec, buffer, bufferSize, &w, &h, &jpegSubsamp);
+
+                    // Calcul du ratio pour l'affichage dans le widget moderne
+                    // On se base sur la taille client disponible du widget de preview du dialogue moderne
+                    // (Similaire à AdjustSzieToJpegScalingFactors de l'ancien code)
+                    wxSize clientSize = dialogPtr->GetClientSize(); // Fallback ou taille fixe de départ (ex: 280x280)
+                    int targetW = 280;
+                    int targetH = 280;
+
+                    tjscalingfactor* sf_list = nullptr;
+                    tjscalingfactor  sf = { 1, 1 };
+                    int              nsf = 0;
+
+                    if ((sf_list = tjGetScalingFactors(&nsf)) != nullptr && nsf > 0)
+                    {
+                        // Calcul du Fit Ratio
+                        float ratio = 1.0f;
+                        if (w > 0 && h > 0) {
+                            ratio = (w > h) ? static_cast<float>(targetW) / static_cast<float>(w)
+                                : static_cast<float>(targetH) / static_cast<float>(h);
+                            if ((h * ratio) > targetH) ratio = static_cast<float>(targetH) / static_cast<float>(h);
+                            else if ((w * ratio) > targetW) ratio = static_cast<float>(targetW) / static_cast<float>(w);
+                        }
+
+                        int match = 0;
+                        for (int j = 0; j < nsf; j++) {
+                            sf = sf_list[j];
+                            float local = static_cast<float>(sf.num) / static_cast<float>(sf.denom);
+                            if (local < ratio) {
+                                if (j > 0) sf = sf_list[j - 1];
+                                match = 1;
+                                break;
+                            }
+                        }
+                        if (match == 0) sf = sf_list[nsf - 1];
+
+                        w = TJSCALED(w, sf);
+                        h = TJSCALED(h, sf);
+                    }
+
+                    // Création de l'image de prévisualisation finale
+                    wxImage jpegPreviewImage;
+                    jpegPreviewImage.Create(w, h, false);
+
+                    try {
+                        tjDecompress2(dec, buffer, bufferSize,
+                            jpegPreviewImage.GetData(), w, 0, h,
+                            TJPF_RGB, TJFLAG_FASTDCT);
+                    }
+                    catch (...) {}
+
+                    tjDestroy(dec);
+                    cxImg.FreeMemory(buffer);
+
+                    // --- ENVOI DE LA PREVIEW GÉNÉRÉE AU DIALOGUE MODERNE ---
+                    dialogPtr->SetJpegPreview(jpegPreviewImage, jpegSize);
+                };
+
+            Regards::UI::CJpegExportDialogModern dlg(nullptr, bitmap, 90,  0, previewCallback);
+			dialogPtr = &dlg; // Stocke le pointeur du dialogue pour l'utiliser dans le callback
+            dlg.NotifyPreviewChanged();
+            if (dlg.ShowModal() == wxID_OK) { option = dlg.GetCodecOption(); quality = dlg.GetQuality(); ret = 1; }
 
         }
         break;

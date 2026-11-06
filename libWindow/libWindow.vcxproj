@@ -849,6 +849,7 @@
     <ClInclude Include="LayerCompositorOpenCL.h" />
     <ClInclude Include="LayerElement.h" />
     <ClInclude Include="LayerFonction.h" />
+    <ClInclude Include="RegardsModernControls.h" />
     <ClInclude Include="TreeElementColor.h" />
     <ClInclude Include="GLcontext.h" />
     <ClInclude Include="GpsEngine.h" />
@@ -957,6 +958,7 @@
     <ClCompile Include="Pane.cpp" />
     <ClCompile Include="PanelWithClickToolbar.cpp" />
     <ClCompile Include="PositionElement.cpp" />
+    <ClCompile Include="RegardsModernControls.cpp" />
     <ClCompile Include="RenderBitmapOpenGL.cpp" />
     <ClCompile Include="RenderOpenGL.cpp" />
     <ClCompile Include="RenderVideoOpenGL.cpp" />

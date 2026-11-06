@@ -46,6 +46,9 @@
     <Filter Include="Layer">
       <UniqueIdentifier>{4b83082d-bd16-4af2-a9c0-5a419352789e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ModernControl">
+      <UniqueIdentifier>{8a834105-a551-4081-a773-1faad64d2ed7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -318,6 +321,9 @@
     <ClInclude Include="BitmapWnd2d.h">
       <Filter>OpenGL</Filter>
     </ClInclude>
+    <ClInclude Include="RegardsModernControls.h">
+      <Filter>ModernControl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapInfos.cpp">
@@ -520,6 +526,9 @@
     </ClCompile>
     <ClCompile Include="LayerCompositorOpenCL.cpp">
       <Filter>Layer</Filter>
+    </ClCompile>
+    <ClCompile Include="RegardsModernControls.cpp">
+      <Filter>ModernControl</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
