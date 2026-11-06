@@ -292,20 +292,44 @@ namespace Regards::UI
         Refresh();
     }
 
+    void CModernSlider::OnEraseBackground(wxEraseEvent&) {}
+
+    // ---------------- CModernSlider (Support Horizontal et Vertical automatique) ----------------
+
     int CModernSlider::ThumbX() const
     {
-        const int w = GetClientSize().x;
-        const int left = 9, right = std::max(left + 1, w - 9);
-        const double t = double(m_value - m_min) / double(m_max - m_min);
-        return left + static_cast<int>((right - left) * t);
+        const wxSize sz = GetClientSize();
+        if (sz.y > sz.x) // Mode Vertical
+        {
+            const int top = 9, bottom = std::max(top + 1, sz.y - 9);
+            // Progression du bas (max) vers le haut (min) pour le volume
+            const double t = double(m_value - m_min) / double(m_max - m_min);
+            return bottom - static_cast<int>((bottom - top) * t);
+        }
+        else // Mode Horizontal
+        {
+            const int left = 9, right = std::max(left + 1, sz.x - 9);
+            const double t = double(m_value - m_min) / double(m_max - m_min);
+            return left + static_cast<int>((right - left) * t);
+        }
     }
 
-    int CModernSlider::ValueFromX(int x) const
+    int CModernSlider::ValueFromX(int pos) const
     {
-        const int w = GetClientSize().x;
-        const int left = 9, right = std::max(left + 1, w - 9);
-        const double t = std::clamp(double(x - left) / double(right - left), 0.0, 1.0);
-        return m_min + static_cast<int>(std::lround(t * (m_max - m_min)));
+        const wxSize sz = GetClientSize();
+        if (sz.y > sz.x) // Mode Vertical (pos représente le Y de la souris)
+        {
+            const int top = 9, bottom = std::max(top + 1, sz.y - 9);
+            // Inversion pour que le clic en bas donne la valeur minimale
+            const double t = std::clamp(double(bottom - pos) / double(bottom - top), 0.0, 1.0);
+            return m_min + static_cast<int>(std::lround(t * (m_max - m_min)));
+        }
+        else // Mode Horizontal (pos représente le X de la souris)
+        {
+            const int left = 9, right = std::max(left + 1, sz.x - 9);
+            const double t = std::clamp(double(pos - left) / double(right - left), 0.0, 1.0);
+            return m_min + static_cast<int>(std::lround(t * (m_max - m_min)));
+        }
     }
 
     void CModernSlider::OnPaint(wxPaintEvent&)
@@ -317,73 +341,112 @@ namespace Regards::UI
         std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
         if (!gc) return;
 
-        const int w = GetClientSize().x;
-        const int h = GetClientSize().y;
-        const int left = 9, right = std::max(left + 1, w - 9);
-        const int y = h / 2;
+        const wxSize sz = GetClientSize();
         const int thumb = ThumbX();
 
         gc->SetPen(*wxTRANSPARENT_PEN);
         gc->SetBrush(wxBrush(m_theme.border));
-        gc->DrawRoundedRectangle(left, y - 2, right - left, 4, 2);
 
-        gc->SetBrush(wxBrush(m_theme.accent));
-        gc->DrawRoundedRectangle(left, y - 2, std::max(0, thumb - left), 4, 2);
+        if (sz.y > sz.x) // Dessin Vertical
+        {
+            const int x = sz.x / 2;
+            const int top = 9, bottom = std::max(top + 1, sz.y - 9);
 
-        const int radius = m_hover || m_dragging ? 8 : 7;
-        gc->SetBrush(wxBrush(m_theme.surface));
-        gc->SetPen(wxPen(m_theme.accent, 2));
-        gc->DrawEllipse(thumb - radius, y - radius, radius * 2, radius * 2);
+            // Rail complet arrière-plan
+            gc->DrawRoundedRectangle(x - 2, top, 4, bottom - top, 2);
+
+            // Rail coloré actif (du bas jusqu'au curseur)
+            gc->SetBrush(wxBrush(m_theme.accent));
+            gc->DrawRoundedRectangle(x - 2, thumb, 4, std::max(0, bottom - thumb), 2);
+
+            // Curseur (Ellipse)
+            const int radius = m_hover || m_dragging ? 8 : 7;
+            gc->SetBrush(wxBrush(m_theme.surface));
+            gc->SetPen(wxPen(m_theme.accent, 2));
+            gc->DrawEllipse(x - radius, thumb - radius, radius * 2, radius * 2);
+        }
+        else // Dessin Horizontal original
+        {
+            const int y = sz.y / 2;
+            const int left = 9, right = std::max(left + 1, sz.x - 9);
+
+            gc->DrawRoundedRectangle(left, y - 2, right - left, 4, 2);
+
+            gc->SetBrush(wxBrush(m_theme.accent));
+            gc->DrawRoundedRectangle(left, y - 2, std::max(0, thumb - left), 4, 2);
+
+            const int radius = m_hover || m_dragging ? 8 : 7;
+            gc->SetBrush(wxBrush(m_theme.surface));
+            gc->SetPen(wxPen(m_theme.accent, 2));
+            gc->DrawEllipse(thumb - radius, y - radius, radius * 2, radius * 2);
+        }
     }
 
-    void CModernSlider::OnEraseBackground(wxEraseEvent&) {}
     void CModernSlider::OnLeftDown(wxMouseEvent& e)
     {
         if (!IsEnabled()) return;
         m_dragging = true;
         CaptureMouse();
         SetFocus();
-        UpdateFromMouse(e.GetX());
+        const wxSize sz = GetClientSize();
+        UpdateFromMouse(sz.y > sz.x ? e.GetY() : e.GetX());
     }
+
     void CModernSlider::OnLeftUp(wxMouseEvent& e)
     {
         if (!m_dragging) return;
-        UpdateFromMouse(e.GetX());
+        const wxSize sz = GetClientSize();
+        UpdateFromMouse(sz.y > sz.x ? e.GetY() : e.GetX());
         m_dragging = false;
         if (HasCapture()) ReleaseMouse();
         Refresh();
     }
+
     void CModernSlider::OnMotion(wxMouseEvent& e)
     {
         m_hover = true;
-        if (m_dragging && e.LeftIsDown()) UpdateFromMouse(e.GetX());
-        Refresh();
-    }
-    void CModernSlider::OnCaptureLost(wxMouseCaptureLostEvent&)
-    {
-        m_dragging = false;
+        if (m_dragging && e.LeftIsDown())
+        {
+            const wxSize sz = GetClientSize();
+            UpdateFromMouse(sz.y > sz.x ? e.GetY() : e.GetX());
+        }
         Refresh();
     }
 
     void CModernSlider::OnKeyDown(wxKeyEvent& e)
     {
         int step = e.ShiftDown() ? 10 : 1;
-        if (e.GetKeyCode() == WXK_LEFT) SetValue(m_value - step);
-        else if (e.GetKeyCode() == WXK_RIGHT) SetValue(m_value + step);
-        else if (e.GetKeyCode() == WXK_HOME) SetValue(m_min);
-        else if (e.GetKeyCode() == WXK_END) SetValue(m_max);
-        else { e.Skip(); return; }
+        const wxSize sz = GetClientSize();
+
+        // En mode vertical, la flèche HAUT augmente la valeur, la flèche BAS la diminue
+        if (sz.y > sz.x)
+        {
+            if (e.GetKeyCode() == WXK_UP) SetValue(m_value + step);
+            else if (e.GetKeyCode() == WXK_DOWN) SetValue(m_value - step);
+            else if (e.GetKeyCode() == WXK_HOME) SetValue(m_min);
+            else if (e.GetKeyCode() == WXK_END) SetValue(m_max);
+            else { e.Skip(); return; }
+        }
+        else // Mode horizontal classique
+        {
+            if (e.GetKeyCode() == WXK_LEFT) SetValue(m_value - step);
+            else if (e.GetKeyCode() == WXK_RIGHT) SetValue(m_value + step);
+            else if (e.GetKeyCode() == WXK_HOME) SetValue(m_min);
+            else if (e.GetKeyCode() == WXK_END) SetValue(m_max);
+            else { e.Skip(); return; }
+        }
         SendChangedEvent();
     }
 
-    void CModernSlider::UpdateFromMouse(int x)
+    void CModernSlider::UpdateFromMouse(int pos)
     {
-        const int v = ValueFromX(x);
+        const int v = ValueFromX(pos);
         if (v == m_value) return;
         m_value = v;
         Refresh();
         SendChangedEvent();
     }
+
 
     void CModernSlider::SendChangedEvent()
     {
@@ -391,6 +454,12 @@ namespace Regards::UI
         event.SetInt(m_value);
         event.SetEventObject(this);
         ProcessWindowEvent(event);
+    }
+
+    void CModernSlider::OnCaptureLost(wxMouseCaptureLostEvent&)
+    {
+        m_dragging = false;
+        Refresh();
     }
 
     // ---------------- CModernRadioButton ----------------

@@ -9,5 +9,13 @@ namespace Regards::Window
 		virtual void MoveSlider(const int64_t& position) = 0;
 		virtual void ClickButton(const int& id) = 0;
 		virtual void SetTrackBarPosition(const int& iPos) = 0;
+		virtual int GetZoomIndex()
+		{
+			return 0;
+		}
+		virtual int GetVolume()
+		{
+			return 0;
+		}
 	};
 }
