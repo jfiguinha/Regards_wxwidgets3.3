@@ -1,6 +1,8 @@
 #include <header.h>
 #include "JpegExportDialogModern.h"
 #include <ImageLoadingFormat.h> // Inclusion requise pour accéder aux méthodes de m_imageFormat
+#include <wx/dcbuffer.h>
+#include <wx/graphics.h> // En-tête pour wxGraphicsContext
 
 namespace Regards::UI
 {

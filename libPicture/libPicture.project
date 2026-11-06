@@ -73,10 +73,10 @@
     <File Name="MetadataExiv2.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Dialog">
-    <File Name="JpegExportDialog.h"/>
-    <File Name="JpegExportDialog.cpp"/>
-    <File Name="AvifHeifExportDialog.h"/>
-    <File Name="AvifHeifExportDialog.cpp"/>
+    <File Name="AvifHeifExportDialogModern.cpp"/>
+    <File Name="AvifHeifExportDialogModern.h"/>
+    <File Name="JpegExportDialogModern.cpp"/>
+    <File Name="JpegExportDialogModern.h"/>
     <File Name="GifOption.h"/>
     <File Name="GifOption.cpp"/>
     <File Name="ExrOption.h"/>
@@ -158,6 +158,7 @@
         <IncludePath Value="../libSqlData"/>
         <IncludePath Value="../libParameter"/>
         <IncludePath Value="../libFiltre"/>
+        <IncludePath Value="../libWindow"/>
         <IncludePath Value="../libFiltreInterface"/>
         <IncludePath Value="../libOpenCL"/>
         <IncludePath Value="../libAppleFunction"/>

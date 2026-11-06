@@ -1,6 +1,8 @@
 #include <header.h>
 #include "AvifHeifExportDialogModern.h"
 #include <ImageLoadingFormat.h>
+#include <wx/dcbuffer.h>
+#include <wx/graphics.h> // En-tête pour wxGraphicsContext
 
 namespace Regards::UI
 {

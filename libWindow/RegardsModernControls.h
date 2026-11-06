@@ -1,10 +1,5 @@
 #pragma once
 
-#include <wx/wx.h>
-#include <wx/dcbuffer.h>
-#include <wx/graphics.h>
-#include <algorithm>
-
 // Lightweight owner-drawn controls for wxWidgets 3.3.
 // They intentionally avoid native wxButton/wxSlider rendering.
 // Add RegardsModernControls.cpp to your project.

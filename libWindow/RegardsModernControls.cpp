@@ -1,6 +1,11 @@
 #include <header.h>
 #include "RegardsModernControls.h"
 
+#include <wx/wx.h>
+#include <wx/dcbuffer.h>
+#include <wx/graphics.h>
+#include <algorithm>
+
 namespace Regards::UI
 {
     namespace
@@ -317,14 +322,14 @@ namespace Regards::UI
     int CModernSlider::ValueFromX(int pos) const
     {
         const wxSize sz = GetClientSize();
-        if (sz.y > sz.x) // Mode Vertical (pos reprÈsente le Y de la souris)
+        if (sz.y > sz.x) // Mode Vertical (pos repr√©sente le Y de la souris)
         {
             const int top = 9, bottom = std::max(top + 1, sz.y - 9);
             // Inversion pour que le clic en bas donne la valeur minimale
             const double t = std::clamp(double(bottom - pos) / double(bottom - top), 0.0, 1.0);
             return m_min + static_cast<int>(std::lround(t * (m_max - m_min)));
         }
-        else // Mode Horizontal (pos reprÈsente le X de la souris)
+        else // Mode Horizontal (pos repr√©sente le X de la souris)
         {
             const int left = 9, right = std::max(left + 1, sz.x - 9);
             const double t = std::clamp(double(pos - left) / double(right - left), 0.0, 1.0);
@@ -352,10 +357,10 @@ namespace Regards::UI
             const int x = sz.x / 2;
             const int top = 9, bottom = std::max(top + 1, sz.y - 9);
 
-            // Rail complet arriËre-plan
+            // Rail complet arri√®re-plan
             gc->DrawRoundedRectangle(x - 2, top, 4, bottom - top, 2);
 
-            // Rail colorÈ actif (du bas jusqu'au curseur)
+            // Rail color√© actif (du bas jusqu'au curseur)
             gc->SetBrush(wxBrush(m_theme.accent));
             gc->DrawRoundedRectangle(x - 2, thumb, 4, std::max(0, bottom - thumb), 2);
 
@@ -418,7 +423,7 @@ namespace Regards::UI
         int step = e.ShiftDown() ? 10 : 1;
         const wxSize sz = GetClientSize();
 
-        // En mode vertical, la flËche HAUT augmente la valeur, la flËche BAS la diminue
+        // En mode vertical, la fl√®che HAUT augmente la valeur, la fl√®che BAS la diminue
         if (sz.y > sz.x)
         {
             if (e.GetKeyCode() == WXK_UP) SetValue(m_value + step);
