@@ -20,6 +20,7 @@
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
 #include <wx/filename.h>
+#include <WindowManager.h>
 using namespace Regards::Picture;
 using namespace Regards::Window;
 using namespace Regards::Scanner;

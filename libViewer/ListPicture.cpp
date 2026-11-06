@@ -38,7 +38,7 @@
 #include <SetMetadataGps.h>
 #include <SetMetadataDate.h>
 #endif
-
+#include <WindowManager.h>
 #include <PhotoCriteriaUtility.h>
 using namespace Regards::exiv2;
 using namespace Regards::Picture;

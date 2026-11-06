@@ -1,6 +1,8 @@
 #include "header.h"
 #include "WindowToAdd.h"
 #include "MasterWindow.h"
+#include "WindowOpenGLMain.h"
+#include "SeparationBar.h"
 #include "PanelWithClickToolbar.h"
 using namespace Regards::Window;
 

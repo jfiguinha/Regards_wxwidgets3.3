@@ -307,7 +307,7 @@ void CShowElement::ResizeVideo(int w, int h)
 
     const int contentH = h - posHeight - posHeightSup;
     scrollbar->SetSize(0, 0, w, contentH);
-    scrollbar->Resize();
+    //scrollbar->Resize();
 
     if (showToolbar && videoSlider->IsShown())
     {

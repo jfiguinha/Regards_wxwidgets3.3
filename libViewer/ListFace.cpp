@@ -25,12 +25,7 @@
 #include <wx/progdlg.h>
 #include <FFmpegVideoThumb.h>
 #include <appcontext.h>
-
-#include <algorithm>
-#include <chrono>
-#include <memory>
-#include <thread>
-#include <vector>
+#include <WindowManager.h>
 
 extern AppContext application_context;
 

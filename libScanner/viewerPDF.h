@@ -3,6 +3,7 @@
 #include <PanelWithClickToolbar.h>
 #include "FiltreToolbar.h"
 #include <BitmapInterface.h>
+#include <WindowManager.h>
 using namespace std;
 using namespace Regards::Window;
 
