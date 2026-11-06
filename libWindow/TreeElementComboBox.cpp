@@ -2,226 +2,227 @@
 #include "TreeElementComboBox.h"
 #include "TreeControl.h"
 #include <TreeElementValue.h>
+#include <wx/graphics.h>
+#include <wx/dcbuffer.h>
+#include <RegardsConfigParam.h>
+#include <ParamInit.h>
 using namespace Regards::Window;
+using namespace Regards::UI;
 
 CTreeElementComboBox::CTreeElementComboBox(CTreeControl* parent, wxString exifKey)
-	: m_selectionIndex(0), m_pComboBoxNative(nullptr), m_pParentWindow(nullptr), m_pParentControl(parent)
+    : m_selectionIndex(0), m_pComboBoxModern(nullptr), m_pParentWindow(nullptr), m_pParentControl(parent)
 {
-	this->exifKey = exifKey;
-	m_width = DEFAULT_WIDTH;
-	m_height = DEFAULT_HEIGHT;
-	m_items.clear();
+    this->exifKey = exifKey;
+    m_width = DEFAULT_WIDTH;
+    m_height = DEFAULT_HEIGHT;
+    m_items.clear();
+
+    if (auto* regardsParam = CParamInit::getInstance())
+        skinMode = regardsParam->GetSkinWindowMode();
+
+    isDarkTheme =
+        wxSystemSettings::GetAppearance().IsDark();
+
 }
 
 CTreeElementComboBox::~CTreeElementComboBox()
 {
-	if (m_pComboBoxNative != nullptr)
-	{
-		m_pComboBoxNative->Destroy();
-		m_pComboBoxNative = nullptr;
-	}
+    if (m_pComboBoxModern != nullptr)
+    {
+        m_pComboBoxModern->Destroy();
+        m_pComboBoxModern = nullptr;
+    }
 }
 
 void CTreeElementComboBox::SetZoneSize(const int& width, const int& height)
 {
-	if (width > DEFAULT_WIDTH)
-		m_width = width;
-	else
-		m_width = DEFAULT_WIDTH;
+    if (width > DEFAULT_WIDTH)
+        m_width = width;
+    else
+        m_width = DEFAULT_WIDTH;
 
-	m_height = height;
+    m_height = height;
 
-	if (m_pComboBoxNative != nullptr)
-	{
-		m_pComboBoxNative->SetSize(m_width - 4, m_height);
-	}
+    if (m_pComboBoxModern != nullptr)
+    {
+        m_pComboBoxModern->SetSize(m_width - 4, m_height - 2);
+    }
 }
 
 int CTreeElementComboBox::GetWidth()
 {
-	return m_width;
+    return m_width;
 }
 
 int CTreeElementComboBox::GetHeight()
 {
-	return m_height;
+    return m_height;
 }
 
 void CTreeElementComboBox::SetItems(const std::vector<wxString>& items, const int& defaultSelection)
 {
-	m_items = items;
-	m_selectionIndex = (defaultSelection >= 0 && defaultSelection < items.size()) ? defaultSelection : 0;
+    m_items = items;
+    m_selectionIndex = (defaultSelection >= 0 && defaultSelection < (int)items.size()) ? defaultSelection : 0;
+
+    if (m_pComboBoxModern != nullptr)
+    {
+        m_pComboBoxModern->SetItems(items, m_selectionIndex);
+    }
 }
 
 int CTreeElementComboBox::GetSelectionIndex() const
 {
-	return m_selectionIndex;
+    return m_selectionIndex;
 }
 
 wxString CTreeElementComboBox::GetSelectionString() const
 {
-	if (m_selectionIndex >= 0 && m_selectionIndex < m_items.size())
-		return m_items[m_selectionIndex];
-	return "";
+    if (m_selectionIndex >= 0 && m_selectionIndex < (int)m_items.size())
+        return m_items[m_selectionIndex];
+    return "";
 }
 
 void CTreeElementComboBox::SetSelection(const int& index)
 {
-	if (index >= 0 && index < m_items.size())
-		m_selectionIndex = index;
+    if (index >= 0 && index < (int)m_items.size())
+    {
+        m_selectionIndex = index;
+        if (m_pComboBoxModern != nullptr)
+        {
+            m_pComboBoxModern->SetSelection(index);
+        }
+    }
 }
 
 void CTreeElementComboBox::ClickElement(wxWindow* window, const int& x, const int& y)
 {
-	if (window == nullptr || m_items.empty()) return;
-	m_pParentWindow = window;
+    if (window == nullptr || m_items.empty()) return;
+    m_pParentWindow = window;
 
-	wxArrayString choices;
-	for (const auto& item : m_items)
-	{
-		choices.Add(item);
-	}
+    wxPoint comboPos(x + 2, y + 1);
+    wxSize comboSize(m_width - 4, m_height - 2);
 
-	wxPoint comboPos(x, y);
-	wxSize comboSize(m_width - 4, m_height);
+    // Si le contrôle moderne n'existe pas encore, on le crée
+    if (m_pComboBoxModern == nullptr)
+    {
+        Regards::UI::ModernTheme m_theme = IsDarkTheme() ? Regards::UI::ModernTheme::Dark() : Regards::UI::ModernTheme::Light();
+        m_pComboBoxModern = new CModernCombo(window, wxID_ANY, m_items, m_selectionIndex, comboPos, comboSize);
+        m_pComboBoxModern->SetTheme(m_theme); // Aligné sur votre thème sombre global
+        m_pComboBoxModern->Bind(wxEVT_COMBOBOX, &CTreeElementComboBox::OnComboSelection, this);
+    }
+    else
+    {
+        // S'il existe déjà, on le repositionne et synchronise sa sélection
+        m_pComboBoxModern->SetSize(comboPos.x, comboPos.y, comboSize.x, comboSize.y);
+        m_pComboBoxModern->SetSelection(m_selectionIndex);
+    }
 
-	// Si le contrôle n'existe pas encore, on le crée
-	if (m_pComboBoxNative == nullptr)
-	{
-		m_pComboBoxNative = new wxComboBox(window, wxID_ANY, choices[m_selectionIndex],
-			comboPos, comboSize, choices, wxCB_READONLY);
+    m_pComboBoxModern->Show(true);
+    m_pComboBoxModern->SetFocus();
 
-		m_pComboBoxNative->Bind(wxEVT_COMBOBOX, &CTreeElementComboBox::OnComboSelection, this);
-	}
-	else
-	{
-		// S'il existe déjà, on le repositionne et on le réaffiche
-		m_pComboBoxNative->SetSize(comboPos.x, comboPos.y, comboSize.x, comboSize.y);
-	}
-
-	m_pComboBoxNative->Show(true);
-	m_pComboBoxNative->Popup();
-	m_pComboBoxNative->SetFocus();
+    // Simule immédiatement le clic pour ouvrir le menu contextuel pop-up du CModernCombo
+    wxMouseEvent mockEvent(wxEVT_LEFT_DOWN);
+    mockEvent.SetPosition(wxPoint(comboSize.x / 2, comboSize.y / 2));
+    m_pComboBoxModern->GetEventHandler()->ProcessEvent(mockEvent);
 }
 
 void CTreeElementComboBox::OnComboSelection(wxCommandEvent& event)
 {
-	if (m_pComboBoxNative == nullptr) return;
+    if (m_pComboBoxModern == nullptr) return;
 
-	// 1. Enregistrement du nouvel index sélectionné
-	m_selectionIndex = m_pComboBoxNative->GetSelection();
+    // 1. Enregistrement du nouvel index sélectionné depuis le CModernCombo
+    m_selectionIndex = event.GetInt();
 
-	// 2. On masque le widget natif
-	m_pComboBoxNative->Show(false);
+    // 2. On masque le widget
+    m_pComboBoxModern->Show(false);
 
-	if (m_pParentWindow != nullptr)
-	{
-		m_pParentWindow->CallAfter([this]() {
-			if (m_pParentControl != nullptr)
-			{
-				CTreeElementValueInt valueInt(m_selectionIndex);
+    if (m_pParentWindow != nullptr)
+    {
+        m_pParentWindow->CallAfter([this]() {
+            if (m_pParentControl != nullptr)
+            {
+                CTreeElementValueInt valueInt(m_selectionIndex);
 
+                // Notification synchrone vers le filtre OpenCV
+                m_pParentControl->SlidePosChange(this, m_selectionIndex, &valueInt, exifKey);
+            }
 
-				// Notification synchrone vers le filtre OpenCV
-				m_pParentControl->SlidePosChange(this, m_selectionIndex, &valueInt, exifKey);
-			}
-
-			// --- LA CORRECTION EST ICI ---
-			// Il faut forcer l'arbre de contrôle principal à recalculer l'affichage (RenderMode::Update)
-			// En appelant l'interface de contrôle liée à votre fenêtre Regards
-			// Si la classe Regards possède une méthode sur son interface, on l'appelle :
-			// (Par exemple, si eventControl est accessible ou via une méthode virtuelle de CTreeControl)
-
-			if (m_pParentWindow != nullptr)
-			{
-				// Demande à l'OS de relancer le cycle complet de peinture, ce qui va forcer l'exécution de DrawElement !
-				m_pParentWindow->Refresh();
-				m_pParentWindow->Update();
-			}
-			});
-	}
-
-
-
-
+            // Rafraîchissement complet de l'arbre graphique
+            if (m_pParentWindow != nullptr)
+            {
+                m_pParentWindow->Refresh();
+                m_pParentWindow->Update();
+            }
+            });
+    }
 }
-
-
 void CTreeElementComboBox::DrawElement(wxDC* deviceContext, const int& x, const int& y)
 {
-	if (deviceContext == nullptr) return;
+    if (deviceContext == nullptr) return;
 
-	xPos = x;
-	yPos = y;
+    xPos = x;
+    yPos = y;
 
-	// Si le contrôle natif est actuellement ouvert et visible, on le laisse s'afficher par-dessus
-	if (m_pComboBoxNative != nullptr && m_pComboBoxNative->IsShown())
-	{
-		return;
-	}
+    // Si le contrôle natif/moderne est visible, on le laisse dessiner par-dessus
+    if (m_pComboBoxModern != nullptr && m_pComboBoxModern->IsShown())
+    {
+        return;
+    }
 
-	// 1. Dessin du fond de ligne standard
-	if (backcolor.IsOk())
-	{
-		wxPen backPen(backcolor, 1, wxPENSTYLE_SOLID);
-		wxBrush backBrush(backcolor, wxBRUSHSTYLE_SOLID);
-		deviceContext->SetPen(backPen);
-		deviceContext->SetBrush(backBrush);
-		deviceContext->DrawRectangle(x, y, m_width, m_height);
-	}
+    std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(*(wxWindowDC*)deviceContext));
+    if (!gc) return;
 
-	// 2. Mode au repos : Rendu graphique simulé (Ultra stable, ne bloque pas l'affichage de l'arbre)
-	int marginX = 2;
-	int marginY = 1;
-	int boxWidth = m_width - (marginX * 2);
-	int boxHeight = m_height - (marginY * 2);
+    Regards::UI::ModernTheme theme = IsDarkTheme() ? Regards::UI::ModernTheme::Dark() : Regards::UI::ModernTheme::Light();
 
-	// Dessin du champ blanc
-	deviceContext->SetPen(wxPen(wxColour(180, 180, 180), 1, wxPENSTYLE_SOLID));
-	deviceContext->SetBrush(*wxWHITE_BRUSH);
-	deviceContext->DrawRectangle(x + marginX, y + marginY, boxWidth, boxHeight);
+    // 1. Dessin du fond de la ligne de l'arbre
+    if (backcolor.IsOk())
+    {
+        gc->SetBrush(wxBrush(backcolor));
+        gc->SetPen(*wxTRANSPARENT_PEN);
+        gc->DrawRectangle(x, y, m_width, m_height);
+    }
 
-	// Dessin du bouton flèche gris à droite
-	int arrowBoxWidth = 16;
-	int arrowX = x + marginX + boxWidth - arrowBoxWidth;
-	deviceContext->SetPen(wxPen(wxColour(180, 180, 180), 1, wxPENSTYLE_SOLID));
-	deviceContext->SetBrush(wxBrush(wxColour(240, 240, 240), wxBRUSHSTYLE_SOLID));
-	deviceContext->DrawRectangle(arrowX, y + marginY, arrowBoxWidth, boxHeight);
+    // 2. Rendu au repos (Simule trait pour trait l'apparence graphique statique de CModernCombo)
+    wxRect boxRect(x + 2, y + 1, m_width - 4, m_height - 2);
 
-	// Dessin de la petite flèche noire
-	deviceContext->SetPen(wxPen(wxColour(0, 0, 0), 1, wxPENSTYLE_SOLID));
-	deviceContext->SetBrush(wxBrush(wxColour(0, 0, 0), wxBRUSHSTYLE_SOLID));
-	wxPoint arrowPoints[3];
-	arrowPoints[0] = wxPoint(arrowX + 4, y + (boxHeight / 2) - 1);
-	arrowPoints[1] = wxPoint(arrowX + 12, y + (boxHeight / 2) - 1);
-	arrowPoints[2] = wxPoint(arrowX + 8, y + (boxHeight / 2) + 3);
-	deviceContext->DrawPolygon(3, arrowPoints);
+    gc->SetBrush(wxBrush(theme.surface));
+    gc->SetPen(wxPen(theme.border, 1.0));
+    gc->DrawRoundedRectangle(boxRect.x + 0.5, boxRect.y + 0.5, boxRect.width - 1, boxRect.height - 1, 4.0);
 
-	// Rendu du texte de l'option courante sélectionnée
-	wxString currentText = GetSelectionString();
-	if (!currentText.IsEmpty())
-	{
-		deviceContext->SetTextForeground(wxColour(0, 0, 0));
+    // 3. Dessin de la flèche vectorielle épurée (Style chevron vers le bas)
+    const int arrowX = boxRect.x + boxRect.width - 18;
+    const int arrowY = boxRect.y + (boxRect.height / 2);
 
-		wxCoord textW, textH;
-		deviceContext->GetTextExtent(currentText, &textW, &textH);
-		int textY = y + (m_height - textH) / 2;
-		int maxTextWidth = boxWidth - arrowBoxWidth - 6;
+    gc->SetPen(wxPen(theme.text, 1.5, wxPENSTYLE_SOLID));
+    gc->SetBrush(*wxTRANSPARENT_BRUSH);
 
-		wxString textToDraw = currentText;
-		if (textW > maxTextWidth && textToDraw.Length() > 0)
-		{
-			while (textW > maxTextWidth && textToDraw.Length() > 0)
-			{
-				textToDraw.RemoveLast();
-				deviceContext->GetTextExtent(textToDraw + "...", &textW, &textH);
-			}
-			textToDraw += "...";
-		}
+    wxGraphicsPath path = gc->CreatePath();
+    path.MoveToPoint(arrowX, arrowY - 2);
+    path.AddLineToPoint(arrowX + 4, arrowY + 2);
+    path.AddLineToPoint(arrowX + 8, arrowY - 2);
+    gc->StrokePath(path);
 
-		deviceContext->DrawText(textToDraw, x + marginX + 4, textY);
-	}
+    // 4. Rendu du texte de l'option courante sélectionnée avec troncature automatique
+    wxString currentText = GetSelectionString();
+    if (!currentText.IsEmpty())
+    {
+        gc->SetFont(wxFont(wxFontInfo(9).Family(wxFONTFAMILY_DEFAULT)), theme.text);
 
-	deviceContext->SetBrush(wxNullBrush);
-	deviceContext->SetPen(wxNullPen);
+        wxDouble textW, textH;
+        gc->GetTextExtent(currentText, &textW, &textH);
+        int textY = boxRect.y + (boxRect.height - textH) / 2;
+        int maxTextWidth = boxRect.width - 26;
+
+        if (textW > maxTextWidth)
+        {
+            while (textW > maxTextWidth && currentText.Length() > 0)
+            {
+                currentText.RemoveLast();
+                gc->GetTextExtent(currentText + "...", &textW, &textH);
+            }
+            currentText += "...";
+        }
+
+        gc->DrawText(currentText, boxRect.x + 8, textY);
+    }
 }

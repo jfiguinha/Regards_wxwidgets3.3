@@ -175,4 +175,30 @@ namespace Regards::UI
         wxString m_label;
         ModernTheme m_theme;
     };
+
+    // ---------------- CModernCombo ----------------
+    class CModernCombo : public wxControl
+    {
+    public:
+        CModernCombo(wxWindow* parent, wxWindowID id, const std::vector<wxString>& items,
+            int defaultSelection = 0, const wxPoint& pos = wxDefaultPosition,
+            const wxSize& size = wxDefaultSize);
+
+        void SetItems(const std::vector<wxString>& items, int defaultSelection = 0);
+        int GetSelectionIndex() const { return m_selectionIndex; }
+        wxString GetSelectionString() const;
+        void SetSelection(int index);
+        void SetTheme(const ModernTheme& theme);
+
+    private:
+        void OnPaint(wxPaintEvent& event);
+        void OnLeftDown(wxMouseEvent& event);
+        void OnEraseBackground(wxEraseEvent& event);
+
+        std::vector<wxString> m_items;
+        int m_selectionIndex;
+        ModernTheme m_theme;
+        bool m_hover = false;
+    };
+
 }

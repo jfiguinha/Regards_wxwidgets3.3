@@ -15,6 +15,7 @@
 #include <treetypeid.h>
 #include <effect_id.h>
 #include "TreeElementValue.h"
+#include <treetypeid.h>
 using namespace Regards::Filter;
 using namespace Regards::Video;
 
@@ -94,8 +95,8 @@ void CAudioVideoFilter::Filter(CEffectParameter* effectParameter, const wxString
 		}
 	}
 
-	filtreInterface->AddTreeInfos(libelleAudio, new CTreeElementValueInt(indexAudio), &elementAudio, 3, 3);
-	filtreInterface->AddTreeInfos(libelleVideo, new CTreeElementValueInt(indexVideo), &elementVideo, 3, 3);
+	filtreInterface->AddTreeInfos(libelleAudio, new CTreeElementValueInt(indexAudio), &elementAudio, 3, TYPE_COMBOBOX);
+	filtreInterface->AddTreeInfos(libelleVideo, new CTreeElementValueInt(indexVideo), &elementVideo, 3, TYPE_COMBOBOX);
     
 	if (elementSubtitle.size() > 0)
 	{
@@ -106,7 +107,7 @@ void CAudioVideoFilter::Filter(CEffectParameter* effectParameter, const wxString
         
 		filtreInterface->AddTreeInfos(enableSubtitle, new CTreeElementValueInt(videoEffectParameter->enableSubtitle),
 		                              &videoEffectParameter->enableSubtitle, 2, 2);
-		filtreInterface->AddTreeInfos(libelleSubtitle, new CTreeElementValueInt(indexSubtitle), &elementSubtitle, 3, 3);
+		filtreInterface->AddTreeInfos(libelleSubtitle, new CTreeElementValueInt(indexSubtitle), &elementSubtitle, 3, TYPE_COMBOBOX);
 	
 
     	filtreInterface->AddTreeInfos(libelleEffectSize, new CTreeElementValueFloat(videoEffectParameter->subtitleSize, 2),

@@ -614,4 +614,138 @@ namespace Regards::UI
     }
 
     void CModernGroupBox::OnEraseBackground(wxEraseEvent&) {}
+
+    // ---------------- CModernCombo ----------------
+
+    CModernCombo::CModernCombo(wxWindow* parent, wxWindowID id, const std::vector<wxString>& items,
+        int defaultSelection, const wxPoint& pos, const wxSize& size)
+        : wxControl(parent, id, pos, size, wxBORDER_NONE)
+    {
+        SetBackgroundStyle(wxBG_STYLE_CUSTOM);
+        SetMinSize(size == wxDefaultSize ? wxSize(120, 24) : size);
+        SetItems(items, defaultSelection);
+
+        Bind(wxEVT_PAINT, &CModernCombo::OnPaint, this);
+        Bind(wxEVT_LEFT_DOWN, &CModernCombo::OnLeftDown, this);
+        Bind(wxEVT_ERASE_BACKGROUND, &CModernCombo::OnEraseBackground, this);
+        Bind(wxEVT_ENTER_WINDOW, [this](wxMouseEvent&) { m_hover = true; Refresh(); });
+        Bind(wxEVT_LEAVE_WINDOW, [this](wxMouseEvent&) { m_hover = false; Refresh(); });
+    }
+
+    void CModernCombo::SetItems(const std::vector<wxString>& items, int defaultSelection)
+    {
+        m_items = items;
+        m_selectionIndex = (defaultSelection >= 0 && defaultSelection < (int)items.size()) ? defaultSelection : 0;
+        Refresh();
+    }
+
+    wxString CModernCombo::GetSelectionString() const
+    {
+        if (m_selectionIndex >= 0 && m_selectionIndex < (int)m_items.size())
+            return m_items[m_selectionIndex];
+        return "";
+    }
+
+    void CModernCombo::SetSelection(int index)
+    {
+        if (index >= 0 && index < (int)m_items.size())
+        {
+            m_selectionIndex = index;
+            Refresh();
+        }
+    }
+
+    void CModernCombo::SetTheme(const ModernTheme& theme)
+    {
+        m_theme = theme;
+        Refresh();
+    }
+
+    void CModernCombo::OnPaint(wxPaintEvent&)
+    {
+        wxAutoBufferedPaintDC dc(this);
+        dc.SetBackground(wxBrush(m_theme.background));
+        dc.Clear();
+
+        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+        if (!gc) return;
+
+        const wxRect r = GetClientRect();
+        const double radius = 4.0;
+
+        // 1. Fond et bordure
+        wxColour fill = m_theme.surface;
+        wxColour border = m_hover ? m_theme.accent : m_theme.border;
+        DrawRounded(gc.get(), r, fill, border, radius);
+
+        // 2. Dessin de la flèche épurée à droite
+        const int arrowWidth = 12;
+        const int arrowX = r.width - 20;
+        const int arrowY = r.height / 2;
+
+        gc->SetPen(wxPen(m_theme.text, 1.5, wxPENSTYLE_SOLID));
+        gc->SetBrush(*wxTRANSPARENT_BRUSH);
+
+        wxGraphicsPath path = gc->CreatePath();
+        path.MoveToPoint(arrowX, arrowY - 2);
+        path.AddLineToPoint(arrowX + 4, arrowY + 2);
+        path.AddLineToPoint(arrowX + 8, arrowY - 2);
+        gc->StrokePath(path);
+
+        // 3. Rendu du texte sélectionné
+        wxString currentText = GetSelectionString();
+        if (!currentText.IsEmpty())
+        {
+            gc->SetFont(GetFont(), m_theme.text);
+            wxDouble tw = 0, th = 0;
+            gc->GetTextExtent(currentText, &tw, &th);
+
+            // Découpage automatique avec "..." si le texte est trop long
+            int maxTextWidth = r.width - 28;
+            if (tw > maxTextWidth)
+            {
+                while (tw > maxTextWidth && currentText.Length() > 0)
+                {
+                    currentText.RemoveLast();
+                    gc->GetTextExtent(currentText + "...", &tw, &th);
+                }
+                currentText += "...";
+            }
+
+            gc->DrawText(currentText, 8, (r.height - th) / 2.0);
+        }
+    }
+
+    void CModernCombo::OnLeftDown(wxMouseEvent&)
+    {
+        if (m_items.empty()) return;
+
+        // Utilisation d'un wxMenu natif pour simuler de façon ultra stable le comportement Popup d'une ComboBox moderne
+        wxMenu menu;
+        for (size_t i = 0; i < m_items.size(); ++i)
+        {
+            wxMenuItem* item = menu.AppendCheckItem(wxID_HIGHEST + i, m_items[i]);
+            if ((int)i == m_selectionIndex)
+                item->Check(true);
+        }
+
+        const wxRect r = GetClientRect();
+        // Affiche le menu juste en dessous du bouton de contrôle
+        int id = GetParent()->GetPopupMenuSelectionFromUser(menu, GetPosition().x, GetPosition().y + r.height);
+
+        if (id >= wxID_HIGHEST && id < wxID_HIGHEST + (int)m_items.size())
+        {
+            m_selectionIndex = id - wxID_HIGHEST;
+            Refresh();
+
+            // Notification vers l'OS
+            wxCommandEvent event(wxEVT_COMBOBOX, GetId());
+            event.SetInt(m_selectionIndex);
+            event.SetEventObject(this);
+            ProcessWindowEvent(event);
+        }
+    }
+
+    void CModernCombo::OnEraseBackground(wxEraseEvent&) {}
+
 }

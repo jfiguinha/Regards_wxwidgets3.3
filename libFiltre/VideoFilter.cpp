@@ -11,6 +11,7 @@
 #include "EffectVideoParameter.h"
 #include <LibResource.h>
 #include <Metadata.h>
+#include <treetypeid.h>
 #include <effect_id.h>
 using namespace Regards::Filter;
 
@@ -99,13 +100,7 @@ void CVideoFilter::Filter(CEffectParameter* effectParameter, const wxString& fil
 	for (auto i = -100; i < 101; i++)
 		elementContrast.push_back(i);
 
-	/*
-			tabRatio.push_back(1.1f);
-		tabRatio.push_back(1.33f);
-		tabRatio.push_back(1.66f);
-		tabRatio.push_back(1.85f);
-		tabRatio.push_back(2.35f);
-	*/
+
 	vector<CMetadata> formatPicture;
 	AddMetadataElement(formatPicture, "auto", 0);
 	for (int i = 0; i < videoEffectParameter->tabRatio.size(); i++)
@@ -116,7 +111,7 @@ void CVideoFilter::Filter(CEffectParameter* effectParameter, const wxString& fil
 		AddMetadataElement(zoomPicture, to_string(videoEffectParameter->tabZoom[i]), i);
 
 	filtreInterface->AddTreeInfos(libelleScale, new CTreeElementValueInt(videoEffectParameter->ratioSelect),
-	                              &formatPicture, 3, 3);
+	                              &formatPicture, 3, TYPE_COMBOBOX);
 	filtreInterface->AddTreeInfos(showFPS, new CTreeElementValueInt(videoEffectParameter->showFPS),
 	                              &videoEffectParameter->showFPS, 2, 2);
 	filtreInterface->AddTreeInfos(enableEffect, new CTreeElementValueInt(videoEffectParameter->effectEnable),
