@@ -7,7 +7,7 @@ namespace Regards::Window
 	class CInfosSeparationBarExplorer : public CInfosSeparationBar
 	{
 	public:
-		CInfosSeparationBarExplorer(const CThemeInfosSeparationBar& theme);
+		CInfosSeparationBarExplorer(const CThemeInfosSeparationBar& theme, float dpiScale);
 		~CInfosSeparationBarExplorer(void) override;
 
 		void RenderIcone(wxDC* deviceContext, const int& posLargeur, const int& posHauteur) override;

@@ -22,8 +22,8 @@ bool CInfosSeparationBarFace::GetSelected()
  * \brief 
  * \param theme 
  */
-CInfosSeparationBarFace::CInfosSeparationBarFace(const CThemeInfosSeparationBar& theme)
-	: CInfosSeparationBar(theme), theme_(theme)
+CInfosSeparationBarFace::CInfosSeparationBarFace(const CThemeInfosSeparationBar& theme, float dpiScale)
+	: CInfosSeparationBar(theme, dpiScale), theme_(theme)
 {
 	parentWindow = nullptr;
 	isSelected = false;
@@ -263,4 +263,10 @@ void CInfosSeparationBarFace::RenderIcone(wxDC* deviceContext, const int& posLar
 	yPos = y + (theme.GetHeight() - sizeDelete.y) - (bitmapDelete.GetHeight() - sizeDelete.y) / 2;
 
 	CWindowMain::DrawTexte(deviceContext, libelleDelete, xPos, yPos, theme.themeFont);
+
+	// Dessin de la barre de séparation
+	y = GetHeight() - 1;
+
+	deviceContext->SetPen(wxPen(theme.themeFont.colorBack, 1));
+	deviceContext->DrawLine(5, y, width - 5, y);
 }

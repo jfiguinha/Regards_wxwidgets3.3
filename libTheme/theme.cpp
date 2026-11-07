@@ -1919,7 +1919,7 @@ CThemeInfosSeparationBar::CThemeInfosSeparationBar()
 	themeFont.SetFontSize(10);
 	themeFont.SetBold(true);
 	themeFont.SetFontQuality(ANTIALIASED_QUALITY);
-	height = 40;
+	height = 60;
 	calculHeight = 0;
 }
 
@@ -1938,6 +1938,8 @@ void CThemeInfosSeparationBar::LoadXML(xml_node<>* root_node)
 			value = child_node->value();
 			nodeName = child_node->name();
 			height = CConvertUtility::StringToInt(value);
+			if (height < 60)
+				height = 60;
 		}
 
 		child_node = node->first_node("colorBack");

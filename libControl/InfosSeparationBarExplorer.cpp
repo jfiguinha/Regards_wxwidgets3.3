@@ -34,8 +34,8 @@ void CInfosSeparationBarExplorer::ShowExpandIcon(const bool& showExpandIcon)
 }
 
 
-CInfosSeparationBarExplorer::CInfosSeparationBarExplorer(const CThemeInfosSeparationBar& theme)
-	: CInfosSeparationBar(theme)
+CInfosSeparationBarExplorer::CInfosSeparationBarExplorer(const CThemeInfosSeparationBar& theme, float dpiScale)
+	: CInfosSeparationBar(theme, dpiScale)
 {
 	libelleSelectAll = CLibResource::LoadStringFromResource(L"LBLSelectAll", 1);
 	isSelected = false;
@@ -68,6 +68,7 @@ void CInfosSeparationBarExplorer::CreateIcone(wxImage & bitmap, const wxString &
 		bitmap = bitmap.ConvertToDisabled();
 	}
 }
+
 void CInfosSeparationBarExplorer::RenderIcone(wxDC* deviceContext, const int& posLargeur, const int& posHauteur)
 {
 	RenderTitle(deviceContext);
@@ -130,4 +131,10 @@ void CInfosSeparationBarExplorer::RenderIcone(wxDC* deviceContext, const int& po
 	}
 
 	CWindowMain::DrawTexte(deviceContext, libelleSelectAll, xPos, yPos, theme.themeFont);
+
+	// Dessin de la barre de séparation
+	y = GetHeight() - 1;
+
+	deviceContext->SetPen(wxPen(theme.themeFont.colorBack, 1));
+	deviceContext->DrawLine(5, y, width - 5, y);
 }

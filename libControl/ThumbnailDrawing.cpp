@@ -61,8 +61,9 @@ CIcone* CThumbnailDrawing::FindElement(const int& xPos, const int& yPos) {
 
 CInfosSeparationBarEffect* CThumbnailDrawing::CreateNewSeparatorBar(
     const wxString& libelle) {
+    const float dpiScale = GetDPIScaleFactor();
     auto infosSeparationBar = std::make_unique<CInfosSeparationBarEffect>(
-        themeThumbnail.themeSeparation);
+        themeThumbnail.themeSeparation, dpiScale);
     infosSeparationBar->SetTitle(libelle);
     infosSeparationBar->SetWidth(GetWindowWidth());
     CInfosSeparationBarEffect* result = infosSeparationBar.get();

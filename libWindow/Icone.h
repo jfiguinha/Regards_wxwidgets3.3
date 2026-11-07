@@ -18,7 +18,7 @@ namespace Regards::Window
 	class CIcone
 	{
 	public:
-		CIcone(CThumbnailData* data, bool deleteData = true);
+		CIcone(CThumbnailData* data, float dpiScale = 1.0f, bool deleteData = true);
 		~CIcone(void);
 		void StartLoadingPicture();
 		void StopLoadingPicture();
@@ -100,6 +100,18 @@ namespace Regards::Window
 		wxBitmap GetCopyIcone() const;
 
 	protected:
+		int cornerRadius = 10;
+
+		void SetCornerRadius(int radius)
+		{
+			cornerRadius = std::max(0, radius);
+			Invalidate();
+			scaleBackup.Destroy();
+		}
+
+		wxImage ApplyRoundedCorners(
+			const wxImage& source,
+			int radius) const;
 
 		void Invalidate() noexcept;
 
@@ -167,6 +179,7 @@ namespace Regards::Window
 		bool redraw = true;
 		bool visible = true;
 
+		float dpiScale = 1.0f;
 		wxImage sourceImageCache;
 	};
 

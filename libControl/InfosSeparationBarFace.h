@@ -8,11 +8,7 @@ namespace Regards::Window
 	class CInfosSeparationBarFace : public CInfosSeparationBar
 	{
 	public:
-		/**
-			 * \brief 
-			 * \param theme 
-			 */
-		explicit CInfosSeparationBarFace(const CThemeInfosSeparationBar& theme);
+		explicit CInfosSeparationBarFace(const CThemeInfosSeparationBar& theme, float dpiScale);
 		~CInfosSeparationBarFace(void) override;
 
 		void EnableModification(const bool& enable);

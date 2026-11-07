@@ -11,7 +11,14 @@ namespace Regards::Window
 	class CInfosSeparationBar
 	{
 	public:
-		CInfosSeparationBar(const CThemeInfosSeparationBar& theme);
+
+		struct TextLine
+		{
+			wxString text;
+			wxSize size;
+		};
+
+		CInfosSeparationBar(const CThemeInfosSeparationBar& theme, float dpiScale);
 		virtual ~CInfosSeparationBar(void);
 
 		inline bool operator==(const CInfosSeparationBar& n1);
@@ -48,7 +55,7 @@ namespace Regards::Window
 
 		int GetNbElementX();
 		int GetNbElementY();
-
+		void RenderBorder(wxDC* dc);
 
 		vector<int> listElement;
 
@@ -59,7 +66,7 @@ namespace Regards::Window
 		int _xPos;
 		int _yPos;
 		int width;
-
+		float dpiScale = 1.0f;
 		int nbElementX = 0;
 		int nbElementY = 0;
 

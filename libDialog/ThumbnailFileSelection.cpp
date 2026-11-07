@@ -32,7 +32,8 @@ CThumbnailFileSelection::~CThumbnailFileSelection(void)
 
 void CThumbnailFileSelection::AddSeparatorBar(CIconeList* iconeListLocal, const wxString& libelle, int& nbElement)
 {
-	auto infosSeparationBar = std::make_unique<CInfosSeparationBarExplorer>(themeThumbnail.themeSeparation);
+	const float dpiScale = GetDPIScaleFactor();
+	auto infosSeparationBar = std::make_unique<CInfosSeparationBarExplorer>(themeThumbnail.themeSeparation, dpiScale);
 	infosSeparationBar->SetTitle(libelle);
 	infosSeparationBar->SetWidth(GetWindowWidth());
 	int typeElement = TYPEMULTIPAGE;

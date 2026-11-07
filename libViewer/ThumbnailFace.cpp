@@ -74,7 +74,8 @@ void CThumbnailFace::AddSeparatorBar(
 	int& nbElement,
 	const std::unordered_map<FaceKey, CIcone*, FaceKeyHash>& iconIndex)
 {
-	auto infosSeparationBar = std::make_unique<CInfosSeparationBarFace>(themeThumbnail.themeSeparation);
+	const float dpiScale = GetDPIScaleFactor();
+	auto infosSeparationBar = std::make_unique<CInfosSeparationBarFace>(themeThumbnail.themeSeparation, dpiScale);
 
 	infosSeparationBar->SetTitle(libelle);
 	infosSeparationBar->SetParentWindow(this);
@@ -376,8 +377,9 @@ void CThumbnailFace::SyncWithDatabase()
 
 		if (photosInDB.empty()) continue;
 
+		const float dpiScale = GetDPIScaleFactor();	
 		// Création du bloc de séparation (En-tête du groupe de visage)
-		auto infosSeparationBar = std::make_unique<CInfosSeparationBarFace>(themeThumbnail.themeSeparation);
+		auto infosSeparationBar = std::make_unique<CInfosSeparationBarFace>(themeThumbnail.themeSeparation, dpiScale);
 		infosSeparationBar->SetTitle(currentFace.faceName);
 		infosSeparationBar->SetParentWindow(this);
 		infosSeparationBar->SetWidth(GetWindowWidth());

@@ -2,6 +2,8 @@
 #include "InfosSeparationBar.h"
 #include <ConvertUtility.h>
 #include "WindowMain.h"
+#include <wx/graphics.h>
+#include <wx/math.h>
 using namespace Regards::Window;
 //const unsigned int cuStackSize = 128 * 1024;
 
@@ -82,7 +84,7 @@ void CInfosSeparationBar::SetWidth(const int& width)
 }
 
 
-CInfosSeparationBar::CInfosSeparationBar(const CThemeInfosSeparationBar& theme): _xPos(0), _yPos(0), width(0)
+CInfosSeparationBar::CInfosSeparationBar(const CThemeInfosSeparationBar& theme, float dpiScale): _xPos(0), _yPos(0), width(0), dpiScale(dpiScale)
 {
 	this->theme = theme;
 }
@@ -96,65 +98,146 @@ CInfosSeparationBar::~CInfosSeparationBar(void)
 
 void CInfosSeparationBar::RenderTitle(wxDC* dc)
 {
-	wxRect rc;
-	int x = 0;
-	int y = 0;
-	rc.x = 0;
-	rc.y = 0;
-	rc.width = width;
-	rc.height = GetHeight();
-	CWindowMain::FillRect(dc, rc, theme.colorBack);
+    if (dc == nullptr || width <= 0 || GetHeight() <= 0)
+    {
+        titleRectPos = wxRect(0, 0, 0, 0);
+        return;
+    }
 
-	int posY = 0; // Va cumuler la hauteur au fur et à mesure
-	int spacingBetweenLines = 2; // Petit espace en pixels entre les lignes (optionnel)
+    const int height = GetHeight();
 
-	vector<wxString> listOfTexte = CConvertUtility::split(this->title, '@');
+    // Fond de l'en-tête.
+    const wxRect clientRect(0, 0, width, height);
+    CWindowMain::FillRect(dc, clientRect, theme.colorBack);
 
-	if (!listOfTexte.empty())
-	{
-		int minX = width;
-		int minY = GetHeight();
-		int maxX = 0;
-		int maxY = 0;
-		bool hasDrawnAnything = false;
+    titleRectPos = wxRect(0, 0, 0, 0);
 
-		for (const wxString& textLine : listOfTexte)
-		{
-			if (!textLine.IsEmpty())
-			{
-				wxSize size = CWindowMain::GetSizeTexte(dc, textLine, theme.themeFont);
+    const vector<wxString> lines =
+        CConvertUtility::split(title, '@');
 
-				// Aligné tout en haut : posY commence à 0 et augmente de la hauteur du texte écrit
-				int localy = y + posY;
-				int localx = x + (width - size.x) / 2; // Reste centré horizontalement
+    if (lines.empty())
+        return;
 
-				CWindowMain::DrawTexte(dc, textLine, localx, localy, theme.themeFont);
+    // Marges adaptées au DPI.
+    const int horizontalPadding = static_cast<int>(8 * dpiScale);
+    const int verticalPadding = static_cast<int>(5 * dpiScale);
+    const int spacingBetweenLines = static_cast<int>(3 * dpiScale);
 
-				// Mise à jour des bornes pour titleRectPos
-				if (localx < minX) minX = localx;
-				if (localy < minY) minY = localy;
-				if (localx + size.x > maxX) maxX = localx + size.x;
-				if (localy + size.y > maxY) maxY = localy + size.y;
-				hasDrawnAnything = true;
 
-				// On avance posY de la hauteur exacte de la ligne de texte + l'espacement
-				posY += size.y + spacingBetweenLines;
-			}
-		}
 
-		if (hasDrawnAnything)
-		{
-			titleRectPos.x = minX;
-			titleRectPos.y = minY;
-			titleRectPos.width = maxX - minX;
-			titleRectPos.height = maxY - minY;
-		}
-		else
-		{
-			titleRectPos = wxRect(0, 0, 0, 0);
-		}
-	}
+    vector<TextLine> validLines;
+    validLines.reserve(lines.size());
+
+    int totalTextHeight = 0;
+    int maxTextWidth = 0;
+
+    // Première passe : calcul des dimensions.
+    for (const wxString& line : lines)
+    {
+        if (line.IsEmpty())
+            continue;
+
+        const wxSize textSize =
+            CWindowMain::GetSizeTexte(dc, line, theme.themeFont);
+
+        if (textSize.x <= 0 || textSize.y <= 0)
+            continue;
+
+        validLines.push_back({ line, textSize });
+
+        totalTextHeight += textSize.y;
+        maxTextWidth = std::max(maxTextWidth, textSize.x);
+    }
+
+    if (validLines.empty())
+        return;
+
+    totalTextHeight +=
+        static_cast<int>(validLines.size() - 1) * spacingBetweenLines;
+
+    // Centrage vertical de l'ensemble du titre.
+    int posY = std::max(
+        verticalPadding,
+        (height - totalTextHeight) / 2);
+
+    // Deuxième passe : dessin des lignes.
+    int minX = width;
+    int minY = height;
+    int maxX = 0;
+    int maxY = 0;
+
+    for (const TextLine& line : validLines)
+    {
+        const int posX = (width - line.size.x) / 2;
+
+        CWindowMain::DrawTexte(
+            dc,
+            line.text,
+            posX,
+            posY,
+            theme.themeFont);
+
+        minX = std::min(minX, posX);
+        minY = std::min(minY, posY);
+
+        maxX = std::max(maxX, posX + line.size.x);
+        maxY = std::max(maxY, posY + line.size.y);
+
+        posY += line.size.y + spacingBetweenLines;
+    }
+
+    // Rectangle englobant du titre.
+    titleRectPos = wxRect(
+        minX,
+        minY,
+        maxX - minX,
+        maxY - minY);
+
+
+    // Dessin de la barre de séparation
+    int y = GetHeight() - 1;
+
+    dc->SetPen(wxPen(theme.themeFont.colorBack, 1));
+    dc->DrawLine(5, y, width - 5, y);
+
+    //RenderBorder(dc);
 }
+
+
+void CInfosSeparationBar::RenderBorder(wxDC* dc)
+{
+    if (!dc)
+        return;
+
+    const int width = GetWidth();
+    const int height = GetHeight();
+    const int radius = 8;
+
+    dc->SetBrush(*wxTRANSPARENT_BRUSH);
+    dc->SetPen(wxPen(theme.themeFont.colorBack, 1));
+
+    // Bord supérieur
+    dc->DrawLine(radius, 0, width - radius, 0);
+
+    // Bord droit
+    dc->DrawLine(width - 1, radius, width - 1, height - 1);
+
+    // Bord gauche
+    dc->DrawLine(0, radius, 0, height - 1);
+
+    // Bordure arrondie supérieure gauche
+    dc->DrawArc(
+        0, radius * 2,
+        radius * 2, 0,
+        radius, radius);
+
+    // Bordure arrondie supérieure droite
+    dc->DrawArc(
+        width - radius * 2, 0,
+        width, radius * 2,
+        width - radius, radius);
+}
+
 
 void  CInfosSeparationBar::SetNbElementX(const int& nbElementX)
 {
@@ -178,11 +261,19 @@ int  CInfosSeparationBar::GetNbElementY()
 
 void CInfosSeparationBar::Render(wxDC* dc, const int& posLargeur, const int& posHauteur)
 {
+    if (dc == nullptr)
+        return;
+
+
+
 	wxBitmap memBitmap(GetWidth(), GetHeight());
 	wxMemoryDC memDC(memBitmap);
 	RenderIcone(&memDC, posLargeur, posHauteur);
 	memDC.SelectObject(wxNullBitmap);
 	dc->DrawBitmap(memBitmap, _xPos + posLargeur, _yPos + posHauteur);
+
+
+
 }
 
 //----------------------------------------------------------------------------------

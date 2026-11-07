@@ -7,8 +7,8 @@ namespace Regards::Control
 	class CInfosSeparationBarEffect : public CInfosSeparationBar
 	{
 	public:
-		CInfosSeparationBarEffect(const CThemeInfosSeparationBar& theme)
-			: CInfosSeparationBar(theme)
+		CInfosSeparationBarEffect(const CThemeInfosSeparationBar& theme, float dpiScale)
+			: CInfosSeparationBar(theme, dpiScale)
 		{
 		};
 

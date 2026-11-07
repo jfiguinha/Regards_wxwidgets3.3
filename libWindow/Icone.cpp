@@ -132,7 +132,7 @@ CIcone::~CIcone(void)
 	}
 }
 
-CIcone::CIcone(CThumbnailData* data, bool deleteData) : numElement(0), oldx(0), oldy(0)
+CIcone::CIcone(CThumbnailData* data, float dpiScale, bool deleteData) : numElement(0), oldx(0), oldy(0), dpiScale(dpiScale)
 {
 	this->deleteData = deleteData;
 	pThumbnailData = nullptr;
@@ -529,6 +529,77 @@ void CIcone::RenderVideoBitmap(wxDC* memDC, wxImage& bitmapScale, const int& typ
 	}
 }
 
+
+
+wxImage CIcone::ApplyRoundedCorners(
+	const wxImage& source,
+	int radius) const
+{
+	if (!source.IsOk())
+		return wxImage();
+
+	const int width = source.GetWidth();
+	const int height = source.GetHeight();
+
+	if (width <= 0 || height <= 0)
+		return wxImage();
+
+	radius = std::clamp(radius, 0, std::min(width, height) / 2);
+
+	if (radius == 0)
+		return source.Copy();
+
+	wxImage result = source.Copy();
+
+	if (!result.HasAlpha())
+		result.InitAlpha();
+
+	unsigned char* alpha = result.GetAlpha();
+
+	if (!alpha)
+		return result;
+
+	const double r = static_cast<double>(radius);
+	const double feather = 1.0;
+
+	const double left = r;
+	const double right = width - r;
+	const double top = r;
+	const double bottom = height - r;
+
+	for (int y = 0; y < height; ++y)
+	{
+		for (int x = 0; x < width; ++x)
+		{
+			const double px = x + 0.5;
+			const double py = y + 0.5;
+
+			const double cx = std::clamp(px, left, right);
+			const double cy = std::clamp(py, top, bottom);
+
+			const double dx = px - cx;
+			const double dy = py - cy;
+
+			const double distance = std::sqrt(dx * dx + dy * dy);
+
+			const double coverage = std::clamp(
+				(r + feather * 0.5 - distance) / feather,
+				0.0,
+				1.0);
+
+			const size_t index =
+				static_cast<size_t>(y) * width + x;
+
+			alpha[index] = static_cast<unsigned char>(
+				std::round(alpha[index] * coverage));
+		}
+	}
+
+	return result;
+}
+
+
+
 void CIcone::RenderBitmap(wxDC* memdc, wxImage& bitmapScale, const int& type)
 {
 	if (memdc == nullptr || pThumbnailData == nullptr)
@@ -750,7 +821,11 @@ void CIcone::GetBitmapIcone(
 				}
 			}
 
-			scaleBackup = scale;
+			const int radius = static_cast<int>(
+				std::round(cornerRadius * dpiScale));
+
+			scaleBackup = ApplyRoundedCorners(scale, radius);
+
 			scale.Destroy();
 		}
 

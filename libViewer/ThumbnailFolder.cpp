@@ -43,7 +43,8 @@ void CThumbnailFolder::OnPictureClick(const int& numPhotoId)
 
 std::unique_ptr<CInfosSeparationBarExplorer> CThumbnailFolder::AddSeparatorBar(PhotosVector* _pictures, CIconeList* iconeListLocal, const wxString& libelle, int& nbElement)
 {
-	auto infosSeparationBar = std::make_unique<CInfosSeparationBarExplorer>(themeThumbnail.themeSeparation);
+	const float dpiScale = GetDPIScaleFactor();
+	auto infosSeparationBar = std::make_unique<CInfosSeparationBarExplorer>(themeThumbnail.themeSeparation, dpiScale);
 	infosSeparationBar->SetTitle(libelle);
 	infosSeparationBar->SetWidth(GetWindowWidth());
 	infosSeparationBar->ShowExpandIcon(true);
