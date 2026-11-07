@@ -3,11 +3,15 @@
 #include <window_id.h>
 #include <wx/dcbuffer.h>
 #include <algorithm>
+#include "ScrollbarDrawUtils.h"
 using namespace Regards::Window;
 
 #define BARSIZEMIN 20
 #define LINESIZE 5
 #define PAGESIZE 50
+
+// Barre "au repos" (souris absente) : épaisseur = épaisseur pleine * THINBAR_RATIO.
+static constexpr double THINBAR_RATIO = 0.5;
 
 enum
 {
@@ -20,7 +24,7 @@ enum
 
 
 CScrollbarHorizontalWnd::CScrollbarHorizontalWnd(const wxString& windowName, wxWindow* parent, wxWindowID id,
-                                                 const CThemeScrollBar& theme)
+	const CThemeScrollBar& theme)
 	: CWindowMain(windowName, parent, id)
 {
 	showTriangle = true;
@@ -54,22 +58,22 @@ CScrollbarHorizontalWnd::CScrollbarHorizontalWnd(const wxString& windowName, wxW
 	Connect(wxEVT_LEFT_UP, wxMouseEventHandler(CScrollbarHorizontalWnd::OnLButtonUp));
 	Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(CScrollbarHorizontalWnd::OnMouseHover));
 	Connect(TIMER_TRIANGLELEFT, wxEVT_TIMER, wxTimerEventHandler(CScrollbarHorizontalWnd::OnTimerTriangleLeft), nullptr,
-	        this);
+		this);
 	Connect(TIMER_TRIANGLERIGHT, wxEVT_TIMER, wxTimerEventHandler(CScrollbarHorizontalWnd::OnTimerTriangleRight),
-	        nullptr, this);
+		nullptr, this);
 	Connect(TIMER_PAGELEFT, wxEVT_TIMER, wxTimerEventHandler(CScrollbarHorizontalWnd::OnTimerPageLeft), nullptr, this);
 	Connect(TIMER_PAGERIGHT, wxEVT_TIMER, wxTimerEventHandler(CScrollbarHorizontalWnd::OnTimerPageRight), nullptr,
-	        this);
+		this);
 	Connect(TIMER_STOPMOVING, wxEVT_TIMER, wxTimerEventHandler(CScrollbarHorizontalWnd::OnTimerStopMoving), nullptr,
-	        this);
+		this);
 	Connect(wxEVT_MOUSE_CAPTURE_LOST, wxMouseEventHandler(CScrollbarHorizontalWnd::OnMouseCaptureLost));
 	Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(CScrollbarHorizontalWnd::OnEraseBackground));
 	//	Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(CScrollbarHorizontalWnd::OnMouseLeave));
+	Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(CScrollbarHorizontalWnd::OnMouseLeaveWindow));
 }
 
 void CScrollbarHorizontalWnd::OnMouseCaptureLost(wxMouseEvent& event)
-{
-}
+{}
 
 void CScrollbarHorizontalWnd::SetIsMoving()
 {
@@ -146,6 +150,7 @@ bool CScrollbarHorizontalWnd::UpdateScrollBar(const int& posLargeur, const int& 
 	else if (pictureWidth <= screenWidth && this->IsShown())
 	{
 		Show(false);
+		mouseOver = false; // pas d'événement LEAVE sur une fenêtre masquée
 		needToShow = true;
 	}
 
@@ -173,9 +178,14 @@ bool CScrollbarHorizontalWnd::UpdateScrollBar(const int& posLargeur, const int& 
 void CScrollbarHorizontalWnd::CalculBarSize()
 {
 	barStartX = showTriangle
-		            ? themeScroll.GetMarge() + themeScroll.GetMarge() + themeScroll.GetRectangleSize()
-		            : 0;
+		? themeScroll.GetMarge() + themeScroll.GetMarge() + themeScroll.GetRectangleSize()
+		: 0;
 	barEndX = GetWindowWidth() - barStartX;
+
+	if (showEmptyRectangle)
+	{
+		barEndX -= widthSize;
+	}
 
 	if (lineSize <= 0)
 		lineSize = 1;
@@ -231,6 +241,16 @@ bool CScrollbarHorizontalWnd::DefineSize(const int& screenWidth, const int& pict
 }
 
 
+void CScrollbarHorizontalWnd::ShowEmptyRectangle(const bool& show, const int& widthSize)
+{
+	if (showEmptyRectangle != show || (show && this->widthSize != widthSize))
+	{
+		showEmptyRectangle = show;
+		this->widthSize = widthSize;
+		Resize();
+	}
+}
+
 void CScrollbarHorizontalWnd::SetPageSize(const int& pageSize)
 {
 	pageSizeDefault = pageSize;
@@ -273,26 +293,24 @@ CScrollbarHorizontalWnd::~CScrollbarHorizontalWnd()
 
 void CScrollbarHorizontalWnd::DrawLeftTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle)
 {
-	wxBrush brushHatch(colorTriangle);
-	dc->SetBrush(brushHatch);
-	wxPoint star[3];
-	star[0] = wxPoint(rc.x, (rc.height - rc.y) / 2 + themeScroll.GetMarge());
-	star[1] = wxPoint(rc.width, rc.y);
-	star[2] = wxPoint(rc.width, rc.height);
-	dc->DrawPolygon(WXSIZEOF(star), star, 0, 0);
-	dc->SetBrush(wxNullBrush);
+	const double centerY = (rc.y + rc.height) / 2.0;
+	const wxPoint2DDouble pts[3] = {
+		wxPoint2DDouble(rc.x, centerY),
+		wxPoint2DDouble(rc.width, rc.y),
+		wxPoint2DDouble(rc.width, rc.height)
+	};
+	ScrollbarDraw::FillTriangle(dc, pts, colorTriangle);
 }
 
 void CScrollbarHorizontalWnd::DrawRightTriangleElement(wxDC* dc, const wxRect& rc, const wxColour& colorTriangle)
 {
-	wxBrush brushHatch(colorTriangle);
-	dc->SetBrush(brushHatch);
-	wxPoint star[3];
-	star[0] = wxPoint(rc.x, rc.y);
-	star[1] = wxPoint(rc.x, rc.height);
-	star[2] = wxPoint(rc.width, (rc.height - rc.y) / 2 + themeScroll.GetMarge());
-	dc->DrawPolygon(WXSIZEOF(star), star, 0, 0);
-	dc->SetBrush(wxNullBrush);
+	const double centerY = (rc.y + rc.height) / 2.0;
+	const wxPoint2DDouble pts[3] = {
+		wxPoint2DDouble(rc.x, rc.y),
+		wxPoint2DDouble(rc.x, rc.height),
+		wxPoint2DDouble(rc.width, centerY)
+	};
+	ScrollbarDraw::FillTriangle(dc, pts, colorTriangle);
 }
 
 // [CORRECTIF] Cette fonction ne mute plus rcPosBar (état persistant) pendant le
@@ -300,15 +318,22 @@ void CScrollbarHorizontalWnd::DrawRightTriangleElement(wxDC* dc, const wxRect& r
 // chaque recalcul de position (MoveBar, DefineSize, Resize). Un Draw ne doit que lire.
 void CScrollbarHorizontalWnd::DrawRectangleElement(wxDC* dc, const wxColour& colorBar)
 {
-	auto brush = wxBrush(colorBar);
-	dc->SetBrush(brush);
+	const double windowHeight = GetWindowHeight();
+	const double fullThickness = windowHeight * 0.5;
+	if (fullThickness <= 0)
+		return;
 
-	wxRect rc = rcPosBar;
-	rc.width = rcPosBar.width - rcPosBar.x;
-	rc.height = GetWindowHeight() - (themeScroll.GetMarge() * 2);
-	dc->DrawRoundedRectangle(rc, (GetWindowHeight() / 2) - themeScroll.GetMarge());
-	dc->SetBrush(wxNullBrush);
-	//FillRect(dc, rc, colorBar);    
+	// Souris absente : épaisseur * THINBAR_RATIO. La barre est centrée verticalement
+	// dans la fenêtre (zone de clic inchangée).
+	double thickness = fullThickness;
+	if (!(mouseOver || captureBar))
+		thickness = std::max(1.0, fullThickness * THINBAR_RATIO);
+
+	const double x = rcPosBar.x;
+	const double width = rcPosBar.width - rcPosBar.x;
+	const double y = (windowHeight - thickness) / 2.0;
+
+	ScrollbarDraw::FillRoundedRect(dc, x, y, width, thickness, thickness / 2.0, colorBar);
 }
 
 void CScrollbarHorizontalWnd::OnMouseLeave(wxMouseEvent& event)
@@ -335,6 +360,25 @@ void CScrollbarHorizontalWnd::OnMouseLeave(wxMouseEvent& event)
 void CScrollbarHorizontalWnd::OnMouseHover(wxMouseEvent& event)
 {
 	wxSetCursor(wxCursor(wxCURSOR_ARROW));
+	SetMouseOver(true);
+}
+
+// Pendant un drag la souris est capturée : l'état "survolé" est conservé et recalculé
+// dans OnLButtonUp().
+void CScrollbarHorizontalWnd::OnMouseLeaveWindow(wxMouseEvent& event)
+{
+	if (!captureBar)
+		SetMouseOver(false);
+	event.Skip();
+}
+
+void CScrollbarHorizontalWnd::SetMouseOver(const bool& value)
+{
+	if (mouseOver != value)
+	{
+		mouseOver = value;
+		Refresh(false);
+	}
 }
 
 void CScrollbarHorizontalWnd::Resize()
@@ -344,10 +388,17 @@ void CScrollbarHorizontalWnd::Resize()
 	const int windowWidth = GetWindowWidth();
 
 	barStartX = showTriangle
-		            ? themeScroll.GetMarge() + themeScroll.GetMarge() + themeScroll.GetRectangleSize()
-		            : 0;
+		? themeScroll.GetMarge() + themeScroll.GetMarge() + themeScroll.GetRectangleSize()
+		: 0;
 
-	barEndX = windowWidth - barStartX;
+	int tailleX = windowWidth;
+
+	if (showEmptyRectangle)
+	{
+		tailleX -= widthSize;
+	}
+
+	barEndX = tailleX - barStartX;
 
 	if (barPosX == 0)
 		barPosX = barStartX;
@@ -357,8 +408,8 @@ void CScrollbarHorizontalWnd::Resize()
 	rcPosTriangleLeft.y = themeScroll.GetMarge();
 	rcPosTriangleLeft.height = themeScroll.GetMarge() + themeScroll.GetRectangleSize();
 
-	rcPosTriangleRight.x = (windowWidth - barStartX) + themeScroll.GetMarge();
-	rcPosTriangleRight.width = windowWidth - themeScroll.GetMarge();
+	rcPosTriangleRight.x = (tailleX - barStartX) + themeScroll.GetMarge();
+	rcPosTriangleRight.width = tailleX - themeScroll.GetMarge();
 	rcPosTriangleRight.y = themeScroll.GetMarge();
 	rcPosTriangleRight.height = themeScroll.GetMarge() + themeScroll.GetRectangleSize();
 
@@ -380,6 +431,8 @@ void CScrollbarHorizontalWnd::Resize()
 
 void CScrollbarHorizontalWnd::OnMouseMove(wxMouseEvent& event)
 {
+	SetMouseOver(true); // couvre le cas où la scrollbar apparaît sous le curseur
+
 	if (!captureBar)
 		return;
 
@@ -533,6 +586,10 @@ void CScrollbarHorizontalWnd::OnLButtonDown(wxMouseEvent& event)
 	int xPos = event.GetX();
 	int yPos = event.GetY();
 
+	// Clic dans le carré vide (croisement des deux barres) : rien à faire.
+	if (showEmptyRectangle && xPos >= GetWindowWidth() - widthSize)
+		return;
+
 	if (showTriangle && FindLeftTriangle(yPos, xPos))
 	{
 		ClickLeftTriangle();
@@ -592,6 +649,9 @@ void CScrollbarHorizontalWnd::OnLButtonUp(wxMouseEvent& event)
 
 	if (pageRight->IsRunning())
 		pageRight->Stop();
+
+	// Après un drag, la souris a pu quitter la scrollbar : recalcul de l'état de survol.
+	SetMouseOver(GetClientRect().Contains(ScreenToClient(wxGetMousePosition())));
 
 	this->Refresh();
 }
@@ -694,7 +754,7 @@ void CScrollbarHorizontalWnd::DrawElement(wxDC* dc)
 	rc.width = GetWindowWidth();
 	rc.height = GetWindowHeight();
 	FillRect(dc, rc, themeScroll.colorBack);
-	if (showTriangle)
+	if (showTriangle && mouseOver)
 	{
 		DrawLeftTriangleElement(dc, rcPosTriangleLeft, themeScroll.colorTriangle);
 		DrawRightTriangleElement(dc, rcPosTriangleRight, themeScroll.colorTriangle);
@@ -719,8 +779,10 @@ void CScrollbarHorizontalWnd::on_paint(wxPaintEvent& event)
 
 void CScrollbarHorizontalWnd::FillRect(wxDC* dc, const wxRect& rc, const wxColour& color)
 {
-	auto brush = wxBrush(color);
-	dc->SetBrush(brush);
+	// Pas de contour : le stylo par défaut du wxDC (noir, 1 px) dessinait une bordure noire.
+	dc->SetPen(*wxTRANSPARENT_PEN);
+	dc->SetBrush(wxBrush(color));
 	dc->DrawRectangle(rc);
 	dc->SetBrush(wxNullBrush);
+	dc->SetPen(wxNullPen);
 }

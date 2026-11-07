@@ -850,6 +850,7 @@
     <ClInclude Include="LayerElement.h" />
     <ClInclude Include="LayerFonction.h" />
     <ClInclude Include="RegardsModernControls.h" />
+    <ClInclude Include="ScrollbarDrawUtils.h" />
     <ClInclude Include="TreeElementColor.h" />
     <ClInclude Include="GLcontext.h" />
     <ClInclude Include="GpsEngine.h" />

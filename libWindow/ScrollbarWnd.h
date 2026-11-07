@@ -1,7 +1,6 @@
 #pragma once
 #include <WindowMain.h>
 #include <WindowOpenGLMain.h>
-#include "WindowManager.h"
 #include <ScrollbarHorizontalWnd.h>
 #include <ScrollbarVerticalWnd.h>
 namespace Regards::Window
@@ -56,6 +55,9 @@ namespace Regards::Window
 		// [IMPORTANT] Helper pour éviter la duplication des handlers d'événements
 		void ForwardScrollEvent(wxEventType type, int pos);
 
+		// Enregistre la fenêtre centrale et en fait un enfant direct de CScrollbarWnd.
+		void AttachCentralWindow(wxWindow* window);
+
 	protected:
 		void SetPosition(int posX, int posY);
 		void RefreshData(wxCommandEvent& event);
@@ -71,9 +73,9 @@ namespace Regards::Window
 
 		void OnScrollMove(wxCommandEvent& event);
 
-		// Owned by wxWidgets window tree via windowManager — do not delete manually
-		CScrollbarHorizontalWnd * scrollHorizontal;
-		CScrollbarVerticalWnd * scrollVertical;
+		// Enfants de CScrollbarWnd (arbre wxWidgets) — ne pas supprimer manuellement
+		CScrollbarHorizontalWnd* scrollHorizontal;
+		CScrollbarVerticalWnd* scrollVertical;
 
 		bool showV;
 		bool showH;
@@ -89,9 +91,8 @@ namespace Regards::Window
 		int defaultLineSize;
 
 		// [QUALITE] loadingTimer supprimé : alloué mais jamais démarré ni géré
-		CWindowManager * windowManager;
-		std::unique_ptr<CWindowToAdd> centralWindow;
-		CWindowToAdd * windowToaddCentral;
+		// Fenêtre centrale : enfant direct, positionnée par Resize()
+		wxWindow* centralWindow = nullptr;
 
 		bool oldshowScrollH = false;
 		bool oldshowScrollV = false;

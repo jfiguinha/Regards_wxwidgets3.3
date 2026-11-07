@@ -12,11 +12,11 @@ namespace Regards::Window
 		~CScrollbarVerticalWnd() override;
 
 		int GetWidthSize();
-		void ShowEmptyRectangle(const bool& show, const int& heightSize);
+		//void ShowEmptyRectangle(const bool& show, const int& heightSize);
 
 		bool DefineSize(const int& screenHeight, const int& pictureHeight);
 		//bool SetPosition(const int &top);
-
+		void ShowEmptyRectangle(const bool& show, const int& heightSize);
 		void SetPageSize(const int& pageSize);
 		int GetPageSize();
 		void SetLineSize(const int& lineSize);
@@ -51,6 +51,8 @@ namespace Regards::Window
 		void OnLButtonUp(wxMouseEvent& event);
 		void OnMouseLeave(wxMouseEvent& event);
 		void OnMouseHover(wxMouseEvent& event);
+		void OnMouseLeaveWindow(wxMouseEvent& event);
+		void SetMouseOver(const bool& value);
 		void OnTimerTriangleTop(wxTimerEvent& event);
 		void OnTimerTriangleBottom(wxTimerEvent& event);
 		void OnTimerPageTop(wxTimerEvent& event);
@@ -100,7 +102,7 @@ namespace Regards::Window
 		bool captureBar;
 		int stepSize;
 		bool showEmptyRectangle;
-		int heightSize;
+		int heightSize = 0;
 
 		int barStartY;
 		int barEndY;
@@ -135,5 +137,9 @@ namespace Regards::Window
 		bool showTriangle = false;
 
 		bool showWindow = true;
+
+		// Vrai quand la souris est sur la scrollbar (ou pendant un drag) :
+		// triangles visibles et barre à pleine épaisseur.
+		bool mouseOver = false;
 	};
 }

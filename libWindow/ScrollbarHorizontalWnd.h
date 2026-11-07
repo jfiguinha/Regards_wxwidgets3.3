@@ -34,6 +34,10 @@ namespace Regards::Window
 
 		void SetShowWindow(const bool& showValue);
 
+		// Réserve (show = true) un carré vide de widthSize pixels à l'extrémité droite de la
+		// barre : c'est le croisement avec la barre verticale, qui s'arrête au-dessus.
+		void ShowEmptyRectangle(const bool& show, const int& widthSize);
+
 		void ClickLeftTriangle();
 		void ClickRightTriangle();
 		void ClickLeftPage();
@@ -48,6 +52,8 @@ namespace Regards::Window
 		void OnLButtonUp(wxMouseEvent& event);
 		void OnMouseLeave(wxMouseEvent& event);
 		void OnMouseHover(wxMouseEvent& event);
+		void OnMouseLeaveWindow(wxMouseEvent& event);
+		void SetMouseOver(const bool& value);
 		void OnTimerTriangleLeft(wxTimerEvent& event);
 		void OnTimerTriangleRight(wxTimerEvent& event);
 		void OnTimerPageLeft(wxTimerEvent& event);
@@ -130,5 +136,12 @@ namespace Regards::Window
 		bool showTriangle = false;
 
 		bool showWindow = true;
+
+		// Vrai quand la souris est sur la scrollbar (ou pendant un drag) :
+		// triangles visibles et barre à pleine épaisseur.
+		bool mouseOver = false;
+
+		bool showEmptyRectangle = false;
+		int widthSize = 0;
 	};
 }
