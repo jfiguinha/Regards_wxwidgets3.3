@@ -7,7 +7,7 @@ class CImageLoadingFormat;
 
 namespace Regards::Window
 {
-    class CPanelWithClickToolbar;
+    class CModernPanel;
     class CScrollbarWnd;
     class CWindowManager;
 }
@@ -102,7 +102,7 @@ namespace Regards::Viewer
         CListPicture *                            listPicture      = nullptr;
         CThumbnailViewerPicture *                 thumbnailPicture = nullptr;
         CPanelPhotoWnd *                          panelPhotoWnd    = nullptr;
-        CPanelWithClickToolbar *                  panelInfosClick  = nullptr;
+        CModernPanel*                  panelInfosClick  = nullptr;
 #ifndef __NOFACE_DETECTION__
         CListFace *                               listFace         = nullptr;
 #endif

@@ -47,6 +47,9 @@ CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* in
 	themeTree.themeSlide.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
 	eventControl = interfaceControl;
+
+	// Style moderne : fond uni, filets, libelle a gauche / valeur a droite
+	EnableModernStyle();
 }
 
 
@@ -285,15 +288,24 @@ void CCriteriaTree::CreateElement()
 	RenderTree();
 }
 
+void CCriteriaTree::OnModernRelayout()
+{
+	RenderTree();
+}
+
 void CCriteriaTree::RenderTree()
 {
-	CTreeElementTriangle* treeElementTriangle = nullptr;
-	CPositionElement* posElement = nullptr;
 	bool isVisible = true;
-
 	widthPosition = 0;
+
+	// Les anciens elements sont liberes avant la reconstruction (RenderTree peut etre rappele a chaque redimensionnement)
+	for (CPositionElement* posElement : vectorPosElement)
+		delete posElement;
+
 	vectorPosElement.clear();
 	vectorPosElementDynamic.clear();
+
+	ModernUpdateMetrics(true);
 
 	tree<CTreeData*>::sibling_iterator it = tr.begin();
 	auto itend = tr.end();
@@ -306,55 +318,7 @@ void CCriteriaTree::RenderTree()
 		int profondeur = tr.depth(it);
 		if (profondeur == 0)
 		{
-			int xPos = themeTree.GetMargeX();
-			int widthElement = 0;
-
-			posElement = RenderTriangle(data,
-				xPos,
-				yPos,
-				isVisible,
-				RenderMode::Create);
-
-			treeElementTriangle = dynamic_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
-
-			xPos += posElement->GetWidth() + themeTree.GetMargeX();
-			widthPosition = posElement->GetWidth() + themeTree.GetMargeX();
-
-
-			if (data->GetType() != 6)
-			{
-				if (data->GetType() == 2)
-				{
-					posElement = RenderTextLink(data,
-						xPos,
-						yPos,
-						isVisible,
-						RenderMode::Create);
-				}
-				else
-				{
-					posElement = RenderText(data,
-						xPos,
-						yPos,
-						isVisible,
-						RenderMode::Create);
-				}
-			}
-			else
-			{
-				posElement = RenderStar(data,
-					xPos,
-					yPos,
-					isVisible,
-					RenderMode::Create);
-			}
-
-
-			widthElement += xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			yPos += themeTree.GetRowHeight();
-			nbRow++;
-			if (rowWidth[0] < widthElement)
-				rowWidth[0] = widthElement;
+			CTreeElementTriangle* treeElementTriangle = ModernRenderHeaderRow(data, RenderMode::Create, yPos, false);
 
 			if (treeElementTriangle->GetOpen())
 				RenderNode(it);
@@ -395,17 +359,14 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 
 	for (auto i = 0; i < parent.number_of_children(); i++)
 	{
-		int profondeur = tr.depth(it);
 		CTreeData* data = *it;
 
 		if (data->GetValue().size() > 0 || it.number_of_children() == 0)
 		{
-			int xPos = widthPosition * (profondeur + 1);
-			int widthElementColumn2 = 0;
-
+			// Libelle (gris attenue, a gauche)
+			int xPos = 0;
 			if (data->GetType() == 2)
 			{
-
 				pos_element = RenderTextLink(data,
 					xPos,
 					yPos,
@@ -420,16 +381,13 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 					isVisible,
 					RenderMode::Create);
 			}
+			ModernStyleText(pos_element, modernLabelWidth, modernMargin, modernMargin / 2, modernLabel, false,
+			                RENDERFONT_LEFT);
 
-			const int width_element_column1 = xPos + pos_element->GetWidth() + themeTree.
-				GetMargeX();
-
+			// Valeur (alignee a droite) ; "-" discret si vide
+			xPos = 0;
 			if (data->GetValue() != "")
 			{
-				CTreeElementStar* treeElementStar = nullptr;
-				xPos = themeTree.GetMargeX();
-
-
 				if (data->GetType() == 6)
 				{
 					pos_element = RenderStar(data,
@@ -438,78 +396,45 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 						isVisible,
 						RenderMode::Create);
 				}
+				else if (data->GetType() == 2)
+				{
+					// Lien cliquable : on garde la couleur de lien du theme
+					pos_element = RenderTextLinkValue(data,
+						xPos,
+						yPos,
+						isVisible);
+				}
 				else
 				{
-
-					if (data->GetType() == 2)
-					{
-						RenderTextLinkValue(data,
-							xPos,
-							yPos,
-							isVisible);
-					}
-					else
-					{
-						pos_element = RenderTextValue(data,
-							xPos,
-							yPos,
-							isVisible,
-							RenderMode::Create);
-					}
-
+					pos_element = RenderTextValue(data,
+						xPos,
+						yPos,
+						isVisible,
+						RenderMode::Create);
+					ModernColorText(pos_element, modernValue);
 				}
-				widthElementColumn2 = xPos + pos_element->GetWidth() + themeTree.
-					GetMargeX();
-			}
-
-			yPos += themeTree.GetRowHeight();
-
-			nbRow++;
-			if (rowWidth[0] < width_element_column1)
-				rowWidth[0] = width_element_column1;
-
-			if (rowWidth[1] < widthElementColumn2)
-				rowWidth[1] = widthElementColumn2;
-		}
-		else
-		{
-			int xPos = widthPosition * profondeur;
-			CPositionElement* posElement = nullptr;
-
-			posElement = RenderTriangle(data,
-				xPos,
-				yPos,
-				isVisible,
-				RenderMode::Create);
-
-			xPos += pos_element->GetWidth() + themeTree.GetMargeX();
-
-			if (data->GetType() == 2)
-			{
-
-				pos_element = RenderTextLink(data,
-					xPos,
-					yPos,
-					isVisible,
-					RenderMode::Create);
 			}
 			else
 			{
-				pos_element = RenderText(data,
+				pos_element = RenderTextValue(data,
 					xPos,
 					yPos,
 					isVisible,
 					RenderMode::Create);
+				static_cast<CTreeElementTexte*>(pos_element->GetTreeElement())->SetLibelle(L"-");
+				ModernColorText(pos_element, modernEmpty);
 			}
+			ModernPlaceValue(pos_element, yPos);
 
-			const int width_element = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
-			yPos += themeTree.GetRowHeight();
-
+			yPos += modernRowHeight;
 			nbRow++;
-			if (rowWidth[0] < width_element)
-				rowWidth[0] = width_element;
-
-			RenderNode(it);
+		}
+		else
+		{
+			// Sous-section : meme presentation que le titre principal
+			CTreeElementTriangle* treeElementTriangle = ModernRenderHeaderRow(data, RenderMode::Create, yPos, false);
+			if (treeElementTriangle->GetOpen())
+				RenderNode(it);
 		}
 		++it;
 	}

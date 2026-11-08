@@ -1,4 +1,3 @@
-
 #pragma once
 
 #include <WindowMain.h>
@@ -113,6 +112,9 @@ namespace Regards::Window
 
     private:
         void UpdatePanelLayout();
+        // Etat ouvert/ferme : le panneau reste visible (barre d'en-tete seule quand il est ferme)
+        void SetOpenState(bool open, int refresh);
+        void NotifyParent(bool open, int refresh);
         void OnHeaderCollapse();
         void OnHeaderClose();
 

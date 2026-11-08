@@ -30,6 +30,14 @@ namespace Regards::Window
 		void SetTheme(CThemeTreeTexte* theme);
 		void SetPosition(const int& position);
 
+		// --- Style "moderne" (tous optionnels : par defaut le rendu reste inchange) ---
+		void SetTextColor(const wxColour& color);          // couleur du texte (libelle attenue, valeur, ...)
+		void SetBold(const bool& bold);                    // gras (titres de section)
+		void SetInsets(const int& left, const int& right); // marges internes gauche/droite du texte dans la zone
+		void SetEllipsize(const bool& value);              // tronque avec "..." si le texte depasse la zone
+		void SetRowStyle(const wxColour& background, const wxColour& border); // fond uni + filet 1 px en bas
+		const wxString& GetLibelle() const { return libelle; }
+
 		int GetWidth() override
 		{
 			return themeTexte.GetWidth();
@@ -43,6 +51,8 @@ namespace Regards::Window
 	protected:
 
 		wxSize GetSizeText();
+		wxSize MeasureText(const wxString& text);
+		wxString GetDisplayText(const int& maxWidth, wxSize& displaySize);
 
 
 		wxSize textSize = {};
@@ -50,6 +60,19 @@ namespace Regards::Window
 		bool isClick;
 		wxString libelle;
 		int position;
+
+		// Style moderne
+		int insetLeft = 0;
+		int insetRight = 0;
+		bool ellipsize = false;
+		bool hasRowStyle = false;
+		wxColour rowBackground;
+		wxColour rowBorder;
+
+		// Cache de la troncature
+		int cacheWidth = -1;
+		wxString cacheText;
+		wxSize cacheSize = {};
 
 		CThemeTreeTexte themeTexte;
 	};

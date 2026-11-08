@@ -27,6 +27,12 @@ void CTreeElementTriangle::DrawElement(wxDC* deviceContext, const int& x, const 
 	if (deviceContext == nullptr)
 		return;
 
+	if (chevronStyle)
+	{
+		DrawChevron(deviceContext, x, y);
+		return;
+	}
+
 	if (open)
 	{
 		DrawTriangleOpen(deviceContext, x, y);
@@ -76,4 +82,44 @@ void CTreeElementTriangle::DrawTriangleOpen(wxDC* dc, const int& x, const int& y
 
 	dc->DrawPolygon(WXSIZEOF(star), star, 0, 0);
 	dc->SetBrush(wxNullBrush);
+}
+
+void CTreeElementTriangle::DrawChevron(wxDC* dc, const int& x, const int& y)
+{
+	if (hasRowStyle)
+	{
+		dc->SetPen(*wxTRANSPARENT_PEN);
+		dc->SetBrush(wxBrush(rowBackground));
+		dc->DrawRectangle(x, y, themeTriangle.GetWidth(), themeTriangle.GetHeight());
+
+		dc->SetPen(wxPen(rowBorder, 1));
+		dc->DrawLine(x, y + themeTriangle.GetHeight() - 1, x + themeTriangle.GetWidth(), y + themeTriangle.GetHeight() - 1);
+		dc->SetBrush(wxNullBrush);
+	}
+
+	// Chevron centre dans la zone de l'element
+	const int cx = x + themeTriangle.GetWidth() / 2;
+	const int cy = y + themeTriangle.GetHeight() / 2;
+	int s = wxMin(themeTriangle.GetElementHeight(), themeTriangle.GetHeight() / 2) / 2;
+	s = wxMax(3, wxMin(s, 6));
+
+	wxPen pen(themeTriangle.color, 2);
+	pen.SetCap(wxCAP_ROUND);
+	pen.SetJoin(wxJOIN_ROUND);
+	dc->SetPen(pen);
+
+	if (open)
+	{
+		// v
+		dc->DrawLine(cx - s, cy - s / 2, cx, cy + s / 2);
+		dc->DrawLine(cx, cy + s / 2, cx + s, cy - s / 2);
+	}
+	else
+	{
+		// >
+		dc->DrawLine(cx - s / 2, cy - s, cx + s / 2, cy);
+		dc->DrawLine(cx + s / 2, cy, cx - s / 2, cy + s);
+	}
+
+	dc->SetPen(wxNullPen);
 }

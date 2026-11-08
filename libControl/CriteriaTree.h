@@ -69,6 +69,7 @@ namespace Regards
 			void CreateTextNode(tree<CTreeData*>::iterator& parent, const wxString& key, const wxString& value);
 
 			// --- Rendering ---------------------------------------------------------------
+			void OnModernRelayout() override;
 			void RenderTree();
 			void RenderNode(tree<CTreeData*>::sibling_iterator& parent);
 

@@ -4,7 +4,7 @@ namespace Regards::Window
 {
 	class CSeparationBar;
 	class CMasterWindow;
-	class CPanelWithClickToolbar;
+	class CModernPanel;
 	class CWindowMain;
 	class CWindowOpenGLMain;
 
@@ -29,7 +29,7 @@ namespace Regards::Window
 
 		CMasterWindow* GetMasterWindowPt();
 
-		CPanelWithClickToolbar* GetPanel();
+		CModernPanel* GetPanel();
 
 		void SetWindow(CWindowMain* window, bool isPanel);
 

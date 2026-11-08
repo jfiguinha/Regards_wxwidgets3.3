@@ -4,6 +4,7 @@
 #include "MainTheme.h"
 #include "WindowToAdd.h"
 #include "SeparationBar.h"
+#include "ModernPanel.h"
 using namespace Regards::Window;
 
 #define WINDOW_MINSIZE 100
@@ -154,17 +155,17 @@ bool CWindowManager::IsWindowVisible(Pos position)
 	return false;
 }
 
-CPanelWithClickToolbar* CWindowManager::AddPanel(CWindowMain* window, const Pos& pos, bool fixe, int size, wxRect rect,
+CModernPanel* CWindowManager::AddPanel(CWindowMain* window, const Pos& pos, bool fixe, int size, wxRect rect,
                                                  const wxString& panelLabel, const wxString& windowName,
                                                  const bool& isVisible, const int& idPanel, const bool& refreshButton,
                                                  const bool& isTop)
 {
-	CPanelWithClickToolbar* panel;
+	CModernPanel* panel;
 	if (pos == Pos::wxLEFT || pos == Pos::wxRIGHT)
-		panel = CPanelWithClickToolbar::CreatePanel(this, panelLabel, windowName, isVisible, idPanel, true,
+		panel = CModernPanel::CreatePanel(this, panelLabel, windowName, isVisible, idPanel, true,
 		                                            refreshButton);
 	else
-		panel = CPanelWithClickToolbar::CreatePanel(this, panelLabel, windowName, isVisible, idPanel, false,
+		panel = CModernPanel::CreatePanel(this, panelLabel, windowName, isVisible, idPanel, false,
 		                                            refreshButton);
 
 	//wxWindow * parent = panel->GetPaneWindow();
@@ -222,7 +223,7 @@ void CWindowManager::HidePaneWindow(Pos position, const int& refresh)
 	{
 		if (window->isPanel)
 		{
-			CPanelWithClickToolbar* panel = window->GetPanel();
+			CModernPanel* panel = window->GetPanel();
 			if (panel != nullptr)
 			{
 				if (panel->IsPanelVisible())
@@ -254,7 +255,7 @@ int CWindowManager::GetPaneState(Pos position)
 	{
 		if (window->isPanel)
 		{
-			CPanelWithClickToolbar* panel = window->GetPanel();
+			CModernPanel* panel = window->GetPanel();
 			if (panel != nullptr)
 			{
 				if (!panel->IsPanelVisible())
@@ -279,7 +280,7 @@ void CWindowManager::ShowPaneWindow(Pos position, const int& refresh)
 	{
 		if (window->isPanel)
 		{
-			CPanelWithClickToolbar* panel = window->GetPanel();
+			CModernPanel* panel = window->GetPanel();
 			if (panel != nullptr)
 			{
 				if (!panel->IsPanelVisible())

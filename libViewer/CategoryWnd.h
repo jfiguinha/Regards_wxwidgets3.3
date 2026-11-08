@@ -48,6 +48,10 @@ namespace Regards
 
 		private:
 
+			void OnModernRelayout() override;
+			// Style moderne du texte d'une ligne (titre en majuscules/gras au niveau 0)
+			void StyleRowText(CPositionElement* posElement, const int& xPos, const int& profondeur);
+
 			bool GetCheckState(CTreeData* data) override;
 			bool GetTriangleState(CTreeData* data) override;
 

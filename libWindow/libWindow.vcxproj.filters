@@ -324,6 +324,9 @@
     <ClInclude Include="ScrollbarDrawUtils.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="ModernPanel.h">
+      <Filter>ModernControl</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapInfos.cpp">
@@ -525,6 +528,9 @@
       <Filter>Layer</Filter>
     </ClCompile>
     <ClCompile Include="RegardsModernControls.cpp">
+      <Filter>ModernControl</Filter>
+    </ClCompile>
+    <ClCompile Include="ModernPanel.cpp">
       <Filter>ModernControl</Filter>
     </ClCompile>
   </ItemGroup>

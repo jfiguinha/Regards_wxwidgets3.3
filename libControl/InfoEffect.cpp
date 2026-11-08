@@ -44,6 +44,14 @@ CInfoEffect::CInfoEffect(CTreeElementControlInterface* interfaceControl, CModifi
 	themeTree.SetMargeX(5);
 	this->modificationManager = modificationManager;
 	rowWidth.push_back(0);
+
+	// Style moderne : fond uni, filets, titres en majuscules, étape active surlignée
+	EnableModernStyle();
+}
+
+void CInfoEffect::OnModernRelayout()
+{
+	CreateElement(RenderMode::Update);
 }
 
 void CInfoEffect::SetTreeInterface(CTreeElementControlInterface* interfaceControl)
@@ -188,6 +196,23 @@ void CInfoEffect::ClickOnElement(
 
 		const wxString key = treeData->GetExifKey();
 
+		// Titre de section ("-1") : un clic sur la ligne déplie/replie la section
+		if (key == "-1")
+		{
+			CPositionElement* posTriangle = GetElement(treeData, ELEMENT_TRIANGLE);
+			auto* triangle = (posTriangle != nullptr)
+				                 ? dynamic_cast<CTreeElementTriangle*>(posTriangle->GetTreeElement())
+				                 : nullptr;
+			if (triangle != nullptr)
+			{
+				triangle->ClickElement(window, 0, 0);
+				CreateElement(RenderMode::Update);
+				if (eventControl)
+					eventControl->UpdateTreeControl();
+			}
+			return;
+		}
+
 		if (modificationManager != nullptr)
 		{
 			unsigned int modif = 0;
@@ -287,6 +312,8 @@ wxString CInfoEffect::GetFilename()
 
 void CInfoEffect::SetActifElement(const wxString& key)
 {
+	activeKey = key;
+
 	for (auto posElement : vectorPosElement)
 	{
 		if (posElement != nullptr)
@@ -298,6 +325,10 @@ void CInfoEffect::SetActifElement(const wxString& key)
 				data->SetActif(false);
 		}
 	}
+
+	// Redessine la ligne active (surlignage)
+	CreateElement(RenderMode::Update);
+
 	if (eventControl)
 		eventControl->UpdateTreeControl();
 }
@@ -380,6 +411,8 @@ void CInfoEffect::CreateElement(RenderMode mode)
 		}
 	}
 
+	ModernUpdateMetrics(false);
+
 	tree<CTreeData*>::sibling_iterator it = tr.begin();
 	auto itend = tr.end();
 	yPos = 0;
@@ -391,23 +424,7 @@ void CInfoEffect::CreateElement(RenderMode mode)
 		const int profondeur = tr.depth(it);
 		if (profondeur == 0)
 		{
-			int xPos = themeTree.GetMargeX();
-			int widthElement = 0;
-			bool isVisible = true;
-			CTreeElementTriangle* tree_element_triangle = nullptr;
-			CPositionElement* posElement = nullptr;
-
-			posElement = RenderTriangle(data, xPos, yPos, isVisible, mode);
-			xPos += posElement->GetWidth() + themeTree.GetMargeX();
-			widthPosition = posElement->GetWidth() + themeTree.GetMargeX();
-			tree_element_triangle = dynamic_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
-
-			posElement = RenderText(data, xPos, yPos, isVisible, mode);
-			widthElement += xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			yPos += themeTree.GetRowHeight();
-			nbRow++;
-			if (rowWidth[0] < widthElement)
-				rowWidth[0] = widthElement;
+			CTreeElementTriangle* tree_element_triangle = ModernRenderHeaderRow(data, mode, yPos, true);
 
 			if (mode == RenderMode::Update)
 			{
@@ -439,17 +456,21 @@ void CInfoEffect::UpdateChildTree(tree<CTreeData*>::sibling_iterator& parent)
 	for (auto i = 0; i < parent.number_of_children(); i++)
 	{
 		const bool isVisible = true;
-		const int profondeur = tr.depth(it);
 		CTreeData* data = *it;
-		int xPos = widthPosition * (profondeur);
+		const bool isActive = !activeKey.IsEmpty() && data->GetExifKey() == activeKey;
+		int xPos = 0;
 
 		CPositionElement* posElement = RenderText(data, xPos, yPos, isVisible, RenderMode::Update, true);
-		const int widthElement = xPos + posElement->GetWidth() + themeTree.GetMargeX();
-		yPos += themeTree.GetRowHeight();
+		auto* text = static_cast<CTreeElementTexte*>(posElement->GetTreeElement());
 
+		// Ligne pleine largeur ; l'étape active est surlignée et en gras
+		ModernStyleText(posElement, modernWidth, modernMargin, modernMargin, isActive ? modernTitle : modernValue,
+		                isActive, RENDERFONT_LEFT);
+		text->SetRowStyle(isActive ? modernActive : modernBack, modernBorder);
+		posElement->SetValue(0, yPos, nbRow, 0, modernWidth, modernRowHeight, ELEMENT_TEXTE, text, data);
+
+		yPos += modernRowHeight;
 		nbRow++;
-		if (rowWidth[0] < widthElement)
-			rowWidth[0] = widthElement;
 
 		++it;
 	}

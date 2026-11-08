@@ -2,6 +2,7 @@
 #include "CategoryWnd.h"
 #include "TreeDataCategory.h"
 #include <TreeElementTriangle.h>
+#include <TreeElementTexte.h>
 #include "ViewerParamInit.h"
 #include <LibResource.h>
 #include <ConvertUtility.h>
@@ -47,6 +48,30 @@ CCategoryWnd::CCategoryWnd(CWindowMain* windowMain, CThemeTree* theme, CTreeElem
 	index_ = std::make_unique<CategoryHierarchyIndex>(&tr, *repo_, monthNames_);
 
 	this->windowMain = windowMain;
+
+	// Style moderne : fond uni, filets, chevrons
+	EnableModernStyle();
+}
+
+void CCategoryWnd::OnModernRelayout()
+{
+	RenderElement(RenderMode::Update);
+}
+
+void CCategoryWnd::StyleRowText(CPositionElement* posElement, const int& xPos, const int& profondeur)
+{
+	auto* text = static_cast<CTreeElementTexte*>(posElement->GetTreeElement());
+	const bool isTitle = (profondeur == 0);
+
+	if (isTitle)
+	{
+		const wxString title = text->GetLibelle().Upper();
+		if (text->GetLibelle() != title)
+			text->SetLibelle(title);
+	}
+
+	ModernStyleText(posElement, modernWidth - xPos, 0, modernMargin, isTitle ? modernTitle : modernValue, isTitle,
+	                RENDERFONT_LEFT);
 }
 
 void CCategoryWnd::RefreshListPhoto()
@@ -140,13 +165,9 @@ bool CCategoryWnd::GetTriangleState(CTreeData* data)
 
 void CCategoryWnd::AdvanceRow(int xPos, CPositionElement* posElement)
 {
-	const int width =
-		xPos + posElement->GetWidth() + themeTree.GetMargeX();
-
+	// La largeur de colonne est fixee par ModernUpdateMetrics (largeur reelle de la zone)
 	yPos += themeTree.GetRowHeight();
 	++nbRow;
-
-	rowWidth[0] = std::max(rowWidth[0], width);
 }
 
 
@@ -159,6 +180,7 @@ void CCategoryWnd::RenderElement(RenderMode mode)
 	widthPosition = 0;
 
 	HideAll();
+	ModernUpdateMetrics(false);
 
 	while (it != itend)
 	{
@@ -182,6 +204,7 @@ void CCategoryWnd::RenderElement(RenderMode mode)
 				mode);
 
 			tree_element_triangle = dynamic_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
+			tree_element_triangle->SetChevronStyle(true);
 
 			widthPosition = xPos + posElement->GetWidth();
 			xPos += posElement->GetWidth() + themeTree.GetMargeX();
@@ -201,6 +224,7 @@ void CCategoryWnd::RenderElement(RenderMode mode)
 				isVisible,
 				mode);
 
+			StyleRowText(posElement, xPos, profondeur);
 			AdvanceRow(xPos, posElement);
 
 			if(mode == RenderMode::Create)
@@ -244,6 +268,7 @@ void CCategoryWnd::RenderChildElement(tree<CTreeData*>::sibling_iterator& parent
 				isVisible,
 				mode);
 
+			StyleRowText(posElement, xPos, profondeur);
 			AdvanceRow(xPos, posElement);
 		}
 		else if (!data->GetValue().empty() || it.number_of_children() == 0)
@@ -265,6 +290,7 @@ void CCategoryWnd::RenderChildElement(tree<CTreeData*>::sibling_iterator& parent
 				isVisible,
 				mode);
 
+			StyleRowText(posElement, xPos, profondeur);
 			AdvanceRow(xPos, posElement);
 		}
 		else
@@ -281,6 +307,7 @@ void CCategoryWnd::RenderChildElement(tree<CTreeData*>::sibling_iterator& parent
 			xPos += posElement->GetWidth() + themeTree.GetMargeX();
 
 			tree_element_triangle = dynamic_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
+			tree_element_triangle->SetChevronStyle(true);
 
 			posElement = RenderCheckBox(data,
 				xPos,
@@ -297,6 +324,7 @@ void CCategoryWnd::RenderChildElement(tree<CTreeData*>::sibling_iterator& parent
 				isVisible,
 				mode);
 
+			StyleRowText(posElement, xPos, profondeur);
 			AdvanceRow(xPos, posElement);
 
 			if (mode == RenderMode::Create)

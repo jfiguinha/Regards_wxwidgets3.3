@@ -849,6 +849,7 @@
     <ClInclude Include="LayerCompositorOpenCL.h" />
     <ClInclude Include="LayerElement.h" />
     <ClInclude Include="LayerFonction.h" />
+    <ClInclude Include="ModernPanel.h" />
     <ClInclude Include="RegardsModernControls.h" />
     <ClInclude Include="ScrollbarDrawUtils.h" />
     <ClInclude Include="TreeElementColor.h" />
@@ -954,6 +955,7 @@
     <ClCompile Include="MapDialogBox.cpp" />
     <ClCompile Include="MapSelect.cpp" />
     <ClCompile Include="MasterWindow.cpp" />
+    <ClCompile Include="ModernPanel.cpp" />
     <ClCompile Include="ModificationManager.cpp" />
     <ClCompile Include="Pane.cpp" />
     <ClCompile Include="PanelWithClickToolbar.cpp" />

@@ -22,15 +22,24 @@
 #include <theme.h>
 #include <TreeElementControlInterface.h>
 #include <wx/tokenzr.h>
+#include <algorithm>
 using namespace Regards::Control;
 using namespace Regards::Window;
 using namespace Regards::Picture;
 using namespace Regards::exiv2;
 #define TAILLEMAX 4096
 
-CInfosFile::CInfosFile(CThemeTree* theme, CTreeElementControlInterface* interfaceControl): yPos(0), cxMax(0),
-	xMaxPos(0),
-	xMaxPosValue(0)
+namespace
+{
+	// Parametres du style "moderne" (modifiables ici)
+	constexpr int LABEL_COLUMN_PERCENT = 45; // part de la largeur reservee aux libelles
+	constexpr int MIN_PANEL_WIDTH = 280;     // largeur minimale si SetPanelWidth n'a pas ete appele
+	constexpr int INDENT_PER_LEVEL = 0;      // 0 = pas d'indentation ; mettre ex. 10 pour la retrouver
+}
+
+CInfosFile::CInfosFile(CThemeTree* theme, CTreeElementControlInterface* interfaceControl) : yPos(0), cxMax(0),
+xMaxPos(0),
+xMaxPosValue(0)
 {
 	rotation = 0;
 	filename = L"";
@@ -54,7 +63,7 @@ const wxString CInfosFile::GetFilename()
 }
 
 void CInfosFile::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
-                           const int& posLargeur, const int& posHauteur, bool& update)
+	const int& posLargeur, const int& posHauteur, bool& update)
 {
 	//
 
@@ -115,29 +124,29 @@ void CInfosFile::SetFile(const wxString& picture)
 #else
 
 #ifdef __APPLE__
-    CAppleReadExif appleReadExif;
+	CAppleReadExif appleReadExif;
 #elif WIN32
 	WIC::CPictureMetadata metadata(picture);
 #endif
 
-    if(libPicture.TestIsVideo(picture))
-    {
-        CMediaInfo mediaInfo;
-        listItem = mediaInfo.ReadMetadata(picture);
-    }
-    else if(libPicture.TestImageFormat(picture))
-    {
+	if (libPicture.TestIsVideo(picture))
+	{
+		CMediaInfo mediaInfo;
+		listItem = mediaInfo.ReadMetadata(picture);
+	}
+	else if (libPicture.TestImageFormat(picture))
+	{
 #ifdef __APPLE__
-        listItem = appleReadExif.GetPictureMetadata(picture);
+		listItem = appleReadExif.GetPictureMetadata(picture);
 #elif WIN32
 		listItem = metadata.GetMetadataFromPicture();
-		if(listItem.size() == 0)
+		if (listItem.size() == 0)
 		{
 			EXIV2::CMetadataExiv2 meta(picture);
 			listItem = meta.GetMetadata();
 		}
 #endif
-    }
+	}
 #endif
 
 	if (listItem.size() > 0)
@@ -222,83 +231,176 @@ void CInfosFile::CreateElement()
 }
 
 
+int CInfosFile::ToRawX(const int& pixels)
+{
+	// Les elements appliquent le ratio d'ecran dans GetWidth() : on le retire ici pour obtenir la largeur voulue
+	const float ratio = themeTree.CalculRatioX();
+	return ratio > 0.0f ? static_cast<int>(pixels / ratio + 0.5f) : pixels;
+}
+
+int CInfosFile::ToRawY(const int& pixels)
+{
+	const float ratio = themeTree.CalculRatioY();
+	return ratio > 0.0f ? static_cast<int>(pixels / ratio + 0.5f) : pixels;
+}
+
+wxColour CInfosFile::GetBackgroundColour(const int& yPos)
+{
+	// Fond uni : plus de bandes alternees
+	return themeTree.bgColorOne;
+}
+
+void CInfosFile::BeforeDrawBitmap(wxDC* deviceContext, const int& width, const int& height,
+	const int& posLargeur, const int& posHauteur)
+{
+	// La largeur reelle de la zone dessinee devient la largeur du panneau
+	if (width > 0 && width != panelWidth)
+		SetPanelWidth(width);
+
+	// Fond uni sur toute la zone, y compris sous la derniere ligne
+	if (deviceContext != nullptr)
+	{
+		deviceContext->SetPen(*wxTRANSPARENT_PEN);
+		deviceContext->SetBrush(wxBrush(themeTree.bgColorOne));
+		deviceContext->DrawRectangle(0, 0, width, height);
+		deviceContext->SetBrush(wxNullBrush);
+		deviceContext->SetPen(wxNullPen);
+	}
+}
+
+void CInfosFile::SetPanelWidth(const int& width)
+{
+	if (panelWidth == width)
+		return;
+
+	panelWidth = width;
+
+	// Si l'arbre est deja construit, on recalcule les positions
+	if (!tr.empty())
+		RenderElement(RenderMode::Update);
+}
+
+void CInfosFile::UpdateLayoutMetrics()
+{
+	margin = themeTree.GetMargeX();
+	rowHeight = themeTree.GetRowHeight();
+
+	const int minWidth = themeTree.CalculElementSizeForScreen(MIN_PANEL_WIDTH);
+	layoutWidth = std::max(panelWidth, minWidth);
+	labelColumnWidth = layoutWidth * LABEL_COLUMN_PERCENT / 100;
+	valueColumnWidth = layoutWidth - labelColumnWidth;
+	chevronWidth = 2 * margin;
+
+	// Colonne 0 = libelles, colonne 1 = valeurs (la colonne 1 demarre a rowWidth[0])
+	rowWidth[0] = labelColumnWidth;
+	rowWidth[1] = valueColumnWidth;
+
+	// Palette derivee du theme existant (aucune couleur en dur)
+	const wxColour font = themeTree.themeTexte.font.GetColorFont();
+	colorRowBack = themeTree.bgColorOne;
+	colorRowBorder = colorRowBack.ChangeLightness(125);
+	colorTitle = font;
+	colorValue = font;
+
+	auto blend = [&](const int& percentFont)
+		{
+			return wxColour((font.Red() * percentFont + colorRowBack.Red() * (100 - percentFont)) / 100,
+				(font.Green() * percentFont + colorRowBack.Green() * (100 - percentFont)) / 100,
+				(font.Blue() * percentFont + colorRowBack.Blue() * (100 - percentFont)) / 100);
+		};
+	colorLabel = blend(60);      // libelle attenue
+	colorEmptyValue = blend(40); // "-" encore plus discret
+}
+
+void CInfosFile::StyleTextCell(CPositionElement* posElement, const int& zoneWidth, const int& insetLeft,
+	const int& insetRight, const wxColour& textColor, const bool& bold,
+	const int& alignment)
+{
+	auto* text = static_cast<CTreeElementTexte*>(posElement->GetTreeElement());
+	text->SetZoneSize(ToRawX(zoneWidth), ToRawY(rowHeight));
+	text->SetBold(bold);
+	text->SetTextColor(textColor);
+	text->SetInsets(insetLeft, insetRight);
+	text->SetEllipsize(true);
+	text->SetPosition(alignment);
+	text->SetRowStyle(colorRowBack, colorRowBorder);
+}
+
+// Ligne de titre de section : TITRE en gras, chevron a droite, clic sur toute la ligne
+CTreeElementTriangle* CInfosFile::RenderHeaderRow(CTreeData* data, const int& profondeur, RenderMode mode)
+{
+	bool isVisible = true;
+
+	// Chevron (a droite)
+	int xPos = layoutWidth - chevronWidth;
+	CPositionElement* posTriangle = RenderTriangle(data, xPos, yPos, isVisible, mode);
+	auto* triangle = static_cast<CTreeElementTriangle*>(posTriangle->GetTreeElement());
+	triangle->SetChevronStyle(true);
+	triangle->SetRowStyle(colorRowBack, colorRowBorder);
+	triangle->SetZoneSize(ToRawX(chevronWidth), ToRawY(rowHeight));
+	posTriangle->SetValue(xPos, yPos, nbRow, 0, chevronWidth, rowHeight, ELEMENT_TRIANGLE, triangle, data);
+
+	// Titre (a gauche, en majuscules)
+	const int titleWidth = layoutWidth - chevronWidth;
+	xPos = 0;
+	CPositionElement* posText = RenderText(data, xPos, yPos, isVisible, mode, true);
+	auto* text = static_cast<CTreeElementTexte*>(posText->GetTreeElement());
+
+	const wxString title = data->GetKey().Upper();
+	if (text->GetLibelle() != title)
+		text->SetLibelle(title);
+
+	const int indent = themeTree.CalculElementSizeForScreen(INDENT_PER_LEVEL) * profondeur;
+	StyleTextCell(posText, titleWidth, margin + indent, 0, colorTitle, true, RENDERFONT_LEFT);
+	posText->SetValue(0, yPos, nbRow, 0, titleWidth, rowHeight, ELEMENT_TEXTE, text, data);
+
+	yPos += rowHeight;
+	nbRow++;
+
+	return triangle;
+}
+
 void CInfosFile::RenderChildTree(tree<CTreeData*>::sibling_iterator& parent, RenderMode mode)
 {
-	CTreeElementTriangle* tree_element_triangle = nullptr;
 	CPositionElement* posElement = nullptr;
 	tree<CTreeData*>::sibling_iterator it = tree<CTreeData*>::begin(parent);
-	//int i =
 
 	for (auto i = 0; i < parent.number_of_children(); i++)
 	{
 		bool isVisible = true;
-		int profondeur = tr.depth(it);
+		const int profondeur = tr.depth(it);
 		CTreeData* data = *it;
 
 		if (!data->GetValue().empty() || it.number_of_children() == 0)
 		{
-			int xPos = widthPosition * (profondeur + 1);
-			int widthElementColumn2 = 0;
+			const int indent = themeTree.CalculElementSizeForScreen(INDENT_PER_LEVEL) * profondeur;
 
-			posElement = RenderText(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
+			// Libelle (gris attenue, a gauche)
+			int xPos = 0;
+			posElement = RenderText(data, xPos, yPos, isVisible, mode);
+			StyleTextCell(posElement, labelColumnWidth, margin + indent, margin / 2, colorLabel, false,
+				RENDERFONT_LEFT);
 
-			int widthElementColumn1 = xPos + posElement->GetWidth() + themeTree.GetMargeX();
+			// Valeur (blanche, alignee a droite) ; "-" discret si vide
+			xPos = 0;
+			posElement = RenderTextValue(data, xPos, yPos, isVisible, mode);
 
-			if (!data->GetValue().empty())
-			{
-				xPos = themeTree.GetMargeX();
+			const bool emptyValue = data->GetValue().empty();
+			if (emptyValue)
+				static_cast<CTreeElementTexte*>(posElement->GetTreeElement())->SetLibelle(L"-");
 
-				posElement = RenderTextValue(data,
-					xPos,
-					yPos,
-					isVisible,
-					mode);
-
-				widthElementColumn2 = xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			}
+			StyleTextCell(posElement, valueColumnWidth, margin / 2, margin,
+				emptyValue ? colorEmptyValue : colorValue, false, RENDERFONT_RIGHT);
 
 			if (isVisible)
 			{
-				yPos += themeTree.GetRowHeight();
-
+				yPos += rowHeight;
 				nbRow++;
-				if (rowWidth[0] < widthElementColumn1)
-					rowWidth[0] = widthElementColumn1;
-
-				if (rowWidth[1] < widthElementColumn2)
-					rowWidth[1] = widthElementColumn2;
 			}
 		}
 		else
 		{
-			int xPos = widthPosition * profondeur;
-
-			posElement = RenderTriangle(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
-
-			tree_element_triangle = static_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
-
-			xPos += posElement->GetWidth() + themeTree.GetMargeX();
-
-			posElement = RenderText(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
-
-			int widthElement = xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			yPos += themeTree.GetRowHeight();
-
-			nbRow++;
-			if (rowWidth[0] < widthElement)
-				rowWidth[0] = widthElement;
+			CTreeElementTriangle* tree_element_triangle = RenderHeaderRow(data, profondeur, mode);
 
 			if (mode == RenderMode::Create)
 			{
@@ -317,10 +419,8 @@ void CInfosFile::RenderChildTree(tree<CTreeData*>::sibling_iterator& parent, Ren
 
 void CInfosFile::RenderElement(RenderMode mode)
 {
-	CPositionElement* posElement = nullptr;
-	CTreeElementTriangle* tree_element_triangle = nullptr;
-
 	HideAll();
+	UpdateLayoutMetrics();
 
 	widthPosition = 0;
 
@@ -335,32 +435,7 @@ void CInfosFile::RenderElement(RenderMode mode)
 		const int profondeur = tr.depth(it);
 		if (profondeur == 0)
 		{
-			bool isVisible = true;
-			int xPos = themeTree.GetMargeX();
-			int widthElement = 0;
-			CTreeElementTriangle* tree_element_triangle;
-
-			posElement = RenderTriangle(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
-
-			tree_element_triangle = static_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
-			xPos += posElement->GetWidth() + themeTree.GetMargeX();
-			widthPosition = posElement->GetWidth() + themeTree.GetMargeX();
-
-			posElement = RenderText(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
-
-			widthElement += xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			yPos += themeTree.GetRowHeight();
-			nbRow++;
-			if (rowWidth[0] < widthElement)
-				rowWidth[0] = widthElement;
+			CTreeElementTriangle* tree_element_triangle = RenderHeaderRow(data, profondeur, mode);
 
 			if (mode == RenderMode::Create)
 			{
@@ -378,7 +453,7 @@ void CInfosFile::RenderElement(RenderMode mode)
 }
 
 void CInfosFile::ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-                                const int& posLargeur, const int& posHauteur)
+	const int& posLargeur, const int& posHauteur)
 {
 	//
 	if (element != nullptr)
@@ -386,9 +461,22 @@ void CInfosFile::ClickOnElement(CPositionElement* element, wxWindow* window, con
 		CTreeElement* treeElement = element->GetTreeElement();
 		if (treeElement != nullptr)
 		{
+			CTreeElementTriangle* treeElementTriangle = nullptr;
+
 			if (element->GetType() == ELEMENT_TRIANGLE)
 			{
-				auto treeElementTriangle = static_cast<CTreeElementTriangle*>(treeElement);
+				treeElementTriangle = static_cast<CTreeElementTriangle*>(treeElement);
+			}
+			else if (element->GetType() == ELEMENT_TEXTE)
+			{
+				// Clic sur le titre d'une section : on bascule le chevron de la meme ligne
+				CPositionElement* posTriangle = GetElement(element->GetTreeData(), ELEMENT_TRIANGLE);
+				if (posTriangle != nullptr)
+					treeElementTriangle = static_cast<CTreeElementTriangle*>(posTriangle->GetTreeElement());
+			}
+
+			if (treeElementTriangle != nullptr)
+			{
 				treeElementTriangle->ClickElement(window, x, y);
 				RenderElement(RenderMode::Update);
 				eventControl->UpdateTreeControl();

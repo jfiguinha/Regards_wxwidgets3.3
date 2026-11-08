@@ -14,6 +14,7 @@
 #include "TreeElementComboBox.h"
 #include "TreeDataLink.h"
 #include "TreeData.h"
+#include <algorithm>
 using namespace Regards::Window;
 
 
@@ -148,6 +149,9 @@ CTreeControl& CTreeControl::operator=(const CTreeControl& other)
 
 wxColour CTreeControl::GetBackgroundColour(const int& yPos)
 {
+	if (modernStyle)
+		return modernBack;
+
 	int moduloValue = yPos % (themeTree.GetRowHeight() * 2);
 	if (moduloValue < themeTree.GetRowHeight())
 		return themeTree.bgColorOne;
@@ -192,6 +196,8 @@ int CTreeControl::GetWidth()
 void CTreeControl::GenerateWindowBitmap(wxDC* deviceContext, const int& width, const int& height, const int& posLargeur,
                                         const int& posHauteur)
 {
+	BeforeDrawBitmap(deviceContext, width, height, posLargeur, posHauteur);
+
 	std::sort(vectorPosElement.begin(), vectorPosElement.end(),
 	          [](CPositionElement* i, CPositionElement* j)
 	          {
@@ -236,6 +242,8 @@ void CTreeControl::GenerateWindowBitmap(wxDC* deviceContext, const int& width, c
 			}
 		}
 	}
+
+	AfterDrawElements(deviceContext, width, height, posLargeur, posHauteur);
 }
 void CTreeControl::HideAll()
 {
@@ -732,4 +740,198 @@ tree<CTreeData*>::iterator CTreeControl::FindKey(const wxString& key)
 		return nullptr;
 
 	return p;
+}
+
+
+// ============================================================================
+// Style moderne (optionnel)
+// ============================================================================
+void CTreeControl::EnableModernStyle()
+{
+	modernStyle = true;
+	modernBack = themeTree.bgColorOne;
+}
+
+int CTreeControl::ModernToRawX(const int& pixels)
+{
+	// Les elements appliquent le ratio d'ecran dans GetWidth() : on le retire pour obtenir la largeur voulue
+	const float ratio = themeTree.CalculRatioX();
+	return ratio > 0.0f ? static_cast<int>(pixels / ratio + 0.5f) : pixels;
+}
+
+int CTreeControl::ModernToRawY(const int& pixels)
+{
+	const float ratio = themeTree.CalculRatioY();
+	return ratio > 0.0f ? static_cast<int>(pixels / ratio + 0.5f) : pixels;
+}
+
+void CTreeControl::ModernUpdateMetrics(const bool& labelValueLayout, const int& labelPercent)
+{
+	modernRowHeight = themeTree.GetRowHeight();
+	modernMargin = std::max(themeTree.GetMargeX(), themeTree.CalculElementSizeForScreen(12));
+
+	const int minWidth = themeTree.CalculElementSizeForScreen(160);
+	modernWidth = std::max(modernPanelWidth, minWidth);
+	modernLabelWidth = modernWidth * labelPercent / 100;
+	modernValueWidth = modernWidth - modernLabelWidth;
+	modernChevronWidth = 2 * modernMargin;
+
+	if (rowWidth.empty())
+		rowWidth.push_back(0);
+
+	if (labelValueLayout)
+	{
+		while (rowWidth.size() < 2)
+			rowWidth.push_back(0);
+		rowWidth[0] = modernLabelWidth;
+		rowWidth[1] = modernValueWidth;
+	}
+	else
+	{
+		rowWidth[0] = modernWidth;
+	}
+
+	// Palette derivee du theme existant (aucune couleur en dur)
+	const wxColour font = themeTree.themeTexte.font.GetColorFont();
+	modernBack = themeTree.bgColorOne;
+	modernBorder = modernBack.ChangeLightness(125);
+	modernActive = modernBack.ChangeLightness(135);
+	modernTitle = font;
+	modernValue = font;
+
+	auto blend = [&](const int& percentFont)
+	{
+		return wxColour((font.Red() * percentFont + modernBack.Red() * (100 - percentFont)) / 100,
+		                (font.Green() * percentFont + modernBack.Green() * (100 - percentFont)) / 100,
+		                (font.Blue() * percentFont + modernBack.Blue() * (100 - percentFont)) / 100);
+	};
+	modernLabel = blend(60);
+	modernEmpty = blend(40);
+}
+
+void CTreeControl::ModernStyleText(CPositionElement* posElement, const int& zoneWidth, const int& insetLeft,
+                                   const int& insetRight, const wxColour& textColor, const bool& bold,
+                                   const int& alignment)
+{
+	auto* text = static_cast<CTreeElementTexte*>(posElement->GetTreeElement());
+	text->SetZoneSize(ModernToRawX(std::max(1, zoneWidth)), ModernToRawY(modernRowHeight));
+	text->SetBold(bold);
+	text->SetTextColor(textColor);
+	text->SetInsets(insetLeft, insetRight);
+	text->SetEllipsize(true);
+	text->SetPosition(alignment);
+}
+
+void CTreeControl::ModernColorText(CPositionElement* posElement, const wxColour& textColor)
+{
+	auto* text = dynamic_cast<CTreeElementTexte*>(posElement->GetTreeElement());
+	if (text != nullptr)
+		text->SetTextColor(textColor);
+}
+
+void CTreeControl::ModernPlaceValue(CPositionElement* posElement, const int& y)
+{
+	CTreeElement* element = posElement->GetTreeElement();
+	const int leftMargin = modernMargin / 2;
+	const int rightMargin = modernMargin;
+
+	int width = element->GetWidth();
+	const int maxWidth = modernValueWidth - leftMargin - rightMargin;
+
+	if (width > maxWidth && maxWidth > 0)
+	{
+		auto* text = dynamic_cast<CTreeElementTexte*>(element);
+		if (text != nullptr)
+		{
+			element->SetZoneSize(ModernToRawX(maxWidth), ModernToRawY(modernRowHeight));
+			text->SetEllipsize(true);
+			width = element->GetWidth();
+		}
+	}
+
+	const int x = std::max(leftMargin, modernValueWidth - rightMargin - width);
+	posElement->SetX(x);
+	posElement->SetY(y);
+	element->SetElementPos(x, y);
+	// La zone de clic suit la position reelle de l'element
+	posElement->SetValue(x, y, nbRow, posElement->GetRow(), width, element->GetHeight(), posElement->GetType(),
+	                     element, posElement->GetTreeData());
+}
+
+CTreeElementTriangle* CTreeControl::ModernRenderHeaderRow(CTreeData* data, RenderMode mode, int& yPos,
+                                                          const bool& clickable)
+{
+	bool isVisible = true;
+
+	// Chevron a droite
+	int xPos = modernWidth - modernChevronWidth;
+	CPositionElement* posTriangle = RenderTriangle(data, xPos, yPos, isVisible, mode);
+	auto* triangle = static_cast<CTreeElementTriangle*>(posTriangle->GetTreeElement());
+	triangle->SetChevronStyle(true);
+	triangle->SetZoneSize(ModernToRawX(modernChevronWidth), ModernToRawY(modernRowHeight));
+	posTriangle->SetValue(xPos, yPos, nbRow, 0, modernChevronWidth, modernRowHeight, ELEMENT_TRIANGLE, triangle,
+	                      data);
+
+	// Titre en majuscules, gras
+	const int titleWidth = modernWidth - modernChevronWidth;
+	xPos = 0;
+	CPositionElement* posText = RenderText(data, xPos, yPos, isVisible, mode, clickable);
+	auto* text = static_cast<CTreeElementTexte*>(posText->GetTreeElement());
+
+	const wxString title = data->GetKey().Upper();
+	if (text->GetLibelle() != title)
+		text->SetLibelle(title);
+
+	ModernStyleText(posText, titleWidth, modernMargin, 0, modernTitle, true, RENDERFONT_LEFT);
+	posText->SetValue(0, yPos, nbRow, 0, titleWidth, modernRowHeight, ELEMENT_TEXTE, text, data);
+
+	yPos += modernRowHeight;
+	nbRow++;
+
+	return triangle;
+}
+
+void CTreeControl::BeforeDrawBitmap(wxDC* deviceContext, const int& width, const int& height,
+                                    const int& posLargeur, const int& posHauteur)
+{
+	if (!modernStyle)
+		return;
+
+	// La largeur reelle de la zone dessinee devient la largeur de l'arbre
+	if (width > 0 && width != modernPanelWidth)
+	{
+		modernPanelWidth = width;
+		if (!tr.empty())
+			OnModernRelayout();
+	}
+
+	// Fond uni sur toute la zone, y compris sous la derniere ligne
+	if (deviceContext != nullptr)
+	{
+		deviceContext->SetPen(*wxTRANSPARENT_PEN);
+		deviceContext->SetBrush(wxBrush(modernBack));
+		deviceContext->DrawRectangle(0, 0, width, height);
+		deviceContext->SetBrush(wxNullBrush);
+		deviceContext->SetPen(wxNullPen);
+	}
+}
+
+void CTreeControl::AfterDrawElements(wxDC* deviceContext, const int& width, const int& height,
+                                     const int& posLargeur, const int& posHauteur)
+{
+	if (!modernStyle || deviceContext == nullptr || modernRowHeight <= 0)
+		return;
+
+	// Filet de 1 px sous chaque ligne (toutes les lignes ont la meme hauteur)
+	deviceContext->SetPen(wxPen(modernBorder, 1));
+	for (int row = 0; row < nbRow; row++)
+	{
+		const int yLine = (row + 1) * modernRowHeight - 1 - posHauteur;
+		if (yLine < 0)
+			continue;
+		if (yLine > height)
+			break;
+		deviceContext->DrawLine(0, yLine, width, yLine);
+	}
+	deviceContext->SetPen(wxNullPen);
 }

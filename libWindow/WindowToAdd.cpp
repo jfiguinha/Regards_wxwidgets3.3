@@ -3,7 +3,7 @@
 #include "MasterWindow.h"
 #include "WindowOpenGLMain.h"
 #include "SeparationBar.h"
-#include "PanelWithClickToolbar.h"
+#include "ModernPanel.h"
 using namespace Regards::Window;
 
 CWindowToAdd::CWindowToAdd(): position(), size(0), size_old(0), fixe(false), fixe_old(false), id(0), isTop(false),
@@ -29,12 +29,12 @@ CMasterWindow* CWindowToAdd::GetMasterWindowPt()
 	return windowOpengl;
 }
 
-CPanelWithClickToolbar* CWindowToAdd::GetPanel()
+CModernPanel* CWindowToAdd::GetPanel()
 {
 	if (isPanel)
 	{
 		if (window != nullptr)
-			return static_cast<CPanelWithClickToolbar*>(window);
+			return static_cast<CModernPanel*>(window);
 	}
 	return nullptr;
 }

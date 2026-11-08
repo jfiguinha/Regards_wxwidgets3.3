@@ -6,7 +6,7 @@
 
 namespace Regards::Window
 {
-	class CPanelWithClickToolbar;
+	class CModernPanel;
 
 	class CWindowToAdd;
 
@@ -17,7 +17,7 @@ namespace Regards::Window
 		CWindowManager(wxWindow* parent, wxWindowID id, const CThemeSplitter& theme);
 		~CWindowManager() override;
 
-		CPanelWithClickToolbar* AddPanel(CWindowMain* window, const Pos& pos, bool fixe, int size, wxRect rect,
+		CModernPanel* AddPanel(CWindowMain* window, const Pos& pos, bool fixe, int size, wxRect rect,
 		                                 const wxString& panelLabel, const wxString& windowName, const bool& isVisible,
 		                                 const int& idPanel, const bool& refreshButton, const bool& isTop = false);
 		CWindowToAdd * AddWindow(CWindowMain* window, Pos position, bool fixe, int size, wxRect rect, int id, bool isPanel,

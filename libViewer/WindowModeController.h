@@ -3,7 +3,7 @@
 namespace Regards::Window
 {
     class CWindowManager;
-    class CPanelWithClickToolbar;
+    class CModernPanel;
 }
 
 
@@ -20,7 +20,7 @@ namespace Regards::Viewer
     public:
         CWindowModeController(wxWindow*                            parent,
                               Regards::Window::CWindowManager*     windowManager,
-                              Regards::Window::CPanelWithClickToolbar* panelInfosClick,
+                              Regards::Window::CModernPanel* panelInfosClick,
                               CPreviewWnd*                         previewWindow,
                               CPanelInfosWnd*                      panelInfosWindow,
                               CListPicture*                        listPicture,
@@ -64,7 +64,7 @@ namespace Regards::Viewer
     private:
         wxWindow*                            parent           = nullptr;
         Regards::Window::CWindowManager*     windowManager    = nullptr;
-        Regards::Window::CPanelWithClickToolbar* panelInfosClick = nullptr;
+        Regards::Window::CModernPanel * panelInfosClick = nullptr;
         CPreviewWnd*                         previewWindow    = nullptr;
         CPanelInfosWnd*                      panelInfosWindow = nullptr;
         CListPicture*                        listPicture      = nullptr;

@@ -137,6 +137,14 @@ namespace Regards::Window
 		virtual void AfterDrawBitmap()
 		{
 		};
+
+		// Appele au debut de GenerateWindowBitmap (largeur/hauteur reelles de la zone dessinee)
+		virtual void BeforeDrawBitmap(wxDC* deviceContext, const int& width, const int& height,
+		                              const int& posLargeur, const int& posHauteur);
+
+		// Appele a la fin de GenerateWindowBitmap (apres le dessin des elements)
+		virtual void AfterDrawElements(wxDC* deviceContext, const int& width, const int& height,
+		                               const int& posLargeur, const int& posHauteur);
 		virtual void UpdateScreenRatio() = 0;
 
 	protected:
@@ -211,11 +219,34 @@ namespace Regards::Window
 			bool visible,
 			RenderMode mode);
 
+		// ===== Style moderne (optionnel) ===========================================
+		// Fond uni, filets de 1 px entre les lignes, palette derivee du theme et mise en page
+		// calculee sur la largeur reelle de la zone dessinee. Un arbre qui n'appelle pas
+		// EnableModernStyle() garde exactement son rendu actuel.
+		void EnableModernStyle();
+		// labelValueLayout = true : colonne libelles + colonne valeurs ; false : une seule colonne
+		void ModernUpdateMetrics(const bool& labelValueLayout, const int& labelPercent = 45);
+		int ModernToRawX(const int& pixels);
+		int ModernToRawY(const int& pixels);
+		void ModernStyleText(CPositionElement* posElement, const int& zoneWidth, const int& insetLeft,
+		                     const int& insetRight, const wxColour& textColor, const bool& bold,
+		                     const int& alignment);
+		void ModernColorText(CPositionElement* posElement, const wxColour& textColor);
+		// Place un element de la colonne valeurs, aligne a droite (tronque si trop large)
+		void ModernPlaceValue(CPositionElement* posElement, const int& y);
+		// Ligne de titre : TITRE en gras + chevron a droite. clickable = clic sur toute la ligne
+		CTreeElementTriangle* ModernRenderHeaderRow(CTreeData* data, RenderMode mode, int& yPos,
+		                                            const bool& clickable);
+		// Appele quand la largeur de la zone change : l'arbre doit recalculer ses positions
+		virtual void OnModernRelayout()
+		{
+		};
 
 
 
 
-		wxColour GetBackgroundColour(const int& yPos);
+
+		virtual wxColour GetBackgroundColour(const int& yPos);
 
 		//Tree Window
 		tree<CTreeData*>::iterator FindKey(const wxString& key, tree<CTreeData*>::iterator& parent);
@@ -257,6 +288,24 @@ namespace Regards::Window
 		PositionElementVector vectorPosElementDynamic;
 
 		CThemeTree themeTree;
+
+		// Style moderne
+		bool modernStyle = false;
+		int modernPanelWidth = 0;
+		int modernWidth = 0;
+		int modernLabelWidth = 0;
+		int modernValueWidth = 0;
+		int modernChevronWidth = 0;
+		int modernMargin = 0;
+		int modernRowHeight = 0;
+		wxColour modernBack;
+		wxColour modernBorder;
+		wxColour modernActive;
+		wxColour modernTitle;
+		wxColour modernLabel;
+		wxColour modernValue;
+		wxColour modernEmpty;
+
 		vector<int> rowWidth;
 		int nbRow;
 		CTreeElementControlInterface* eventControl;

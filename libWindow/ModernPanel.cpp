@@ -1,6 +1,6 @@
-
 #include <header.h>
 #include "ModernPanel.h"
+#include <wx/graphics.h>
 
 namespace Regards::Window
 {
@@ -87,7 +87,8 @@ namespace Regards::Window
 
     wxRect CModernPanelHeader::GetCloseRect() const
     {
-        if (!showCloseButton_)
+        // Panneau ferme : seul le bouton de reouverture reste affiche
+        if (!showCloseButton_ || collapsed_)
             return wxRect();
 
         const int buttonSize = FromDIP(28);
@@ -108,7 +109,6 @@ namespace Regards::Window
             buttonSize,
             buttonSize);
     }
-
     void CModernPanelHeader::OnPaint(wxPaintEvent&)
     {
         wxAutoBufferedPaintDC dc(this);
@@ -120,136 +120,117 @@ namespace Regards::Window
 
         dc.SetPen(*wxTRANSPARENT_PEN);
 
+        // --- Rendu du Texte ---
+        wxFont font(FromDIP(10), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_MEDIUM);
+        dc.SetFont(font);
+        dc.SetTextForeground(foreground_);
+
         if (!vertical_)
         {
-            wxFont font(
-                FromDIP(10),
-                wxFONTFAMILY_DEFAULT,
-                wxFONTSTYLE_NORMAL,
-                wxFONTWEIGHT_MEDIUM);
-
-            dc.SetFont(font);
-            dc.SetTextForeground(foreground_);
-
-            dc.DrawText(
-                title_,
-                FromDIP(12),
-                (size.y - dc.GetCharHeight()) / 2);
+            dc.DrawText(title_, FromDIP(12), (size.y - dc.GetCharHeight()) / 2);
         }
-        else
+        else if (!collapsed_)
         {
-            wxFont font(
-                FromDIP(10),
-                wxFONTFAMILY_DEFAULT,
-                wxFONTSTYLE_NORMAL,
-                wxFONTWEIGHT_MEDIUM);
-
-            dc.SetFont(font);
-            dc.SetTextForeground(foreground_);
-
-            if (!collapsed_)
-            {
-                dc.DrawRotatedText(
-                    title_,
-                    FromDIP(12),
-                    size.y / 2,
-                    90);
-            }
+            dc.DrawRotatedText(title_, FromDIP(12), size.y / 2, 90);
         }
 
-        // Bouton réduire / développer
+        // --- Rendu du Fond des Boutons (Hover) ---
         const wxRect collapseRect = GetCollapseRect();
-
         if (hoverCollapse_)
         {
             dc.SetBrush(wxBrush(hover_));
-            dc.DrawRoundedRectangle(
-                collapseRect,
-                FromDIP(5));
+            dc.DrawRoundedRectangle(collapseRect, FromDIP(5));
         }
 
-        const int cx =
-            collapseRect.x + collapseRect.width / 2;
-
-        const int cy =
-            collapseRect.y + collapseRect.height / 2;
-
-        dc.SetPen(wxPen(foreground_, FromDIP(2)));
-
-        if (!vertical_)
+        const wxRect closeRect = GetCloseRect();
+        if (!closeRect.IsEmpty() && hoverClose_)
         {
-            if (collapsed_)
-            {
-                dc.DrawLine(cx - FromDIP(3), cy - FromDIP(5),
-                    cx + FromDIP(3), cy);
+            dc.SetBrush(wxBrush(wxColour(180, 55, 55)));
+            dc.DrawRoundedRectangle(closeRect, FromDIP(5));
+        }
 
-                dc.DrawLine(cx + FromDIP(3), cy,
-                    cx - FromDIP(3), cy + FromDIP(5));
+        // =========================================================
+        // INITIALISATION DE L'ANTIALIASING VIA wxGraphicsContext
+        // =========================================================
+        std::unique_ptr<wxGraphicsContext> gc(wxGraphicsContext::Create(dc));
+        if (gc)
+        {
+            // Activation explicite de l'anti-crénelage pour les tracés
+            gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+
+            // Configuration du crayon pour les formes (blanc / foreground_)
+            wxGraphicsPen pen = gc->CreatePen(wxPen(foreground_, FromDIP(2), wxPENSTYLE_SOLID));
+            gc->SetPen(pen);
+
+            // 1. Dessin de la flèche (Triangle) de réduction / développement
+            const double cx = collapseRect.x + collapseRect.width / 2.0;
+            const double cy = collapseRect.y + collapseRect.height / 2.0;
+
+            wxGraphicsPath path = gc->CreatePath();
+
+            if (!vertical_)
+            {
+                if (collapsed_)
+                {
+                    // Flèche vers la droite (>)
+                    path.MoveToPoint(cx - FromDIP(3), cy - FromDIP(5));
+                    path.AddLineToPoint(cx + FromDIP(3), cy);
+                    path.AddLineToPoint(cx - FromDIP(3), cy + FromDIP(5));
+                }
+                else
+                {
+                    // Flèche vers le bas (v)
+                    path.MoveToPoint(cx - FromDIP(5), cy - FromDIP(2));
+                    path.AddLineToPoint(cx, cy + FromDIP(3));
+                    path.AddLineToPoint(cx + FromDIP(5), cy - FromDIP(2));
+                }
             }
             else
             {
-                dc.DrawLine(cx - FromDIP(5), cy - FromDIP(2),
-                    cx, cy + FromDIP(3));
+                if (collapsed_)
+                {
+                    // Flèche vers le bas (v) pour le mode vertical plié
+                    path.MoveToPoint(cx - FromDIP(5), cy - FromDIP(3));
+                    path.AddLineToPoint(cx, cy + FromDIP(3));
+                    path.AddLineToPoint(cx + FromDIP(5), cy - FromDIP(3));
+                }
+                else
+                {
+                    // Flèche vers le haut (^) pour le mode vertical déplié
+                    path.MoveToPoint(cx - FromDIP(5), cy + FromDIP(3));
+                    path.AddLineToPoint(cx, cy - FromDIP(3));
+                    path.AddLineToPoint(cx + FromDIP(5), cy + FromDIP(3));
+                }
+            }
+            gc->StrokePath(path);
 
-                dc.DrawLine(cx, cy + FromDIP(3),
-                    cx + FromDIP(5), cy - FromDIP(2));
+            // 2. Dessin de la croix du bouton Fermer (si visible)
+            if (!closeRect.IsEmpty())
+            {
+                const double x = closeRect.x + closeRect.width / 2.0;
+                const double y = closeRect.y + closeRect.height / 2.0;
+                const double offset = FromDIP(4);
+
+                wxGraphicsPath closePath = gc->CreatePath();
+                // Diagonale 1 : \
+                closePath.MoveToPoint(x - offset, y - offset);
+                closePath.AddLineToPoint(x + offset, y + offset);
+                // Diagonale 2 : /
+                closePath.MoveToPoint(x + offset, y - offset);
+                closePath.AddLineToPoint(x - offset, y + offset);
+
+                gc->StrokePath(closePath);
             }
         }
-        else
-        {
-            if (collapsed_)
-            {
-                dc.DrawLine(cx - FromDIP(5), cy - FromDIP(3),
-                    cx, cy + FromDIP(3));
 
-                dc.DrawLine(cx, cy + FromDIP(3),
-                    cx + FromDIP(5), cy - FromDIP(3));
-            }
-            else
-            {
-                dc.DrawLine(cx - FromDIP(5), cy + FromDIP(3),
-                    cx, cy - FromDIP(3));
-
-                dc.DrawLine(cx, cy - FromDIP(3),
-                    cx + FromDIP(5), cy + FromDIP(3));
-            }
-        }
-
-        // Bouton fermer
-        if (showCloseButton_)
-        {
-            const wxRect closeRect = GetCloseRect();
-
-            if (hoverClose_)
-            {
-                dc.SetBrush(wxBrush(wxColour(180, 55, 55)));
-                dc.DrawRoundedRectangle(
-                    closeRect,
-                    FromDIP(5));
-            }
-
-            const int x =
-                closeRect.x + closeRect.width / 2;
-
-            const int y =
-                closeRect.y + closeRect.height / 2;
-
-            dc.SetPen(wxPen(foreground_, FromDIP(2)));
-
-            dc.DrawLine(x - FromDIP(4), y - FromDIP(4),
-                x + FromDIP(4), y + FromDIP(4));
-
-            dc.DrawLine(x + FromDIP(4), y - FromDIP(4),
-                x - FromDIP(4), y + FromDIP(4));
-        }
-
+        // --- Ligne de bordure (Accent) ---
         dc.SetPen(wxPen(accent_, FromDIP(1)));
-
         if (vertical_)
             dc.DrawLine(size.x - 1, 0, size.x - 1, size.y);
         else
             dc.DrawLine(0, size.y - 1, size.x, size.y - 1);
     }
+
 
     void CModernPanelHeader::OnMouseMove(wxMouseEvent& event)
     {
@@ -291,7 +272,8 @@ namespace Regards::Window
     {
         const wxPoint pos = event.GetPosition();
 
-        if (GetCollapseRect().Contains(pos))
+        // Panneau ferme : un clic n'importe ou sur la barre le rouvre
+        if (collapsed_ || GetCollapseRect().Contains(pos))
         {
             collapsed_ = !collapsed_;
             Refresh(false);
@@ -337,6 +319,10 @@ namespace Regards::Window
             vertical,
             showCloseButton);
 
+        // visible = true : panneau ouvert ; false : demarre ferme (barre d'en-tete seule)
+        isCollapsed_ = !visible;
+        header_->SetCollapsed(isCollapsed_);
+
         content_ = new wxPanel(this);
         content_->SetBackgroundColour(PANEL_BACKGROUND);
 
@@ -378,15 +364,15 @@ namespace Regards::Window
     }
 
 
-    // 2. Dans le fichier d'en-tête (.h) ou en tant que méthodes de votre classe :
+    // Memes comportements que CPanelWithClickToolbar::ShowPane / ClosePaneEvent
     void CModernPanel::OnShowPane(wxCommandEvent& event)
     {
-        ShowPanel();
+        ClickShowButton(PANE_WITHCLICKTOOLBAR);
     }
 
     void CModernPanel::OnClosePane(wxCommandEvent& event)
     {
-        HidePanel();
+        ClosePane(PANE_WITHCLICKTOOLBAR);
     }
 
     void CModernPanel::OnRefreshData(wxCommandEvent& event)
@@ -420,6 +406,10 @@ namespace Regards::Window
         if (mainWindow_)
         {
             oldSize = mainWindow_->GetSize();
+
+            if (content_->GetSizer())
+                content_->GetSizer()->Detach(mainWindow_);
+
             mainWindow_->Reparent(nullptr);
             mainWindow_->Hide();
         }
@@ -471,16 +461,16 @@ namespace Regards::Window
         return mainWindow_;
     }
 
+    // Affiche tout le panneau (ouvert ou ferme, selon son etat actuel)
     void CModernPanel::ShowPanel()
     {
         Show(true);
-        isPanelVisible_ = true;
-        isCollapsed_ = false;
 
         UpdatePanelLayout();
         Resize();
     }
 
+    // Masque tout le panneau (ce n'est pas la "fermeture" : l'etat ouvert/ferme est conserve)
     void CModernPanel::HidePanel(bool refresh)
     {
         Show(false);
@@ -494,13 +484,7 @@ namespace Regards::Window
         if (isCollapsed_ == collapsed)
             return;
 
-        isCollapsed_ = collapsed;
-
-        if (header_)
-            header_->SetCollapsed(collapsed);
-
-        UpdatePanelLayout();
-        Resize();
+        SetOpenState(!collapsed, 1);
 
         if (OnCollapse)
             OnCollapse();
@@ -516,6 +500,7 @@ namespace Regards::Window
         return isPanelVisible_;
     }
 
+    // Ouvre le panneau (equivalent de CPanelWithClickToolbar::ClickShowButton)
     void CModernPanel::ClickShowButton(
         const int& id,
         const int& refresh)
@@ -523,17 +508,11 @@ namespace Regards::Window
         if (id != panelId_ && id != PANEL_ID)
             return;
 
-        ShowPanel();
-
-        wxCommandEvent event(wxEVENT_RESIZE);
-        event.SetId(GetId());
-        event.SetInt(1);
-        event.SetExtraLong(refresh);
-
-        if (GetParent())
-            wxQueueEvent(GetParent(), event.Clone());
+        SetOpenState(true, refresh);
     }
 
+    // Ferme le panneau : il reste visible sous forme de barre d'en-tete, d'ou on peut le rouvrir
+    // (equivalent de CPanelWithClickToolbar::ClosePane, qui affichait la barre de clic)
     void CModernPanel::ClosePane(
         const int& id,
         const int& refresh)
@@ -541,17 +520,41 @@ namespace Regards::Window
         if (id != panelId_ && id != PANEL_ID)
             return;
 
-        isPanelVisible_ = false;
+        SetOpenState(false, refresh);
+    }
 
-        Hide();
+    void CModernPanel::SetOpenState(bool open, int refresh)
+    {
+        // Rien a faire si l'etat ne change pas (comme dans CPanelWithClickToolbar)
+        if (isPanelVisible_ == open && isCollapsed_ == !open)
+        {
+            Resize();
+            return;
+        }
 
-        wxCommandEvent event(wxEVENT_RESIZE);
-        event.SetId(GetId());
-        event.SetInt(0);
-        event.SetExtraLong(refresh);
+        isPanelVisible_ = open;
+        isCollapsed_ = !open;
 
-        if (GetParent())
-            wxQueueEvent(GetParent(), event.Clone());
+        if (header_)
+            header_->SetCollapsed(isCollapsed_);
+
+        UpdatePanelLayout();
+        Resize();
+
+        // Le parent doit recalculer sa mise en page avec les nouvelles GetWidth()/GetHeight()
+        NotifyParent(open, refresh);
+    }
+
+    void CModernPanel::NotifyParent(bool open, int refresh)
+    {
+        if (!GetParent())
+            return;
+
+        auto* event = new wxCommandEvent(wxEVENT_RESIZE);
+        event->SetId(GetId());
+        event->SetInt(open ? 1 : 0);
+        event->SetExtraLong(refresh);
+        wxQueueEvent(GetParent(), event);
     }
 
     void CModernPanel::UpdateScreenRatio()
@@ -563,14 +566,39 @@ namespace Regards::Window
         Resize();
     }
 
+    // Dimensions "voulues" par le panneau pour la mise en page du parent :
+    //  - ferme : seulement l'epaisseur de la barre d'en-tete
+    //  - ouvert : contenu + barre d'en-tete
     int CModernPanel::GetWidth()
     {
-        return GetSize().x;
+        const int headerWidth = header_ ? header_->GetMinSize().x : 0;
+
+        if (isVertical_)
+        {
+            if (!isPanelVisible_ || mainWindow_ == nullptr)
+                return headerWidth;
+            return mainWindow_->GetWidth() + headerWidth;
+        }
+
+        if (!isPanelVisible_ || mainWindow_ == nullptr)
+            return GetSize().x;
+        return mainWindow_->GetWidth();
     }
 
     int CModernPanel::GetHeight()
     {
-        return GetSize().y;
+        const int headerHeight = header_ ? header_->GetMinSize().y : 0;
+
+        if (isVertical_)
+        {
+            if (!isPanelVisible_ || mainWindow_ == nullptr)
+                return GetSize().y;
+            return mainWindow_->GetHeight();
+        }
+
+        if (!isPanelVisible_ || mainWindow_ == nullptr)
+            return headerHeight;
+        return mainWindow_->GetHeight() + headerHeight;
     }
 
     void CModernPanel::SetPanelBackground(
@@ -629,28 +657,15 @@ namespace Regards::Window
         if (!panelSizer_)
             return;
 
+        // Ferme : seule la barre d'en-tete reste affichee
         if (isCollapsed_)
-        {
             content_->Hide();
-
-            if (isVertical_)
-                header_->SetMinSize(
-                    wxSize(FromDIP(38), -1));
-            else
-                header_->SetMinSize(
-                    wxSize(-1, FromDIP(36)));
-        }
         else
-        {
             content_->Show();
 
-            if (isVertical_)
-                header_->SetMinSize(
-                    wxSize(FromDIP(38), -1));
-            else
-                header_->SetMinSize(
-                    wxSize(-1, FromDIP(36)));
-        }
+        header_->SetMinSize(isVertical_
+            ? wxSize(FromDIP(38), -1)
+            : wxSize(-1, FromDIP(36)));
 
         panelSizer_->Layout();
         Layout();
@@ -658,12 +673,14 @@ namespace Regards::Window
 
     void CModernPanel::OnHeaderCollapse()
     {
+        // L'en-tete a deja bascule son propre etat : on aligne le panneau dessus
         SetCollapsed(!isCollapsed_);
     }
 
     void CModernPanel::OnHeaderClose()
     {
         ClosePane(panelId_);
+
         if (OnClose)
             OnClose();
     }

@@ -11,12 +11,13 @@
 #include <ViewerParam.h>
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
+#include <ModernPanel.h>
 using namespace Regards::Viewer;
 using namespace Regards::Window;
 
 CWindowModeController::CWindowModeController(wxWindow*              parent,
                                              CWindowManager*        windowManager,
-                                             CPanelWithClickToolbar* panelInfosClick,
+                                             CModernPanel* panelInfosClick,
                                              CPreviewWnd*           previewWindow,
                                              CPanelInfosWnd*        panelInfosWindow,
                                              CListPicture*          listPicture,

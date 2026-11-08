@@ -62,6 +62,7 @@ namespace Regards::Control
 		void MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
 			const int& posLargeur, const int& posHauteur, bool& update) override;
 
+		void OnModernRelayout() override;
 		void CreateElement(RenderMode mode);
 		void UpdateChildTree(tree<CTreeData*>::sibling_iterator& parent);
 
@@ -78,6 +79,7 @@ namespace Regards::Control
 		int widthPosition;
 		wxString filename;
 		int bitmapWindowId;
+		wxString activeKey; // clé de l'étape active (surlignée dans l'arbre)
 		wxString rootKey; // clé de l'élément racine (étape 0), mémorisée par InitTree
 	};
 }
