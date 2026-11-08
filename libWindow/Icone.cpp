@@ -59,7 +59,7 @@ int CIcone::GetHeight()
 	if (themeIcone.showOnlyThumbnail)
 		height = themeIcone.GetHeight() - (themeIcone.GetMarge() << 1);
 	else
-		height = static_cast<int>(static_cast<float>(themeIcone.GetHeight()) * 0.75);
+		height = themeIcone.GetHeight() - themeIcone.GetCheckboxHeight();
 
 	return height;
 }
@@ -930,21 +930,24 @@ float CIcone::CalculRatio(
 	const int& maxWidth,
 	const int& maxHeight)
 {
+	if (width <= 0 || height <= 0 || maxWidth <= 0 || maxHeight <= 0)
+		return 1.0f;
+
 	float ratio;
 
 	if (width > height)
 	{
-		ratio = static_cast<float>(maxWidth) / width;
+		ratio = static_cast<float>(maxWidth) / static_cast<float>(width);
 
 		if (height * ratio > maxHeight)
-			ratio = static_cast<float>(maxHeight) / height;
+			ratio = static_cast<float>(maxHeight) / static_cast<float>(height);
 	}
 	else
 	{
-		ratio = static_cast<float>(maxHeight) / height;
+		ratio = static_cast<float>(maxHeight) / static_cast<float>(height);
 
 		if (width * ratio > maxWidth)
-			ratio = static_cast<float>(maxWidth) / width;
+			ratio = static_cast<float>(maxWidth) / static_cast<float>(width);
 	}
 
 	return std::min(ratio, 1.0f);
@@ -953,8 +956,58 @@ float CIcone::CalculRatio(
 void CIcone::GetBitmapDimension(const int& width, const int& height, int& tailleAffichageBitmapWidth,
 	int& tailleAffichageBitmapHeight, float& newRatio)
 {
-	newRatio = CalculRatio(width, height, GetWidth(), GetHeight());
+	// 1. Sécurité si l'image source est invalide
+	if (width <= 0 || height <= 0)
+	{
+		tailleAffichageBitmapWidth = themeIcone.GetWidth();
+		tailleAffichageBitmapHeight = themeIcone.GetHeight();
+		newRatio = 1.0f;
+		return;
+	}
 
-	tailleAffichageBitmapWidth = static_cast<int>(static_cast<float>(width) * newRatio);
-	tailleAffichageBitmapHeight = static_cast<int>(static_cast<float>(height) * newRatio);
+	// 2. Calcul strict de la boîte conteneur disponible (Espace icône moins les marges)
+	const int containerWidth = themeIcone.GetWidth() - (themeIcone.GetMarge() << 1);
+	int containerHeight = 0;
+
+	if (themeIcone.showOnlyThumbnail)
+	{
+		containerHeight = themeIcone.GetHeight() - (themeIcone.GetMarge() << 1);
+	}
+	else
+	{
+		// On réserve 25% de la hauteur pour le texte sous l'icône
+		containerHeight = static_cast<int>(static_cast<float>((themeIcone.GetHeight() - themeIcone.GetCheckboxHeight()) - (themeIcone.GetMarge() << 2)));
+	}
+
+	if (containerWidth <= 0 || containerHeight <= 0)
+	{
+		tailleAffichageBitmapWidth = 1;
+		tailleAffichageBitmapHeight = 1;
+		newRatio = 0.0f;
+		return;
+	}
+
+	// 3. Calcul des ratios de forme (Aspect Ratio)
+	float imageRatio = static_cast<float>(width) / static_cast<float>(height);
+	float containerRatio = static_cast<float>(containerWidth) / static_cast<float>(containerHeight);
+
+	// 4. Maximisation : on ajuste par rapport aux bords du conteneur de l'icône
+	if (imageRatio > containerRatio)
+	{
+		// L'image est plus large (proportionnellement) que le conteneur -> on bloque sur la largeur max
+		tailleAffichageBitmapWidth = containerWidth;
+		tailleAffichageBitmapHeight = static_cast<int>(static_cast<float>(containerWidth) / imageRatio);
+		newRatio = static_cast<float>(containerWidth) / static_cast<float>(width);
+	}
+	else
+	{
+		// L'image est plus haute (proportionnellement) que le conteneur -> on bloque sur la hauteur max
+		tailleAffichageBitmapHeight = containerHeight;
+		tailleAffichageBitmapWidth = static_cast<int>(static_cast<float>(containerHeight) * imageRatio);
+		newRatio = static_cast<float>(containerHeight) / static_cast<float>(height);
+	}
+
+	// 5. Sécurité anti-valeurs nulles
+	if (tailleAffichageBitmapWidth <= 0) tailleAffichageBitmapWidth = 1;
+	if (tailleAffichageBitmapHeight <= 0) tailleAffichageBitmapHeight = 1;
 }
