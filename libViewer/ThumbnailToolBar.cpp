@@ -24,8 +24,8 @@ CThumbnailToolBar::CThumbnailToolBar(wxWindow* parent, wxWindowID id, const CThe
 	geoButton = CreateButton("IDB_MAPLOCATION", "LBLGEOLOCALISE", WM_GEOLOCALISE, false);
 	deleteButton = CreateButton("IDB_DELETE", "LBLDELETE", WM_CLEAR, false);
 	copy = CreateButton("IDB_MULTIPLESELECT", "LBLCOPY", WM_COPY, false);
-	moins= CreateButton("IDB_ZOOMMOINS", "LBLZOOMOFF", WM_ZOOMOUT, false);
-	plus = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", WM_ZOOMON, false);
+	//moins= CreateButton("IDB_ZOOMMOINS", "LBLZOOMOFF", WM_ZOOMOUT, false);
+	//plus = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", WM_ZOOMON, false);
 
 
 	navElement.push_back(indexButton.get());
@@ -34,12 +34,12 @@ CThumbnailToolBar::CThumbnailToolBar(wxWindow* parent, wxWindowID id, const CThe
 	navElement.push_back(geoButton.get());
 	navElement.push_back(deleteButton.get());
 	navElement.push_back(copy.get());
-	navElement.push_back(moins.get());
+	//navElement.push_back(moins.get());
 
 	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
 	navElement.push_back(slide.get());
 
-	navElement.push_back(plus.get());
+	//navElement.push_back(plus.get());
 }
 
 void CThumbnailToolBar::ZoomOn()

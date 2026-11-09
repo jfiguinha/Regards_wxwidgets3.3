@@ -26,12 +26,12 @@ CPreviewToolbar::CPreviewToolbar(wxWindow* parent, wxWindowID id, wxWindowID vie
 	newPicture = CreateButton("IDB_NEWPICTURE", "LBLNEWLABEL", IDM_NEWPICTURE, false);
 	oldPicture = CreateButton("IDB_OLDPICTURE", "LBLORIGINALL", IDM_OLDPICTURE, false);
 	shrink = CreateButton("IDB_SHRINK", "LBLSHRINK", IDM_SETSHRINK, false);
-	moins = CreateButton("IDB_ZOOMMOINS", "LBLZOOMOFF", WM_ZOOMOUT, false);
+	//moins = CreateButton("IDB_ZOOMMOINS", "LBLZOOMOFF", WM_ZOOMOUT, false);
 
 	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
 	navElement.push_back(std::move(slide).get());
 
-	plus = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", WM_ZOOMON, false);
+	//plus = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", WM_ZOOMON, false);
 
 }
 

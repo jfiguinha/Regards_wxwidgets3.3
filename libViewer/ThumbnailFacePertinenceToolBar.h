@@ -37,8 +37,8 @@ namespace Regards::Viewer
 		bool TestIfEnable();
 		std::unique_ptr<CToolbarSlide> slide;
 		std::unique_ptr<CToolbarTexte> toolbarText = nullptr;
-		std::unique_ptr<CToolbarButton> moins = nullptr;
-		std::unique_ptr<CToolbarButton> plus = nullptr;
+		//std::unique_ptr<CToolbarButton> moins = nullptr;
+		//std::unique_ptr<CToolbarButton> plus = nullptr;
 
 		bool enableModification = true;
 	};

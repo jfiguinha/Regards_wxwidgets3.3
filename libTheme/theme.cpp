@@ -1516,7 +1516,7 @@ CThemeSlider::CThemeSlider()
 	buttonHeight = 17;
 	isColorBackground = true;
 	rectangleHeight = 10;
-	width = 200;
+	width = 240;
 	height = 40;
 	colorBack.Set(128, 128, 128);
 	rectanglePast.Set(0, 0, 128);
@@ -1547,6 +1547,8 @@ void CThemeSlider::LoadXML(xml_node<>* root_node)
 			value = child_node->value();
 			nodeName = child_node->name();
 			width = CConvertUtility::StringToInt(value);
+			if(width < 240)
+				width = 240;
 		}
 
 		child_node = node->first_node("height");

@@ -33,8 +33,8 @@ namespace Regards::Control
 		std::unique_ptr<CToolbarButton> newPicture;
 		std::unique_ptr<CToolbarButton> oldPicture;
 		std::unique_ptr<CToolbarButton> shrink;
-		std::unique_ptr<CToolbarButton> moins;
-		std::unique_ptr<CToolbarButton> plus;
+		//std::unique_ptr<CToolbarButton> moins;
+		//std::unique_ptr<CToolbarButton> plus;
 		std::unique_ptr<CToolbarButton> cross;
 		std::unique_ptr<CToolbarButton> editor;
 		std::unique_ptr<CToolbarButton> rotate90;

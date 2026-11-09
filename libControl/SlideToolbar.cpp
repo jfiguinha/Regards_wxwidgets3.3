@@ -22,12 +22,12 @@ CSlideToolbar::CSlideToolbar(wxWindow* parent, wxWindowID id, const CThemeToolba
 	speaker = CreateButton("IDB_VOLUME_UP_VIDEO", "LBLSPEAKER", IDM_NONE, false);
 	zoom = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", IDM_NONE, false);
 	shrink = CreateButton("IDB_SHRINK", "LBLSHRINK", IDM_SETSHRINK, false);
-	moins = CreateButton("IDB_MINUS", "LBLZOOMOFF", WM_ZOOMOUT, false);
+	//moins = CreateButton("IDB_MINUS", "LBLZOOMOFF", WM_ZOOMOUT, false);
 	
 	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
 	navElement.push_back(slide.get());
 
-	plus = CreateButton("IDB_PLUS", "LBLZOOMON", WM_ZOOMON, false);
+	//plus = CreateButton("IDB_PLUS", "LBLZOOMON", WM_ZOOMON, false);
 	cross = CreateButton("IDB_CANCEL", "LBLClose", WM_CLOSE, false);
 }
 

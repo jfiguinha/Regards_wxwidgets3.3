@@ -3,6 +3,8 @@
 #include "ToolbarElement.h"
 //#include "SliderInterface.h"
 
+class WXDLLIMPEXP_FWD_CORE wxGraphicsContext;
+
 namespace Regards::Window
 {
 	class CSliderInterface;
@@ -35,7 +37,12 @@ namespace Regards::Window
 		bool FindCirclePos(wxWindow* window, const int& y, const int& x);
 		void ClickLeftPage(const int& x);
 		void ClickRightPage(const int& x);
-		void DrawShapeElement(wxDC* deviceContext, const wxRect& rc);
+		void DrawShapeElement(wxGraphicsContext* gc, const wxRect& rc);
+		void DrawThumb(wxGraphicsContext* gc, const wxRect& rcButton);
+		void DrawModernButton(wxGraphicsContext* gc, const wxRect& rc, bool plus, bool pressed);
+		wxColour GetThumbColour() const;
+		void ChangePosition(const int& delta);
+		double GetPositionRatio() const;
 		void RenderSlide(wxDC* deviceContext, const int& width, const int& height, const int& x, const int& y);
 
 		int GetFirstValue();
@@ -46,7 +53,6 @@ namespace Regards::Window
 		CSliderInterface* eventInterface;
 		CThemeSlider themeSlider;
 		wxCursor hCursorHand;
-		wxImage button;
 		wxRect positionButton;
 		wxRect positionSlider;
 		bool mouseBlock;
@@ -55,5 +61,17 @@ namespace Regards::Window
 		int position;
 		vector<int> tabValue;
 		wxRect posRectangle;
+		wxRect minusRect;
+		wxRect plusRect;
+		bool minusPressed;
+		bool plusPressed;
+
+		wxBitmap slideCacheBuffer;
+
+		void DrawModernSlider(wxGraphicsContext* gc);
+		void DrawModernIcons(wxGraphicsContext* gc);
+
+		wxColour disabled{ 160, 166, 174 };
+
 	};
 }

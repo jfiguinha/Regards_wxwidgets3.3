@@ -38,8 +38,8 @@ namespace Regards::Video
 		std::unique_ptr<CToolbarButton> zoom;
 		std::unique_ptr<CToolbarSlide> slide;
 		std::unique_ptr<CToolbarButton> shrink;
-		std::unique_ptr<CToolbarButton> moins;
-		std::unique_ptr<CToolbarButton> plus;
+		//std::unique_ptr<CToolbarButton> moins;
+		//std::unique_ptr<CToolbarButton> plus;
 		std::unique_ptr<CToolbarButton> cross;
 		int positionTrackBar;
 		int id;

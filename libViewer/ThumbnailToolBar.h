@@ -44,7 +44,7 @@ namespace Regards::Viewer
 		std::unique_ptr<CToolbarButton> geoButton = nullptr;
 		std::unique_ptr<CToolbarButton> deleteButton = nullptr;
 		std::unique_ptr<CToolbarButton> copy = nullptr;
-		std::unique_ptr<CToolbarButton> moins = nullptr;
-		std::unique_ptr<CToolbarButton> plus = nullptr;
+		//std::unique_ptr<CToolbarButton> moins = nullptr;
+		//std::unique_ptr<CToolbarButton> plus = nullptr;
 	};
 }

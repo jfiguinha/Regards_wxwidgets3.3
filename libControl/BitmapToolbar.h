@@ -35,8 +35,8 @@ namespace Regards::Control
 		std::unique_ptr<CToolbarButton> email;
 		std::unique_ptr<CToolbarButton> printer;
 		std::unique_ptr<CToolbarButton> shrink;
-		std::unique_ptr<CToolbarButton> moins;
-		std::unique_ptr<CToolbarButton> plus;
+		//std::unique_ptr<CToolbarButton> moins;
+		//std::unique_ptr<CToolbarButton> plus;
 		std::unique_ptr<CToolbarSlide> slide;
 
 		wxWindowID parentId;
