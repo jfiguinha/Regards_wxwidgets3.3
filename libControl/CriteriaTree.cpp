@@ -32,7 +32,7 @@ PhotoCategorieVector CCriteriaTree::photoCategorieVector;
 //   1 = GPS, 2 = Folder, 3 = Date, 4 = Faces, 5 = Usenet category label,
 //   6 = Stars, 7 = Keywords (currently disabled), other = generic criteria list
 
-CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* interfaceControl): yPos(0)
+CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* interfaceControl) : yPos(0)
 {
 	rotation = 0;
 	numPhotoId = 0;
@@ -93,7 +93,7 @@ void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
 	treeDataPicture->SetKey("Criteria");
 	child = tr.insert(top, treeDataPicture);
 
-	for (CPhotoCategorie & photoCategorie : photoCategorieVector)
+	for (CPhotoCategorie& photoCategorie : photoCategorieVector)
 	{
 		ProcessCategory(picture, photoCategorie, child);
 	}
@@ -102,7 +102,7 @@ void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
 }
 
 void CCriteriaTree::ProcessCategory(const wxString& picture, CPhotoCategorie& photoCategorie,
-                                    tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator& child)
 {
 	switch (photoCategorie.GetId())
 	{
@@ -136,7 +136,7 @@ void CCriteriaTree::ProcessCategory(const wxString& picture, CPhotoCategorie& ph
 // ============================================================================
 
 void CCriteriaTree::AddFaces(const wxString& picture, CPhotoCategorie& photoCategorie,
-                             tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator& child)
 {
 	CSqlFindFacePhoto sqlFindFacePhoto;
 	std::vector<CFaceName> listFaceName = sqlFindFacePhoto.GetListFaceName(picture);
@@ -149,14 +149,14 @@ void CCriteriaTree::AddFaces(const wxString& picture, CPhotoCategorie& photoCate
 }
 
 void CCriteriaTree::AddFolder(const wxString& picture, CPhotoCategorie& photoCategorie,
-                              tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator& child)
 {
 	wxFileName dirname = wxFileName::DirName(picture);
 	CreateTextNode(child, photoCategorie.GetLibelle(), dirname.GetPath());
 }
 
 void CCriteriaTree::AddGPS(const wxString& picture, CPhotoCategorie& photoCategorie,
-                           tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator& child)
 {
 	CriteriaVector criteriaVector;
 	CSqlPhotos sqlPhotos;
@@ -182,7 +182,7 @@ void CCriteriaTree::AddGPS(const wxString& picture, CPhotoCategorie& photoCatego
 }
 
 void CCriteriaTree::AddDate(const wxString& picture, CPhotoCategorie& photoCategorie,
-                            tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator& child)
 {
 	CriteriaVector criteriaVector;
 	CSqlPhotos sqlPhotos;
@@ -202,7 +202,7 @@ void CCriteriaTree::AddDate(const wxString& picture, CPhotoCategorie& photoCateg
 }
 
 void CCriteriaTree::AddStars(const wxString& picture, CPhotoCategorie& photoCategorie,
-                             tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator& child)
 {
 	CriteriaVector criteriaVector;
 	CSqlPhotos sqlPhotos;
@@ -213,7 +213,7 @@ void CCriteriaTree::AddStars(const wxString& picture, CPhotoCategorie& photoCate
 }
 
 void CCriteriaTree::AddKeywords(const wxString& picture, CPhotoCategorie& photoCategorie,
-                                tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator& child)
 {
 	if (photoCategorie.GetId() == 7)
 	{
@@ -233,7 +233,7 @@ void CCriteriaTree::AddKeywords(const wxString& picture, CPhotoCategorie& photoC
 	}
 	else
 	{
-		for (CCriteria & criteria : criteriaVector)
+		for (CCriteria& criteria : criteriaVector)
 		{
 			CreateLinkNode(child, libelleCategorie, criteria.GetLibelle(), 0, criteria.GetId());
 		}
@@ -245,7 +245,7 @@ void CCriteriaTree::AddKeywords(const wxString& picture, CPhotoCategorie& photoC
 // ============================================================================
 
 void CCriteriaTree::CreateLinkNode(tree<CTreeData*>::iterator& parent, const wxString& key, const wxString& value,
-                                   const int& linkType, const int& id)
+	const int& linkType, const int& id)
 {
 	auto treeDataFileName = new CTreeDataLink();
 	treeDataFileName->SetIsParent(false);
@@ -382,7 +382,7 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 					RenderMode::Create);
 			}
 			ModernStyleText(pos_element, modernLabelWidth, modernMargin, modernMargin / 2, modernLabel, false,
-			                RENDERFONT_LEFT);
+				RENDERFONT_LEFT);
 
 			// Valeur (alignee a droite) ; "-" discret si vide
 			xPos = 0;
@@ -426,6 +426,15 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 			}
 			ModernPlaceValue(pos_element, yPos);
 
+			// Les etoiles ont leur propre hauteur : on les recentre verticalement dans la ligne
+			// (sans cela elles debordent sous le filet de separation)
+			if (data->GetType() == 6 && data->GetValue() != "")
+			{
+				const int starHeight = pos_element->GetTreeElement()->GetHeight();
+				const int offset = 0;// (modernRowHeight - starHeight) / 2;
+				pos_element->SetY(yPos - starHeight / 2);
+			}
+
 			yPos += modernRowHeight;
 			nbRow++;
 		}
@@ -445,7 +454,7 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 // ============================================================================
 
 void CCriteriaTree::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
-                              const int& posLargeur, const int& posHauteur, bool& update)
+	const int& posLargeur, const int& posHauteur, bool& update)
 {
 	if (element != nullptr)
 	{
@@ -456,8 +465,8 @@ void CCriteriaTree::MouseOver(wxDC* deviceContext, CPositionElement* element, co
 }
 
 void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
-                                   const int& x, const int& y,
-                                   const int& posLargeur, const int& posHauteur)
+	const int& x, const int& y,
+	const int& posLargeur, const int& posHauteur)
 {
 	if (window == nullptr)
 		return;
@@ -502,7 +511,7 @@ void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
 				wxString notCompatibleFormat = CLibResource::LoadStringFromResource(
 					L"NotCompatibleFormat", 1);
 				wxMessageBox(notCompatibleFormat, labelInformations,
-				             wxICON_INFORMATION);
+					wxICON_INFORMATION);
 			}
 		}
 		else if (treeElementTexte->GetTypeLink() == 1)
@@ -525,7 +534,7 @@ void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
 				wxString notCompatibleFormat = CLibResource::LoadStringFromResource(
 					L"NotCompatibleFormat", 1);
 				wxMessageBox(notCompatibleFormat, labelInformations,
-				             wxICON_INFORMATION);
+					wxICON_INFORMATION);
 			}
 		}
 		else if (treeElementTexte->GetTypeLink() == 7)

@@ -122,12 +122,11 @@ bool CSqlCriteria::DeleteCriteriaAlone()
 		       : false;
 }
 
-bool CSqlCriteria::DeletePhotoCriteria(const int64_t& numCatalog, const int64_t& numCriteria)
+bool CSqlCriteria::DeletePhotoCriteria(const int64_t& numCriteria)
 {
 	std::vector<std::unique_ptr<CSqlParameter>> parameter;
-	parameter.push_back(std::make_unique<CSqlInt>(numCatalog));
 	parameter.push_back(std::make_unique<CSqlInt>(numCriteria));
-	return ExecuteSqlWithStatementNoResult("DELETE FROM PHOTOS WHERE NumCatalog = ? and NumCriteria = ? ", parameter);
+	return ExecuteSqlWithStatementNoResult("DELETE FROM PhotosCRITERIA WHERE NumCriteria = ? ", parameter);
 }
 
 int64_t CSqlCriteria::GetNumCategorieId(const int64_t& numCatalog, const wxString& libelle)

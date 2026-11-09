@@ -220,7 +220,7 @@ void CKeywordWnd::ClickOnElement(CPositionElement* element, wxWindow* window, co
 			CSqlPhotoCriteria sqlPhotoCriteria;
 
 			const int numCriteria = wxAtoi(treeData->GetExifKey());
-			sqlCriteria.DeletePhotoCriteria(1, numCriteria);
+			sqlCriteria.DeletePhotoCriteria(numCriteria);
 			sqlPhotoCriteria.DeleteCriteria(numCriteria);
 			sqlCriteria.DeleteCriteria(numCriteria, KEYWORD_CRITERIA_CATEGORY);
 

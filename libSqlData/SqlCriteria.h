@@ -21,7 +21,7 @@ namespace Regards
 			bool InsertCriteria(const int64_t& numCatalog, const int64_t& numCategorie, const wxString& libelle);
 			int64_t GetCriteriaId(const int64_t& numCatalog, const int64_t& numCategorie, const wxString& libelle);
 			bool UpdateCriteria(const int64_t& numCatalog, const int64_t& numCategorie, const wxString& libelle);
-			bool DeletePhotoCriteria(const int64_t& numCatalog, const int64_t& numCriteria);
+			bool DeletePhotoCriteria(const int64_t& numCriteria);
 			int64_t GetNumCategorieId(const int64_t& numCatalog, const wxString& libelle);
 			bool DeleteCriteriaFolder(const int64_t& numFolder);
 			bool DeleteCriteriaCatalog(const int64_t& numCatalog);
