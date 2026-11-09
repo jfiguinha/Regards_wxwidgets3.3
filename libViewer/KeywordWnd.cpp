@@ -57,6 +57,7 @@ CKeywordWnd::CKeywordWnd(CWindowMain* windowMain, CThemeTree* theme, CTreeElemen
 		themeTree.themeTriangle.SetHeight(rowHeight);
 		themeTree.themeCheckbox.SetHeight(rowHeight);
 		themeTree.themeDelete.SetHeight(rowHeight);
+		themeTree.themeDelete.color = themeTree.bgColorOne;
 		themeTree.themeSlide.SetHeight(rowHeight);
 		themeTree.themeTexte.SetHeight(rowHeight);
 	}

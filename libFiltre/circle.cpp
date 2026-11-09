@@ -11,6 +11,11 @@
 #include "Color.h"
 #include "circle.h"
 
+
+#include <wx/dcmemory.h>
+#include <wx/graphics.h>
+
+
 using namespace Regards::FiltreEffet;
 
 namespace {
@@ -51,9 +56,6 @@ void CCircle::CleanCircle() {
 
     listOfCircle.clear();
 }
-
-#include <wx/dcmemory.h>
-#include <wx/graphics.h>
 
 wxImage CCircle::GetCircle(const int& rayon) {
     if (rayon <= 0) return {};
