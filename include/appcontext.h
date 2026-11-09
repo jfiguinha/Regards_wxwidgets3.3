@@ -25,6 +25,16 @@ public:
 
 	}
 
+	bool OnKeyDownEnable()
+	{
+		return onKeyDownEnable;
+	}	
+
+	void SetOnKeyDownEnable(bool enable)
+	{
+		onKeyDownEnable = enable;
+	}
+
 
 	int GetExifFromAngleAndFlip(const int& angle, const int& flipH, const int& flipV)
 	{
@@ -280,7 +290,7 @@ public:
 
 private:
 
-
+	bool onKeyDownEnable = true;
 	cv::Mat defaultPictureMat;
 	cv::Mat defaultPictureMatThumbnailPicture;
 	cv::Mat defaultPictureMatThumbnailVideo;

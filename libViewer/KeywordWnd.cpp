@@ -17,6 +17,8 @@
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
 #include <algorithm>
+#include <appcontext.h>
+extern AppContext application_context;
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 using namespace Regards::Window;
@@ -409,6 +411,7 @@ void CKeywordWnd::BeginEditKeyword(CPositionElement* element, wxWindow* window, 
 	editedKey = treeData->GetKey();
 	editCtrl = ctrl;
 
+	application_context.SetOnKeyDownEnable(false);
 	ctrl->Bind(wxEVT_TEXT_ENTER, &CKeywordWnd::OnEditEnter, this);
 	ctrl->Bind(wxEVT_KILL_FOCUS, &CKeywordWnd::OnEditKillFocus, this);
 	ctrl->Bind(wxEVT_KEY_DOWN, &CKeywordWnd::OnEditKeyDown, this);
@@ -484,4 +487,7 @@ void CKeywordWnd::CloseEditor()
 	ctrl->Unbind(wxEVT_KEY_DOWN, &CKeywordWnd::OnEditKeyDown, this);
 	ctrl->Hide();
 	ctrl->Destroy();
+
+
+	application_context.SetOnKeyDownEnable(true);
 }

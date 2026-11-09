@@ -2,7 +2,8 @@
 #include "ViewerNavigationController.h"
 #include "MainWindow.h"
 #include "window_mode_id.h"
-
+#include <appcontext.h>
+extern AppContext application_context;
 
 using namespace Regards::Viewer;
 
@@ -50,6 +51,12 @@ void CViewerNavigationController::OnKeyUp(wxKeyEvent& event)
 
 void CViewerNavigationController::OnKeyDown(wxKeyEvent& event)
 {
+    if (!application_context.OnKeyDownEnable())
+    {
+        event.Skip();
+        return;
+    }
+
     const int keyCode = event.GetKeyCode();
 
     // ESC : quitter le plein écran quelle que soit l'état
