@@ -20,17 +20,15 @@
 #else
 #include <window_id.h>
 #endif
+#include "TreeElementControlInterface.h"
 using namespace Regards::Control;
 using namespace Regards::Window;
 using namespace Regards::Sqlite;
 using namespace Regards::Picture;
+
 #define TAILLEMAX 4096
 extern AppContext application_context;
 PhotoCategorieVector CCriteriaTree::photoCategorieVector;
-
-// Category ids (as returned by CPhotoCategorie::GetId()):
-//   1 = GPS, 2 = Folder, 3 = Date, 4 = Faces, 5 = Usenet category label,
-//   6 = Stars, 7 = Keywords (currently disabled), other = generic criteria list
 
 CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* interfaceControl) : yPos(0)
 {
@@ -48,10 +46,8 @@ CCriteriaTree::CCriteriaTree(CThemeTree* theme, CTreeElementControlInterface* in
 	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
 	eventControl = interfaceControl;
 
-	// Style moderne : fond uni, filets, libelle a gauche / valeur a droite
 	EnableModernStyle();
 }
-
 
 wxString CCriteriaTree::GetFilename()
 {
@@ -60,12 +56,8 @@ wxString CCriteriaTree::GetFilename()
 
 void CCriteriaTree::UpdateScreenRatio()
 {
-	//this->UpdateElement();
+	RenderElement(RenderMode::Update);
 }
-
-// ============================================================================
-// SetFile / category loading & dispatch
-// ============================================================================
 
 void CCriteriaTree::LoadCategories()
 {
@@ -98,7 +90,7 @@ void CCriteriaTree::SetFile(const wxString& picture, const int& numPhotoId)
 		ProcessCategory(picture, photoCategorie, child);
 	}
 
-	RenderTree();
+	RenderElement(RenderMode::Create);
 }
 
 void CCriteriaTree::ProcessCategory(const wxString& picture, CPhotoCategorie& photoCategorie,
@@ -113,7 +105,6 @@ void CCriteriaTree::ProcessCategory(const wxString& picture, CPhotoCategorie& ph
 		AddFolder(picture, photoCategorie, child);
 		break;
 	case 5:
-		// Small enough to keep inline: just a label/value swap, no dedicated Add* needed.
 		CreateTextNode(child, "usenet.category", photoCategorie.GetLibelle());
 		break;
 	case 1:
@@ -130,10 +121,6 @@ void CCriteriaTree::ProcessCategory(const wxString& picture, CPhotoCategorie& ph
 		break;
 	}
 }
-
-// ============================================================================
-// Category handlers
-// ============================================================================
 
 void CCriteriaTree::AddFaces(const wxString& picture, CPhotoCategorie& photoCategorie,
 	tree<CTreeData*>::iterator& child)
@@ -216,10 +203,7 @@ void CCriteriaTree::AddKeywords(const wxString& picture, CPhotoCategorie& photoC
 	tree<CTreeData*>::iterator& child)
 {
 	if (photoCategorie.GetId() == 7)
-	{
-		// Keyword linking is currently disabled (feature not yet implemented upstream).
 		return;
-	}
 
 	CriteriaVector criteriaVector;
 	CSqlPhotos sqlPhotos;
@@ -239,10 +223,6 @@ void CCriteriaTree::AddKeywords(const wxString& picture, CPhotoCategorie& photoC
 		}
 	}
 }
-
-// ============================================================================
-// Tree node factories
-// ============================================================================
 
 void CCriteriaTree::CreateLinkNode(tree<CTreeData*>::iterator& parent, const wxString& key, const wxString& value,
 	const int& linkType, const int& id)
@@ -278,32 +258,45 @@ void CCriteriaTree::CreateTextNode(tree<CTreeData*>::iterator& parent, const wxS
 	tr.append_child(parent, treeDataFileName);
 }
 
-// ============================================================================
-// Rendering
-// ============================================================================
-
 void CCriteriaTree::CreateElement()
 {
-	// Kept for API compatibility with any existing external callers.
-	RenderTree();
+	RenderElement(RenderMode::Create);
 }
 
 void CCriteriaTree::OnModernRelayout()
 {
-	RenderTree();
+	RenderElement(RenderMode::Update);
 }
 
-void CCriteriaTree::RenderTree()
+void CCriteriaTree::RenderElement(RenderMode mode)
 {
-	bool isVisible = true;
 	widthPosition = 0;
 
-	// Les anciens elements sont liberes avant la reconstruction (RenderTree peut etre rappele a chaque redimensionnement)
-	for (CPositionElement* posElement : vectorPosElement)
-		delete posElement;
+	if (mode == RenderMode::Create)
+	{
+		for (CPositionElement* posElement : vectorPosElement)
+			delete posElement;
 
-	vectorPosElement.clear();
-	vectorPosElementDynamic.clear();
+		vectorPosElement.clear();
+		vectorPosElementDynamic.clear();
+	}
+	else if (mode == RenderMode::Update)
+	{
+		for (CPositionElement* value : vectorPosElement)
+		{
+			if (value != nullptr)
+			{
+				value->SetX(0);
+				value->SetY(0);
+				CTreeElement* treeElement = value->GetTreeElement();
+				if (treeElement != nullptr)
+				{
+					treeElement->SetVisible(false);
+					treeElement->SetElementPos(0, 0);
+				}
+			}
+		}
+	}
 
 	ModernUpdateMetrics(true);
 
@@ -318,10 +311,10 @@ void CCriteriaTree::RenderTree()
 		int profondeur = tr.depth(it);
 		if (profondeur == 0)
 		{
-			CTreeElementTriangle* treeElementTriangle = ModernRenderHeaderRow(data, RenderMode::Create, yPos, false);
+			CTreeElementTriangle* treeElementTriangle = ModernRenderHeaderRow(data, mode, yPos, false);
 
 			if (treeElementTriangle->GetOpen())
-				RenderNode(it);
+				RenderNode(it, mode);
 		}
 		++it;
 	}
@@ -331,27 +324,40 @@ CPositionElement* CCriteriaTree::RenderTextLinkValue(
 	CTreeData* data,
 	int& xPos,
 	int& yPos,
-	bool visible)
+	bool visible,
+	RenderMode mode)
 {
 	CPositionElement* posElement = nullptr;
-	CTreeElementTexte* treeElementTexte = nullptr;
 
-	auto dataLink = static_cast<CTreeDataLink*>(data);
-	treeElementTexte = CreateTexteLinkElement(
-		themeTree.GetRowWidth(), themeTree.GetRowHeight(),
-		data->GetValue(), dataLink->GetLinkPath(),
-		dataLink->GetLinkType());
-	treeElementTexte->SetVisible(visible);
-	posElement = CreatePositionElement(
-		xPos, yPos, nbRow, 1, treeElementTexte->GetWidth(),
-		themeTree.GetRowHeight(), ELEMENT_TEXTEVALUE,
-		treeElementTexte, data, (data->GetType() == 2));
+	if (mode == RenderMode::Update)
+		posElement = GetElement(data, ELEMENT_TEXTEVALUE);
+
+	if (posElement == nullptr)
+	{
+		auto dataLink = static_cast<CTreeDataLink*>(data);
+		CTreeElementTexte* treeElementTexte = CreateTexteLinkElement(
+			themeTree.GetRowWidth(), themeTree.GetRowHeight(),
+			data->GetValue(), dataLink->GetLinkPath(),
+			dataLink->GetLinkType());
+		treeElementTexte->SetVisible(visible);
+		posElement = CreatePositionElement(
+			xPos, yPos, nbRow, 1, treeElementTexte->GetWidth(),
+			themeTree.GetRowHeight(), ELEMENT_TEXTEVALUE,
+			treeElementTexte, data, (data->GetType() == 2));
+	}
+	else
+	{
+		auto* treeElementTexte = static_cast<CTreeElementTexte*>(posElement->GetTreeElement());
+		treeElementTexte->SetVisible(visible);
+		treeElementTexte->SetElementPos(xPos, yPos);
+		posElement->SetX(xPos);
+		posElement->SetY(yPos);
+	}
 
 	return posElement;
 }
 
-
-void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
+void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator & parent, RenderMode mode)
 {
 	CPositionElement* pos_element;
 	tree<CTreeData*>::sibling_iterator it = tr.begin(parent);
@@ -363,75 +369,42 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 
 		if (data->GetValue().size() > 0 || it.number_of_children() == 0)
 		{
-			// Libelle (gris attenue, a gauche)
 			int xPos = 0;
 			if (data->GetType() == 2)
-			{
-				pos_element = RenderTextLink(data,
-					xPos,
-					yPos,
-					isVisible,
-					RenderMode::Create);
-			}
+				pos_element = RenderTextLink(data, xPos, yPos, isVisible, mode);
 			else
-			{
-				pos_element = RenderText(data,
-					xPos,
-					yPos,
-					isVisible,
-					RenderMode::Create);
-			}
-			ModernStyleText(pos_element, modernLabelWidth, modernMargin, modernMargin / 2, modernLabel, false,
-				RENDERFONT_LEFT);
+				pos_element = RenderText(data, xPos, yPos, isVisible, mode);
 
-			// Valeur (alignee a droite) ; "-" discret si vide
+			ModernStyleText(pos_element, modernLabelWidth, modernMargin, modernMargin / 2, modernLabel, false, RENDERFONT_LEFT);
+
 			xPos = 0;
 			if (data->GetValue() != "")
 			{
 				if (data->GetType() == 6)
 				{
-					pos_element = RenderStar(data,
-						xPos,
-						yPos,
-						isVisible,
-						RenderMode::Create);
+					pos_element = RenderStar(data, xPos, yPos, isVisible, mode);
 				}
 				else if (data->GetType() == 2)
 				{
-					// Lien cliquable : on garde la couleur de lien du theme
-					pos_element = RenderTextLinkValue(data,
-						xPos,
-						yPos,
-						isVisible);
+					pos_element = RenderTextLinkValue(data, xPos, yPos, isVisible, mode);
 				}
 				else
 				{
-					pos_element = RenderTextValue(data,
-						xPos,
-						yPos,
-						isVisible,
-						RenderMode::Create);
+					pos_element = RenderTextValue(data, xPos, yPos, isVisible, mode);
 					ModernColorText(pos_element, modernValue);
 				}
 			}
 			else
 			{
-				pos_element = RenderTextValue(data,
-					xPos,
-					yPos,
-					isVisible,
-					RenderMode::Create);
+				pos_element = RenderTextValue(data, xPos, yPos, isVisible, mode);
 				static_cast<CTreeElementTexte*>(pos_element->GetTreeElement())->SetLibelle(L"-");
 				ModernColorText(pos_element, modernEmpty);
 			}
 			ModernPlaceValue(pos_element, yPos);
 
-			// Les etoiles ont leur propre hauteur : on les recentre verticalement dans la ligne
-			// (sans cela elles debordent sous le filet de separation)
 			if (data->GetType() == 6 && data->GetValue() != "")
 			{
 				const int starHeight = pos_element->GetTreeElement()->GetHeight();
-				const int offset = 0;// (modernRowHeight - starHeight) / 2;
 				pos_element->SetY(yPos - starHeight / 2);
 			}
 
@@ -440,20 +413,15 @@ void CCriteriaTree::RenderNode(tree<CTreeData*>::sibling_iterator& parent)
 		}
 		else
 		{
-			// Sous-section : meme presentation que le titre principal
-			CTreeElementTriangle* treeElementTriangle = ModernRenderHeaderRow(data, RenderMode::Create, yPos, false);
+			CTreeElementTriangle* treeElementTriangle = ModernRenderHeaderRow(data, mode, yPos, false);
 			if (treeElementTriangle->GetOpen())
-				RenderNode(it);
+				RenderNode(it, mode);
 		}
 		++it;
 	}
 }
 
-// ============================================================================
-// Input handling
-// ============================================================================
-
-void CCriteriaTree::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
+void CCriteriaTree::MouseOver(wxDC * deviceContext, CPositionElement * element, const int& x, const int& y,
 	const int& posLargeur, const int& posHauteur, bool& update)
 {
 	if (element != nullptr)
@@ -464,16 +432,25 @@ void CCriteriaTree::MouseOver(wxDC* deviceContext, CPositionElement* element, co
 	}
 }
 
-void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
+void CCriteriaTree::ClickOnElement(CPositionElement * element, wxWindow * window,
 	const int& x, const int& y,
 	const int& posLargeur, const int& posHauteur)
 {
-	if (window == nullptr)
+	if (window == nullptr || element == nullptr)
 		return;
 
 	wxWindow* criteriaTreeWindow = window->FindWindowById(CRITERIATREEWINDOWID);
 	CTreeElement* treeElement = element->GetTreeElement();
-	if (element->GetType() == ELEMENT_STAR)
+	if (element->GetType() == ELEMENT_TRIANGLE)
+	{
+		auto treeElementTriangle = static_cast<CTreeElementTriangle*>(treeElement);
+		treeElementTriangle->ClickElement(window, (x + posLargeur) - element->GetX(),
+			(y + posHauteur) - element->GetY());
+		RenderElement(RenderMode::Update);
+		eventControl->UpdateTreeControl();
+		return;
+	}
+	else if (element->GetType() == ELEMENT_STAR)
 	{
 		auto treeElementStar = static_cast<CTreeElementStar*>(treeElement);
 		treeElementStar->ClickElement(window, x, y);
@@ -506,12 +483,9 @@ void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
 			}
 			else
 			{
-				wxString labelInformations = CLibResource::LoadStringFromResource(
-					L"labelInformations", 1);
-				wxString notCompatibleFormat = CLibResource::LoadStringFromResource(
-					L"NotCompatibleFormat", 1);
-				wxMessageBox(notCompatibleFormat, labelInformations,
-					wxICON_INFORMATION);
+				wxString labelInformations = CLibResource::LoadStringFromResource(L"labelInformations", 1);
+				wxString notCompatibleFormat = CLibResource::LoadStringFromResource(L"NotCompatibleFormat", 1);
+				wxMessageBox(notCompatibleFormat, labelInformations, wxICON_INFORMATION);
 			}
 		}
 		else if (treeElementTexte->GetTypeLink() == 1)
@@ -529,12 +503,9 @@ void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
 			}
 			else
 			{
-				wxString labelInformations = CLibResource::LoadStringFromResource(
-					L"labelInformations", 1);
-				wxString notCompatibleFormat = CLibResource::LoadStringFromResource(
-					L"NotCompatibleFormat", 1);
-				wxMessageBox(notCompatibleFormat, labelInformations,
-					wxICON_INFORMATION);
+				wxString labelInformations = CLibResource::LoadStringFromResource(L"labelInformations", 1);
+				wxString notCompatibleFormat = CLibResource::LoadStringFromResource(L"NotCompatibleFormat", 1);
+				wxMessageBox(notCompatibleFormat, labelInformations, wxICON_INFORMATION);
 			}
 		}
 		else if (treeElementTexte->GetTypeLink() == 7)
@@ -550,17 +521,12 @@ void CCriteriaTree::ClickOnElement(CPositionElement* element, wxWindow* window,
 	}
 }
 
-// ============================================================================
-// Legacy / currently unused
-// ============================================================================
-
-void CCriteriaTree::AddTreeInfos(const wxString& exifKey,
-	const wxString& exifValue,
+void CCriteriaTree::AddTreeInfos(const wxString & exifKey,
+	const wxString & exifValue,
 	const int& index,
-	tree<CTreeData*>::iterator& top,
-	tree<CTreeData*>::iterator& child)
+	tree<CTreeData*>::iterator & top,
+	tree<CTreeData*>::iterator & child)
 {
-
 	AddTreeInfosImpl<CTreeData>(
 		exifKey,
 		index,

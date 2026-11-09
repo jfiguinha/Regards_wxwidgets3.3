@@ -43,14 +43,15 @@ namespace Regards
 		private:
 			//Draw Tree (style moderne : fond uni, filets - voir CTreeControl::EnableModernStyle)
 			void OnModernRelayout() override;
-			void RenderTree();
-			void RenderChildTree(tree<CTreeData*>::sibling_iterator& parent);
+			void RenderElement(RenderMode mode); // <-- MODIFIÉ ICI
+			void RenderChildTree(tree<CTreeData*>::sibling_iterator& parent, RenderMode mode); // <-- MODIFIÉ ICI
 
 			CPositionElement* RenderDelete(
 				CTreeDataCategory* data,
 				int& xPos,
 				int& yPos,
-				bool visible);
+				bool visible,
+				RenderMode mode); // <-- MODIFIÉ ICI
 
 			void InitKeyWordCategorie(tree<CTreeData*>::iterator parent, int numParent);
 			void NotifyCriteriaChange(wxWindow* window);
