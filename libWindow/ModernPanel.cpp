@@ -121,18 +121,43 @@ namespace Regards::Window
         dc.SetPen(*wxTRANSPARENT_PEN);
 
         // --- Rendu du Texte ---
+        // --- Rendu du Texte ---
         wxFont font(FromDIP(10), wxFONTFAMILY_DEFAULT, wxFONTSTYLE_NORMAL, wxFONTWEIGHT_MEDIUM);
         dc.SetFont(font);
         dc.SetTextForeground(foreground_);
 
         if (!vertical_)
         {
+            // Mode horizontal : texte classique centré verticalement
             dc.DrawText(title_, FromDIP(12), (size.y - dc.GetCharHeight()) / 2);
         }
-        else if (!collapsed_)
+        else
         {
-            dc.DrawRotatedText(title_, FromDIP(12), size.y / 2, 90);
+            // Mode vertical (ouvert OU fermé) : le texte doit toujours être visible
+            if (collapsed_)
+            {
+                // Quand le panneau est fermé, le bouton occupe le bas (GetCollapseRect)
+                // On centre le texte verticalement dans l'espace restant au-dessus du bouton
+                const int disponibleY = GetCollapseRect().y;
+
+                // Calcul de la taille du texte simulée pour un centrage propre
+                // Note : DrawRotatedText à 90° dessine du bas vers le haut depuis son point d'ancrage
+                int texteWidth = 0, texteHeight = 0;
+                dc.GetTextExtent(title_, &texteWidth, &texteHeight);
+
+                int targetY = (disponibleY + texteWidth) / 2;
+                if (targetY > disponibleY - FromDIP(5))
+                    targetY = disponibleY - FromDIP(5); // Sécurité marge
+
+                dc.DrawRotatedText(title_, FromDIP(12), targetY, 90);
+            }
+            else
+            {
+                // Quand le panneau est ouvert, on utilise le centrage global classique au milieu de la hauteur
+                dc.DrawRotatedText(title_, FromDIP(12), size.y / 2, 90);
+            }
         }
+
 
         // --- Rendu du Fond des Boutons (Hover) ---
         const wxRect collapseRect = GetCollapseRect();
@@ -205,22 +230,25 @@ namespace Regards::Window
             gc->StrokePath(path);
 
             // 2. Dessin de la croix du bouton Fermer (si visible)
-            if (!closeRect.IsEmpty())
+            /*
+            if (showCloseButton_ && !collapsed_ && !closeRect.IsEmpty())
             {
                 const double x = closeRect.x + closeRect.width / 2.0;
                 const double y = closeRect.y + closeRect.height / 2.0;
                 const double offset = FromDIP(4);
 
                 wxGraphicsPath closePath = gc->CreatePath();
+
                 // Diagonale 1 : \
                 closePath.MoveToPoint(x - offset, y - offset);
                 closePath.AddLineToPoint(x + offset, y + offset);
+
                 // Diagonale 2 : /
                 closePath.MoveToPoint(x + offset, y - offset);
                 closePath.AddLineToPoint(x - offset, y + offset);
 
                 gc->StrokePath(closePath);
-            }
+            }*/
         }
 
         // --- Ligne de bordure (Accent) ---

@@ -27,13 +27,6 @@ CKeywordWndToolbar::CKeywordWndToolbar(wxWindow* parent, wxWindowID id)
 		keywordWnd = new CKeywordManagementWindow(this, KEYWORDCRITERIAWINDOWID, themeScroll, theme);
 		keywordWnd->Show(true);
 	}
-
-	if (viewerTheme != nullptr)
-	{
-		CThemeToolbar theme;
-		viewerTheme->GetThumbnailToolbarTheme(theme);
-		toolbarKeyword = new CToolbarKeyword(this, wxID_ANY, theme, false);
-	}
 }
 
 void CKeywordWndToolbar::Init(const wxString& filename)
@@ -45,7 +38,6 @@ void CKeywordWndToolbar::Init(const wxString& filename)
 
 void CKeywordWndToolbar::UpdateScreenRatio()
 {
-	toolbarKeyword->UpdateScreenRatio();
 	keywordWnd->UpdateScreenRatio();
 	this->Resize();
 }
@@ -54,13 +46,10 @@ void CKeywordWndToolbar::Resize()
 {
 	wxRect rcAffichageBitmap;
 	rcAffichageBitmap.x = 0;
-	rcAffichageBitmap.y = toolbarKeyword->GetNavigatorHeight();
+	rcAffichageBitmap.y = 0;
 	rcAffichageBitmap.width = GetWindowWidth();
-	rcAffichageBitmap.height = GetWindowHeight() - toolbarKeyword->GetNavigatorHeight();
+	rcAffichageBitmap.height = GetWindowHeight();
 
 	keywordWnd->SetSize(0, 0, rcAffichageBitmap.width, rcAffichageBitmap.height);
 	keywordWnd->Refresh();
-
-	toolbarKeyword->SetSize(0, rcAffichageBitmap.height, rcAffichageBitmap.width, toolbarKeyword->GetNavigatorHeight());
-	toolbarKeyword->Refresh();
 }

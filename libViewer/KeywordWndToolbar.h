@@ -19,7 +19,6 @@ namespace Regards::Viewer
 		void Resize() override;
 
 	private:
-		CToolbarKeyword* toolbarKeyword;
 		CKeywordManagementWindow* keywordWnd;
 		wxString filename;
 	};

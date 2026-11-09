@@ -16,40 +16,71 @@
 #include <SqlPhotoCriteria.h>
 #include <TreeWindow.h>
 #include <ScrollbarWnd.h>
+#include <algorithm>
 using namespace Regards::Sqlite;
 using namespace Regards::Viewer;
 using namespace Regards::Window;
 
-CKeywordWnd::CKeywordWnd(CWindowMain* windowMain, CThemeTree* theme, CTreeElementControlInterface* interfaceControl)
+namespace
 {
-	sqlRequest = "";
-	treeDataModify = nullptr;
-	widthPosition = 0;
+	//Identifiant de la catégorie "Keyword" dans la base de critères
+	constexpr int KEYWORD_CRITERIA_CATEGORY = 7;
 
-	themeTree = *theme;
-	themeTree.themeTriangle.SetHeight(themeTree.GetRowHeight());
-	themeTree.themeCheckbox.SetHeight(themeTree.GetRowHeight());
-	themeTree.themeDelete.SetHeight(themeTree.GetRowHeight());
-	themeTree.themeSlide.SetHeight(themeTree.GetRowHeight());
-	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
+	//Identifiant (factice) de la ligne "+" qui permet d'ajouter un mot-clé
+	constexpr int ADD_KEYWORD_ROW = -1;
+
+	//Lit le flag ('1' / '0') qui suit localkey dans states, defaultValue si la clé est absente
+	bool ReadFlag(const wxString& states, const wxString& localkey, const bool defaultValue)
+	{
+		const size_t pos = states.find(localkey);
+		if (pos == wxString::npos)
+			return defaultValue;
+
+		const size_t flagPos = pos + localkey.size();
+		if (flagPos >= states.size())
+			return false;
+
+		return states[flagPos] == '1';
+	}
+}
+
+CKeywordWnd::CKeywordWnd(CWindowMain* windowMain, CThemeTree* theme, CTreeElementControlInterface* interfaceControl)
+	: windowMain(windowMain)
+{
+	if (theme != nullptr)
+	{
+		themeTree = *theme;
+		const int rowHeight = themeTree.GetRowHeight();
+		themeTree.themeTriangle.SetHeight(rowHeight);
+		themeTree.themeCheckbox.SetHeight(rowHeight);
+		themeTree.themeDelete.SetHeight(rowHeight);
+		themeTree.themeSlide.SetHeight(rowHeight);
+		themeTree.themeTexte.SetHeight(rowHeight);
+	}
+
 	eventControl = interfaceControl;
 	rowWidth.push_back(0);
 	rowWidth.push_back(0);
-	yPos = 0;
 
-	this->windowMain = windowMain;
+	// Style moderne : fond uni, filets, libelle a gauche / valeur a droite
+	EnableModernStyle();
+}
+
+CKeywordWnd::~CKeywordWnd()
+{
+	CloseEditor();
 }
 
 
 void CKeywordWnd::Init(const wxString& filename)
 {
+	CancelEdit();
+
 	CSqlFindCatalog sqlCatalog;
 	CatalogVector catalogVector;
 	CriteriaVector criteriaVector;
-	tree<CTreeData*>::iterator top;
-	tree<CTreeData*>::iterator child;
 	CSqlPhotos photos;
-	top = tr.begin();
+	auto top = tr.begin();
 
 	numPhotoId = photos.GetPhotoId(filename);
 
@@ -57,9 +88,9 @@ void CKeywordWnd::Init(const wxString& filename)
 
 	sqlCatalog.GetCatalog(&catalogVector);
 
-	for (CPhotoCatalog catalog : catalogVector)
+	for (auto& catalog : catalogVector)
 	{
-		CTreeDataCategory* treeData = new CTreeDataCategory();
+		auto* treeData = new CTreeDataCategory();
 		numCatalog = catalog.GetNumCatalog();
 		treeData->SetNumElement(idElement);
 		treeData->SetIdElement(-1);
@@ -70,21 +101,19 @@ void CKeywordWnd::Init(const wxString& filename)
 		treeData->SetKey("Keyword");
 		treeData->SetExifKey("Keyword");
 		treeData->SetTypeElement(TYPECATALOG);
-		child = tr.insert(top, treeData);
+		auto child = tr.insert(top, treeData);
 		treeData->child = child;
 		InitKeyWordCategorie(child, idElement);
 	}
 
-	photos.GetPhotoCriteriaByCategorie(&criteriaVector, filename, 7);
+	photos.GetPhotoCriteriaByCategorie(&criteriaVector, filename, KEYWORD_CRITERIA_CATEGORY);
 
-	for (CCriteria criteria : criteriaVector)
+	for (auto& criteria : criteriaVector)
 	{
-		wxString localkey = to_string(criteria.GetId()) + ":" + criteria.GetLibelle() + ":1:";
-		stateValue += localkey;
+		stateValue += std::to_string(criteria.GetId()) + ":" + criteria.GetLibelle() + ":1:";
 	}
 
-	RenderElement(RenderMode::Create);
-	RenderElement(RenderMode::Update);
+	RenderTree();
 }
 
 
@@ -96,344 +125,363 @@ void CKeywordWnd::InitKeyWordCategorie(tree<CTreeData*>::iterator parent, int nu
 	//Récupération des catégories principales
 	CSqlFindCriteria sqlCriteria;
 	CriteriaVector criteriaVector;
-	tree<CTreeData*>::iterator child;
-	sqlCriteria.SearchCriteria(&criteriaVector, 7, 1);
+	sqlCriteria.SearchCriteria(&criteriaVector, KEYWORD_CRITERIA_CATEGORY, 1);
 
-	for (CriteriaVector::iterator fit = criteriaVector.begin(); fit != criteriaVector.end(); fit++)
-	{
-		idElement++;
-		CTreeDataCategory* treeData = new CTreeDataCategory();
-		treeData->SetNumElement(idElement);
-		treeData->SetNumCatalog(numCatalog);
-		treeData->SetIdElement(-1);
-		treeData->SetNumCategorie(fit->GetId());
-		treeData->SetNumParent(numParent);
-		treeData->SetIsParent(false);
-		treeData->SetNumLevel(0);
-		treeData->SetExifKey(to_string(fit->GetId()));
-		treeData->SetKey(fit->GetLibelle());
-		treeData->SetTypeElement(TYPECATEGORIE);
-		child = tr.append_child(parent, treeData);
-		treeData->child = child;
-	}
-}
-
-//------------------------------------------------------------------------------
-//
-//------------------------------------------------------------------------------
-tree<CTreeData*>::iterator CKeywordWnd::FindChild(tree<CTreeData*>::iterator parent, const wxString& catlibelle)
-{
-	tree<CTreeData*>::sibling_iterator itOld;
-	tree<CTreeData*>::sibling_iterator it = tr.begin(parent);
-	//tree<CTreeData *>::iterator itend = tr.end(parent);
-	itOld = it;
-
-	//int i = 
-
-	for (auto i = 0; i < parent.number_of_children(); i++)
-	{
-		CTreeData* data = *it;
-		if (data->GetExifKey() > catlibelle)
+	auto appendRow = [&](const int numCategorie, const wxString& exifKey, const wxString& key)
 		{
-			return itOld;
-		}
-		itOld = it;
-		it++;
-	}
+			idElement++;
+			auto* treeData = new CTreeDataCategory();
+			treeData->SetNumElement(idElement);
+			treeData->SetNumCatalog(numCatalog);
+			treeData->SetIdElement(-1);
+			treeData->SetNumCategorie(numCategorie);
+			treeData->SetNumParent(numParent);
+			treeData->SetIsParent(false);
+			treeData->SetNumLevel(0);
+			treeData->SetExifKey(exifKey);
+			treeData->SetKey(key);
+			treeData->SetTypeElement(TYPECATEGORIE);
+			auto child = tr.append_child(parent, treeData);
+			treeData->child = child;
+		};
 
-	return nullptr;
+	for (auto& criteria : criteriaVector)
+		appendRow(criteria.GetId(), std::to_string(criteria.GetId()), criteria.GetLibelle());
+
+	//Dernière ligne : "+" pour ajouter un nouveau mot-clé
+	appendRow(ADD_KEYWORD_ROW, "+", "+");
 }
 
+//------------------------------------------------------------------------------
+// Prévient la fenêtre principale et la fenêtre des mots-clés qu'un critère a changé
+//------------------------------------------------------------------------------
+void CKeywordWnd::NotifyCriteriaChange(wxWindow* window)
+{
+	if (window == nullptr)
+		return;
+
+	if (wxWindow* mainWnd = window->FindWindowById(MAINVIEWERWINDOWID); mainWnd != nullptr)
+		wxQueueEvent(mainWnd, new wxCommandEvent(wxEVT_CRITERIACHANGE));
+
+	if (wxWindow* keyword = window->FindWindowById(KEYWORDCRITERIAWINDOWID); keyword != nullptr)
+		wxQueueEvent(keyword, new wxCommandEvent(wxEVENT_REFRESHDATA));
+}
+
+//------------------------------------------------------------------------------
+// Création d'un nouveau mot-clé ("New Keyword N") - ex traitement de WM_ADDKEYWORD
+//------------------------------------------------------------------------------
+void CKeywordWnd::AddKeyword(wxWindow* window)
+{
+	bool isNew = false;
+	CSqlCriteria sqlCriteria;
+	const int lastId = sqlCriteria.GetCriteriaId() + 1;
+	const wxString value = wxString::Format("New Keyword %d", lastId);
+	sqlCriteria.GetOrInsertCriteriaId(1, KEYWORD_CRITERIA_CATEGORY, value, isNew);
+
+	if (isNew)
+		NotifyCriteriaChange(window);
+}
 
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
 void CKeywordWnd::ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-                                 const int& posLargeur, const int& posHauteur)
+	const int& posLargeur, const int& posHauteur)
 {
-	//CTreeElement * treeElement = element->GetTreeElement();
+	if (element == nullptr)
+		return;
 
 	if (element->GetType() == ELEMENT_CHECKBOX)
 	{
 		CSqlPhotoCriteria photoCriteria;
-		CTreeDataCategory* treeData = (CTreeDataCategory*)element->GetTreeData();
-		CTreeElementCheckBox* checkBox = (CTreeElementCheckBox*)element->GetTreeElement();
+		auto* treeData = static_cast<CTreeDataCategory*>(element->GetTreeData());
+		auto* checkBox = static_cast<CTreeElementCheckBox*>(element->GetTreeElement());
 
 		checkBox->SetCheckState(!checkBox->GetCheckState());
+		StoreCheckState(treeData->GetExifKey(), treeData->GetKey(), checkBox->GetCheckState());
 
-		int numCategorie = treeData->GetNumCategorie();
+		const int numCategorie = treeData->GetNumCategorie();
 		if (checkBox->GetCheckState())
-		{
 			photoCriteria.InsertPhotoCriteria(numPhotoId, numCategorie);
-		}
 		else
-		{
 			photoCriteria.DeletePhotoCriteria(numPhotoId, numCategorie);
-		}
-		//UpdateElement();
-		eventControl->UpdateTreeControl();
-	}
-	else if (element->GetType() == ELEMENT_TRIANGLE)
-	{
-		CTreeElementTriangle* triangle = (CTreeElementTriangle*)element->GetTreeElement();
-		triangle->ClickElement(window, x, y);
 
-		RenderElement(RenderMode::Update);
 		eventControl->UpdateTreeControl();
 	}
 	else if (element->GetType() == ELEMENT_DELETE)
 	{
-		//CTreeElementDelete * deleteElement = (CTreeElementDelete *)element->GetTreeElement();
-		CTreeDataCategory* treeData = (CTreeDataCategory*)element->GetTreeData();
+		auto* treeData = static_cast<CTreeDataCategory*>(element->GetTreeData());
 
 		wxMessageDialog dialog(nullptr, _("Do you want to delete this criteria ?"), _("Confirmation"), wxOK | wxCANCEL);
-		int returnValue = dialog.ShowModal();
 
-		if (wxID_OK == returnValue)
+		if (dialog.ShowModal() == wxID_OK)
 		{
 			CSqlCriteria sqlCriteria;
 			CSqlPhotoCriteria sqlPhotoCriteria;
 
-			int numCriteria = atoi(treeData->GetExifKey());
-			//int numCriteria = criteriaVector[i].GetId();
+			const int numCriteria = wxAtoi(treeData->GetExifKey());
 			sqlCriteria.DeletePhotoCriteria(1, numCriteria);
 			sqlPhotoCriteria.DeleteCriteria(numCriteria);
-			sqlCriteria.DeleteCriteria(numCriteria, 7);
+			sqlCriteria.DeleteCriteria(numCriteria, KEYWORD_CRITERIA_CATEGORY);
 
-			wxWindow* mainWnd = window->FindWindowById(MAINVIEWERWINDOWID);
-			wxCommandEvent* eventChange = new wxCommandEvent(wxEVT_CRITERIACHANGE);
-			wxQueueEvent(mainWnd, eventChange);
+			NotifyCriteriaChange(window);
 
-			wxWindow* keyword = window->FindWindowById(KEYWORDCRITERIAWINDOWID);
-			wxCommandEvent* eventRefresh = new wxCommandEvent(wxEVENT_REFRESHDATA);
-			wxQueueEvent(keyword, eventRefresh);
-
-			RenderElement(RenderMode::Update);
 			eventControl->UpdateTreeControl();
 		}
 	}
 	else if (element->GetType() == ELEMENT_TEXTE)
 	{
-		//CTreeElementTexte * texte = (CTreeElementTexte *)element->GetTreeElement();
-		CTreeDataCategory* treeData = (CTreeDataCategory*)element->GetTreeData();
+		auto* treeData = static_cast<CTreeDataCategory*>(element->GetTreeData());
 
-		wxTextEntryDialog dlg(nullptr, wxT("Update Keyword : \n"),
-		                      wxT("Update keyword"),
-		                      treeData->GetKey(), wxOK | wxCANCEL);
-		if (dlg.ShowModal() == wxID_OK)
-		{
-			//bool isNew = false;
-			// We can be certain that this string contains letters only.
-			wxString value = dlg.GetValue();
-			CSqlCriteria sqlCriteria;
-			sqlCriteria.UpdateCriteria(1, treeData->GetNumCategorie(), value);
-
-			wxWindow* mainWnd = window->FindWindowById(MAINVIEWERWINDOWID);
-			wxCommandEvent* eventChange = new wxCommandEvent(wxEVT_CRITERIACHANGE);
-			wxQueueEvent(mainWnd, eventChange);
-
-			wxWindow* keyword = window->FindWindowById(KEYWORDCRITERIAWINDOWID);
-			wxCommandEvent* eventRefresh = new wxCommandEvent(wxEVENT_REFRESHDATA);
-			wxQueueEvent(keyword, eventRefresh);
-		}
-
-		RenderElement(RenderMode::Update);
-		eventControl->UpdateTreeControl();
+		if (treeData->GetNumCategorie() == ADD_KEYWORD_ROW)
+			AddKeyword(window);
+		else
+			//Le renommage se fait par édition inline, directement sur le libellé
+			BeginEditKeyword(element, window, posLargeur, posHauteur);
 	}
 }
 
 
 void CKeywordWnd::UpdateScreenRatio()
 {
-	RenderElement(RenderMode::Update);
+	CancelEdit();
+	RenderTree();
 	eventControl->UpdateTreeControl();
 }
 
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-bool CKeywordWnd::GetTriangleState(const wxString& exifKey, const wxString& key)
+bool CKeywordWnd::GetTriangleState(const wxString& exifKey, const wxString& key) const
 {
-	wxString localkey = exifKey + ":" + key + ":";
-	size_t pos = stateTriangleValue.find(localkey);
-	if (pos < stateTriangleValue.size())
-	{
-		pos += localkey.size();
-		wchar_t check = stateTriangleValue[pos];
-		if (check == '1')
-			return true;
-		return false;
-	}
-	return true;
+	return ReadFlag(stateTriangleValue, exifKey + ":" + key + ":", true);
 }
 
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-bool CKeywordWnd::GetCheckState(const wxString& exifKey, const wxString& key)
+bool CKeywordWnd::GetCheckState(const wxString& exifKey, const wxString& key) const
 {
-	wxString localkey = exifKey + ":" + key + ":";
-	size_t pos = stateValue.find(localkey);
-	if (pos < stateValue.size())
+	return ReadFlag(stateValue, exifKey + ":" + key + ":", false);
+}
+
+//------------------------------------------------------------------------------
+// Memorise l'etat d'une case a cocher (l'arbre est reconstruit a chaque relayout)
+//------------------------------------------------------------------------------
+void CKeywordWnd::StoreCheckState(const wxString& exifKey, const wxString& key, const bool state)
+{
+	const wxString localkey = exifKey + ":" + key + ":";
+	const size_t pos = stateValue.find(localkey);
+	if (pos == wxString::npos)
 	{
-		pos += localkey.size();
-		wchar_t check = stateValue[pos];
-		if (check == '1')
-			return true;
-		return false;
+		stateValue += localkey + (state ? "1:" : "0:");
+		return;
 	}
-	return false;
+
+	const size_t flagPos = pos + localkey.size();
+	if (flagPos < stateValue.size())
+		stateValue.replace(flagPos, 1, state ? "1" : "0");
+	else
+		stateValue += (state ? "1:" : "0:");
 }
 
 void CKeywordWnd::Resize()
 {
-	RenderElement(RenderMode::Update);
+	CancelEdit();
+	RenderTree();
 }
 
 
 CPositionElement* CKeywordWnd::RenderDelete(
-	CTreeDataCategory * data,
+	CTreeDataCategory* data,
 	int& xPos,
 	int& yPos,
-	bool visible,
-	RenderMode mode)
+	bool visible)
 {
-	CPositionElement* posElement = nullptr;
-
-	if (mode == RenderMode::Update)
-		posElement = GetElement(data, ELEMENT_DELETE);
-
-	if (posElement == nullptr)
-	{
-		CTreeElementDelete * treeElementDelete = CreateDeleteElement(themeTree.GetRowWidth(), themeTree.GetRowHeight());
-		treeElementDelete->SetVisible(visible);
-		posElement = CreatePositionElement(xPos, yPos, nbRow, 0, treeElementDelete->GetWidth(),
-			treeElementDelete->GetHeight(), ELEMENT_DELETE, treeElementDelete,
-			data);
-	}
-	else
-	{
-		
-		CTreeElementDelete * treeElementDelete = (CTreeElementDelete*)posElement->GetTreeElement();
-		xPos -= treeElementDelete->GetWidth();
-		treeElementDelete->SetVisible(visible);
-		posElement->SetX(xPos);
-		posElement->SetY(yPos);
-	}
-
-	return posElement;
+	auto* treeElementDelete = CreateDeleteElement(themeTree.GetRowWidth(), themeTree.GetRowHeight());
+	treeElementDelete->SetVisible(visible);
+	return CreatePositionElement(xPos, yPos, nbRow, 1, treeElementDelete->GetWidth(),
+		treeElementDelete->GetHeight(), ELEMENT_DELETE, treeElementDelete,
+		data);
 }
 
-void CKeywordWnd::RenderElement(RenderMode mode)
+void CKeywordWnd::OnModernRelayout()
 {
-	CPositionElement* posElement = nullptr;
-	CTreeElementTriangle* treeElementTriangle = nullptr;
+	RenderTree();
+}
+
+void CKeywordWnd::RenderTree()
+{
+	// Les anciens elements sont liberes avant la reconstruction (RenderTree peut etre rappele a chaque redimensionnement)
+	for (CPositionElement* posElement : vectorPosElement)
+		delete posElement;
+
+	vectorPosElement.clear();
+	vectorPosElementDynamic.clear();
+
+	ModernUpdateMetrics(true);
+
 	tree<CTreeData*>::sibling_iterator it = tr.begin();
-	tree<CTreeData*>::iterator itend = tr.end();
+	const tree<CTreeData*>::iterator itend = tr.end();
 	yPos = 0;
 	nbRow = 0;
-	widthPosition = 0;
-
-	HideAll();
-
-	bool isVisible = true;
 
 	while (it != itend)
 	{
-		CTreeDataCategory* data = (CTreeDataCategory*)*it;
-		int profondeur = tr.depth(it);
-		if (profondeur == 0)
+		CTreeData* data = *it;
+		if (tr.depth(it) == 0)
 		{
-			int xPos = themeTree.GetMargeX();
-			int widthElement = 0;
+			CTreeElementTriangle* treeElementTriangle = ModernRenderHeaderRow(data, RenderMode::Create, yPos, false);
 
-			posElement = RenderTriangle(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
-
-			treeElementTriangle = static_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
-
-			widthPosition = xPos + posElement->GetWidth();
-
-			xPos += posElement->GetWidth() + themeTree.GetMargeX();
-
-			posElement = RenderText(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
-
-			widthElement += xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			yPos += themeTree.GetRowHeight();
-			nbRow++;
-			if (rowWidth[0] < widthElement)
-				rowWidth[0] = widthElement;
-
-			if (mode == RenderMode::Create)
-			{
-				RenderChildTree(it, mode);
-			}
-			else
-			{
-				const bool isOpen = treeElementTriangle->GetOpen();
-				if (isOpen)
-					RenderChildTree(it, mode);
-			}
+			if (treeElementTriangle->GetOpen())
+				RenderChildTree(it);
 		}
-		it++;
+		++it;
 	}
 }
 
-void CKeywordWnd::RenderChildTree(tree<CTreeData*>::sibling_iterator& parent, RenderMode mode)
+void CKeywordWnd::RenderChildTree(tree<CTreeData*>::sibling_iterator& parent)
 {
 	tree<CTreeData*>::sibling_iterator it = tr.begin(parent);
-	//tree<CTreeData *>::iterator itend = tr.end(parent);
-	bool isVisible = true;
+	const bool isVisible = true;
+	const auto nbChildren = parent.number_of_children();
 
-	for (auto i = 0; i < parent.number_of_children(); i++)
+	for (unsigned int i = 0; i < nbChildren; i++)
 	{
-		int widthElement = 0;
-		int profondeur = tr.depth(it);
-		CTreeDataCategory* data = (CTreeDataCategory*)*it;
-		if (profondeur == 1 && (data->GetValue().size() > 0 || it.number_of_children() == 0))
+		auto* data = static_cast<CTreeDataCategory*>(*it);
+		if (tr.depth(it) == 1 && (data->GetValue().size() > 0 || it.number_of_children() == 0))
 		{
-			int xPosInit = widthPosition * (profondeur + 1);
-			int xPos = xPosInit;
-			std::unique_ptr<CTreeElementTexte> treeElementTexte = nullptr;
+			int xPos = modernMargin;
 
-			xPos = xPosInit;
-			bool check = GetCheckState(data->GetExifKey(), data->GetKey());
-			CPositionElement* posElement = RenderCheckBox(data,
-				xPos,
-				yPos,
-				check,
-				isVisible,
-				mode);
+			if (data->GetNumCategorie() == ADD_KEYWORD_ROW)
+			{
+				//Ligne "+" : pas de case a cocher ni de bouton de suppression
+				CPositionElement* posElement = RenderText(data, xPos, yPos, isVisible, RenderMode::Create, true);
+				ModernColorText(posElement, modernLabel);
+			}
+			else
+			{
+				//Case a cocher a gauche, puis le libelle
+				const bool check = GetCheckState(data->GetExifKey(), data->GetKey());
+				CPositionElement* posElement = RenderCheckBox(data, xPos, yPos, check, isVisible,
+					RenderMode::Create);
 
-			xPos = xPosInit + posElement->GetWidth() + themeTree.GetMargeX();
+				xPos = modernMargin + posElement->GetWidth() + modernMargin;
+				posElement = RenderText(data, xPos, yPos, isVisible, RenderMode::Create, true);
+				ModernColorText(posElement, modernValue);
 
-			posElement = RenderText(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode,
-				true);
+				//Bouton de suppression aligne a droite (comme une valeur)
+				xPos = 0;
+				posElement = RenderDelete(data, xPos, yPos, isVisible);
+				ModernPlaceValue(posElement, yPos);
+			}
 
-			xPos = windowMain->GetWidth() - posElement->GetWidth() - themeTree.GetMargeX() - themeTree.GetMargeX();
-
-			posElement = RenderDelete(data,
-				xPos,
-				yPos,
-				isVisible,
-				mode);
-
-			yPos += themeTree.GetRowHeight();
+			yPos += modernRowHeight;
 			nbRow++;
-			if (rowWidth[0] < widthElement)
-				rowWidth[0] = widthElement;
 		}
-		it++;
+		++it;
 	}
+}
+
+//------------------------------------------------------------------------------
+// Pose un champ de saisie sur le libellé du critère
+//------------------------------------------------------------------------------
+void CKeywordWnd::BeginEditKeyword(CPositionElement* element, wxWindow* window, const int scrollX, const int scrollY)
+{
+	CancelEdit();
+
+	if (element == nullptr || window == nullptr)
+		return;
+
+	auto* treeData = static_cast<CTreeDataCategory*>(element->GetTreeData());
+
+	const wxSize clientSize = window->GetClientSize();
+	const int editX = element->GetX() - scrollX;
+	const int editY = element->GetY() - scrollY;
+	int editWidth = std::max(element->GetWidth(), 150);
+	editWidth = std::max(std::min(editWidth, clientSize.x - editX - themeTree.GetMargeX()), 50);
+
+	auto* ctrl = new wxTextCtrl(window, wxID_ANY, treeData->GetKey(),
+		wxPoint(editX, editY), wxSize(editWidth, modernRowHeight),
+		wxTE_PROCESS_ENTER);
+
+	editedCategorie = treeData->GetNumCategorie();
+	editedKey = treeData->GetKey();
+	editCtrl = ctrl;
+
+	ctrl->Bind(wxEVT_TEXT_ENTER, &CKeywordWnd::OnEditEnter, this);
+	ctrl->Bind(wxEVT_KILL_FOCUS, &CKeywordWnd::OnEditKillFocus, this);
+	ctrl->Bind(wxEVT_KEY_DOWN, &CKeywordWnd::OnEditKeyDown, this);
+
+	ctrl->SelectAll();
+	ctrl->SetFocus();
+}
+
+void CKeywordWnd::OnEditEnter(wxCommandEvent& event)
+{
+	CommitEdit();
+}
+
+void CKeywordWnd::OnEditKillFocus(wxFocusEvent& event)
+{
+	event.Skip();
+	CommitEdit();
+}
+
+void CKeywordWnd::OnEditKeyDown(wxKeyEvent& event)
+{
+	if (event.GetKeyCode() == WXK_ESCAPE)
+		CancelEdit();
+	else
+		event.Skip();
+}
+
+//------------------------------------------------------------------------------
+// Valide la saisie : mise à jour en base uniquement si le libellé est non vide et modifié
+//------------------------------------------------------------------------------
+void CKeywordWnd::CommitEdit()
+{
+	wxTextCtrl* ctrl = editCtrl.get();
+	if (ctrl == nullptr)
+		return;
+
+	wxWindow* parent = ctrl->GetParent();
+	wxString value = ctrl->GetValue();
+	value.Trim(true).Trim(false);
+
+	const int numCategorie = editedCategorie;
+	const bool changed = !value.empty() && value != editedKey;
+
+	CloseEditor();
+
+	if (changed)
+	{
+		CSqlCriteria sqlCriteria;
+		sqlCriteria.UpdateCriteria(1, numCategorie, value);
+		NotifyCriteriaChange(parent);
+	}
+
+	eventControl->UpdateTreeControl();
+}
+
+//------------------------------------------------------------------------------
+// Abandonne la saisie sans toucher à la base
+//------------------------------------------------------------------------------
+void CKeywordWnd::CancelEdit()
+{
+	CloseEditor();
+}
+
+void CKeywordWnd::CloseEditor()
+{
+	wxTextCtrl* ctrl = editCtrl.get();
+	if (ctrl == nullptr)
+		return;
+
+	editCtrl.Release();
+	ctrl->Unbind(wxEVT_TEXT_ENTER, &CKeywordWnd::OnEditEnter, this);
+	ctrl->Unbind(wxEVT_KILL_FOCUS, &CKeywordWnd::OnEditKillFocus, this);
+	ctrl->Unbind(wxEVT_KEY_DOWN, &CKeywordWnd::OnEditKeyDown, this);
+	ctrl->Hide();
+	ctrl->Destroy();
 }
