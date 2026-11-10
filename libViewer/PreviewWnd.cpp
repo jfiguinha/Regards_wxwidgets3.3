@@ -40,6 +40,16 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 			CThemeBitmapInfos theme;
 			viewerTheme->GetBitmapInfosTheme(&theme);
 			bitmapInfos = new CBitmapInfos(this, wxID_ANY, theme);
+			bitmapInfos->SetFullscreenCallback([this]() {
+				auto mainWindow = static_cast<CMainWindow*>(this->FindWindowById(MAINVIEWERWINDOWID));
+				if (mainWindow != nullptr)
+				{
+					if (mainWindow->IsFullscreen())
+						mainWindow->SetScreen();
+					else
+						mainWindow->SetFullscreen();
+				}
+				});
 		}
 
 		{
