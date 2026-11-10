@@ -44,18 +44,20 @@ CPreviewToolbar::CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeTo
 	imageSuiv->SetRepeatable(true);
 	imageEnd = CreateButton(L"IDB_ARROWTRACKRPNG", L"LBLEND", WM_IMAGES_END, false);
 
+	fullscreen->SetVisible(false);
+
 	this->toolbarInterface = toolbarInterface;
 }
 
 void CPreviewToolbar::EnableScreenButton()
 {
-	fullscreen->SetVisible(true);
+	//fullscreen->SetVisible(true);
 	needToRefresh = true;
 }
 
 void CPreviewToolbar::DisableScreenButton()
 {
-	fullscreen->SetVisible(false);
+	//fullscreen->SetVisible(false);
 	needToRefresh = true;
 }
 
@@ -108,7 +110,7 @@ void CPreviewToolbar::EnableNavigationButton()
 		navigationButtonEnable = true;
 		imagePlayDiaporama->SetVisible(true);
 		imageStopDiaporama->SetVisible(true);
-		fullscreen->SetVisible(true);
+		//fullscreen->SetVisible(true);
 		imageEnd->SetVisible(true);
 		imageSuiv->SetVisible(true);
 		imageFirst->SetVisible(true);
