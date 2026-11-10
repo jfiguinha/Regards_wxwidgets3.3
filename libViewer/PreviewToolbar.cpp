@@ -45,7 +45,8 @@ void CPreviewToolbar::SetMediaToolbar(MediaMode mediaMode)
 	if (mediaMode != this->mediaMode)
 	{
 		this->mediaMode = mediaMode;
-
+		activeToolbar = generalToolbar;
+		/*
 		switch (mediaMode)
 		{
 		case MediaMode::Bitmap:
@@ -59,7 +60,7 @@ void CPreviewToolbar::SetMediaToolbar(MediaMode mediaMode)
 			activeToolbar = generalToolbar;
 			break;
 		}
-
+		*/
 		for (CGeneralToolbar* toolbar : AllToolbars())
 		{
 			if (toolbar != nullptr)
