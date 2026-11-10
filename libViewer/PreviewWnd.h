@@ -3,7 +3,7 @@
 #include <BitmapInterface.h>
 #include <ToolbarInterface.h>
 #include <LayerElement.h>
-
+#include <PreviewToolbar.h>
 class CImageLoadingFormat;
 
 namespace Regards
@@ -27,7 +27,6 @@ namespace Regards
 
 	namespace Viewer
 	{
-		class CPreviewToolbar;
 		class CAnimationToolbar;
 
 		class CPreviewWnd : public CWindowMain, public CBitmapInterface, public CToolbarInterface
@@ -97,16 +96,10 @@ namespace Regards
 			CBitmapInfos * bitmapInfos = nullptr;
 			CFiltreToolbar* filtreToolbar = nullptr;
 
-			enum class MediaMode
-			{
-				Aucun,
-				Bitmap,
-				Animation,
-				Video
-			};
 
 
-			MediaMode mediaMode_ = MediaMode::Aucun;
+
+			MediaMode mediaMode_ = MediaMode::General;
 			//PreviewMode previewMode_ = PreviewMode::Normal;
 
 

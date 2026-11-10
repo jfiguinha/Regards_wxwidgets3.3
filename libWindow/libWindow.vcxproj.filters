@@ -327,6 +327,9 @@
     <ClInclude Include="ModernPanel.h">
       <Filter>ModernControl</Filter>
     </ClInclude>
+    <ClInclude Include="ToolbarSeparator.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapInfos.cpp">

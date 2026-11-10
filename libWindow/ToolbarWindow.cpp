@@ -173,7 +173,7 @@ void CToolbarWindow::DrawButton(wxDC* dc, CToolbarElement* nav)
 {
 	//nav->DrawButton(dc, nav->GetXPos(), nav->GetYPos());
 
-	
+
 	if (!pictureBuffer.IsOk() || pictureBuffer.GetWidth() != nav->GetWidth() || pictureBuffer.GetHeight() != nav->GetHeight())
 		pictureBuffer.Create(nav->GetWidth(), nav->GetHeight());
 
@@ -512,7 +512,9 @@ void CToolbarWindow::RecalcLayout()
 
 			for (auto* nav : visibleElements)
 			{
-				nav->SetPosition(xStart, yStart);
+				// Chaque élément est centré horizontalement individuellement
+				const int xPos = xStart + (navW - nav->GetWidth()) / 2;
+				nav->SetPosition(xPos, yStart);
 				yStart += themeToolbar.GetMargeY() + nav->GetHeight();
 			}
 		}
@@ -530,7 +532,11 @@ void CToolbarWindow::RecalcLayout()
 
 			for (auto* nav : visibleElements)
 			{
-				nav->SetPosition(xStart, yStart);
+				// Chaque élément est centré verticalement individuellement dans la fenêtre
+				// (avant : tous alignés en haut sur la hauteur du plus grand élément,
+				// ce qui décale vers le haut les éléments plus petits ou plus grands que les boutons)
+				const int yPos = (GetWindowHeight() - nav->GetHeight()) / 2;
+				nav->SetPosition(xStart, yPos);
 				xStart += themeToolbar.GetMargeX() + nav->GetWidth();
 			}
 		}

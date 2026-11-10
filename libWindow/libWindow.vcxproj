@@ -852,6 +852,7 @@
     <ClInclude Include="ModernPanel.h" />
     <ClInclude Include="RegardsModernControls.h" />
     <ClInclude Include="ScrollbarDrawUtils.h" />
+    <ClInclude Include="ToolbarSeparator.h" />
     <ClInclude Include="TreeElementColor.h" />
     <ClInclude Include="GLcontext.h" />
     <ClInclude Include="GpsEngine.h" />

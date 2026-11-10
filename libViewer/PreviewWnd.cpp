@@ -524,6 +524,8 @@ bool CPreviewWnd::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail
 			showElement->SetBitmap(bitmap, isThumbnail);
 		}
 	}
+
+	previewToolbar->SetMediaToolbar(mediaMode_);
 	return true;
 }
 
@@ -587,6 +589,8 @@ bool CPreviewWnd::SetVideo(const wxString& filename, const bool& play)
 			SetBitmap(image, false);
 		}
 	}
+
+	previewToolbar->SetMediaToolbar(mediaMode_);
 	return true;
 }
 
