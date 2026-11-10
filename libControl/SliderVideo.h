@@ -3,6 +3,8 @@
 #include <SliderInterface.h>
 #include "WindowMain.h"
 #include "VolumePopup.h"
+class WXDLLIMPEXP_FWD_CORE wxGraphicsContext;
+
 using namespace Regards::Window;
 
 #define PLAYBUTTONID 1
@@ -19,7 +21,7 @@ namespace Regards::Video
 	{
 	public:
 		CSliderVideo(wxWindow* parent, wxWindowID id, CSliderInterface* sliderEvent,
-		             const CThemeSlider& themeSlider);
+			const CThemeSlider& themeSlider);
 		~CSliderVideo() override;
 
 		int GetWidth() override;
@@ -45,18 +47,18 @@ namespace Regards::Video
 		void on_paint(wxPaintEvent& event);
 		void OnLButtonDown(wxMouseEvent& event);
 		void OnLButtonUp(wxMouseEvent& event);
-		void OnVolumeSliderChanged(wxCommandEvent &event);
+		void OnVolumeSliderChanged(wxCommandEvent& event);
 		void OnLButtonDoubleClick(wxMouseEvent& event);
 		void OnMouseCaptureLost(wxMouseEvent& event)
-		{
-		};
+		{};
 		void OnMouseLeave(wxMouseEvent& event);
 		void OnMouseHover(wxMouseEvent& event);
 
 		void ClickLeftPage(const int& x);
 		void ClickRightPage(const int& x);
 
-		void DrawShapeElement(wxDC* context, const wxRect& rc);
+		void DrawShapeElement(wxGraphicsContext* gc, const wxRect& rc);
+		void DrawThumb(wxGraphicsContext* gc, const wxRect& rcButton);
 		int DrawTimePast(wxDC* context, const wxString& libelle);
 
 		void CalculPositionButton();
@@ -74,7 +76,7 @@ namespace Regards::Video
 		void InsertRepeatButton(const int& xStart, wxDC* context);
 
 		void InsertButton(const int& xStart, wxDC* context, wxRect& position, wxImage& button, const bool& isActif,
-		                  const wxString& pictureName);
+			const wxString& pictureName);
 
 		wxImage buttonRepeat;
 		wxImage buttonPlay;

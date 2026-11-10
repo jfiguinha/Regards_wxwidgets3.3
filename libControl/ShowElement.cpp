@@ -13,7 +13,6 @@
 #include "BitmapWndViewer.h"
 #include "SliderVideo.h"
 #include "VideoControl_soft.h"
-#include "SlideToolbar.h"
 #include <BitmapWnd3d.h>
 #include <SavePicture.h>
 #include <appcontext.h>
@@ -127,19 +126,14 @@ CShowElement::CShowElement(wxWindow* parent,
     bitmapWindowRender->SetBitmapRenderInterface(videoWindow.get());
 
     videoSlider  = std::make_unique<CSliderVideo>(this, wxID_ANY, this, themeSlider);
-    slideToolbar = std::make_unique<CSlideToolbar>(this, wxID_ANY, themeToolbar);
+
 
     bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
-
-    for (int i = 0; i <= 100; ++i)
-        sound_value.push_back(i);
-    slideToolbar->SetTabValue(sound_value);
 
     videoWindow->PlayFirstMovie(false);
 
     // État initial : mode image
     videoSlider->Show(false);
-    slideToolbar->Show(false);
     scrollbar->Show(true);
     bitmapWindowRender->Show(true);
 
@@ -214,7 +208,6 @@ void CShowElement::UpdateScreenRatio()
     scrollbar->UpdateScreenRatio();
     pictureToolbar->UpdateScreenRatio();
     bitmapWindowRender->UpdateScreenRatio();
-    slideToolbar->UpdateScreenRatio();
     videoSlider->UpdateScreenRatio();
     Resize();
 }
@@ -280,8 +273,6 @@ void CShowElement::ResizeVideo(int w, int h)
 {
     if (isDiaporama)
     {
-        slideToolbar->SetSize(0, 0, 0, 0);
-        slideToolbar->Refresh();
         videoSlider->SetSize(0, 0, 0, 0);
         videoSlider->Refresh();
         scrollbar->SetSize(0, 0, w, h);
@@ -296,8 +287,6 @@ void CShowElement::ResizeVideo(int w, int h)
     {
         if (videoSlider->IsShown())
             posHeight += videoSlider->GetHeight();
-        if (showToolbarSup && slideToolbar->IsShown())
-            posHeightSup = posHeight;
     }
     else
     {
@@ -311,11 +300,6 @@ void CShowElement::ResizeVideo(int w, int h)
 
     if (showToolbar && videoSlider->IsShown())
     {
-        if (showToolbarSup)
-        {
-            slideToolbar->SetSize(0, contentH, w, videoSlider->GetHeight(), TRUE);
-            slideToolbar->Refresh();
-        }
         videoSlider->SetSize(0, contentH + posHeightSup, w, videoSlider->GetHeight(), TRUE);
         videoSlider->Refresh();
     }
@@ -340,8 +324,6 @@ void CShowElement::ShowToolbar()
     {
         if (!videoSlider->IsShown())
             videoSlider->Show(true);
-        if (!slideToolbar->IsShown() && showToolbarSup)
-            slideToolbar->Show(true);
         Resize();
     }
 }
@@ -353,8 +335,6 @@ void CShowElement::HideToolbar()
     {
         if (videoSlider->IsShown())
             videoSlider->Show(false);
-        if (slideToolbar->IsShown())
-            slideToolbar->Show(false);
     }
 
     showToolbar = false;
@@ -485,7 +465,6 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
     if (!isDiaporama)
     {
         pictureToolbar->Show(true);
-        slideToolbar->Show(false);
         videoSlider->Show(false);
     }
     bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
@@ -656,7 +635,6 @@ bool CShowElement::SetVideo(const wxString& fn, const int& /*rotation*/, const b
     if (!isDiaporama)
     {
         pictureToolbar->Show(false);
-        slideToolbar->Show(true);
         videoSlider->Show(true);
     }
     bitmapWindowRender->UpdateRenderInterface(videoWindow.get());
@@ -922,25 +900,7 @@ void CShowElement::ClickButton(const int& id)
     case REPEATID:
         RepeatVideo();
         break;
-    case SPEAKERBUTTONID:
-        slideToolbar->Show(false);
-        showToolbarSup = true;
-        slideToolbar->SetSpeakerMode();
-        slideToolbar->SetTabValue(sound_value);
-        slideToolbar->SetTrackBarPosition(videoWindow->GetVolume());
-        Resize();
-        break;
-    case ZOOMBUTTONID:
-        slideToolbar->Show(true);
-        showToolbarSup = true;
-        slideToolbar->SetZoomMode();
-        slideToolbar->SetTabValue(videoWindow->GetZoomValue());
-        slideToolbar->SetTrackBarPosition(videoWindow->GetZoomIndex());
-        Resize();
-        break;
     case SCREENFORMATID:
-        slideToolbar->Show(false);
-        showToolbarSup = false;
         videoWindow->ChangeVideoFormat();
         Resize();
         break;
@@ -955,7 +915,7 @@ void CShowElement::ClickButton(const int& id)
 // ============================================================================
 void CShowElement::OnValueShrinkChange(wxCommandEvent& /*event*/)
 {
-    slideToolbar->SetTrackBarPosition(videoWindow->GetZoomIndex());
+
 }
 
 
@@ -987,31 +947,22 @@ void CShowElement::SlidePosChange(const int& position, const wxString& key)
 
 void CShowElement::OnValueChange(wxCommandEvent& event)
 {
-    const int value = event.GetInt();
-    if (slideToolbar->GetMode() == SPEAKER_MODE)
-    {
-        videoWindow->SetVolume(value);
-    }
-    else
-    {
-        scrollbar->ShowHorizontalScroll();
-        scrollbar->ShowVerticalScroll();
-        videoWindow->SetZoomIndex(value);
-    }
+    const int value = event.GetInt(); 
+    scrollbar->ShowHorizontalScroll();
+    scrollbar->ShowVerticalScroll();
+    videoWindow->SetZoomIndex(value);
+    
 }
 
 void CShowElement::OnShrink(wxCommandEvent& /*event*/)
 {
     videoWindow->ShrinkVideo();
-    slideToolbar->SetTrackBarPosition(videoWindow->GetZoomIndex());
     scrollbar->HideHorizontalScroll();
     scrollbar->HideVerticalScroll();
 }
 
 void CShowElement::OnClose(wxCommandEvent& /*event*/)
 {
-    slideToolbar->Show(false);
-    showToolbarSup = false;
     Resize();
 }
 

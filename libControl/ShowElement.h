@@ -180,7 +180,7 @@ namespace Regards
             // tempImage : propriété claire, géré via unique_ptr
             std::unique_ptr<CImageLoadingFormat> tempImage;
 
-            std::unique_ptr<CSlideToolbar>     slideToolbar = nullptr;
+
             std::unique_ptr<CSliderVideo>      videoSlider   = nullptr;
             std::unique_ptr<CVideoControlSoft> videoWindow   = nullptr;
             
@@ -200,7 +200,6 @@ namespace Regards
             bool fullscreen      = false;
             bool showToolbar     = true;
             bool firstElement    = true;
-            bool showToolbarSup  = false;
             bool play            = false;
             bool toolbarOutside  = false;
             bool softRender      = false;

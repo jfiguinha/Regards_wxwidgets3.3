@@ -73,9 +73,6 @@
     <ClCompile Include="PrintEngine.cpp">
       <Filter>Print</Filter>
     </ClCompile>
-    <ClCompile Include="SlideToolbar.cpp">
-      <Filter>Video\Core\Toolbar</Filter>
-    </ClCompile>
     <ClCompile Include="BitmapFusionFilter.cpp">
       <Filter>Bitmap\PostEffect</Filter>
     </ClCompile>
@@ -224,9 +221,6 @@
     </ClInclude>
     <ClInclude Include="PrintEngine.h">
       <Filter>Print</Filter>
-    </ClInclude>
-    <ClInclude Include="SlideToolbar.h">
-      <Filter>Video\Core\Toolbar</Filter>
     </ClInclude>
     <ClInclude Include="VideoCompressOption.h">
       <Filter>Video</Filter>

@@ -45,6 +45,7 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 		{
 			CThemeToolbar theme;
 			viewerTheme->GetPreviewToolbarTheme(&theme);
+			//viewerTheme->GetBitmapToolbarTheme(&theme);
 			previewToolbar = new CPreviewToolbar(this, wxID_ANY, theme, this, false);
 			animationToolbar = new CAnimationToolbar(this, ANIMATIONTOOLBARWINDOWID, theme, this, false);
 		}

@@ -263,12 +263,45 @@ void CMainTheme::InitInfosToolbar()
 	themeInfosToolbar.texte.fontActif.SetColorFont(wxColour(255, 255, 255));
 }
 
+/*
+void CThemeParam::InitBitmapToolbar()
+{
+	themeBitmapToolbar.colorBack.Set(45, 48, 56);
+	themeBitmapToolbar.colorTop.Set(45, 48, 56);
+	//themeBitmapToolbar.colorBottom.Set(74, 74, 74);
+	themeBitmapToolbar.colorBottom.Set(45, 48, 56);
+	themeBitmapToolbar.position = NAVIGATOR_CENTER;
+	themeBitmapToolbar.SetHeight(40);
+	themeBitmapToolbar.SetMargeX(5);
+	themeBitmapToolbar.SetMargeY(0);
 
+	themeBitmapToolbar.button.SetTailleX(30);
+	themeBitmapToolbar.button.SetTailleY(30);
+	themeBitmapToolbar.button.lineColorTop.Set(222, 222, 222);
+	themeBitmapToolbar.button.lineColorBottom.Set(156, 156, 156);
+	themeBitmapToolbar.button.actifTop.Set(255, 255, 255);
+	themeBitmapToolbar.button.actifBottom.Set(223, 223, 223);
+	themeBitmapToolbar.button.font.SetFontName("Verdana");
+	themeBitmapToolbar.button.font.SetFontSize(10);
+	themeBitmapToolbar.button.font.SetFontQuality(ANTIALIASED_QUALITY);
+	themeBitmapToolbar.button.font.SetColorFont(wxColour(255, 255, 255));
+	themeBitmapToolbar.button.SetRectangleSize(4);
+	themeBitmapToolbar.button.showButtonOnly = 1;
+
+	themeBitmapToolbar.slider.SetRectangleHeight(10);
+	//themeBitmapToolbar.slider.rectanglePast.Set(45, 48, 56);
+	//themeBitmapToolbar.slider.rectangleNext.Set(45, 48, 56);
+	themeBitmapToolbar.slider.font.SetColorFont(wxColour(255, 255, 255));
+	themeBitmapToolbar.slider.colorBack.Set(45, 48, 56);
+	themeBitmapToolbar.slider.SetWidth(200);
+	themeBitmapToolbar.slider.SetHeight(30);
+}
+*/
 void CMainTheme::InitPreviewToolbar()
 {
-	themePreviewToolbar.colorBack.Set(30, 30, 30);
-	themePreviewToolbar.colorTop.Set(50, 54, 63);
-	themePreviewToolbar.colorBottom.Set(50, 54, 63);
+	themePreviewToolbar.colorBack.Set(45, 48, 56);
+	themePreviewToolbar.colorTop.Set(45, 48, 56);
+	themePreviewToolbar.colorBottom.Set(45, 48, 56);
 	themePreviewToolbar.position = NAVIGATOR_CENTER;
 	themePreviewToolbar.SetWidth(60);
 	themePreviewToolbar.SetHeight(60);

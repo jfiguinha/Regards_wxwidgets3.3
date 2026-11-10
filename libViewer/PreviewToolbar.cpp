@@ -26,23 +26,23 @@ CPreviewToolbar::CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeTo
                                  CToolbarInterface* toolbarInterface, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical)
 {
-	fullscreen = CreateButton(L"IDB_SCREENPNG", L"LBLFULLSCREEN", IDM_SETFULLSCREEN);
-	save = CreateButton("IDB_SAVE", "LBLSAVE", WM_SAVE);
-	editor = CreateButton("IDB_OPEN", "LBLEDITORMODE", IDM_EDIT);
-	exportFile = CreateButton("IDB_EXPORT", "LBLEXPORT", IDM_EXPORT);
-	imageFirst = CreateButton(L"IDB_ARROWTRACKLPNG", L"LBLFIRST", WM_IMAGES_FIRST);
-	imagePrec = CreateButton(L"IDB_ARROWLPNG", L"LBLPREVIOUS", WM_IMAGES_PRCDENTE);
+	fullscreen = CreateButton(L"IDB_SCREENPNG", L"LBLFULLSCREEN", IDM_SETFULLSCREEN, false);
+	save = CreateButton("IDB_SAVE", "LBLSAVE", WM_SAVE, false);
+	editor = CreateButton("IDB_OPEN", "LBLEDITORMODE", IDM_EDIT, false);
+	exportFile = CreateButton("IDB_EXPORT", "LBLEXPORT", IDM_EXPORT, false);
+	imageFirst = CreateButton(L"IDB_ARROWTRACKLPNG", L"LBLFIRST", WM_IMAGES_FIRST, false);
+	imagePrec = CreateButton(L"IDB_ARROWLPNG", L"LBLPREVIOUS", WM_IMAGES_PRCDENTE, false);
 	imagePrec->SetRepeatable(true);
-	rotate90 = CreateButton(L"IDB_ROTATION90", L"LBLROTATE90", WM_ROTATE90);
-	rotate270 = CreateButton(L"IDB_ROTATION270", L"LBLROTATE270", WM_ROTATE270);
-	imagePlayDiaporama = CreateButton(L"IDB_PLAY", L"LBLPLAY", WM_DIAPORAMA_PLAY);
-	imageStopDiaporama = CreateButton(L"IDB_STOP", L"LBLSTOP", WM_DIAPORAMA_STOP);
+	rotate90 = CreateButton(L"IDB_ROTATION90", L"LBLROTATE90", WM_ROTATE90, false);
+	rotate270 = CreateButton(L"IDB_ROTATION270", L"LBLROTATE270", WM_ROTATE270, false);
+	imagePlayDiaporama = CreateButton(L"IDB_PLAY", L"LBLPLAY", WM_DIAPORAMA_PLAY, false);
+	imageStopDiaporama = CreateButton(L"IDB_STOP", L"LBLSTOP", WM_DIAPORAMA_STOP, false);
 	imageStopDiaporama->SetVisible(false);
-	flipVertical = CreateButton(L"IDB_FLIPVERT", L"LBLFLIPV", WM_FLIPVERTICAL);
-	flipHorizontal = CreateButton(L"IDB_FLIPHORZ", L"LBLFLIPH", WM_FLIPHORIZONTAL);
-	imageSuiv = CreateButton(L"IDB_ARROWRPNG", L"LBLNEXT", WM_IMAGES_SUIVANTE);
+	flipVertical = CreateButton(L"IDB_FLIPVERT", L"LBLFLIPV", WM_FLIPVERTICAL, false);
+	flipHorizontal = CreateButton(L"IDB_FLIPHORZ", L"LBLFLIPH", WM_FLIPHORIZONTAL, false);
+	imageSuiv = CreateButton(L"IDB_ARROWRPNG", L"LBLNEXT", WM_IMAGES_SUIVANTE, false);
 	imageSuiv->SetRepeatable(true);
-	imageEnd = CreateButton(L"IDB_ARROWTRACKRPNG", L"LBLEND", WM_IMAGES_END);
+	imageEnd = CreateButton(L"IDB_ARROWTRACKRPNG", L"LBLEND", WM_IMAGES_END, false);
 
 	this->toolbarInterface = toolbarInterface;
 }
