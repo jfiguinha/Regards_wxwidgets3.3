@@ -1,6 +1,7 @@
 #pragma once
 #include <theme.h>
 #include "ToolbarWindow.h"
+#include <ToolbarSeparator.h>
 #include <MediaMode.h>
 using namespace Regards::Window;
 
@@ -20,7 +21,7 @@ namespace Regards
 		{
 		public:
 			CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme,
-			                CToolbarInterface* toolbarInterface, const bool& vertical);
+				CToolbarInterface* toolbarInterface, const bool& vertical);
 			~CPreviewToolbar() = default;
 
 			void SetFullscreen();
@@ -58,13 +59,15 @@ namespace Regards
 			std::unique_ptr<CToolbarButton> imageFirst;
 			std::unique_ptr<CToolbarButton> imagePrec;
 			std::unique_ptr<CToolbarButton> save;
-            std::unique_ptr<CToolbarButton> exportFile;
-            std::unique_ptr<CToolbarButton> editFile;
+			std::unique_ptr<CToolbarButton> exportFile;
+			std::unique_ptr<CToolbarButton> editFile;
 			std::unique_ptr<CToolbarButton> editor;
 			std::unique_ptr<CToolbarButton> rotate90;
 			std::unique_ptr<CToolbarButton> rotate270;
 			std::unique_ptr<CToolbarButton> flipVertical;
 			std::unique_ptr<CToolbarButton> flipHorizontal;
+			// Séparation : navigation (gauche) | autres boutons (droite)
+			std::unique_ptr<CToolbarSeparator> separator;
 			bool navigationButtonEnable = true;
 		};
 	}

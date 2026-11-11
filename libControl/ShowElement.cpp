@@ -108,7 +108,7 @@ CShowElement::CShowElement(wxWindow* parent,
     };
 
     // --- Widgets image ---
-    pictureToolbar = std::make_unique<CBitmapToolbar>(this, wxID_ANY, bitmapViewerId,
+    pictureToolbar = std::make_unique<CBitmapToolbar>(this, ANIMATIONTOOLBARWINDOWID, bitmapViewerId,
         themeToolbar, false, exportPicture);
     pictureToolbar->SetTabValue(zoomValues);
 

@@ -28,7 +28,6 @@ namespace Regards
 	namespace Viewer
 	{
 		class CPreviewToolbar;
-		class CAnimationToolbar;
 
 		class CPreviewWnd : public CWindowMain, public CBitmapInterface, public CToolbarInterface
 		{
@@ -91,8 +90,6 @@ namespace Regards
 
 
 			CShowElement* showElement = nullptr;
-
-			CAnimationToolbar* animationToolbar = nullptr;
 			CPreviewToolbar* previewToolbar = nullptr;
 			CBitmapInfos * bitmapInfos = nullptr;
 			CFiltreToolbar* filtreToolbar = nullptr;

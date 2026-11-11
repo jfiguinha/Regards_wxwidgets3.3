@@ -23,33 +23,44 @@ using namespace Regards::Viewer;
 #define IDM_EXPORT_DIAPORAMA 164
 
 CPreviewToolbar::CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme,
-                                 CToolbarInterface* toolbarInterface, const bool& vertical)
+	CToolbarInterface* toolbarInterface, const bool& vertical)
 	: CToolbarWindow(parent, id, theme, vertical)
 {
-	fullscreen = CreateButton(L"IDB_SCREENPNG", L"LBLFULLSCREEN", IDM_SETFULLSCREEN, false);
-	save = CreateButton("IDB_SAVE", "LBLSAVE", WM_SAVE, false);
-	editor = CreateButton("IDB_OPEN", "LBLEDITORMODE", IDM_EDIT, false);
-	exportFile = CreateButton("IDB_EXPORT", "LBLEXPORT", IDM_EXPORT, false);
+	// L'ordre de création des boutons définit l'ordre d'affichage (navElement).
+
+	// --- Gauche : navigation ---
 	imageFirst = CreateButton(L"IDB_ARROWTRACKLPNG", L"LBLFIRST", WM_IMAGES_FIRST, false);
 	imagePrec = CreateButton(L"IDB_ARROWLPNG", L"LBLPREVIOUS", WM_IMAGES_PRCDENTE, false);
 	imagePrec->SetRepeatable(true);
-	rotate90 = CreateButton(L"IDB_ROTATION90", L"LBLROTATE90", WM_ROTATE90, false);
-	rotate270 = CreateButton(L"IDB_ROTATION270", L"LBLROTATE270", WM_ROTATE270, false);
 	imagePlayDiaporama = CreateButton(L"IDB_PLAY", L"LBLPLAY", WM_DIAPORAMA_PLAY, false);
 	imageStopDiaporama = CreateButton(L"IDB_STOP", L"LBLSTOP", WM_DIAPORAMA_STOP, false);
 	imageStopDiaporama->SetVisible(false);
-	flipVertical = CreateButton(L"IDB_FLIPVERT", L"LBLFLIPV", WM_FLIPVERTICAL, false);
-	flipHorizontal = CreateButton(L"IDB_FLIPHORZ", L"LBLFLIPH", WM_FLIPHORIZONTAL, false);
 	imageSuiv = CreateButton(L"IDB_ARROWRPNG", L"LBLNEXT", WM_IMAGES_SUIVANTE, false);
 	imageSuiv->SetRepeatable(true);
 	imageEnd = CreateButton(L"IDB_ARROWTRACKRPNG", L"LBLEND", WM_IMAGES_END, false);
 
+	// --- Séparation ---
+	separator = std::make_unique<CToolbarSeparator>();
+	navElement.push_back(separator.get());
+
+	// --- Droite : autres boutons ---
+	fullscreen = CreateButton(L"IDB_SCREENPNG", L"LBLFULLSCREEN", IDM_SETFULLSCREEN, false);
+	save = CreateButton("IDB_SAVE", "LBLSAVE", WM_SAVE, false);
+	editor = CreateButton("IDB_OPEN", "LBLEDITORMODE", IDM_EDIT, false);
+	exportFile = CreateButton("IDB_EXPORT", "LBLEXPORT", IDM_EXPORT, false);
+	rotate90 = CreateButton(L"IDB_ROTATION90", L"LBLROTATE90", WM_ROTATE90, false);
+	rotate270 = CreateButton(L"IDB_ROTATION270", L"LBLROTATE270", WM_ROTATE270, false);
+	flipVertical = CreateButton(L"IDB_FLIPVERT", L"LBLFLIPV", WM_FLIPVERTICAL, false);
+	flipHorizontal = CreateButton(L"IDB_FLIPHORZ", L"LBLFLIPH", WM_FLIPHORIZONTAL, false);
+
 	this->toolbarInterface = toolbarInterface;
+
+	fullscreen->SetVisible(false);
 }
 
 void CPreviewToolbar::EnableScreenButton()
 {
-	fullscreen->SetVisible(true);
+	fullscreen->SetVisible(false);
 	needToRefresh = true;
 }
 
@@ -90,6 +101,7 @@ void CPreviewToolbar::DisableNavigationButton()
 	if (navigationButtonEnable)
 	{
 		navigationButtonEnable = false;
+		separator->SetVisible(false);
 		imagePlayDiaporama->SetVisible(false);
 		imageStopDiaporama->SetVisible(false);
 		fullscreen->SetVisible(false);
@@ -106,9 +118,10 @@ void CPreviewToolbar::EnableNavigationButton()
 	if (!navigationButtonEnable)
 	{
 		navigationButtonEnable = true;
+		separator->SetVisible(true);
 		imagePlayDiaporama->SetVisible(true);
 		imageStopDiaporama->SetVisible(true);
-		fullscreen->SetVisible(true);
+		fullscreen->SetVisible(false);
 		imageEnd->SetVisible(true);
 		imageSuiv->SetVisible(true);
 		imageFirst->SetVisible(true);
@@ -300,20 +313,20 @@ void CPreviewToolbar::EventManager(const int& id)
 		LastPicture();
 		break;
 	case IDM_EDIT:
-		{
-			wxWindow* central = this->FindWindowById(MAINVIEWERWINDOWID);
-			auto event = new wxCommandEvent(wxEVENT_EDITFILE);
-			wxQueueEvent(central, event);
-			break;
-		}
+	{
+		wxWindow* central = this->FindWindowById(MAINVIEWERWINDOWID);
+		auto event = new wxCommandEvent(wxEVENT_EDITFILE);
+		wxQueueEvent(central, event);
+		break;
+	}
 	case IDM_EXPORT:
-		{
-			wxWindow* central = this->FindWindowById(MAINVIEWERWINDOWID);
-			auto event = new wxCommandEvent(wxEVENT_EXPORTFILE);
-			wxQueueEvent(central, event);
-			break;
-		}
-    
-	default: ;
+	{
+		wxWindow* central = this->FindWindowById(MAINVIEWERWINDOWID);
+		auto event = new wxCommandEvent(wxEVENT_EXPORTFILE);
+		wxQueueEvent(central, event);
+		break;
+	}
+
+	default:;
 	}
 }

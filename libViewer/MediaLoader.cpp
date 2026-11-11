@@ -450,10 +450,9 @@ void CMediaLoader::OnTimerAnimation(wxTimerEvent& /*event*/)
         }
         animationTimer->Start(delay, wxTIMER_ONE_SHOT);
     }
-    /*
     else
     {
-        auto* animationToolbar = dynamic_cast<CAnimationToolbar*>(
+        auto* animationToolbar = dynamic_cast<CBitmapToolbar*>(
             parent->FindWindowById(ANIMATIONTOOLBARWINDOWID));
         if (animationToolbar != nullptr)
             animationToolbar->AnimationStop();
@@ -461,7 +460,7 @@ void CMediaLoader::OnTimerAnimation(wxTimerEvent& /*event*/)
         wxCommandEvent evt(wxEVT_ANIMATIONTIMERSTOP);
         parent->GetEventHandler()->AddPendingEvent(evt);
     }
-    */
+ 
 }
 
 void CMediaLoader::AnimationPictureNext()

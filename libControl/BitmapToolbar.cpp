@@ -3,7 +3,6 @@
 #include <LibResource.h>
 #include <ToolbarButton.h>
 #include <ToolbarInterface.h>
-#include <algorithm>
 #include "CentralWindow.h"
 #include "BitmapWndViewer.h"
 #include "BitmapWnd3d.h"
@@ -38,7 +37,6 @@ CBitmapToolbar::CBitmapToolbar(wxWindow* parent, wxWindowID id, wxWindowID viewe
 	//moins = CreateButton("IDB_ZOOMMOINS", "LBLZOOMOFF", WM_ZOOMOUT, false);
 
 	slide = std::make_unique<CToolbarSlide>(themeToolbar.slider, this);
-	navElement.push_back(slide.get());
 
 	//plus = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", WM_ZOOMON, false);
 
@@ -49,6 +47,8 @@ CBitmapToolbar::CBitmapToolbar(wxWindow* parent, wxWindowID id, wxWindowID viewe
 	imageStopDiaporama = CreateButton(L"IDB_STOP", L"LBLSTOP", WM_DIAPORAMA_STOP, false);
 	imageSuiv = CreateButton(L"IDB_ARROWRPNG", L"LBLNEXT", WM_IMAGES_SUIVANTE, false);
 	imageSuiv->SetRepeatable(true);
+
+	separator = std::make_unique<CToolbarSeparator>();
 
 	// Mode par défaut : Bitmap (comportement historique de CBitmapToolbar)
 	ApplyMedia();
@@ -65,33 +65,40 @@ void CBitmapToolbar::SetMedia(const MediaMode& mode)
 	needToRefresh = true;
 }
 
-void CBitmapToolbar::SetSlideVisible(const bool& visible)
-{
-	if (slide == nullptr)
-		return;
-
-	auto it = std::find(navElement.begin(), navElement.end(), slide.get());
-	if (visible && it == navElement.end())
-		navElement.push_back(slide.get());
-	else if (!visible && it != navElement.end())
-		navElement.erase(it);
-}
-
 void CBitmapToolbar::ApplyMedia()
 {
 	const bool bitmapMode = (mediaMode == MediaMode::Bitmap);
 	const bool animationMode = (mediaMode == MediaMode::Animation);
+	const bool bitmapButtons = bitmapMode || animationMode;
 
+	// Ordre d'affichage : [navigation animation] | séparateur | [email, imprimante, shrink, zoom]
 	// Aucun et Video : aucun bouton (les commandes video sont dans CSliderVideo)
-	email->SetVisible(bitmapMode);
-	printer->SetVisible(bitmapMode);
-	shrink->SetVisible(bitmapMode);
-	SetSlideVisible(bitmapMode);
+	navElement.clear();
+	if (animationMode)
+	{
+		navElement.push_back(imagePrec.get());
+		navElement.push_back(imagePlayDiaporama.get());
+		navElement.push_back(imageStopDiaporama.get());
+		navElement.push_back(imageSuiv.get());
+		navElement.push_back(separator.get());
+	}
+	if (bitmapButtons)
+	{
+		navElement.push_back(email.get());
+		navElement.push_back(printer.get());
+		navElement.push_back(shrink.get());
+		navElement.push_back(slide.get());
+	}
 
 	imagePrec->SetVisible(animationMode);
 	imageSuiv->SetVisible(animationMode);
 	imagePlayDiaporama->SetVisible(animationMode && !animationRunning);
 	imageStopDiaporama->SetVisible(animationMode && animationRunning);
+	separator->SetVisible(animationMode);
+
+	email->SetVisible(bitmapButtons);
+	printer->SetVisible(bitmapButtons);
+	shrink->SetVisible(bitmapButtons);
 }
 
 void CBitmapToolbar::ZoomPos(const int& position)
@@ -247,33 +254,36 @@ void CBitmapToolbar::EventManager(const int& id)
 		EventManagerBitmap(id);
 		break;
 	case MediaMode::Animation:
-		EventManagerAnimation(id);
+		// Tous les boutons sont présents : navigation d'abord, sinon boutons bitmap
+		if (!EventManagerAnimation(id))
+			EventManagerBitmap(id);
 		break;
 	default:;
 	}
 }
 
-void CBitmapToolbar::EventManagerAnimation(const int& id)
+bool CBitmapToolbar::EventManagerAnimation(const int& id)
 {
 	switch (id)
 	{
 	case WM_DIAPORAMA_PLAY:
 		AnimationStart();
-		break;
+		return true;
 
 	case WM_DIAPORAMA_STOP:
 		AnimationStop();
-		break;
+		return true;
 
 	case WM_IMAGES_PRCDENTE:
 		PreviousPicture();
-		break;
+		return true;
 
 	case WM_IMAGES_SUIVANTE:
 		NextPicture();
-		break;
+		return true;
 	default:;
 	}
+	return false;
 }
 
 void CBitmapToolbar::EventManagerBitmap(const int& id)

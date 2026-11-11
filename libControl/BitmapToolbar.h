@@ -2,6 +2,7 @@
 #include <ToolbarWindow.h>
 #include <SliderInterface.h>
 #include <ToolbarSlide.h>
+#include <ToolbarSeparator.h>
 #include <MediaMode.h>
 using namespace Regards::Window;
 
@@ -48,10 +49,9 @@ namespace Regards::Control
 	private:
 		void EventManager(const int& id) override;
 		void EventManagerBitmap(const int& id);
-		void EventManagerAnimation(const int& id);
+		bool EventManagerAnimation(const int& id); // true si l'id est une commande d'animation
 
 		void ApplyMedia();
-		void SetSlideVisible(const bool& visible);
 		void NextPicture();
 		void PreviousPicture();
 
@@ -68,6 +68,9 @@ namespace Regards::Control
 		std::unique_ptr<CToolbarButton> imageStopDiaporama;
 		std::unique_ptr<CToolbarButton> imagePrec;
 		std::unique_ptr<CToolbarButton> imageSuiv;
+
+		// Séparation : navigation animation (gauche) | autres boutons (droite)
+		std::unique_ptr<CToolbarSeparator> separator;
 
 		CToolbarInterface* toolbarInterface = nullptr;
 		MediaMode mediaMode = MediaMode::Bitmap;
