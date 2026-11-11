@@ -222,7 +222,11 @@ void CCentralWindow::LoadFaceActifItem()
 // ─────────────────────────────────────────────────────────────────────────────
 void CCentralWindow::OnEndLoadPicture(wxCommandEvent& event)
 {
-	wxString* filename = event.GetClientData() != nullptr ? static_cast<wxString*>(event.GetClientData()) : nullptr;
+    wxString* filename = event.GetClientData() != nullptr ? static_cast<wxString*>(event.GetClientData()) : nullptr;
+
+    windowModeController->isVideo = mediaLoader->IsVideo();
+    windowModeController->isAnimation = mediaLoader->IsAnimation();
+
     if (mediaLoader->IsAnimation() || mediaLoader->IsVideo())
     {
         windowModeController->ShowTopWindow();
@@ -241,6 +245,7 @@ void CCentralWindow::OnEndLoadPicture(wxCommandEvent& event)
         filename = nullptr;
     }
 }
+
 
 wxString CCentralWindow::ImageSuivante(const bool& lp)    
 { 

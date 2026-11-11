@@ -332,11 +332,8 @@ void CWindowModeController::ShowToolbar()
             windowManager->ShowWindow(Pos::wxRIGHT);
 
         windowManager->ShowWindow(Pos::wxCENTRAL);
-    }
 
-    if (isFullscreen && !isAnimation && !isVideo)  // isPicture equivalent
-    {
-        if (windowMode == WINDOW_VIEWER)
+        if ((isAnimation || isVideo) && windowMode == WINDOW_VIEWER)
             windowManager->ShowWindow(Pos::wxTOP);
     }
 
