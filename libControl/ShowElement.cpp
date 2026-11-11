@@ -232,14 +232,18 @@ void CShowElement::Resize()
     if (!isVideo)
         ResizeImage(w, h);
     else
+    {
         ResizeVideo(w, h);
 
-    videoSlider->SetZoomIndex(videoWindow->GetZoomIndex());
+        videoSlider->SetZoomIndex(videoWindow->GetZoomIndex());
+    }
+
 }
 
 void CShowElement::AnimationStart()
 {
-
+    if(pictureToolbar)
+        pictureToolbar->AnimationStart();
 }
 
 void CShowElement::ResizeImage(int w, int h)
@@ -275,15 +279,6 @@ void CShowElement::ResizeImage(int w, int h)
 
 void CShowElement::ResizeVideo(int w, int h)
 {
-    if (isDiaporama)
-    {
-        videoSlider->SetSize(0, 0, 0, 0);
-        videoSlider->Refresh();
-        scrollbar->SetSize(0, 0, w, h);
-        scrollbar->Refresh();
-        return;
-    }
-
     int posHeight = 0;
     int posHeightSup = 0;
 
@@ -299,8 +294,8 @@ void CShowElement::ResizeVideo(int w, int h)
     }
 
     const int contentH = h - posHeight - posHeightSup;
-    scrollbar->SetSize(0, 0, w, contentH);
-    //scrollbar->Resize();
+    scrollbar->SetSize(0, 0, w+1, contentH);
+    scrollbar->Refresh();
 
     if (showToolbar && videoSlider->IsShown())
     {
@@ -314,6 +309,9 @@ void CShowElement::ResizeVideo(int w, int h)
 // ============================================================================
 void CShowElement::ShowToolbar()
 {
+    if (showToolbar)
+        return;
+
     showToolbar = true;
     if (!isVideo)
     {
@@ -334,6 +332,8 @@ void CShowElement::ShowToolbar()
 
 void CShowElement::HideToolbar()
 {
+	if (!showToolbar)
+		return;
     // Vidéo
     if (videoSlider && !videoSlider->IsMouseOver())
     {
@@ -366,20 +366,28 @@ bool CShowElement::IsToolbarMouseOver()
 // ============================================================================
 void CShowElement::SetMedia(const MediaMode& mode)
 {
+    if (mode == mediaMode)
+        return;
+
     mediaMode = mode;
     isVideo = (mode == MediaMode::Video);
 
     if (pictureToolbar)
         pictureToolbar->SetMedia(mode);
 
-    if (!isDiaporama)
-    {
-        const bool toolbarVisible = (mode == MediaMode::Bitmap || mode == MediaMode::Animation);
-        if (pictureToolbar)
-            pictureToolbar->Show(toolbarVisible);
-        if (videoSlider)
-            videoSlider->Show(mode == MediaMode::Video);
-    }
+    const bool toolbarVisible = (mode == MediaMode::Bitmap || mode == MediaMode::Animation);
+    if (pictureToolbar)
+        pictureToolbar->Show(toolbarVisible);
+    if (videoSlider)
+        videoSlider->Show(mode == MediaMode::Video);
+    
+
+    if (mediaMode == MediaMode::Video)
+        bitmapWindowRender->UpdateRenderInterface(videoWindow.get());
+    else
+        bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
+
+    Resize();
 }
 
 // ============================================================================
@@ -487,9 +495,6 @@ void CShowElement::SetBitmapToViewer(CImageLoadingFormat* bitmap, int eventType)
 
 bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail)
 {
-
-    bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
-
     SendPreviewButtonEvents(this,
         isThumbnail ? wxEVENT_HIDESAVEBUTTON : wxEVENT_SHOWSAVEBUTTON,
         wxEVENT_HIDEEXPORTBUTTON);
@@ -565,7 +570,7 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
 
 
     // Une animation en cours reste en mode Animation (chaque frame passe par SetBitmap)
-    
+
     return true;
 }
 
@@ -656,8 +661,8 @@ int CShowElement::GetAngleAndFlipFromExif(int exif, int& angle, int& flipH, int&
 bool CShowElement::SetVideo(const wxString& fn, const int& /*rotation*/, const bool& /*playNow*/)
 {
 
-    bitmapWindowRender->UpdateRenderInterface(videoWindow.get());
-
+    // Garde mediaMode, isVideo, toolbar, slider et interface de rendu synchronisés
+    SetMedia(MediaMode::Video);
     videoTotalTime = 0;
     videoPosOld = 0;
     filename = fn;
@@ -671,7 +676,6 @@ bool CShowElement::SetVideo(const wxString& fn, const int& /*rotation*/, const b
         w->GetEventHandler()->AddPendingEvent(evt);
     }
 
-    Resize();
     return ok;
 }
 
@@ -868,7 +872,6 @@ void CShowElement::OnPositionVideo(const int64_t& position)
 void CShowElement::SetDiaporamaMode()
 {
     isDiaporama = true;
-    HideToolbar();
     videoWindow->DiaporamaMode(true);
     bitmapWindow->SetDiaporamaMode();
     Resize();
@@ -877,7 +880,6 @@ void CShowElement::SetDiaporamaMode()
 void CShowElement::SetNormalMode()
 {
     isDiaporama = false;
-    ShowToolbar();
     videoWindow->DiaporamaMode(false);
     bitmapWindow->SetNormalMode();
     Resize();
