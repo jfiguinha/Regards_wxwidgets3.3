@@ -55,9 +55,6 @@
     <ClCompile Include="BitmapPrintout.cpp">
       <Filter>Bitmap</Filter>
     </ClCompile>
-    <ClCompile Include="BitmapToolbar.cpp">
-      <Filter>Bitmap</Filter>
-    </ClCompile>
     <ClCompile Include="ffmfcpimpl.cpp">
       <Filter>Video\Core</Filter>
     </ClCompile>
@@ -136,6 +133,9 @@
     <ClCompile Include="PrintService.cpp">
       <Filter>Print</Filter>
     </ClCompile>
+    <ClCompile Include="BitmapToolbar.cpp">
+      <Filter>Bitmap</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CriteriaTree.h">
@@ -196,9 +196,6 @@
       <Filter>Bitmap</Filter>
     </ClInclude>
     <ClInclude Include="BitmapPrintout.h">
-      <Filter>Bitmap</Filter>
-    </ClInclude>
-    <ClInclude Include="BitmapToolbar.h">
       <Filter>Bitmap</Filter>
     </ClInclude>
     <ClInclude Include="VideoInterface.h">
@@ -293,6 +290,9 @@
     </ClInclude>
     <ClInclude Include="VolumePopup.h">
       <Filter>Video\Core\Toolbar</Filter>
+    </ClInclude>
+    <ClInclude Include="BitmapToolbar.h">
+      <Filter>Bitmap</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

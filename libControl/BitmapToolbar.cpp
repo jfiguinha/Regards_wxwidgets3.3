@@ -1,10 +1,20 @@
 #include <header.h>
 #include "BitmapToolbar.h"
 #include <LibResource.h>
+#include <ToolbarButton.h>
+#include <ToolbarInterface.h>
+#include <algorithm>
+#include "CentralWindow.h"
 #include "BitmapWndViewer.h"
 #include "BitmapWnd3d.h"
+#if defined(__WXMSW__)
+#include "../include/window_id.h"
+#else
+#include <window_id.h>
+#endif
 
 using namespace Regards::Control;
+using namespace Regards::Viewer;
 
 constexpr auto WM_EMAIL = 4;
 constexpr auto WM_IMPRIMER = 5;
@@ -12,13 +22,16 @@ constexpr auto IDM_SETSHRINK = 7;
 constexpr auto WM_EXPORT = 8;
 
 CBitmapToolbar::CBitmapToolbar(wxWindow* parent, wxWindowID id, wxWindowID viewerId, const CThemeToolbar& theme,
-                               const bool& vertical, const bool& exportPicture)
+	const bool& vertical, const bool& exportPicture,
+	CToolbarInterface* toolbarInterface)
 	: CToolbarWindow(parent, id, theme, vertical)
 {
 	themeToolbar = theme;
 	this->parentId = viewerId;
 	this->exportPicture = exportPicture;
+	this->toolbarInterface = toolbarInterface;
 
+	// Mode Bitmap
 	email = CreateButton("IDB_EMAIL", "LBLEMAIL", WM_EMAIL, false);
 	printer = CreateButton("IDB_PRINTERPNG", "LBLPRINT", WM_IMPRIMER, false);
 	shrink = CreateButton("IDB_SHRINK", "LBLSHRINK", IDM_SETSHRINK, false);
@@ -29,6 +42,56 @@ CBitmapToolbar::CBitmapToolbar(wxWindow* parent, wxWindowID id, wxWindowID viewe
 
 	//plus = CreateButton("IDB_ZOOMPLUS", "LBLZOOMON", WM_ZOOMON, false);
 
+	// Mode Animation
+	imagePrec = CreateButton(L"IDB_ARROWLPNG", L"LBLPREVIOUS", WM_IMAGES_PRCDENTE);
+	imagePrec->SetRepeatable(true);
+	imagePlayDiaporama = CreateButton(L"IDB_PLAY", L"LBLPLAY", WM_DIAPORAMA_PLAY);
+	imageStopDiaporama = CreateButton(L"IDB_STOP", L"LBLSTOP", WM_DIAPORAMA_STOP);
+	imageSuiv = CreateButton(L"IDB_ARROWRPNG", L"LBLNEXT", WM_IMAGES_SUIVANTE);
+	imageSuiv->SetRepeatable(true);
+
+	// Mode par défaut : Bitmap (comportement historique de CBitmapToolbar)
+	ApplyMedia();
+}
+
+void CBitmapToolbar::SetMedia(const MediaMode& mode)
+{
+	if (mode == mediaMode)
+		return;
+
+	mediaMode = mode;
+	ApplyMedia();
+	Resize();
+	needToRefresh = true;
+}
+
+void CBitmapToolbar::SetSlideVisible(const bool& visible)
+{
+	if (slide == nullptr)
+		return;
+
+	auto it = std::find(navElement.begin(), navElement.end(), slide.get());
+	if (visible && it == navElement.end())
+		navElement.push_back(slide.get());
+	else if (!visible && it != navElement.end())
+		navElement.erase(it);
+}
+
+void CBitmapToolbar::ApplyMedia()
+{
+	const bool bitmapMode = (mediaMode == MediaMode::Bitmap);
+	const bool animationMode = (mediaMode == MediaMode::Animation);
+
+	// Aucun et Video : aucun bouton (les commandes video sont dans CSliderVideo)
+	email->SetVisible(bitmapMode);
+	printer->SetVisible(bitmapMode);
+	shrink->SetVisible(bitmapMode);
+	SetSlideVisible(bitmapMode);
+
+	imagePrec->SetVisible(animationMode);
+	imageSuiv->SetVisible(animationMode);
+	imagePlayDiaporama->SetVisible(animationMode && !animationRunning);
+	imageStopDiaporama->SetVisible(animationMode && animationRunning);
 }
 
 void CBitmapToolbar::ZoomPos(const int& position)
@@ -109,8 +172,7 @@ void CBitmapToolbar::SetTabValue(vector<int> value)
 }
 
 void CBitmapToolbar::ClickButton(const int& id)
-{
-}
+{}
 
 void CBitmapToolbar::SetTrackBarPosition(const int& iPos)
 {
@@ -133,8 +195,88 @@ void CBitmapToolbar::SlidePosChange(const int& position, const wxString& key)
 	}
 }
 
+void CBitmapToolbar::NextPicture()
+{
+	auto mainWindow = static_cast<CCentralWindow*>(this->FindWindowById(CENTRALVIEWERWINDOWID));
+	if (mainWindow != nullptr)
+		mainWindow->AnimationPictureNext();
+}
+
+void CBitmapToolbar::PreviousPicture()
+{
+	auto mainWindow = static_cast<CCentralWindow*>(this->FindWindowById(CENTRALVIEWERWINDOWID));
+	if (mainWindow != nullptr)
+		mainWindow->AnimationPicturePrevious();
+}
+
+void CBitmapToolbar::AnimationStart()
+{
+	auto mainWindow = static_cast<CCentralWindow*>(this->FindWindowById(CENTRALVIEWERWINDOWID));
+	if (mainWindow != nullptr)
+	{
+		animationRunning = true;
+		imagePlayDiaporama->SetVisible(false);
+		imageStopDiaporama->SetVisible(true);
+		auto event = new wxCommandEvent(wxEVENT_ANIMATIONSTART);
+		wxQueueEvent(mainWindow, event);
+		needToRefresh = true;
+	}
+}
+
+void CBitmapToolbar::AnimationStop()
+{
+	auto mainWindow = static_cast<CCentralWindow*>(this->FindWindowById(CENTRALVIEWERWINDOWID));
+	if (mainWindow != nullptr)
+	{
+		animationRunning = false;
+		imageStopDiaporama->SetVisible(false);
+		imagePlayDiaporama->SetVisible(true);
+
+		auto event = new wxCommandEvent(wxEVENT_ANIMATIONSTOP);
+		wxQueueEvent(mainWindow, event);
+
+		needToRefresh = true;
+	}
+}
 
 void CBitmapToolbar::EventManager(const int& id)
+{
+	switch (mediaMode)
+	{
+	case MediaMode::Bitmap:
+		EventManagerBitmap(id);
+		break;
+	case MediaMode::Animation:
+		EventManagerAnimation(id);
+		break;
+	default:;
+	}
+}
+
+void CBitmapToolbar::EventManagerAnimation(const int& id)
+{
+	switch (id)
+	{
+	case WM_DIAPORAMA_PLAY:
+		AnimationStart();
+		break;
+
+	case WM_DIAPORAMA_STOP:
+		AnimationStop();
+		break;
+
+	case WM_IMAGES_PRCDENTE:
+		PreviousPicture();
+		break;
+
+	case WM_IMAGES_SUIVANTE:
+		NextPicture();
+		break;
+	default:;
+	}
+}
+
+void CBitmapToolbar::EventManagerBitmap(const int& id)
 {
 	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(this->FindWindowById(parentId));
 	if (bitmapWindow != nullptr)
@@ -152,13 +294,13 @@ void CBitmapToolbar::EventManager(const int& id)
 				break;
 
 			case WM_EXPORT:
-				{
-					if (exportPicture)
-						wndViewer->ExportPicture();
-					else
-						wndViewer->SavePicture();
-					break;
-				}
+			{
+				if (exportPicture)
+					wndViewer->ExportPicture();
+				else
+					wndViewer->SavePicture();
+				break;
+			}
 			case WM_EMAIL:
 				wndViewer->SendEmail();
 				break;
@@ -169,7 +311,7 @@ void CBitmapToolbar::EventManager(const int& id)
 			case WM_ZOOMON:
 				ZoomOn();
 				break;
-			default: ;
+			default:;
 			}
 		}
 	}

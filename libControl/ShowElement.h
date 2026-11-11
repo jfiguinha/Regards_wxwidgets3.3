@@ -10,7 +10,8 @@
 #include <FiltreUpdate.h>
 #include <memory>
 #include <LayerElement.h>
-
+#include <PreviewToolbar.h>
+#include "BitmapToolbar.h"
 using namespace Regards::Window;
 using namespace Regards::Video;
 
@@ -20,7 +21,7 @@ class CRegardsConfigParam;
 namespace Regards
 {
     namespace Window { class CBitmapWnd3D; }
-    namespace Video  { class CSlideToolbar; }
+    namespace Video { class CSlideToolbar; }
 
     namespace Control
     {
@@ -33,25 +34,25 @@ namespace Regards
         {
         public:
             virtual ~IViewerMode() = default;
-            virtual void FlipVertical()   = 0;
+            virtual void FlipVertical() = 0;
             virtual void FlipHorizontal() = 0;
-            virtual void Rotate90()       = 0;
-            virtual void Rotate270()      = 0;
+            virtual void Rotate90() = 0;
+            virtual void Rotate270() = 0;
         };
 
         class CShowElement : public CWindowMain,
-                             public CSliderInterface,
-                             public IVideoInterface,
-                             public IFiltreUpdate
+            public CSliderInterface,
+            public IVideoInterface,
+            public IFiltreUpdate
         {
         public:
             CShowElement(wxWindow* parent,
-                         wxWindowID id,
-                         wxWindowID bitmapViewerId,
-                         wxWindowID mainViewerId,
-                         CBitmapInterface* bitmapInterface,
-                         CThemeParam* config,
-                         const bool& exportPicture);
+                wxWindowID id,
+                wxWindowID bitmapViewerId,
+                wxWindowID mainViewerId,
+                CBitmapInterface* bitmapInterface,
+                CThemeParam* config,
+                const bool& exportPicture);
             ~CShowElement() override;
 
             // Navigation
@@ -69,6 +70,7 @@ namespace Regards
 
             CLayerList* GetLayerList();
 
+            void AnimationStart();
             // Image
             bool SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail);
             void SetBitmapPreviewEffect(const int& effect);
@@ -85,6 +87,10 @@ namespace Regards
             void SetDiaporamaMode();
             void SetNormalMode();
 
+            // Type de média affiché : pilote la toolbar (CBitmapToolbar) et le slider vidéo
+            void SetMedia(const MediaMode& mode);
+            MediaMode GetMedia() const { return mediaMode; }
+
             // Vidéo
             bool SetVideo(const wxString& filename, const int& rotation, const bool& play);
             void SetPosition(const int64_t& timePosition);
@@ -100,8 +106,8 @@ namespace Regards
             void PauseVideo();
             void ChangeAudio(const int& langue);
             void SetStreamInfo(vector<CStreamInfo>& listAudio,
-                               vector<CStreamInfo>& listVideo,
-                               vector<CStreamInfo>& listSubtitle) override;
+                vector<CStreamInfo>& listVideo,
+                vector<CStreamInfo>& listSubtitle) override;
             CVideoControlSoft* GetVideoControl();
 
             // CSliderInterface
@@ -168,43 +174,45 @@ namespace Regards
             // en raw ptr car wxWidgets gère leur durée de vie (parent/child).
             // En revanche les objets non-wxWidgets utilisent unique_ptr.
             // ============================================================
-            std::unique_ptr<CScrollbarWnd>   scrollbar         = nullptr;
-            std::unique_ptr<CBitmapToolbar>   pictureToolbar     = nullptr;
-            std::unique_ptr<CBitmapWndViewer> bitmapWindow       = nullptr;
+            std::unique_ptr<CScrollbarWnd>   scrollbar = nullptr;
+            std::unique_ptr<CBitmapToolbar>   pictureToolbar = nullptr;
+            std::unique_ptr<CBitmapWndViewer> bitmapWindow = nullptr;
             std::unique_ptr<CBitmapWnd3D>     bitmapWindowRender = nullptr;
 
-            CBitmapInterface* bitmapInterface    = nullptr;
-            CRegardsConfigParam* configRegards   = nullptr;
+            CBitmapInterface* bitmapInterface = nullptr;
+            CRegardsConfigParam* configRegards = nullptr;
             CWindowMain* windowMain = nullptr;
 
             // tempImage : propriété claire, géré via unique_ptr
             std::unique_ptr<CImageLoadingFormat> tempImage;
 
 
-            std::unique_ptr<CSliderVideo>      videoSlider   = nullptr;
-            std::unique_ptr<CVideoControlSoft> videoWindow   = nullptr;
-            
+            std::unique_ptr<CSliderVideo>      videoSlider = nullptr;
+            std::unique_ptr<CVideoControlSoft> videoWindow = nullptr;
+
 
             wxString filename;
-            int  progressValue  = 0;
-            int  height         = 0;
-            int  width          = 0;
-            int  videoPosOld    = 0;
+            int  progressValue = 0;
+            int  height = 0;
+            int  width = 0;
+            int  videoPosOld = 0;
             int64_t videoTotalTime = 0;
 
 
-            bool defaultToolbar  = true;
-            bool defaultViewer   = true;
-            bool isDiaporama     = false;
-            bool transitionEnd   = true;
-            bool fullscreen      = false;
-            bool showToolbar     = true;
-            bool firstElement    = true;
-            bool play            = false;
-            bool toolbarOutside  = false;
-            bool softRender      = false;
-            bool refreshSlider   = false;
-            bool isVideo         = false;
+            bool defaultToolbar = true;
+            bool defaultViewer = true;
+            bool isDiaporama = false;
+            bool transitionEnd = true;
+            bool fullscreen = false;
+            bool showToolbar = true;
+            bool firstElement = true;
+            bool showToolbarSup = false;
+            bool play = false;
+            bool toolbarOutside = false;
+            bool softRender = false;
+            bool refreshSlider = false;
+            bool isVideo = false;
+            MediaMode mediaMode = MediaMode::Bitmap;
 
             vector<CStreamInfo> listStream;
             std::vector<int>    sound_value;

@@ -1,44 +1,28 @@
 #pragma once
 #include <theme.h>
 #include "ToolbarWindow.h"
-//#include "SliderInterface.h"
-#include <ToolbarInterface.h>
-#include <SliderInterface.h>
-#include <array>
-#include <vector>
+#include <MediaMode.h>
 using namespace Regards::Window;
 
 
-enum class MediaMode
-{
-	General,
-	Bitmap,
-	Animation,
-	Video
-};
+
 
 namespace Regards
 {
+	namespace Window
+	{
+		class CToolbarInterface;
+	}
 
 	namespace Viewer
 	{
-		class CGeneralToolbar;
-		class CPreviewBitmapToolbar;
-		class CPreviewVideoToolbar;
-
-		class CPreviewToolbar final : public CWindowMain
+		class CPreviewToolbar final : public CToolbarWindow
 		{
 		public:
-			// viewerId       : fenêtre bitmap pilotée par la barre Bitmap (zoom, print, email...)
-			// videoInterface : récepteur des clics de la barre Video (même rôle que CSliderVideo::sliderEvent)
 			CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeToolbar& theme,
-			                CToolbarInterface* toolbarInterface, const bool& vertical,
-			                wxWindowID viewerId = wxID_ANY, CSliderInterface* videoInterface = nullptr);
+			                CToolbarInterface* toolbarInterface, const bool& vertical);
 			~CPreviewToolbar() = default;
 
-			void SetMediaToolbar(MediaMode mediaMode);
-
-			int GetHeight() override;
 			void SetFullscreen();
 			void SetScreen();
 			void DisableNavigationButton();
@@ -49,25 +33,39 @@ namespace Regards
 			void DisableExportButton();
 			void EnableScreenButton();
 			void DisableScreenButton();
-			void UpdateScreenRatio();
-
-			// Barre Bitmap
-			void SetTabValue(const std::vector<int>& value);
-			void SetTrackBarPosition(const int& position);
-
-			// Barre Video
-			void SetVideoPlay();
-			void SetVideoPause();
 
 		private:
-			void Resize() override;
-			std::array<CGeneralToolbar*, 3> AllToolbars() const;
+			void DiaporamaStart();
+			void DiaporamaStop();
+			void Rotate90();
+			void Rotate270();
+			void FlipVertical();
+			void FlipHorizontal();
+			void Fullscreen();
+			void NextPicture();
+			void PreviousPicture();
+			void FirstPicture();
+			void LastPicture();
+			void Save();
+			void EventManager(const int& id) override;
 
-			MediaMode mediaMode = MediaMode::General;
-			CGeneralToolbar* generalToolbar = nullptr;
-			CPreviewBitmapToolbar* bitmapToolbar = nullptr;
-			CPreviewVideoToolbar* videoToolbar = nullptr;
-			CGeneralToolbar* activeToolbar = nullptr;
+			CToolbarInterface* toolbarInterface;
+			std::unique_ptr<CToolbarButton> imagePlayDiaporama;
+			std::unique_ptr<CToolbarButton> imageStopDiaporama;
+			std::unique_ptr<CToolbarButton> fullscreen;
+			std::unique_ptr<CToolbarButton> imageEnd;
+			std::unique_ptr<CToolbarButton> imageSuiv;
+			std::unique_ptr<CToolbarButton> imageFirst;
+			std::unique_ptr<CToolbarButton> imagePrec;
+			std::unique_ptr<CToolbarButton> save;
+            std::unique_ptr<CToolbarButton> exportFile;
+            std::unique_ptr<CToolbarButton> editFile;
+			std::unique_ptr<CToolbarButton> editor;
+			std::unique_ptr<CToolbarButton> rotate90;
+			std::unique_ptr<CToolbarButton> rotate270;
+			std::unique_ptr<CToolbarButton> flipVertical;
+			std::unique_ptr<CToolbarButton> flipHorizontal;
+			bool navigationButtonEnable = true;
 		};
 	}
 }

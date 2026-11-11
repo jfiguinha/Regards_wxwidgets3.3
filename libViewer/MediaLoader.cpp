@@ -5,7 +5,6 @@
 #include "ThumbnailViewerVideo.h"
 #include "PreviewWnd.h"
 #include "PanelInfosWnd.h"
-#include "AnimationToolbar.h"
 #include <ImageLoadingFormat.h>
 #include <libPicture.h>
 #include <LibResource.h>
@@ -451,6 +450,7 @@ void CMediaLoader::OnTimerAnimation(wxTimerEvent& /*event*/)
         }
         animationTimer->Start(delay, wxTIMER_ONE_SHOT);
     }
+    /*
     else
     {
         auto* animationToolbar = dynamic_cast<CAnimationToolbar*>(
@@ -461,6 +461,7 @@ void CMediaLoader::OnTimerAnimation(wxTimerEvent& /*event*/)
         wxCommandEvent evt(wxEVT_ANIMATIONTIMERSTOP);
         parent->GetEventHandler()->AddPendingEvent(evt);
     }
+    */
 }
 
 void CMediaLoader::AnimationPictureNext()

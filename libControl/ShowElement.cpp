@@ -30,12 +30,12 @@ extern AppContext application_context;
 // ============================================================================
 struct CThreadRotate
 {
-    bool        isReady    = false;
-    int         exif       = 0;
+    bool        isReady = false;
+    int         exif = 0;
     wxString    filename;
     cv::Mat     bitmap;
-    std::thread* thread    = nullptr;   // non-owning une fois joint
-    wxWindow*   mainWindow = nullptr;
+    std::thread* thread = nullptr;   // non-owning une fois joint
+    wxWindow* mainWindow = nullptr;
 };
 
 // ============================================================================
@@ -47,10 +47,10 @@ namespace
     {
     public:
         explicit BitmapViewerMode(CBitmapWndViewer* v) : v_(v) {}
-        void FlipVertical()   override { if (v_) v_->FlipVertical();   }
+        void FlipVertical()   override { if (v_) v_->FlipVertical(); }
         void FlipHorizontal() override { if (v_) v_->FlipHorizontal(); }
-        void Rotate90()       override { if (v_) v_->Rotate90();       }
-        void Rotate270()      override { if (v_) v_->Rotate270();      }
+        void Rotate90()       override { if (v_) v_->Rotate90(); }
+        void Rotate270()      override { if (v_) v_->Rotate270(); }
     private:
         CBitmapWndViewer* v_;
     };
@@ -59,10 +59,10 @@ namespace
     {
     public:
         explicit VideoViewerMode(CVideoControlSoft* v) : v_(v) {}
-        void FlipVertical()   override { if (v_) v_->FlipVertical();   }
+        void FlipVertical()   override { if (v_) v_->FlipVertical(); }
         void FlipHorizontal() override { if (v_) v_->FlipHorizontal(); }
-        void Rotate90()       override { if (v_) v_->Rotate90();       }
-        void Rotate270()      override { if (v_) v_->Rotate270();      }
+        void Rotate90()       override { if (v_) v_->Rotate90(); }
+        void Rotate270()      override { if (v_) v_->Rotate270(); }
     private:
         CVideoControlSoft* v_;
     };
@@ -72,17 +72,17 @@ namespace
 // Constructeur
 // ============================================================================
 CShowElement::CShowElement(wxWindow* parent,
-                           wxWindowID id,
-                           wxWindowID bitmapViewerId,
-                           wxWindowID mainViewerId,
-                           CBitmapInterface* bitmapInterfaceIn,
-                           CThemeParam* config,
-                           const bool& exportPicture)
+    wxWindowID id,
+    wxWindowID bitmapViewerId,
+    wxWindowID mainViewerId,
+    CBitmapInterface* bitmapInterfaceIn,
+    CThemeParam* config,
+    const bool& exportPicture)
     : CWindowMain("ShowBitmap", parent, id)
 {
     bitmapInterface = bitmapInterfaceIn;
-    configRegards   = CParamInit::getInstance();
-    windowMain      = static_cast<CWindowMain*>(FindWindowById(mainViewerId));
+    configRegards = CParamInit::getInstance();
+    windowMain = static_cast<CWindowMain*>(FindWindowById(mainViewerId));
     tempImage = nullptr;
 
     // --- Thèmes ---
@@ -109,11 +109,11 @@ CShowElement::CShowElement(wxWindow* parent,
 
     // --- Widgets image ---
     pictureToolbar = std::make_unique<CBitmapToolbar>(this, wxID_ANY, bitmapViewerId,
-                                                     themeToolbar, false, exportPicture);
+        themeToolbar, false, exportPicture);
     pictureToolbar->SetTabValue(zoomValues);
 
     bitmapWindow = std::make_unique<CBitmapWndViewer>(pictureToolbar.get(), mainViewerId,
-                                                      themeBitmap, bitmapInterface);
+        themeBitmap, bitmapInterface);
     bitmapWindow->SetTabValue(zoomValues);
 
     bitmapWindowRender = std::make_unique<CBitmapWnd3D>(this, bitmapViewerId);
@@ -122,11 +122,10 @@ CShowElement::CShowElement(wxWindow* parent,
     scrollbar = std::make_unique<CScrollbarWnd>(this, bitmapWindowRender.get(), wxID_ANY, "BitmapScroll");
 
     // --- Widgets vidéo ---
-    videoWindow  = std::make_unique<CVideoControlSoft>(windowMain, this, this);
+    videoWindow = std::make_unique<CVideoControlSoft>(windowMain, this, this);
     bitmapWindowRender->SetBitmapRenderInterface(videoWindow.get());
 
-    videoSlider  = std::make_unique<CSliderVideo>(this, wxID_ANY, this, themeSlider);
-
+    videoSlider = std::make_unique<CSliderVideo>(this, wxID_ANY, this, themeSlider);
 
     bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
 
@@ -139,22 +138,22 @@ CShowElement::CShowElement(wxWindow* parent,
 
     // --- Connexion des événements ---
     Connect(wxEVT_BITMAPDBLCLICK, wxEVT_COMMAND_TEXT_UPDATED,
-            wxCommandEventHandler(CShowElement::OnViewerDblClick));
-    Connect(wxEVT_BITMAPZOOMIN,   wxCommandEventHandler(CShowElement::OnViewerZoomIn));
-    Connect(wxEVT_BITMAPZOOMOUT,  wxCommandEventHandler(CShowElement::OnViewerZoomOut));
-    Connect(wxEVENT_MOVELEFT,     wxCommandEventHandler(CShowElement::OnMoveLeft));
-    Connect(wxEVENT_MOVERIGHT,    wxCommandEventHandler(CShowElement::OnMoveRight));
-    Connect(wxEVENT_MOVETOP,      wxCommandEventHandler(CShowElement::OnMoveTop));
-    Connect(wxEVENT_MOVEBOTTOM,   wxCommandEventHandler(CShowElement::OnMoveBottom));
+        wxCommandEventHandler(CShowElement::OnViewerDblClick));
+    Connect(wxEVT_BITMAPZOOMIN, wxCommandEventHandler(CShowElement::OnViewerZoomIn));
+    Connect(wxEVT_BITMAPZOOMOUT, wxCommandEventHandler(CShowElement::OnViewerZoomOut));
+    Connect(wxEVENT_MOVELEFT, wxCommandEventHandler(CShowElement::OnMoveLeft));
+    Connect(wxEVENT_MOVERIGHT, wxCommandEventHandler(CShowElement::OnMoveRight));
+    Connect(wxEVENT_MOVETOP, wxCommandEventHandler(CShowElement::OnMoveTop));
+    Connect(wxEVENT_MOVEBOTTOM, wxCommandEventHandler(CShowElement::OnMoveBottom));
     Connect(wxEVENT_SETCONTROLSIZE, wxCommandEventHandler(CShowElement::OnControlSize));
-    Connect(wxEVENT_SETPOSITION,  wxCommandEventHandler(CShowElement::OnSetPosition));
+    Connect(wxEVENT_SETPOSITION, wxCommandEventHandler(CShowElement::OnSetPosition));
     Connect(wxEVENT_ROTATEDETECT, wxCommandEventHandler(CShowElement::OnRotateDetect));
-    Connect(wxEVENT_PAUSEMOVIE,   wxCommandEventHandler(CShowElement::OnPauseVideo));
-    Connect(wxEVENT_SAVE,         wxCommandEventHandler(CShowElement::OnSave));
-    Connect(wxEVENT_SHRINKPOS,    wxCommandEventHandler(CShowElement::OnValueShrinkChange));
-    Connect(wxEVENT_ZOOMPOS,      wxCommandEventHandler(CShowElement::OnValueChange));
-    Connect(wxEVENT_SHRINK,       wxCommandEventHandler(CShowElement::OnShrink));
-    Connect(wxEVENT_CLOSE,        wxCommandEventHandler(CShowElement::OnClose));
+    Connect(wxEVENT_PAUSEMOVIE, wxCommandEventHandler(CShowElement::OnPauseVideo));
+    Connect(wxEVENT_SAVE, wxCommandEventHandler(CShowElement::OnSave));
+    Connect(wxEVENT_SHRINKPOS, wxCommandEventHandler(CShowElement::OnValueShrinkChange));
+    Connect(wxEVENT_ZOOMPOS, wxCommandEventHandler(CShowElement::OnValueChange));
+    Connect(wxEVENT_SHRINK, wxCommandEventHandler(CShowElement::OnShrink));
+    Connect(wxEVENT_CLOSE, wxCommandEventHandler(CShowElement::OnClose));
 
     tempImage = std::make_unique<CImageLoadingFormat>();
 }
@@ -177,13 +176,13 @@ IViewerMode* CShowElement::ActiveViewer() const
     static thread_local BitmapViewerMode bm(nullptr);
     static thread_local VideoViewerMode  vm(nullptr);
     if (!isVideo) { bm = BitmapViewerMode(bitmapWindow.get()); return &bm; }
-    else          { vm = VideoViewerMode(videoWindow.get());   return &vm; }
+    else { vm = VideoViewerMode(videoWindow.get());   return &vm; }
 }
 
-void CShowElement::FlipVertical()   { ActiveViewer()->FlipVertical();   }
+void CShowElement::FlipVertical() { ActiveViewer()->FlipVertical(); }
 void CShowElement::FlipHorizontal() { ActiveViewer()->FlipHorizontal(); }
-void CShowElement::Rotate90()       { ActiveViewer()->Rotate90();       }
-void CShowElement::Rotate270()      { ActiveViewer()->Rotate270();      }
+void CShowElement::Rotate90() { ActiveViewer()->Rotate90(); }
+void CShowElement::Rotate270() { ActiveViewer()->Rotate270(); }
 
 
 CLayerList* CShowElement::GetLayerList()
@@ -238,6 +237,11 @@ void CShowElement::Resize()
     videoSlider->SetZoomIndex(videoWindow->GetZoomIndex());
 }
 
+void CShowElement::AnimationStart()
+{
+
+}
+
 void CShowElement::ResizeImage(int w, int h)
 {
     if (!showToolbar && fullscreen)
@@ -280,7 +284,7 @@ void CShowElement::ResizeVideo(int w, int h)
         return;
     }
 
-    int posHeight    = 0;
+    int posHeight = 0;
     int posHeightSup = 0;
 
     if (showToolbar)
@@ -357,6 +361,28 @@ bool CShowElement::IsToolbarMouseOver()
 }
 
 // ============================================================================
+// Type de média : une seule toolbar (CBitmapToolbar) pour Bitmap / Animation,
+// le slider vidéo pour Video. Aucun : tout est masqué.
+// ============================================================================
+void CShowElement::SetMedia(const MediaMode& mode)
+{
+    mediaMode = mode;
+    isVideo = (mode == MediaMode::Video);
+
+    if (pictureToolbar)
+        pictureToolbar->SetMedia(mode);
+
+    if (!isDiaporama)
+    {
+        const bool toolbarVisible = (mode == MediaMode::Bitmap || mode == MediaMode::Animation);
+        if (pictureToolbar)
+            pictureToolbar->Show(toolbarVisible);
+        if (videoSlider)
+            videoSlider->Show(mode == MediaMode::Video);
+    }
+}
+
+// ============================================================================
 // Événements navigation / scroll (forwarding vers scrollbar)
 // ============================================================================
 namespace
@@ -371,9 +397,9 @@ namespace
     }
 }
 
-void CShowElement::OnMoveLeft(wxCommandEvent& e)   { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVELEFT,   e); }
-void CShowElement::OnMoveRight(wxCommandEvent& e)  { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVERIGHT, e); }
-void CShowElement::OnMoveTop(wxCommandEvent& e)    { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVETOP,    e); }
+void CShowElement::OnMoveLeft(wxCommandEvent& e) { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVELEFT, e); }
+void CShowElement::OnMoveRight(wxCommandEvent& e) { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVERIGHT, e); }
+void CShowElement::OnMoveTop(wxCommandEvent& e) { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVETOP, e); }
 void CShowElement::OnMoveBottom(wxCommandEvent& e) { ForwardScrollEvent(scrollbar.get(), wxEVENT_MOVEBOTTOM, e); }
 
 void CShowElement::OnControlSize(wxCommandEvent& event)
@@ -442,8 +468,8 @@ void CShowElement::SetBitmapPreviewEffect(const int& effect)
 // Envoie un événement wxEVENT_SHOWSAVEBUTTON / wxEVENT_HIDESAVEBUTTON
 // au PREVIEWVIEWERID et retourne le wxWindow trouvé (ou nullptr).
 static wxWindow* SendPreviewButtonEvents(wxWindow* root,
-                                         wxEventType saveEvt,
-                                         wxEventType exportEvt)
+    wxEventType saveEvt,
+    wxEventType exportEvt)
 {
     wxWindow* w = root->FindWindowById(PREVIEWVIEWERID);
     if (!w) return nullptr;
@@ -461,16 +487,11 @@ void CShowElement::SetBitmapToViewer(CImageLoadingFormat* bitmap, int eventType)
 
 bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail)
 {
-    isVideo = false;
-    if (!isDiaporama)
-    {
-        pictureToolbar->Show(true);
-        videoSlider->Show(false);
-    }
+
     bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
 
     SendPreviewButtonEvents(this,
-        isThumbnail ? wxEVENT_HIDESAVEBUTTON   : wxEVENT_SHOWSAVEBUTTON,
+        isThumbnail ? wxEVENT_HIDESAVEBUTTON : wxEVENT_SHOWSAVEBUTTON,
         wxEVENT_HIDEEXPORTBUTTON);
 
     filename = bitmap->GetFilename();
@@ -531,7 +552,7 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
         }
         if (needReload)
         {
-            CImageLoadingFormat * picture = new CImageLoadingFormat();
+            CImageLoadingFormat* picture = new CImageLoadingFormat();
             picture->SetPicture(bitmap->GetMatImage());
             tempImage.reset(picture);
         }
@@ -541,6 +562,10 @@ bool CShowElement::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnai
         pictureToolbar->SetTrackBarPosition(bitmapWindow->GetPosRatio());
 
     Resize();
+
+
+    // Une animation en cours reste en mode Animation (chaque frame passe par SetBitmap)
+    
     return true;
 }
 
@@ -575,7 +600,7 @@ void CShowElement::RotateRecognition(void* param)
     {
         CRegardsConfigParam* cfg = CParamInit::getInstance();
         const bool fast = cfg ? cfg->GetFastDetectionFace() : true;
-        tr->exif    = DeepLearning::CDeepLearning::GetExifOrientation(tr->bitmap, fast);
+        tr->exif = DeepLearning::CDeepLearning::GetExifOrientation(tr->bitmap, fast);
         tr->isReady = true;
     }
 
@@ -613,10 +638,10 @@ int CShowElement::GetAngleAndFlipFromExif(int exif, int& angle, int& flipH, int&
 {
     // Table : exif[0-15] → (angle ∈ {0,90,180,270}, flipH, flipV)
     static const struct { int angle, flipH, flipV; } table[] = {
-        {   0, 0, 0 }, {   0, 1, 0 }, {   0, 0, 1 }, {   0, 1, 1 },
-        {  90, 0, 0 }, {  90, 1, 0 }, {  90, 0, 1 }, {  90, 1, 1 },
-        { 180, 0, 0 }, { 180, 1, 0 }, { 180, 0, 1 }, { 180, 1, 1 },
-        { 270, 0, 0 }, { 270, 1, 0 }, { 270, 0, 1 }, { 270, 1, 1 },
+        { 0, 0, 0 },{ 0, 1, 0 },{ 0, 0, 1 },{ 0, 1, 1 },
+        { 90, 0, 0 },{ 90, 1, 0 },{ 90, 0, 1 },{ 90, 1, 1 },
+        { 180, 0, 0 },{ 180, 1, 0 },{ 180, 0, 1 },{ 180, 1, 1 },
+        { 270, 0, 0 },{ 270, 1, 0 },{ 270, 0, 1 },{ 270, 1, 1 },
     };
     if (exif < 0 || exif > 15) return -1;
     angle = table[exif].angle;
@@ -630,18 +655,12 @@ int CShowElement::GetAngleAndFlipFromExif(int exif, int& angle, int& flipH, int&
 // ============================================================================
 bool CShowElement::SetVideo(const wxString& fn, const int& /*rotation*/, const bool& /*playNow*/)
 {
-    isVideo = true;
 
-    if (!isDiaporama)
-    {
-        pictureToolbar->Show(false);
-        videoSlider->Show(true);
-    }
     bitmapWindowRender->UpdateRenderInterface(videoWindow.get());
 
     videoTotalTime = 0;
-    videoPosOld    = 0;
-    filename       = fn;
+    videoPosOld = 0;
+    filename = fn;
 
     const bool ok = videoWindow->PlayMovie(fn, true);
 
@@ -808,7 +827,7 @@ void CShowElement::OnVideoStart()
 {
     play = true;
     videoSlider->SetPlay();
-	videoSlider->SetZoomIndex(videoWindow->GetZoomIndex());
+    videoSlider->SetZoomIndex(videoWindow->GetZoomIndex());
     if (wxWindow* w = FindWindowById(CENTRALVIEWERWINDOWID))
         w->GetEventHandler()->AddPendingEvent(wxCommandEvent(VIDEO_START));
     refreshSlider = true;
@@ -839,7 +858,7 @@ void CShowElement::OnPositionVideo(const int64_t& position)
         evt.SetExtraLong(videoPos);
         w->GetEventHandler()->AddPendingEvent(evt);
     }
-    videoPosOld   = videoPos;
+    videoPosOld = videoPos;
     refreshSlider = true;
 }
 
@@ -868,12 +887,12 @@ void CShowElement::SetNormalMode()
 // Streams info
 // ============================================================================
 void CShowElement::SetStreamInfo(vector<CStreamInfo>& listAudio,
-                                  vector<CStreamInfo>& listVideo,
-                                  vector<CStreamInfo>& listSubtitle)
+    vector<CStreamInfo>& listVideo,
+    vector<CStreamInfo>& listSubtitle)
 {
     listStream.clear();
-    listStream.insert(listStream.end(), listAudio.begin(),    listAudio.end());
-    listStream.insert(listStream.end(), listVideo.begin(),    listVideo.end());
+    listStream.insert(listStream.end(), listAudio.begin(), listAudio.end());
+    listStream.insert(listStream.end(), listVideo.begin(), listVideo.end());
     listStream.insert(listStream.end(), listSubtitle.begin(), listSubtitle.end());
 
     if (windowMain)
@@ -900,7 +919,13 @@ void CShowElement::ClickButton(const int& id)
     case REPEATID:
         RepeatVideo();
         break;
+    case ZOOMBUTTONID:
+    case SPEAKERBUTTONID:
+        //showToolbarSup = true;
+        Resize();
+        break;
     case SCREENFORMATID:
+        showToolbarSup = false;
         videoWindow->ChangeVideoFormat();
         Resize();
         break;
@@ -937,21 +962,20 @@ int CShowElement::GetZoomIndex()
 
 void CShowElement::SlidePosChange(const int& position, const wxString& key)
 {
-    if(key == "VOLUME")
+    if (key == "VOLUME")
         videoWindow->SetVolume(position);
-	if (key == "ZOOM")
-		videoWindow->SetZoomIndex(position);
-	if (key == "SHRINK")    
-		videoWindow->ShrinkVideo();
+    if (key == "ZOOM")
+        videoWindow->SetZoomIndex(position);
+    if (key == "SHRINK")
+        videoWindow->ShrinkVideo();
 }
 
 void CShowElement::OnValueChange(wxCommandEvent& event)
 {
-    const int value = event.GetInt(); 
+    const int value = event.GetInt();
     scrollbar->ShowHorizontalScroll();
     scrollbar->ShowVerticalScroll();
     videoWindow->SetZoomIndex(value);
-    
 }
 
 void CShowElement::OnShrink(wxCommandEvent& /*event*/)
@@ -963,6 +987,7 @@ void CShowElement::OnShrink(wxCommandEvent& /*event*/)
 
 void CShowElement::OnClose(wxCommandEvent& /*event*/)
 {
+    showToolbarSup = false;
     Resize();
 }
 
@@ -973,7 +998,7 @@ void CShowElement::OnSave(wxCommandEvent& /*event*/)
 {
     if (!videoWindow) return;
     bool fromBuffer = false;
-    cv::Mat bm      = videoWindow->SavePicture(fromBuffer);
+    cv::Mat bm = videoWindow->SavePicture(fromBuffer);
     auto imageLoading = std::make_unique<CImageLoadingFormat>();
     try
     {

@@ -61,14 +61,8 @@
     <Filter Include="FolderProcess">
       <UniqueIdentifier>{2d5a6d89-1f75-43db-aa20-0161895a854e}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Toolbar\Bitmap">
-      <UniqueIdentifier>{2fd852f5-5b70-4c39-bb62-323bb94cc32d}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Toolbar\General">
       <UniqueIdentifier>{3d9bacb3-9664-4a5c-818c-8903fdbcf8a3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Toolbar\Video">
-      <UniqueIdentifier>{6b8f824a-9398-4fa0-b722-8fc0970d8052}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -95,9 +89,6 @@
     </ClInclude>
     <ClInclude Include="ThumbnailViewerVideo.h">
       <Filter>Thumbnail\include</Filter>
-    </ClInclude>
-    <ClInclude Include="AnimationToolbar.h">
-      <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
     <ClInclude Include="CategoryFolderWindow.h">
       <Filter>Fichiers d%27en-tête</Filter>
@@ -255,15 +246,6 @@
     <ClInclude Include="PreviewToolbar.h">
       <Filter>Toolbar\General</Filter>
     </ClInclude>
-    <ClInclude Include="GeneralToolbar.h">
-      <Filter>Toolbar\General</Filter>
-    </ClInclude>
-    <ClInclude Include="PreviewBitmapToolbar.h">
-      <Filter>Toolbar\Bitmap</Filter>
-    </ClInclude>
-    <ClInclude Include="PreviewVideoToolbar.h">
-      <Filter>Toolbar\Video</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ViewerFrame.cpp">
@@ -286,9 +268,6 @@
     </ClCompile>
     <ClCompile Include="ThumbnailToolBarZoom.cpp">
       <Filter>Thumbnail\source</Filter>
-    </ClCompile>
-    <ClCompile Include="AnimationToolbar.cpp">
-      <Filter>Fichiers sources</Filter>
     </ClCompile>
     <ClCompile Include="CategoryFolderWindow.cpp">
       <Filter>Fichiers sources</Filter>
@@ -427,15 +406,6 @@
     </ClCompile>
     <ClCompile Include="PreviewToolbar.cpp">
       <Filter>Toolbar\General</Filter>
-    </ClCompile>
-    <ClCompile Include="GeneralToolbar.cpp">
-      <Filter>Toolbar\General</Filter>
-    </ClCompile>
-    <ClCompile Include="PreviewBitmapToolbar.cpp">
-      <Filter>Toolbar\Bitmap</Filter>
-    </ClCompile>
-    <ClCompile Include="PreviewVideoToolbar.cpp">
-      <Filter>Toolbar\Video</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
