@@ -20,7 +20,7 @@ namespace Regards::Window
 		void SetCommandId(const int& commandId);
 		int GetCommandId();
 
-		void SetPosition(const int& x, const int& y);
+		virtual void SetPosition(const int& x, const int& y);
 
 		void SetVertical(const bool& isVertical);
 		bool GetVertical();

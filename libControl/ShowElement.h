@@ -4,7 +4,7 @@
 #include "BitmapToolbar.h"
 #include "ScrollbarWnd.h"
 #include <StreamInfo.h>
-#include "SliderVideo.h"
+#include "SliderVideoToolbar.h"
 #include "SliderInterface.h"
 #include "VideoInterface.h"
 #include <FiltreUpdate.h>
@@ -187,7 +187,7 @@ namespace Regards
             std::unique_ptr<CImageLoadingFormat> tempImage;
 
 
-            std::unique_ptr<CSliderVideo>      videoSlider = nullptr;
+            std::unique_ptr<CSliderVideoToolbar>      videoSlider = nullptr;
             std::unique_ptr<CVideoControlSoft> videoWindow = nullptr;
 
 

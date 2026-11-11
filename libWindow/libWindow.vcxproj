@@ -853,6 +853,7 @@
     <ClInclude Include="RegardsModernControls.h" />
     <ClInclude Include="ScrollbarDrawUtils.h" />
     <ClInclude Include="ToolbarSeparator.h" />
+    <ClInclude Include="ToolbarSliderVideo.h" />
     <ClInclude Include="TreeElementColor.h" />
     <ClInclude Include="GLcontext.h" />
     <ClInclude Include="GpsEngine.h" />
@@ -977,6 +978,7 @@
     <ClCompile Include="ToolbarButton.cpp" />
     <ClCompile Include="ToolbarElement.cpp" />
     <ClCompile Include="ToolbarSlide.cpp" />
+    <ClCompile Include="ToolbarSliderVideo.cpp" />
     <ClCompile Include="ToolbarTexte.cpp" />
     <ClCompile Include="ToolbarWindow.cpp" />
     <ClCompile Include="TreeControl.cpp" />

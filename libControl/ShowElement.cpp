@@ -91,12 +91,14 @@ CShowElement::CShowElement(wxWindow* parent,
     CThemeBitmapWindow themeBitmap;
     CThemeScrollBar  themeScroll;
     CThemeToolbar    themeToolbar;
+    CThemeToolbar    themeVideoToolbar;
 
     if (config)
     {
         config->GetBitmapToolbarTheme(&themeToolbar);
         config->GetVideoControlTheme(&themeVideo);
-        config->GetVideoSliderTheme(&themeSlider);
+		config->GetVideoToolbarTheme(&themeVideoToolbar);
+        //config->GetVideoSliderTheme(&themeSlider);
         config->GetBitmapWindowTheme(&themeBitmap);
         config->GetScrollTheme(&themeScroll);
     }
@@ -125,7 +127,7 @@ CShowElement::CShowElement(wxWindow* parent,
     videoWindow = std::make_unique<CVideoControlSoft>(windowMain, this, this);
     bitmapWindowRender->SetBitmapRenderInterface(videoWindow.get());
 
-    videoSlider = std::make_unique<CSliderVideo>(this, wxID_ANY, this, themeSlider);
+    videoSlider = std::make_unique<CSliderVideoToolbar>(this, wxID_ANY, this, themeVideoToolbar);
 
     bitmapWindowRender->UpdateRenderInterface(bitmapWindow.get());
 

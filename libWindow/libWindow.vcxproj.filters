@@ -330,6 +330,9 @@
     <ClInclude Include="ToolbarSeparator.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="ToolbarSliderVideo.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BitmapInfos.cpp">
@@ -535,6 +538,9 @@
     </ClCompile>
     <ClCompile Include="ModernPanel.cpp">
       <Filter>ModernControl</Filter>
+    </ClCompile>
+    <ClCompile Include="ToolbarSliderVideo.cpp">
+      <Filter>Fichiers sources</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
