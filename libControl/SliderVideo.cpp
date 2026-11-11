@@ -18,6 +18,10 @@ namespace
 	constexpr int SLIDER_TRACK_HEIGHT = 4;
 	constexpr int SLIDER_THUMB_RADIUS = 7;
 
+	// Palette de la maquette slide.png (rail inactif gris-bleu, progression bleue)
+	wxColour GetRailInactiveColour() { return wxColour(74, 77, 94); }
+	wxColour GetRailActiveColour() { return wxColour(91, 157, 245); }
+
 	wxColour GetThumbFillColour(const wxColour& back)
 	{
 		const int luminance = (back.Red() * 299 + back.Green() * 587 + back.Blue() * 114) / 1000;
@@ -49,6 +53,8 @@ CSliderVideo::CSliderVideo(wxWindow* parent, wxWindowID id, CSliderInterface* sl
 	totalTime = L"00:00:00";
 	mouseBlock = false;
 	this->sliderEvent = sliderEvent;
+
+	static_cast<CThemeSlider&>(this->themeSlider) = themeSlider;
 
 	colorToReplace = wxColor(0, 0, 0);
 	colorInactifReplacement = themeSlider.colorInactifReplacement; //wxColor(255,255,255);
@@ -176,13 +182,13 @@ void CSliderVideo::DrawShapeElement(wxGraphicsContext* gc, const wxRect& rc)
 
 	// Rail inactif
 	gc->SetPen(*wxTRANSPARENT_PEN);
-	gc->SetBrush(wxBrush(themeSlider.rectangleNext));
+	gc->SetBrush(wxBrush(GetRailInactiveColour()));
 	gc->DrawRoundedRectangle(rc.x, rc.y, rc.width, railHeight, railRadius);
 
 	// Rail actif (temps ecoule)
 	if (progressWidth > 0.0)
 	{
-		gc->SetBrush(wxBrush(themeSlider.rectanglePast));
+		gc->SetBrush(wxBrush(GetRailActiveColour()));
 		gc->DrawRoundedRectangle(rc.x, rc.y, progressWidth, railHeight,
 			std::min(railRadius, progressWidth / 2.0));
 	}
@@ -198,7 +204,7 @@ void CSliderVideo::DrawThumb(wxGraphicsContext* gc, const wxRect& rcButton)
 	const double radius = mouseBlock ? SLIDER_THUMB_RADIUS + 1.0 : SLIDER_THUMB_RADIUS;
 
 	gc->SetBrush(wxBrush(GetThumbFillColour(themeSlider.colorBack)));
-	gc->SetPen(wxPen(themeSlider.rectanglePast, 2));
+	gc->SetPen(wxPen(GetRailActiveColour(), 2));
 	gc->DrawEllipse(centerX - radius, centerY - radius, radius * 2.0, radius * 2.0);
 }
 
@@ -373,7 +379,7 @@ void CSliderVideo::InsertSpeakerButton(const int& xStart, wxDC* context)
 
 void CSliderVideo::InsertZoomButton(const int& xStart, wxDC* context)
 {
-	InsertButton(xStart, context, positionZoomButton, buttonVolumeDown, buttonZoomActif, "IDB_ZOOMPLUS");
+	InsertButton(xStart, context, positionZoomButton, buttonVolumeDown, buttonZoomActif, "IDB_ZOOM");
 }
 
 
