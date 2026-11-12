@@ -339,8 +339,8 @@
 						<marge>5</marge>
 						<fontQuality>1</fontQuality>
 					</ThemeFont>
-					<tailleX>60</tailleX>
-					<tailleY>60</tailleY>
+					<tailleX>30</tailleX>
+					<tailleY>30</tailleY>
 					<rectangleSize>4</rectangleSize>
 					<showButtonOnly>1</showButtonOnly>
 					<lineColorTop>rgb(222, 222, 222)</lineColorTop>
@@ -404,10 +404,10 @@
 					<colorActifReplacement>rgb(48, 128, 254)</colorActifReplacement>
 					<colorInactifReplacement>rgb(255, 255, 255)</colorInactifReplacement>
 				</ThemeSlider>
-				<height>70</height>
+				<height>40</height>
 				<width>60</width>
-				<colorTop>rgb(29, 29, 29)</colorTop>
-				<colorBottom>rgb(29, 29, 29)</colorBottom>
+				<colorTop>rgb(50, 54, 63)</colorTop>
+				<colorBottom>rgb(50, 54, 63)</colorBottom>
 				<replaceColor>rgb(255, 255, 255)</replaceColor>
 				<margeX>5</margeX>
 				<margeY>0</margeY>
@@ -716,7 +716,7 @@
 						<fontQuality>0</fontQuality>
 					</ThemeFont>
 				</FontActif>
-				<colorBack>rgb(29, 29, 29)</colorBack>
+				<colorBack>rgb(50, 54, 63)</colorBack>
 				<height>30</height>
 				<checkboxHeight>20</checkboxHeight>
 				<checkboxWidth>20</checkboxWidth>
