@@ -260,9 +260,10 @@ void CToolbarSliderVideo::UnclickElement(wxWindow* window, const int& xPos, cons
 
 bool CToolbarSliderVideo::MouseOver(wxDC* deviceContext, const int& xPos, const int& yPos)
 {
+	if (!mouseBlock)
+		return false;
 
-
-	if (!mouseBlock || tabValue.empty())
+	if (!videoTimeMode && tabValue.empty())
 		return false;
 
 	wxSetCursor(hCursorHand);
@@ -280,6 +281,7 @@ bool CToolbarSliderVideo::MouseOver(wxDC* deviceContext, const int& xPos, const 
 
 	return true;
 }
+
 
 void CToolbarSliderVideo::CalculPositionButton()
 {

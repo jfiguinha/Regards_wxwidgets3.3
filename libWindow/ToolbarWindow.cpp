@@ -140,9 +140,8 @@ void CToolbarWindow::OnMouseMove(wxMouseEvent& event)
 	{
 		if (!nav || !nav->IsVisible()) { ++i; continue; }
 
-		if (nav->FindElement(xPos, yPos))
+		if (nav->IsDragging() || nav->FindElement(xPos, yPos))
 		{
-			// Only create DC when we actually need to draw
 			wxClientDC dc(this);
 			if (nav->MouseOver(&dc, xPos, yPos)) needToRedraw = true;
 			if (nav->SetActif())                 needToRedraw = true;
@@ -163,6 +162,7 @@ void CToolbarWindow::OnMouseMove(wxMouseEvent& event)
 	if (needToRedraw)
 		needToRefresh = true;
 }
+
 
 
 void CToolbarWindow::RedrawElement(wxDC* dc, CToolbarElement* nav)
@@ -245,7 +245,7 @@ void CToolbarWindow::OnLButtonUp(wxMouseEvent& event)
 	{
 		if (!nav->IsVisible()) continue;
 
-		if (nav->FindElement(xPos, yPos))
+		if (nav->IsDragging() || nav->FindElement(xPos, yPos))
 		{
 			nav->UnclickElement(this, xPos, yPos);
 			if (!saveLastPush)
@@ -265,6 +265,7 @@ void CToolbarWindow::OnLButtonUp(wxMouseEvent& event)
 
 	needToRefresh = true;
 }
+
 
 std::unique_ptr<CToolbarTexte> CToolbarWindow::CreateTexte(
 	const wxString& label,

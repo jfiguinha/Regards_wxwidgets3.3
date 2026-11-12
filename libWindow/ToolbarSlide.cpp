@@ -212,24 +212,21 @@ void CToolbarSlide::ClickRightPage(const int& x) {
 // Recherche du curseur
 // ============================================================
 
-bool CToolbarSlide::FindCirclePos(wxWindow* window, const int& y,
-    const int& x) {
-    const int posXButtonBegin = this->x + posRectangle.x + positionButton.x;
-
+bool CToolbarSlide::FindCirclePos(wxWindow* window, const int& y, const int& x) {
+    const int posXButtonBegin = this->x + positionButton.x;
     const int posXButtonEnd = posXButtonBegin + positionButton.width;
 
-    const int posYButtonBegin = positionButton.y;
+    const int posYButtonBegin = this->y + positionButton.y;
+    const int posYButtonEnd = posYButtonBegin + positionButton.height;
 
-    const int posYButtonEnd = positionButton.y + positionButton.height;
-
-    return x >= posXButtonBegin && x <= posXButtonEnd && y >= posYButtonBegin &&
-        y <= posYButtonEnd;
+    return x >= posXButtonBegin && x <= posXButtonEnd &&
+        y >= posYButtonBegin && y <= posYButtonEnd;
 }
+
 
 // ============================================================
 // Clic souris
 // ============================================================
-
 void CToolbarSlide::ClickElement(wxWindow* window, const int& x, const int& y) {
     if (window == nullptr) return;
 
@@ -249,12 +246,10 @@ void CToolbarSlide::ClickElement(wxWindow* window, const int& x, const int& y) {
         return;
     }
 
-    const int posXButtonBegin = this->x + posRectangle.x + positionButton.x;
-
+    const int posXButtonBegin = this->x + positionButton.x;
     const int posXButtonEnd = posXButtonBegin + positionButton.width;
 
     const int railLeft = this->x + posRectangle.x;
-
     const int railRight = railLeft + posRectangle.width;
 
     if (x < railLeft || x > railRight) return;
@@ -269,13 +264,15 @@ void CToolbarSlide::ClickElement(wxWindow* window, const int& x, const int& y) {
         return;
     }
 
+    const int localX = x - this->x;
     if (x > posXButtonEnd) {
-        ClickRightPage(x - (this->x + posRectangle.x));
+        ClickRightPage(localX);
     }
     else if (x < posXButtonBegin) {
-        ClickLeftPage(x - (this->x + posRectangle.x));
+        ClickLeftPage(localX);
     }
 }
+
 
 // ============================================================
 // Relâchement souris
@@ -303,8 +300,8 @@ bool CToolbarSlide::MouseOver(wxDC* deviceContext, const int& x, const int& y) {
 
     wxSetCursor(hCursorHand);
 
-    // Coordonnées locales du rail
-    const int localX = x - this->x - posRectangle.x;
+    // Coordonnées locales du composant (cohérent avec positionSlider.x)
+    const int localX = x - this->x;
 
     CalculZoomPosition(localX);
 

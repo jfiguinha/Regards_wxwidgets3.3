@@ -41,7 +41,7 @@ namespace Regards::Window
 		void SetTotalDuration(const int64_t& millisecondTime);
 		void SetCurrentTime(const int64_t& millisecondTime);
 		int64_t GetCurrentTime() const { return currentTimeMs; }
-		bool IsDragging() const { return mouseBlock; }
+		bool IsDragging() const override { return mouseBlock; }
 
 	private:
 		void CalculZoomPosition(const int& x);

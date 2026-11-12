@@ -11,6 +11,8 @@ namespace Regards::Window
 		CToolbarElement();
 		~CToolbarElement() = default;
 
+		virtual bool IsDragging() const { return false; }
+
 		void SetRepeatable(const bool& repeat);
 		bool GetRepeatable();
 

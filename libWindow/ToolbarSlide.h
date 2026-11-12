@@ -28,6 +28,7 @@ namespace Regards::Window
 		void UnclickElement(wxWindow* window, const int& x, const int& y) override;
 		void ClickElement(wxWindow* window, const int& x, const int& y) override;
 		int GetPositionValue();
+		bool IsDragging() const override { return mouseBlock; }
 
 	private:
 		void CalculZoomPosition(const int& x);
