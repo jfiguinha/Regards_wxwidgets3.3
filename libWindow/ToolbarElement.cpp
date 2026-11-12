@@ -3,7 +3,7 @@
 using namespace Regards::Window;
 
 
-CToolbarElement::CToolbarElement(): commandId(0), x(0), y(0)
+CToolbarElement::CToolbarElement() : commandId(0), x(0), y(0)
 {
 	isVisible = true;
 	isRepeatable = false;
@@ -11,6 +11,8 @@ CToolbarElement::CToolbarElement(): commandId(0), x(0), y(0)
 	isPush = false;
 	isVertical = false;
 	activePush = true;
+	autoWidth = false;
+	autoHeight = false;
 }
 
 
@@ -27,6 +29,26 @@ void CToolbarElement::SetVertical(const bool& isVertical)
 bool CToolbarElement::GetVertical()
 {
 	return isVertical;
+}
+
+void CToolbarElement::SetAutoWidth(const bool& autoWidth)
+{
+	this->autoWidth = autoWidth;
+}
+
+bool CToolbarElement::GetAutoWidth()
+{
+	return autoWidth;
+}
+
+void CToolbarElement::SetAutoHeight(const bool& autoHeight)
+{
+	this->autoHeight = autoHeight;
+}
+
+bool CToolbarElement::GetAutoHeight()
+{
+	return autoHeight;
 }
 
 void CToolbarElement::SetRepeatable(const bool& repeat)

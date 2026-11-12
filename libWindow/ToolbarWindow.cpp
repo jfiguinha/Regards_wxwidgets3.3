@@ -2,6 +2,7 @@
 #include "ToolbarWindow.h"
 #include <wx/dcbuffer.h>
 #include <LibResource.h>
+#include <algorithm>
 using namespace Regards::Window;
 
 namespace
@@ -385,6 +386,69 @@ void CToolbarWindow::GenerateNavigatorButton(wxDC* deviceContext)
 
 
 // ---------------------------------------------------------------------------
+// Redimensionne les éléments autoWidth / autoHeight (mode linéaire uniquement)
+// nouvelle taille = taille actuelle + (taille fenêtre - taille navigator)
+//  - axe principal (largeur si horizontal, hauteur si vertical) : l'écart est
+//    réparti entre les éléments auto, le reste est donné au dernier
+//  - axe secondaire : chaque élément auto reçoit l'écart complet
+// L'opération est idempotente : une fois la taille ajustée, l'écart vaut 0.
+// ---------------------------------------------------------------------------
+void CToolbarWindow::ApplyAutoSize(const std::vector<CToolbarElement*>& visibleElements)
+{
+	int nbAutoWidth = 0;
+	int nbAutoHeight = 0;
+	for (auto* nav : visibleElements)
+	{
+		if (nav->GetAutoWidth())  ++nbAutoWidth;
+		if (nav->GetAutoHeight()) ++nbAutoHeight;
+	}
+
+	if (nbAutoWidth == 0 && nbAutoHeight == 0)
+		return;
+
+	const int diffW = GetWindowWidth() - GetNavigatorWidth();
+	const int diffH = GetWindowHeight() - GetNavigatorHeight();
+
+	// Part de l'écart par élément sur l'axe principal
+	const int shareW = (isVertical || nbAutoWidth == 0) ? diffW : diffW / nbAutoWidth;
+	const int shareH = (!isVertical || nbAutoHeight == 0) ? diffH : diffH / nbAutoHeight;
+	const int remainW = (isVertical || nbAutoWidth == 0) ? 0 : diffW - shareW * nbAutoWidth;
+	const int remainH = (!isVertical || nbAutoHeight == 0) ? 0 : diffH - shareH * nbAutoHeight;
+
+	int idxAutoWidth = 0;
+	int idxAutoHeight = 0;
+
+	for (auto* nav : visibleElements)
+	{
+		int newW = nav->GetWidth();
+		int newH = nav->GetHeight();
+
+		if (nav->GetAutoWidth())
+		{
+			++idxAutoWidth;
+			newW += shareW;
+			if (idxAutoWidth == nbAutoWidth)
+				newW += remainW;
+			newW = std::max(1, newW);
+		}
+
+		if (nav->GetAutoHeight())
+		{
+			++idxAutoHeight;
+			newH += shareH;
+			if (idxAutoHeight == nbAutoHeight)
+				newH += remainH;
+			newH = std::max(1, newH);
+		}
+
+		// Resize() peut être coûteux (régénération de bitmap) : seulement si changement
+		if (newW != nav->GetWidth() || newH != nav->GetHeight())
+			nav->Resize(newW, newH);
+	}
+}
+
+
+// ---------------------------------------------------------------------------
 // Layout recalculation (separated from paint so it runs only when needed)
 // ---------------------------------------------------------------------------
 void CToolbarWindow::RecalcLayout()
@@ -495,6 +559,10 @@ void CToolbarWindow::RecalcLayout()
 	else
 	{
 		// 5. Comportement linéaire d'origine (si nbRow == -1 && nbCol == -1)
+		// Redimensionnement des éléments autoWidth / autoHeight avant le calcul
+		// de navW / navH, pour que le positionnement tienne compte des nouvelles tailles
+		ApplyAutoSize(visibleElements);
+
 		const int navW = GetNavigatorWidth();
 		const int navH = GetNavigatorHeight();
 

@@ -25,6 +25,13 @@ namespace Regards::Window
 		void SetVertical(const bool& isVertical);
 		bool GetVertical();
 
+		// Si true, la largeur (resp. hauteur) de l'élément est recalculée par
+		// CToolbarWindow pour occuper l'espace libre de la barre d'outils
+		void SetAutoWidth(const bool& autoWidth);
+		bool GetAutoWidth();
+		void SetAutoHeight(const bool& autoHeight);
+		bool GetAutoHeight();
+
 		virtual void DrawButton(wxDC* dc, const int& x, const int& y) = 0;
 		virtual void Resize(const int& tailleX, const int& tailleY) = 0;
 		int GetXPos();
@@ -54,12 +61,10 @@ namespace Regards::Window
 		bool IsActif();
 
 		virtual void UnclickElement(wxWindow* window, const int& x, const int& y)
-		{
-		};
+		{};
 
 		virtual void ClickElement(wxWindow* window, const int& x, const int& y)
-		{
-		};
+		{};
 
 	protected:
 		int commandId;
@@ -73,6 +78,8 @@ namespace Regards::Window
 		bool isRepeatable;
 		bool isVertical;
 		bool activePush;
+		bool autoWidth;
+		bool autoHeight;
 	};
 
 	using VectorNavigatorElement = vector<CToolbarElement*>;

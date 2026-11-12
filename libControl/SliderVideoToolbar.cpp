@@ -2,7 +2,7 @@
 #include "SliderVideoToolbar.h"
 #include "SliderVideo.h" // Pour les IDs : PLAYBUTTONID, PAUSEBUTTONID, etc.
 #include <ConvertUtility.h>
-#include <vector>
+
 
 using namespace Regards::Video;
 
@@ -17,9 +17,16 @@ CSliderVideoToolbar::CSliderVideoToolbar(wxWindow* parent, wxWindowID id, CSlide
 	btnPlay = CreateButton("IDB_PLAY_VIDEO", "LBLPLAY", PLAYBUTTONID, false);
 	btnPause = CreateButton("IDB_PAUSE_VIDEO", "LBLPAUSE", PAUSEBUTTONID, false);
 
+	separatorPlay = std::make_unique<CToolbarSeparator>();
+	navElement.push_back(separatorPlay.get());
+
 	videoSlide = std::make_unique<CToolbarSliderVideo>(themeToolbar.slider, this);
 	videoSlide->SetLabels(L"00:00:00", L"00:00:00");
+	videoSlide->SetAutoWidth(true);
 	navElement.push_back(videoSlide.get());
+
+	separatorSlide = std::make_unique<CToolbarSeparator>();
+	navElement.push_back(separatorSlide.get());
 
 	btnRepeat = CreateButton("IDB_REFRESH", "LBLREPEAT", REPEATID, false);
 	btnSpeaker = CreateButton("IDB_VOLUME_UP_VIDEO", "LBLVOLUME", SPEAKERBUTTONID, false);

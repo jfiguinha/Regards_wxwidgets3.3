@@ -34,10 +34,10 @@ namespace Regards::Window
 		void OnTimerPushButton(wxTimerEvent& event);
 
 		void OnEraseBackground(wxEraseEvent& event) override
-		{
-		};
+		{};
 
 		void RecalcLayout();
+		void ApplyAutoSize(const std::vector<CToolbarElement*>& visibleElements);
 		void DrawBackground(wxDC* deviceContext);
 		void DrawBackground(wxDC* deviceContext, const wxRect& rc);
 		void GenerateNavigatorButton(wxDC* deviceContext);

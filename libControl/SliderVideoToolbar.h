@@ -5,7 +5,7 @@
 #include <SliderInterface.h>
 #include "ToolbarSliderVideo.h"
 #include "VolumePopup.h"
-#include <memory>
+#include <ToolbarSeparator.h>
 
 using namespace Regards::Window;
 
@@ -43,9 +43,11 @@ namespace Regards::Video
 		CSliderInterface* sliderEvent = nullptr;
 		Regards::UI::CVolumePopupModern* popup = nullptr;
 
+		std::unique_ptr<CToolbarSeparator> separatorPlay;
 		std::unique_ptr<CToolbarButton> btnPlay;
 		std::unique_ptr<CToolbarButton> btnPause;
 		std::unique_ptr<CToolbarSliderVideo> videoSlide;
+		std::unique_ptr<CToolbarSeparator> separatorSlide;
 		std::unique_ptr<CToolbarButton> btnRepeat;
 		std::unique_ptr<CToolbarButton> btnSpeaker;
 		std::unique_ptr<CToolbarButton> btnZoom;
