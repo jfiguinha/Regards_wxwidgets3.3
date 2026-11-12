@@ -13,15 +13,28 @@ namespace Regards::Viewer
 		void UpdateScreenRatio() override;
 
 	private:
+		enum class HoverZone
+		{
+			None,
+			Previous,
+			Next
+		};
+
 		void on_paint(wxPaintEvent& event);
 		void OnLButtonDown(wxMouseEvent& event);
+		void OnMouseMove(wxMouseEvent& event);
+		void OnMouseLeave(wxMouseEvent& event);
 		void Draw(wxDC* dc);
 		void DrawPreviousElement(wxDC* dc, const wxString& libelle, const CThemeFont& themeFont);
 		void DrawNextElement(wxDC* dc, const wxString& libelle, const CThemeFont& themeFont);
 		void DrawElement(wxDC* dc, const wxString& libelle, const CThemeFont& themeFont);
+		void DrawChevron(wxDC* dc, int x, int centerY, bool pointLeft);
+		void DrawPill(wxDC* dc, const wxRect& rc, bool hover);
+		void SetHoverZone(HoverZone zone);
 
 		wxRect positionPrevious;
 		wxRect positionNext;
+		HoverZone hoverZone = HoverZone::None;
 
 		int typeAffichage;
 		CThemeToolBarZoom themeToolbarZoom;
