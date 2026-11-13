@@ -1,6 +1,8 @@
 #include <header.h>
 #include "ModernPanel.h"
 #include <wx/graphics.h>
+#include "MainTheme.h"
+#include "MainThemeInit.h"
 
 namespace Regards::Window
 {
@@ -648,6 +650,13 @@ namespace Regards::Window
         const bool& isVertical,
         const bool& refreshButton)
     {
+
+        CMainTheme* viewerTheme = CMainThemeInit::getInstance();
+        CThemePane theme;
+        viewerTheme->GetPaneTheme(&theme);
+        CThemeToolbar themeClickInfosToolbar;
+        viewerTheme->GetClickToolbarTheme(&themeClickInfosToolbar);
+
         auto* panel = new CModernPanel(
             parent,
             windowName,

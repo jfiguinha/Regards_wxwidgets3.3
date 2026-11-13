@@ -8,6 +8,7 @@
 #include <ImageLoadingFormat.h>
 #include <BitmapDisplay.h>
 #include "DecodeRawPicture.h"
+#include <treetypeid.h>
 using namespace Regards::Filter;
 
 
@@ -213,34 +214,10 @@ void CDecodeRaw::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 	for (float i = 0.1; i < 1.0; i += 0.1)
 		elementexp_preser.push_back(i);
 
-	vector<CMetadata> elementNoiseReduction;
-	AddMetadataElement(elementNoiseReduction, "do not use", 0);
-	AddMetadataElement(elementNoiseReduction, "light FBDD reduction", 1);
-	AddMetadataElement(elementNoiseReduction, "full FBDD reduction", 2);
 
-	/*
-	vector<CMetadata> elementFlip;
-	AddMetadataElement(elementFlip, "none", 0);
-	AddMetadataElement(elementFlip, "Flip Horizontal", 1);
-	AddMetadataElement(elementFlip, "Flip Vertical", 2);
-	AddMetadataElement(elementFlip, "180", 3);
-	AddMetadataElement(elementFlip, "270", 4);
-	AddMetadataElement(elementFlip, "90 CCW", 5);
-	AddMetadataElement(elementFlip, "90 CW", 6);
-	*/
 
-	vector<CMetadata> elementInterpolation;
-	AddMetadataElement(elementInterpolation, "linear interpolation", 0);
-	AddMetadataElement(elementInterpolation, "VNG interpolation", 1);
-	AddMetadataElement(elementInterpolation, "PPG interpolation", 2);
-	AddMetadataElement(elementInterpolation, "AHD interpolation", 3);
-	AddMetadataElement(elementInterpolation, "DCB interpolation", 4);
-	AddMetadataElement(elementInterpolation, "Modified AHD interpolation by Paul Lee", 5);
-	AddMetadataElement(elementInterpolation, "AFD interpolation (5-pass)", 6);
-	AddMetadataElement(elementInterpolation, "VCD interpolation", 7);
-	AddMetadataElement(elementInterpolation, "Mixed VCD/Modified AHD interpolation", 8);
-	AddMetadataElement(elementInterpolation, "LMMSE interpolation", 9);
-	AddMetadataElement(elementInterpolation, "AMaZE intepolation", 10);
+
+
 
 	filtreInterface->AddTreeInfos(libellebright, new CTreeElementValueFloat(decodeParameter->bright, 1), &elementBright,
 	                              4);
@@ -273,10 +250,22 @@ void CDecodeRaw::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 	                              &elementValue);
 	filtreInterface->AddTreeInfos(libelleuse_UserMultiOther, new CTreeElementValueInt(decodeParameter->multiOther),
 	                              &elementValue);
-	//filtreInterface->AddTreeInfos(libelleuse_UserFlip, new CTreeElementValueInt(decodeParameter->flip), &elementFlip, 3, 3);
+
+	vector<CMetadata> elementInterpolation;
+	AddMetadataElement(elementInterpolation, "linear interpolation", 0);
+	AddMetadataElement(elementInterpolation, "VNG interpolation", 1);
+	AddMetadataElement(elementInterpolation, "PPG interpolation", 2);
+	AddMetadataElement(elementInterpolation, "AHD interpolation", 3);
+	AddMetadataElement(elementInterpolation, "DCB interpolation", 4);
+	AddMetadataElement(elementInterpolation, "Modified AHD interpolation by Paul Lee", 5);
+	AddMetadataElement(elementInterpolation, "AFD interpolation (5-pass)", 6);
+	AddMetadataElement(elementInterpolation, "VCD interpolation", 7);
+	AddMetadataElement(elementInterpolation, "Mixed VCD/Modified AHD interpolation", 8);
+	AddMetadataElement(elementInterpolation, "LMMSE interpolation", 9);
+	AddMetadataElement(elementInterpolation, "AMaZE intepolation", 10);
+
 	filtreInterface->AddTreeInfos(libelleuse_UserInterpolation,
-	                              new CTreeElementValueInt(decodeParameter->interpolation), &elementInterpolation, 3,
-	                              3);
+	                              new CTreeElementValueInt(decodeParameter->interpolation), &elementInterpolation, 3, TYPE_COMBOBOX);
 	filtreInterface->AddTreeInfos(libelleuse_UserBlack, new CTreeElementValueInt(decodeParameter->black),
 	                              &elementValue);
 	filtreInterface->AddTreeInfos(libelleuse_UserBlackChannelRed,
@@ -306,8 +295,15 @@ void CDecodeRaw::Filter(CEffectParameter* effectParameter, cv::Mat& source, cons
 	                              &elementValue);
 	filtreInterface->AddTreeInfos(libelledcb_enhance_fl, new CTreeElementValueInt(decodeParameter->dcb_enhance_fl),
 	                              &elementValue);
+
+	vector<CMetadata> elementNoiseReduction;
+	AddMetadataElement(elementNoiseReduction, "do not use", 0);
+	AddMetadataElement(elementNoiseReduction, "light FBDD reduction", 1);
+	AddMetadataElement(elementNoiseReduction, "full FBDD reduction", 2);
+
 	filtreInterface->AddTreeInfos(libellefbdd_noiserd, new CTreeElementValueInt(decodeParameter->fbdd_noiserd),
-	                              &elementNoiseReduction, 3, 3);
+	                              &elementNoiseReduction, 3, TYPE_COMBOBOX);
+
 	filtreInterface->AddTreeInfos(libellees_med_passes, new CTreeElementValueInt(decodeParameter->medPasses),
 	                              &elementValue);
 	filtreInterface->AddTreeInfos(libelleexp_correc, new CTreeElementValueInt(decodeParameter->exp_correc),
