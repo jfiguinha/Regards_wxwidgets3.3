@@ -64,6 +64,8 @@ CTreeControl::CTreeControl(CThemeTree* theme, CTreeElementControlInterface* inte
 	themeTree.themeDelete.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeSlide.SetHeight(themeTree.GetRowHeight());
 	themeTree.themeTexte.SetHeight(themeTree.GetRowHeight());
+
+	modernBack = theme->bgColorOne;
 	eventControl = interfaceControl;
 }
 
@@ -793,9 +795,9 @@ void CTreeControl::ModernUpdateMetrics(const bool& labelValueLayout, const int& 
 
 	// Palette derivee du theme existant (aucune couleur en dur)
 	const wxColour font = themeTree.themeTexte.font.GetColorFont();
-	modernBack = themeTree.bgColorBackground;
-	modernBorder = themeTree.bgColorOne;
-	modernActive = themeTree.bgColorTwo;
+	modernBack = themeTree.bgColorOne;
+	modernBorder = themeTree.bgColorTwo;
+	modernActive = themeTree.bgColorActif;
 	modernTitle = font;
 	modernValue = font;
 
@@ -909,7 +911,7 @@ void CTreeControl::BeforeDrawBitmap(wxDC* deviceContext, const int& width, const
 	if (deviceContext != nullptr)
 	{
 		deviceContext->SetPen(*wxTRANSPARENT_PEN);
-		deviceContext->SetBrush(wxBrush(modernBack));
+		deviceContext->SetBrush(wxBrush(themeTree.bgColorOne));
 		deviceContext->DrawRectangle(0, 0, width, height);
 		deviceContext->SetBrush(wxNullBrush);
 		deviceContext->SetPen(wxNullPen);
