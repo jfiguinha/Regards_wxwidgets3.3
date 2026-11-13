@@ -33,8 +33,8 @@ namespace
 }
 
 CFiltreEffect::CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInterface* interfaceControl, bool isVideo,
-	int bitmapWindowId) : yPos(0), cxMax(0), cyMax(0), xMaxPos(0), xMaxPosValue(0), xMinPos(0),
-	effectParameter(nullptr)
+                             int bitmapWindowId): yPos(0), cxMax(0), cyMax(0), xMaxPos(0), xMaxPosValue(0), xMinPos(0),
+                                                  effectParameter(nullptr)
 {
 	this->bitmapWindowId = bitmapWindowId;
 	filtre = 0;
@@ -60,7 +60,7 @@ CFiltreEffect::CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInt
 }
 
 void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value,
-	const int& typeValue, const int& type)
+                                 const int& typeValue, const int& type)
 {
 	AddTreeInfos(exifKey, position, value, typeValue, index++, top, child, type);
 }
@@ -112,13 +112,13 @@ CPositionElement* CFiltreEffect::RenderColor(
 	return posElement;
 }
 
-void CFiltreEffect::UpdateSourceBitmap(cv::Mat& source)
+void CFiltreEffect::UpdateSourceBitmap(cv::Mat & source)
 {
 	this->source = source.clone();
 }
 
 void CFiltreEffect::Init(CEffectParameter* effectParameter, cv::Mat source, const wxString& filename,
-	const int& filtre)
+                         const int& filtre)
 {
 	CBitmapWndViewer* bitmapViewer = nullptr;
 	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(wxWindow::FindWindowById(bitmapWindowId));
@@ -188,7 +188,7 @@ void CFiltreEffect::UpdateMousePosition()
 	if (bitmapViewer != nullptr)
 	{
 		CImageLoadingFormat* imageLoad = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
-		if (imageLoad != nullptr)
+		if(imageLoad != nullptr)
 			UpdateBitmapToViewer(imageLoad);
 		else
 		{
@@ -212,7 +212,7 @@ CImageLoadingFormat* CFiltreEffect::ApplyEffect()
 
 	if (filterEffect != nullptr)
 	{
-		CImageLoadingFormat* picture = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
+		CImageLoadingFormat *picture = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
 		picture->SetFilename(bitmapViewer->GetFilename());
 		return picture;
 	}
@@ -363,7 +363,7 @@ CPositionElement* CFiltreEffect::RenderList(
 		treeElementListBox->SetVisible(visible);
 		posElement = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
 			themeTree.GetRowHeight(), ELEMENT_LISTBOX, treeElementListBox,
-			data);
+			data); 
 	}
 	else
 	{
@@ -507,7 +507,7 @@ void CFiltreEffect::UpdateLayoutMetrics()
 	// Palette derivee du theme existant (aucune couleur en dur)
 	const wxColour font = themeTree.themeTexte.font.GetColorFont();
 	colorRowBack = themeTree.bgColorOne;
-	colorRowBorder = themeTree.bgColorTwo;
+	colorRowBorder = colorRowBack.ChangeLightness(125);
 	colorTitle = font;
 
 	auto blend = [&](const int& percentFont)
@@ -536,8 +536,9 @@ void CFiltreEffect::StyleTextCell(CPositionElement* posElement, const int& zoneW
 // Controle de la colonne de droite : il occupe toute la colonne (moins les marges)
 // fillColumn = false : l'element garde sa taille propre (case a cocher)
 // scaledByRatio = true : l'element applique le ratio d'ecran dans GetWidth() (comme CTreeElementTexte)
+// fixedWidth > 0 : largeur imposee a la place de celle de la colonne (ex. carre de couleur)
 void CFiltreEffect::StyleControlCell(CPositionElement* posElement, const int& xPos, const bool& fillColumn,
-	const bool& scaledByRatio)
+	const bool& scaledByRatio, const int& fixedWidth)
 {
 	if (posElement == nullptr || !fillColumn)
 		return;
@@ -546,12 +547,14 @@ void CFiltreEffect::StyleControlCell(CPositionElement* posElement, const int& xP
 	if (element == nullptr)
 		return;
 
-	if (scaledByRatio)
-		element->SetZoneSize(ToRawX(controlWidth), ToRawY(rowHeight));
-	else
-		element->SetZoneSize(controlWidth, rowHeight);
+	const int width = fixedWidth > 0 ? fixedWidth : controlWidth;
 
-	posElement->SetValue(xPos, yPos, nbRow, 1, controlWidth, rowHeight, posElement->GetType(), element,
+	if (scaledByRatio)
+		element->SetZoneSize(ToRawX(width), ToRawY(rowHeight));
+	else
+		element->SetZoneSize(width, rowHeight);
+
+	posElement->SetValue(xPos, yPos, nbRow, 1, width, rowHeight, posElement->GetType(), element,
 		posElement->GetTreeData());
 }
 
@@ -623,7 +626,8 @@ void CFiltreEffect::RenderValueRow(CTreeDataEffect* data, const int& profondeur,
 		else if (data->GetType() == TYPE_COLOR)
 		{
 			pos_element = RenderColor(data, xPos, yPos, isVisible, mode);
-			StyleControlCell(pos_element, xPos, true, false);
+			// Carre de couleur : zone de la taille d'une ligne, le clic ne reagit que sur le carre
+			StyleControlCell(pos_element, xPos, true, false, rowHeight);
 		}
 		else if (data->GetType() == TYPE_COMBOBOX)
 		{
@@ -729,7 +733,7 @@ void CFiltreEffect::RenderElement(RenderMode mode)
 }
 
 void CFiltreEffect::UnclickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-	const int& posLargeur, const int& posHauteur)
+                                     const int& posLargeur, const int& posHauteur)
 {
 	CTreeElement* treeElement = element->GetTreeElement();
 	if (element->GetType() == ELEMENT_SLIDE)
@@ -741,7 +745,7 @@ void CFiltreEffect::UnclickOnElement(CPositionElement* element, wxWindow* window
 			xPos = GetWidthRow(treeElementSlide->GetRow() - 1);
 
 		treeElementSlide->UnclickElement(window, (x + posLargeur) - (element->GetX() + xPos),
-			(y + posHauteur) - element->GetY());
+		                                 (y + posHauteur) - element->GetY());
 	}
 }
 
@@ -860,7 +864,7 @@ void CFiltreEffect::ClickOnElement(CPositionElement* element, wxWindow* window, 
 
 
 void CFiltreEffect::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
-	const int& posLargeur, const int& posHauteur, bool& update)
+                              const int& posLargeur, const int& posHauteur, bool& update)
 {
 	CTreeElement* treeElement = element->GetTreeElement();
 	if (element->GetType() == ELEMENT_SLIDE)
@@ -875,9 +879,9 @@ void CFiltreEffect::MouseOver(wxDC* deviceContext, CPositionElement* element, co
 		if (treeElementSlide->MouseBlock())
 		{
 			treeElementSlide->MouseOver(deviceContext, (x + posLargeur) - (element->GetX() + xPos),
-				(y + posHauteur) - element->GetY(), update);
+			                            (y + posHauteur) - element->GetY(), update);
 			treeElementSlide->DrawElement(deviceContext, (element->GetX() + xPos) - posLargeur,
-				element->GetY() - posHauteur);
+			                              element->GetY() - posHauteur);
 		}
 	}
 }

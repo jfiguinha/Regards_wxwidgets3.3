@@ -1,6 +1,7 @@
 #include "header.h"
 #include "TreeElementColor.h"
 #include <wx/colordlg.h> // Pour utiliser wxColourDialog
+#include <algorithm>
 
 using namespace Regards::Window;
 
@@ -74,15 +75,16 @@ void CTreeElementColor::DrawElement(wxDC* deviceContext, const int& x, const int
 		deviceContext->DrawRectangle(x, y, m_width, m_height);
 	}
 
-	// 2. Alignement et calcul de la boîte du rectangle de couleur
-	// On applique une petite marge interne pour que le rectangle soit esthétique dans la cellule
-	int margeX = 4;
-	int margeY = 2;
-	int rectWidth = m_width - (margeX * 2);
-	int rectHeight = m_height - (margeY * 2);
+	// 2. Calcul du carré de couleur
+	// Le côté est limité par la plus petite dimension de la cellule : le composant reste un carré
+	// aligné à gauche et centré verticalement, il n'occupe pas toute la largeur
+	const int marge = 2;
+	const int side = std::max(std::min(m_width, m_height) - (marge * 2), 1);
+	int rectWidth = side;
+	int rectHeight = side;
 
-	int posX = x + margeX;
-	int posY = y + margeY;
+	int posX = x + marge;
+	int posY = y + (m_height - side) / 2;
 
 	// 3. Dessin du rectangle coloré choisi par l'utilisateur
 	// On applique une fine bordure gris foncé/noire autour du rectangle pour qu'il reste visible si la couleur choisie est blanche

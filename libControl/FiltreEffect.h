@@ -15,32 +15,32 @@ namespace Regards::Window
 	{
 	public:
 		CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInterface* interfaceControl, bool isVideo,
-			int bitmapWindowId);
+		              int bitmapWindowId);
 		~CFiltreEffect(void) = default;
 		virtual void Init(CEffectParameter* effectParameter, cv::Mat source, const wxString& filename,
-			const int& filtre);
+		                  const int& filtre);
 		void SlidePosChange(CTreeElement* treeElement, const int& position, CTreeElementValue* value,
-			const wxString& key) override;
+		                    const wxString& key) override;
 		virtual CImageLoadingFormat* ApplyEffect();
 		CEffectParameter* GetEffectParameter();
 		void UpdateScreenRatio() override;
 		void UpdateMousePosition();
-		void UpdateSourceBitmap(cv::Mat& source);
+		void UpdateSourceBitmap(cv::Mat & source);
 
 		// Largeur disponible du panneau (en pixels). Rappelee automatiquement par BeforeDrawBitmap.
 		void SetPanelWidth(const int& width);
 		void AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value,
-			const int& typeValue = 1, const int& type = TYPE_SLIDE) override;
+		                  const int& typeValue = 1, const int& type = TYPE_SLIDE) override;
 
 	protected:
 		void MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
-			const int& posLargeur, const int& posHauteur, bool& update) override;
+		               const int& posLargeur, const int& posHauteur, bool& update) override;
 		void ClickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-			const int& posLargeur, const int& posHauteur) override;
+		                    const int& posLargeur, const int& posHauteur) override;
 		void UnclickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-			const int& posLargeur, const int& posHauteur) override;
+		                      const int& posLargeur, const int& posHauteur) override;
 		void BeforeDrawBitmap(wxDC* deviceContext, const int& width, const int& height,
-			const int& posLargeur, const int& posHauteur) override;
+		                      const int& posLargeur, const int& posHauteur) override;
 		wxColour GetBackgroundColour(const int& yPos) override;
 		void AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value, int typeValue,
 			const int& index, tree<CTreeData*>::iterator& top, tree<CTreeData*>::iterator& child,
@@ -57,10 +57,10 @@ namespace Regards::Window
 		CTreeElementTriangle* RenderHeaderRow(CTreeData* data, const int& profondeur, RenderMode mode);
 		void RenderValueRow(CTreeDataEffect* data, const int& profondeur, RenderMode mode);
 		void StyleTextCell(CPositionElement* posElement, const int& zoneWidth, const int& insetLeft,
-			const int& insetRight, const wxColour& textColor, const bool& bold,
-			const int& alignment);
+		                   const int& insetRight, const wxColour& textColor, const bool& bold,
+		                   const int& alignment);
 		void StyleControlCell(CPositionElement* posElement, const int& xPos, const bool& fillColumn,
-			const bool& scaledByRatio);
+		                      const bool& scaledByRatio, const int& fixedWidth = 0);
 
 		CPositionElement* RenderSlide(
 			CTreeData* data,
