@@ -34,7 +34,19 @@ namespace Regards::UI
 
     ModernTheme ModernTheme::Light()
     {
-        return ModernTheme{};
+        ModernTheme t;
+        t.background = wxColour(243, 245, 248);
+        t.surface = wxColour(255, 255, 255);
+        t.text = wxColour(32, 35, 40);
+        t.secondaryText = wxColour(100, 107, 117);
+        t.border = wxColour(210, 214, 220);
+        t.accent = wxColour(30, 120, 220);
+        t.accentHover = wxColour(20, 103, 200);
+        t.hover = wxColour(232, 236, 241);
+        t.pressed = wxColour(220, 225, 232);
+        t.disabled = wxColour(160, 166, 174);
+        t.dark = false;
+        return t;
     }
 
     ModernTheme ModernTheme::Dark()

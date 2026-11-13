@@ -28,7 +28,7 @@ namespace Regards::Window
         wxString GetSelectionString() const;
         void SetSelection(const int& index);
 
-		bool IsDarkTheme() const { 
+        bool IsDarkTheme() const {
             if (skinMode == 0)
             {
                 return isDarkTheme
@@ -45,6 +45,9 @@ namespace Regards::Window
     private:
         // Événement déclenché lors de la sélection dans le CModernCombo
         void OnComboSelection(wxCommandEvent& event);
+
+        // Replace le CModernCombo sur la cellule courante (suivi du défilement de l'arbre)
+        void SynchronizeComboPosition(const int& x, const int& y);
 
         std::vector<wxString> m_items;
         int m_selectionIndex;

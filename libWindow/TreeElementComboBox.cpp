@@ -126,6 +126,30 @@ void CTreeElementComboBox::ClickElement(wxWindow* window, const int& x, const in
     m_pComboBoxModern->GetEventHandler()->ProcessEvent(mockEvent);
 }
 
+void CTreeElementComboBox::SynchronizeComboPosition(const int& x, const int& y)
+{
+    if (m_pComboBoxModern == nullptr) return;
+
+    const wxPoint newPos(x + 2, y + 1);
+    const wxSize newSize(m_width - 4, m_height - 2);
+
+    // Cellule sortie de la zone visible de l'arbre : on masque le contrôle
+    if (m_pParentWindow != nullptr)
+    {
+        const wxRect visibleArea = m_pParentWindow->GetClientRect();
+        if (!visibleArea.Intersects(wxRect(newPos, newSize)))
+        {
+            m_pComboBoxModern->Show(false);
+            return;
+        }
+    }
+
+    if (m_pComboBoxModern->GetPosition() != newPos || m_pComboBoxModern->GetSize() != newSize)
+    {
+        m_pComboBoxModern->SetSize(newPos.x, newPos.y, newSize.x, newSize.y);
+    }
+}
+
 void CTreeElementComboBox::OnComboSelection(wxCommandEvent& event)
 {
     if (m_pComboBoxModern == nullptr) return;
@@ -163,9 +187,11 @@ void CTreeElementComboBox::DrawElement(wxDC* deviceContext, const int& x, const 
     xPos = x;
     yPos = y;
 
-    // Si le contrôle natif/moderne est visible, on le laisse dessiner par-dessus
+    // Si le contrôle moderne est visible, on le laisse dessiner par-dessus,
+    // mais on le replace sur la cellule : x/y changent quand les barres de défilement bougent
     if (m_pComboBoxModern != nullptr && m_pComboBoxModern->IsShown())
     {
+        SynchronizeComboPosition(x, y);
         return;
     }
 
