@@ -10,11 +10,11 @@ namespace Regards::Window
     {
         constexpr int PANEL_ID = 1;
 
-        const wxColour PANEL_BACKGROUND(40, 42, 46);
-        const wxColour HEADER_BACKGROUND(48, 50, 55);
-        const wxColour HEADER_FOREGROUND(230, 232, 235);
-        const wxColour ACCENT_COLOUR(80, 160, 240);
-        const wxColour HOVER_COLOUR(65, 68, 74);
+        //const wxColour PANEL_BACKGROUND(40, 42, 46); //lineColorTop
+        //const wxColour HEADER_BACKGROUND(48, 50, 55); //lineColorBottom
+        //const wxColour HEADER_FOREGROUND(230, 232, 235); //actifTop
+        //const wxColour ACCENT_COLOUR(80, 160, 240); //actifBottom
+        //const wxColour HOVER_COLOUR(65, 68, 74); //colorActifReplacement
     }
 
     // =========================================================
@@ -23,6 +23,7 @@ namespace Regards::Window
 
     CModernPanelHeader::CModernPanelHeader(
         wxWindow* parent,
+        const CThemeToolbar& themeClickInfosToolbar,
         const wxString& title,
         bool vertical,
         bool showCloseButton)
@@ -30,10 +31,18 @@ namespace Regards::Window
         title_(title),
         vertical_(vertical),
         showCloseButton_(showCloseButton),
-        background_(HEADER_BACKGROUND),
-        foreground_(HEADER_FOREGROUND),
-        accent_(ACCENT_COLOUR),
-        hover_(HOVER_COLOUR)
+        background_(themeClickInfosToolbar.button.lineColorBottom), //HEADER_BACKGROUND
+        foreground_(themeClickInfosToolbar.button.actifTop), //HEADER_FOREGROUND
+        accent_(themeClickInfosToolbar.button.actifBottom), //ACCENT_COLOUR
+        hover_(themeClickInfosToolbar.button.colorActifReplacement) //HOVER_COLOUR
+
+        /*
+        *         //const wxColour PANEL_BACKGROUND(40, 42, 46); //lineColorTop
+        //const wxColour HEADER_BACKGROUND(48, 50, 55); //lineColorBottom
+        //const wxColour HEADER_FOREGROUND(230, 232, 235); //actifTop
+        //const wxColour ACCENT_COLOUR(80, 160, 240); //actifBottom
+        //const wxColour HOVER_COLOUR(65, 68, 74); //colorActifReplacement
+        */
     {
         SetBackgroundStyle(wxBG_STYLE_PAINT);
 
@@ -330,6 +339,8 @@ namespace Regards::Window
 
     CModernPanel::CModernPanel(
         wxWindow* parent,
+        const CThemePane& theme,
+        const CThemeToolbar& themeClickInfosToolbar,
         const wxString& windowName,
         wxWindowID id,
         const wxString& title,
@@ -341,10 +352,11 @@ namespace Regards::Window
         isVertical_(vertical),
         panelId_(id)
     {
-        SetBackgroundColour(PANEL_BACKGROUND);
+        SetBackgroundColour(theme.colorBack);
 
         header_ = new CModernPanelHeader(
             this,
+            themeClickInfosToolbar,
             title,
             vertical,
             showCloseButton);
@@ -354,7 +366,7 @@ namespace Regards::Window
         header_->SetCollapsed(isCollapsed_);
 
         content_ = new wxPanel(this);
-        content_->SetBackgroundColour(PANEL_BACKGROUND);
+        content_->SetBackgroundColour(theme.colorBack);
 
         panelSizer_ = new wxBoxSizer(
             vertical ? wxHORIZONTAL : wxVERTICAL);
@@ -659,6 +671,8 @@ namespace Regards::Window
 
         auto* panel = new CModernPanel(
             parent,
+            theme,
+            themeClickInfosToolbar,
             windowName,
             idPanel,
             panelLabel,

@@ -14,6 +14,7 @@ namespace Regards::Window
     {
     public:
         CModernPanelHeader(wxWindow* parent,
+            const CThemeToolbar& themeClickInfosToolbar,
             const wxString& title,
             bool vertical = false,
             bool showCloseButton = true);
@@ -53,6 +54,8 @@ namespace Regards::Window
     {
     public:
         CModernPanel(wxWindow* parent,
+            const CThemePane& theme,
+            const CThemeToolbar& themeClickInfosToolbar,
             const wxString& windowName,
             wxWindowID id,
             const wxString& title,
