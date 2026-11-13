@@ -16,14 +16,12 @@ namespace Regards::Window
         CModernPanelHeader(wxWindow* parent,
             const CThemeToolbar& themeClickInfosToolbar,
             const wxString& title,
-            bool vertical = false,
-            bool showCloseButton = true);
+            bool vertical = false);
 
         void SetTitle(const wxString& title);
         void SetCollapsed(bool collapsed);
 
         std::function<void()> OnCollapse;
-        std::function<void()> OnClose;
 
     private:
         void OnPaint(wxPaintEvent& event);
@@ -33,16 +31,13 @@ namespace Regards::Window
 
 
         wxRect GetCollapseRect() const;
-        wxRect GetCloseRect() const;
 
         wxString title_;
 
         bool vertical_ = false;
         bool collapsed_ = false;
-        bool showCloseButton_ = true;
 
         bool hoverCollapse_ = false;
-        bool hoverClose_ = false;
 
         wxColour background_;
         wxColour foreground_;
@@ -60,8 +55,7 @@ namespace Regards::Window
             wxWindowID id,
             const wxString& title,
             bool visible = true,
-            bool vertical = false,
-            bool showCloseButton = true);
+            bool vertical = false);
 
         ~CModernPanel() override = default;
 
@@ -108,7 +102,6 @@ namespace Regards::Window
             const bool& refreshButton);
 
         std::function<void()> OnCollapse;
-        std::function<void()> OnClose;
 
     protected:
         void Resize() override;
@@ -119,7 +112,6 @@ namespace Regards::Window
         void SetOpenState(bool open, int refresh);
         void NotifyParent(bool open, int refresh);
         void OnHeaderCollapse();
-        void OnHeaderClose();
 
         void OnShowPane(wxCommandEvent& event);
         void OnClosePane(wxCommandEvent& event);
