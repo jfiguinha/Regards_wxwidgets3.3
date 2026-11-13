@@ -248,11 +248,11 @@
 					<tailleY>10</tailleY>
 					<rectangleSize>4</rectangleSize>
 					<showButtonOnly>0</showButtonOnly>
-					<lineColorTop>rgb(222, 222, 222)</lineColorTop>
-					<lineColorBottom>rgb(156, 156, 156)</lineColorBottom>
-					<actifTop>rgb(255, 255, 255)</actifTop>
-					<actifBottom>rgb(223, 223, 223)</actifBottom>
-					<colorActifReplacement>rgb(48, 128, 254)</colorActifReplacement>
+					<lineColorTop>rgb(40, 42, 46)</lineColorTop>
+					<lineColorBottom>rgb(48, 50, 55)</lineColorBottom>
+					<actifTop>rgb(230, 232, 235)</actifTop>
+					<actifBottom>rgb(80, 160, 240)</actifBottom>
+					<colorActifReplacement>rgb(65, 68, 74)</colorActifReplacement>
 					<replaceColor>rgb(255, 255, 255)</replaceColor>
 				</ThemeToolbarButton>
 				<ThemeToolbarTexte>
@@ -311,9 +311,9 @@
 				</ThemeSlider>
 				<height>10</height>
 				<width>60</width>
-				<colorTop>rgb(29, 29, 29)</colorTop>
-				<colorBottom>rgb(29, 29, 29)</colorBottom>
-				<replaceColor>rgb(255, 255, 255)</replaceColor>
+				<colorTop>rgb(48, 50, 55)</colorTop>
+				<colorBottom>rgb(230, 232, 235)</colorBottom>
+				<replaceColor>rgb(40, 42, 46)</replaceColor>
 				<margeX>5</margeX>
 				<margeY>0</margeY>
 				<position>2</position>
