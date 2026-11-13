@@ -3,6 +3,7 @@
 #include <TreeDataEffect.h>
 #include <FilterData.h>
 #include <wx/tokenzr.h>
+#include <algorithm>
 #include "MainTheme.h"
 #include "MainThemeInit.h"
 #include "BitmapWndViewer.h"
@@ -23,9 +24,17 @@ extern AppContext application_context;
 using namespace Regards::Control;
 using namespace Regards::Window;
 
+namespace
+{
+	// Parametres du style "moderne" (identiques a CInfosFile)
+	constexpr int LABEL_COLUMN_PERCENT = 45; // part de la largeur reservee aux libelles
+	constexpr int MIN_PANEL_WIDTH = 280;     // largeur minimale si SetPanelWidth n'a pas ete appele
+	constexpr int INDENT_PER_LEVEL = 0;      // 0 = pas d'indentation ; mettre ex. 10 pour la retrouver
+}
+
 CFiltreEffect::CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInterface* interfaceControl, bool isVideo,
-                             int bitmapWindowId): yPos(0), cxMax(0), cyMax(0), xMaxPos(0), xMaxPosValue(0), xMinPos(0),
-                                                  effectParameter(nullptr)
+	int bitmapWindowId) : yPos(0), cxMax(0), cyMax(0), xMaxPos(0), xMaxPosValue(0), xMinPos(0),
+	effectParameter(nullptr)
 {
 	this->bitmapWindowId = bitmapWindowId;
 	filtre = 0;
@@ -51,7 +60,7 @@ CFiltreEffect::CFiltreEffect(IFiltreUpdate* bitmapViewer, CTreeElementControlInt
 }
 
 void CFiltreEffect::AddTreeInfos(const wxString& exifKey, CTreeElementValue* position, void* value,
-                                 const int& typeValue, const int& type)
+	const int& typeValue, const int& type)
 {
 	AddTreeInfos(exifKey, position, value, typeValue, index++, top, child, type);
 }
@@ -103,13 +112,13 @@ CPositionElement* CFiltreEffect::RenderColor(
 	return posElement;
 }
 
-void CFiltreEffect::UpdateSourceBitmap(cv::Mat & source)
+void CFiltreEffect::UpdateSourceBitmap(cv::Mat& source)
 {
 	this->source = source.clone();
 }
 
 void CFiltreEffect::Init(CEffectParameter* effectParameter, cv::Mat source, const wxString& filename,
-                         const int& filtre)
+	const int& filtre)
 {
 	CBitmapWndViewer* bitmapViewer = nullptr;
 	auto bitmapWindow = dynamic_cast<IBitmapWnd*>(wxWindow::FindWindowById(bitmapWindowId));
@@ -179,7 +188,7 @@ void CFiltreEffect::UpdateMousePosition()
 	if (bitmapViewer != nullptr)
 	{
 		CImageLoadingFormat* imageLoad = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
-		if(imageLoad != nullptr)
+		if (imageLoad != nullptr)
 			UpdateBitmapToViewer(imageLoad);
 		else
 		{
@@ -203,7 +212,7 @@ CImageLoadingFormat* CFiltreEffect::ApplyEffect()
 
 	if (filterEffect != nullptr)
 	{
-		CImageLoadingFormat *picture = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
+		CImageLoadingFormat* picture = filterEffect->ApplyEffect(effectParameter, bitmapViewer);
 		picture->SetFilename(bitmapViewer->GetFilename());
 		return picture;
 	}
@@ -354,7 +363,7 @@ CPositionElement* CFiltreEffect::RenderList(
 		treeElementListBox->SetVisible(visible);
 		posElement = CreatePositionElement(xPos, yPos, nbRow, 1, themeTree.GetRowWidth(),
 			themeTree.GetRowHeight(), ELEMENT_LISTBOX, treeElementListBox,
-			data); 
+			data);
 	}
 	else
 	{
@@ -428,123 +437,226 @@ CPositionElement* CFiltreEffect::RenderComboBox(
 	return posElement;
 }
 
-void CFiltreEffect::CreateElementChild(tree<CTreeData*>::sibling_iterator& it, CTreeDataEffect* data, int widthPosition, int profondeur, bool isVisible, RenderMode mode)
+void CFiltreEffect::SetPanelWidth(const int& width)
 {
-	int xPos = widthPosition * profondeur;
-	int widthElementColumn2 = 0;
-	int widthElementColumn1 = 0;
+	if (panelWidth == width)
+		return;
 
+	panelWidth = width;
+
+	// Si l'arbre est deja construit, on recalcule les positions
+	if (!tr.empty())
+		RenderElement(RenderMode::Update);
+}
+
+int CFiltreEffect::ToRawX(const int& pixels)
+{
+	// Les elements appliquent le ratio d'ecran dans GetWidth() : on le retire ici pour obtenir la largeur voulue
+	const float ratio = themeTree.CalculRatioX();
+	return ratio > 0.0f ? static_cast<int>(pixels / ratio + 0.5f) : pixels;
+}
+
+int CFiltreEffect::ToRawY(const int& pixels)
+{
+	const float ratio = themeTree.CalculRatioY();
+	return ratio > 0.0f ? static_cast<int>(pixels / ratio + 0.5f) : pixels;
+}
+
+wxColour CFiltreEffect::GetBackgroundColour(const int& yPos)
+{
+	// Fond uni : plus de bandes alternees
+	return themeTree.bgColorOne;
+}
+
+void CFiltreEffect::BeforeDrawBitmap(wxDC* deviceContext, const int& width, const int& height,
+	const int& posLargeur, const int& posHauteur)
+{
+	// La largeur reelle de la zone dessinee devient la largeur du panneau
+	if (width > 0 && width != panelWidth)
+		SetPanelWidth(width);
+
+	// Fond uni sur toute la zone, y compris sous la derniere ligne
+	if (deviceContext != nullptr)
+	{
+		deviceContext->SetPen(*wxTRANSPARENT_PEN);
+		deviceContext->SetBrush(wxBrush(themeTree.bgColorOne));
+		deviceContext->DrawRectangle(0, 0, width, height);
+		deviceContext->SetBrush(wxNullBrush);
+		deviceContext->SetPen(wxNullPen);
+	}
+}
+
+void CFiltreEffect::UpdateLayoutMetrics()
+{
+	margin = themeTree.GetMargeX();
+	rowHeight = themeTree.GetRowHeight();
+
+	const int minWidth = themeTree.CalculElementSizeForScreen(MIN_PANEL_WIDTH);
+	layoutWidth = std::max(panelWidth, minWidth);
+	labelColumnWidth = layoutWidth * LABEL_COLUMN_PERCENT / 100;
+	valueColumnWidth = layoutWidth - labelColumnWidth;
+	chevronWidth = 2 * margin;
+
+	// Largeur des controles (slide, liste, couleur, combo) : colonne de droite moins les marges
+	controlWidth = std::max(valueColumnWidth - margin / 2 - margin, 1);
+
+	// Colonne 0 = libelles, colonne 1 = controles (la colonne 1 demarre a rowWidth[0])
+	rowWidth[0] = labelColumnWidth;
+	rowWidth[1] = valueColumnWidth;
+
+	// Palette derivee du theme existant (aucune couleur en dur)
+	const wxColour font = themeTree.themeTexte.font.GetColorFont();
+	colorRowBack = themeTree.bgColorOne;
+	colorRowBorder = themeTree.bgColorTwo;
+	colorTitle = font;
+
+	auto blend = [&](const int& percentFont)
+		{
+			return wxColour((font.Red() * percentFont + colorRowBack.Red() * (100 - percentFont)) / 100,
+				(font.Green() * percentFont + colorRowBack.Green() * (100 - percentFont)) / 100,
+				(font.Blue() * percentFont + colorRowBack.Blue() * (100 - percentFont)) / 100);
+		};
+	colorLabel = blend(60); // libelle attenue
+}
+
+void CFiltreEffect::StyleTextCell(CPositionElement* posElement, const int& zoneWidth, const int& insetLeft,
+	const int& insetRight, const wxColour& textColor, const bool& bold,
+	const int& alignment)
+{
+	auto* text = static_cast<CTreeElementTexte*>(posElement->GetTreeElement());
+	text->SetZoneSize(ToRawX(zoneWidth), ToRawY(rowHeight));
+	text->SetBold(bold);
+	text->SetTextColor(textColor);
+	text->SetInsets(insetLeft, insetRight);
+	text->SetEllipsize(true);
+	text->SetPosition(alignment);
+	text->SetRowStyle(colorRowBack, colorRowBorder);
+}
+
+// Controle de la colonne de droite : il occupe toute la colonne (moins les marges)
+// fillColumn = false : l'element garde sa taille propre (case a cocher)
+// scaledByRatio = true : l'element applique le ratio d'ecran dans GetWidth() (comme CTreeElementTexte)
+void CFiltreEffect::StyleControlCell(CPositionElement* posElement, const int& xPos, const bool& fillColumn,
+	const bool& scaledByRatio)
+{
+	if (posElement == nullptr || !fillColumn)
+		return;
+
+	CTreeElement* element = posElement->GetTreeElement();
+	if (element == nullptr)
+		return;
+
+	if (scaledByRatio)
+		element->SetZoneSize(ToRawX(controlWidth), ToRawY(rowHeight));
+	else
+		element->SetZoneSize(controlWidth, rowHeight);
+
+	posElement->SetValue(xPos, yPos, nbRow, 1, controlWidth, rowHeight, posElement->GetType(), element,
+		posElement->GetTreeData());
+}
+
+// Ligne de titre de section : TITRE en gras, chevron a droite, clic sur toute la ligne
+CTreeElementTriangle* CFiltreEffect::RenderHeaderRow(CTreeData* data, const int& profondeur, RenderMode mode)
+{
+	const bool isVisible = true;
+
+	// Chevron (a droite)
+	int xPos = layoutWidth - chevronWidth;
+	CPositionElement* posTriangle = RenderTriangle(data, xPos, yPos, isVisible, mode);
+	auto* triangle = static_cast<CTreeElementTriangle*>(posTriangle->GetTreeElement());
+	triangle->SetChevronStyle(true);
+	triangle->SetRowStyle(colorRowBack, colorRowBorder);
+	triangle->SetZoneSize(ToRawX(chevronWidth), ToRawY(rowHeight));
+	posTriangle->SetValue(xPos, yPos, nbRow, 0, chevronWidth, rowHeight, ELEMENT_TRIANGLE, triangle, data);
+
+	// Titre (a gauche, en majuscules)
+	const int titleWidth = layoutWidth - chevronWidth;
+	xPos = 0;
+	CPositionElement* posText = RenderText(data, xPos, yPos, isVisible, mode);
+	auto* text = static_cast<CTreeElementTexte*>(posText->GetTreeElement());
+
+	const wxString title = data->GetKey().Upper();
+	if (text->GetLibelle() != title)
+		text->SetLibelle(title);
+
+	const int indent = themeTree.CalculElementSizeForScreen(INDENT_PER_LEVEL) * profondeur;
+	StyleTextCell(posText, titleWidth, margin + indent, 0, colorTitle, true, RENDERFONT_LEFT);
+	posText->SetValue(0, yPos, nbRow, 0, titleWidth, rowHeight, ELEMENT_TEXTE, text, data);
+
+	yPos += rowHeight;
+	nbRow++;
+
+	return triangle;
+}
+
+// Ligne de parametre : libelle attenue a gauche, controle (slide, case, liste, couleur, combo) a droite
+void CFiltreEffect::RenderValueRow(CTreeDataEffect* data, const int& profondeur, RenderMode mode)
+{
+	const bool isVisible = true;
+	const int indent = themeTree.CalculElementSizeForScreen(INDENT_PER_LEVEL) * profondeur;
+
+	// Libelle (gris attenue, a gauche)
+	int xPos = 0;
 	CPositionElement* pos_element = RenderText(data, xPos, yPos, isVisible, mode, false);
-	widthElementColumn1 = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
+	StyleTextCell(pos_element, labelColumnWidth, margin + indent, margin / 2, colorLabel, false, RENDERFONT_LEFT);
 
 	if (data->HasValue())
 	{
-		xPos = themeTree.GetMargeX();
+		xPos = margin / 2;
+		pos_element = nullptr;
+
 		if (data->GetType() == TYPE_SLIDE)
 		{
-			pos_element = RenderSlide(
-				data,
-				xPos, yPos,
-				isVisible,
-				mode);
+			pos_element = RenderSlide(data, xPos, yPos, isVisible, mode);
+			StyleControlCell(pos_element, xPos, true, true);
 		}
 		else if (data->GetType() == TYPE_CHECKBOX)
 		{
-			pos_element = RenderCheckbox(
-				data,
-				xPos, yPos,
-				isVisible,
-				mode);
+			pos_element = RenderCheckbox(data, xPos, yPos, isVisible, mode);
+			StyleControlCell(pos_element, xPos, false, true);
 		}
 		else if (data->GetType() == TYPE_LISTBOX)
 		{
-			pos_element = RenderList(
-				data,
-				xPos, yPos,
-				isVisible,
-				mode);
-
+			pos_element = RenderList(data, xPos, yPos, isVisible, mode);
+			StyleControlCell(pos_element, xPos, true, true);
 		}
 		else if (data->GetType() == TYPE_COLOR)
 		{
 			pos_element = RenderColor(data, xPos, yPos, isVisible, mode);
+			StyleControlCell(pos_element, xPos, true, false);
 		}
 		else if (data->GetType() == TYPE_COMBOBOX)
 		{
 			pos_element = RenderComboBox(data, xPos, yPos, isVisible, mode);
+			StyleControlCell(pos_element, xPos, true, false);
 		}
-
-		if (pos_element != nullptr)
-			widthElementColumn2 = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
 	}
-	if (isVisible)
-	{
-		yPos += themeTree.GetRowHeight();
 
-		nbRow++;
-		if (rowWidth[0] < widthElementColumn1)
-			rowWidth[0] = widthElementColumn1;
-
-		if (rowWidth[1] < widthElementColumn2)
-			rowWidth[1] = widthElementColumn2;
-	}
-}
-
-
-void CFiltreEffect::UpdateElementChild(tree<CTreeData*>::sibling_iterator& it, CTreeDataEffect * data, int widthPosition, int profondeur, bool isVisible, RenderMode mode)
-{
-	int xPos = widthPosition * profondeur;
-	CTreeElementTriangle* tree_element_triangle = nullptr;
-	CPositionElement* pos_element = RenderTriangle(
-		data,
-		xPos, yPos,
-		isVisible,
-		mode);
-
-	tree_element_triangle = static_cast<CTreeElementTriangle*>(pos_element->GetTreeElement());
-	xPos += pos_element->GetWidth() + themeTree.GetMargeX();
-
-	pos_element = RenderText(
-		data,
-		xPos, yPos,
-		isVisible,
-		mode);
-
-
-	int widthElement = xPos + pos_element->GetWidth() + themeTree.GetMargeX();
-	yPos += themeTree.GetRowHeight();
-
+	yPos += rowHeight;
 	nbRow++;
-	if (rowWidth[0] < widthElement)
-		rowWidth[0] = widthElement;
-
-	if(mode == RenderMode::Create)
-		UpdateElement(it, mode);
-	else
-	{
-		bool isOpen = tree_element_triangle->GetOpen();
-		if (isOpen)
-			UpdateElement(it, mode);
-	}
 }
 
 void CFiltreEffect::UpdateElement(tree<CTreeData*>::sibling_iterator& parent, RenderMode mode)
 {
 	tree<CTreeData*>::sibling_iterator it = tr.begin(parent);
-	bool isVisible = true;
 
 	for (int i = 0; i < parent.number_of_children(); i++)
 	{
-		int profondeur = tr.depth(it);
+		const int profondeur = tr.depth(it);
 		auto data = static_cast<CTreeDataEffect*>(*it);
 
 		if (data->HasValue() || it.number_of_children() == 0)
 		{
-			CreateElementChild(it, data, widthPosition, profondeur, isVisible, mode);
+			RenderValueRow(data, profondeur, mode);
 		}
 		else
 		{
-			UpdateElementChild(it, data, widthPosition, profondeur, isVisible, mode);
+			CTreeElementTriangle* tree_element_triangle = RenderHeaderRow(data, profondeur, mode);
+
+			if (mode == RenderMode::Create)
+				UpdateElement(it, mode);
+			else if (tree_element_triangle->GetOpen())
+				UpdateElement(it, mode);
 		}
 		++it;
 	}
@@ -554,7 +666,8 @@ void CFiltreEffect::RenderElement(RenderMode mode)
 {
 	tree<CTreeData*>::sibling_iterator it = tr.begin();
 	auto itend = tr.end();
-	bool isVisible = true;
+
+	UpdateLayoutMetrics();
 	yPos = 0;
 	nbRow = 0;
 
@@ -601,43 +714,14 @@ void CFiltreEffect::RenderElement(RenderMode mode)
 	while (it != itend)
 	{
 		CTreeData* data = *it;
-		int profondeur = tr.depth(it);
+		const int profondeur = tr.depth(it);
 		if (profondeur == 0)
 		{
-			int xPos = themeTree.GetMargeX();
-			int widthElement = 0;
+			CTreeElementTriangle* tree_element_triangle = RenderHeaderRow(data, profondeur, mode);
 
-			CTreeElementTriangle* tree_element_triangle = nullptr;
-
-			CPositionElement* posElement = RenderTriangle(
-				data,
-				xPos, yPos,
-				isVisible,
-				mode);
-
-			tree_element_triangle = static_cast<CTreeElementTriangle*>(posElement->GetTreeElement());
-			widthPosition = xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			xPos += posElement->GetWidth() + themeTree.GetMargeX();
-
-			posElement = RenderText(
-				data,
-				xPos, yPos,
-				isVisible,
-				mode);
-
-			widthElement += xPos + posElement->GetWidth() + themeTree.GetMargeX();
-			yPos += themeTree.GetRowHeight();
-			nbRow++;
-			if (rowWidth[0] < widthElement)
-				rowWidth[0] = widthElement;
-
-			if (mode == RenderMode::Update)
-			{
-				bool isOpen = tree_element_triangle->GetOpen();
-				if (isOpen)
-					UpdateElement(it, mode);
-			}
-			else
+			if (mode == RenderMode::Create)
+				UpdateElement(it, mode);
+			else if (tree_element_triangle->GetOpen())
 				UpdateElement(it, mode);
 		}
 		++it;
@@ -645,7 +729,7 @@ void CFiltreEffect::RenderElement(RenderMode mode)
 }
 
 void CFiltreEffect::UnclickOnElement(CPositionElement* element, wxWindow* window, const int& x, const int& y,
-                                     const int& posLargeur, const int& posHauteur)
+	const int& posLargeur, const int& posHauteur)
 {
 	CTreeElement* treeElement = element->GetTreeElement();
 	if (element->GetType() == ELEMENT_SLIDE)
@@ -657,7 +741,7 @@ void CFiltreEffect::UnclickOnElement(CPositionElement* element, wxWindow* window
 			xPos = GetWidthRow(treeElementSlide->GetRow() - 1);
 
 		treeElementSlide->UnclickElement(window, (x + posLargeur) - (element->GetX() + xPos),
-		                                 (y + posHauteur) - element->GetY());
+			(y + posHauteur) - element->GetY());
 	}
 }
 
@@ -685,6 +769,17 @@ void CFiltreEffect::ClickOnElement(CPositionElement* element, wxWindow* window, 
 		treeElementTriangle->ClickElement(window, (x + posLargeur) - element->GetX(),
 			(y + posHauteur) - element->GetY());
 		update = true;
+	}
+	else if (element->GetType() == ELEMENT_TEXTE)
+	{
+		// Clic sur le titre d'une section : on bascule le chevron de la meme ligne
+		CPositionElement* posTriangle = GetElement(element->GetTreeData(), ELEMENT_TRIANGLE);
+		if (posTriangle != nullptr)
+		{
+			auto treeElementTriangle = static_cast<CTreeElementTriangle*>(posTriangle->GetTreeElement());
+			treeElementTriangle->ClickElement(window, x, y);
+			update = true;
+		}
 	}
 	else if (element->GetType() == ELEMENT_CHECKBOX)
 	{
@@ -765,7 +860,7 @@ void CFiltreEffect::ClickOnElement(CPositionElement* element, wxWindow* window, 
 
 
 void CFiltreEffect::MouseOver(wxDC* deviceContext, CPositionElement* element, const int& x, const int& y,
-                              const int& posLargeur, const int& posHauteur, bool& update)
+	const int& posLargeur, const int& posHauteur, bool& update)
 {
 	CTreeElement* treeElement = element->GetTreeElement();
 	if (element->GetType() == ELEMENT_SLIDE)
@@ -780,9 +875,9 @@ void CFiltreEffect::MouseOver(wxDC* deviceContext, CPositionElement* element, co
 		if (treeElementSlide->MouseBlock())
 		{
 			treeElementSlide->MouseOver(deviceContext, (x + posLargeur) - (element->GetX() + xPos),
-			                            (y + posHauteur) - element->GetY(), update);
+				(y + posHauteur) - element->GetY(), update);
 			treeElementSlide->DrawElement(deviceContext, (element->GetX() + xPos) - posLargeur,
-			                              element->GetY() - posHauteur);
+				element->GetY() - posHauteur);
 		}
 	}
 }

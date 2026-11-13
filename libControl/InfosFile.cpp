@@ -298,7 +298,7 @@ void CInfosFile::UpdateLayoutMetrics()
 	// Palette derivee du theme existant (aucune couleur en dur)
 	const wxColour font = themeTree.themeTexte.font.GetColorFont();
 	colorRowBack = themeTree.bgColorOne;
-	colorRowBorder = colorRowBack.ChangeLightness(125);
+	colorRowBorder = themeTree.bgColorTwo;//ChangeLightness(125);
 	colorTitle = font;
 	colorValue = font;
 

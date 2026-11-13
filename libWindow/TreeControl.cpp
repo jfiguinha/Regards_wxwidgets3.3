@@ -793,9 +793,9 @@ void CTreeControl::ModernUpdateMetrics(const bool& labelValueLayout, const int& 
 
 	// Palette derivee du theme existant (aucune couleur en dur)
 	const wxColour font = themeTree.themeTexte.font.GetColorFont();
-	modernBack = themeTree.bgColorOne;
-	modernBorder = modernBack.ChangeLightness(125);
-	modernActive = modernBack.ChangeLightness(135);
+	modernBack = themeTree.bgColorBackground;
+	modernBorder = themeTree.bgColorOne;
+	modernActive = themeTree.bgColorTwo;
 	modernTitle = font;
 	modernValue = font;
 
