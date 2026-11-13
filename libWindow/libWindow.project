@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Project Name="libWindow" InternalType="Library" Version="11000">
-  <VirtualDirectory Name="Modern">
-    <File Name="RegardsModernControls.cpp"/>
-    <File Name="RegardsModernControls.h"/>
-  </VirtualDirectory>
   <Plugins>
     <Plugin Name="qmake">
       <![CDATA[00020001N0005Debug0000000000000001N0007Release000000000000]]>
@@ -30,6 +26,12 @@
  }]]]>
     </Plugin>
   </Plugins>
+  <VirtualDirectory Name="Modern">
+    <File Name="ModernPanel.cpp"/>
+    <File Name="ModernPanel.h"/>
+    <File Name="RegardsModernControls.cpp"/>
+    <File Name="RegardsModernControls.h"/>
+  </VirtualDirectory>
   <VirtualDirectory Name="Layer">
     <File Name="LayerFonction.h"/>
     <File Name="LayerElement.h"/>
@@ -96,6 +98,7 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="src">
+    <File Name="ToolbarSliderVideo.cpp"/>
     <File Name="TreeElementComboBox.cpp"/>
     <File Name="TreeElementColor.cpp"/>
     <File Name="SplitterImpl.cpp"/>
@@ -116,7 +119,6 @@
     <File Name="ScrollbarVerticalWnd.cpp"/>
     <File Name="ScrollbarWnd.cpp"/>
     <File Name="SeparationBar.cpp"/>
-    <File Name="Slider.cpp"/>
     <File Name="Splitter.cpp"/>
     <File Name="Thumbnail.cpp"/>
     <File Name="TitleBar.cpp"/>
@@ -145,6 +147,9 @@
     <File Name="IconeList.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
+    <File Name="ToolbarSeparator.h"/>
+    <File Name="ScrollbarDrawUtils.h"/>
+    <File Name="ToolbarSliderVideo.h"/>
     <File Name="TreeElementComboBox.h"/>
     <File Name="TreeElementColor.h"/>
     <File Name="ThreadLoadingBitmap.h"/>
@@ -169,7 +174,6 @@
     <File Name="ScrollbarVerticalWnd.h"/>
     <File Name="ScrollbarWnd.h"/>
     <File Name="SeparationBar.h"/>
-    <File Name="Slider.h"/>
     <File Name="Splitter.h"/>
     <File Name="StatusBarInterface.h"/>
     <File Name="Thumbnail.h"/>

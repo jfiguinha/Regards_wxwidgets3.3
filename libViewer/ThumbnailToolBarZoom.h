@@ -15,7 +15,7 @@ namespace Regards::Viewer
 	private:
 		enum class HoverZone
 		{
-			None,
+			NoOne,
 			Previous,
 			Next
 		};
@@ -34,7 +34,7 @@ namespace Regards::Viewer
 
 		wxRect positionPrevious;
 		wxRect positionNext;
-		HoverZone hoverZone = HoverZone::None;
+		HoverZone hoverZone = HoverZone::NoOne;
 
 		int typeAffichage;
 		CThemeToolBarZoom themeToolbarZoom;

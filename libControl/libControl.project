@@ -51,9 +51,9 @@
   <VirtualDirectory Name="Video">
     <File Name="VideoCompressOption.h"/>
     <VirtualDirectory Name="Core">
+      <File Name="SliderVideoToolbar.cpp"/>
+      <File Name="SliderVideoToolbar.h"/>
       <File Name="VolumePopup.h"/>
-      <File Name="SlideToolbar.h"/>
-      <File Name="SlideToolbar.cpp"/>
       <File Name="ffmfcpimpl.cpp"/>
       <File Name="ffplaycore.cpp"/>
       <File Name="ffmpeg.h"/>
@@ -184,6 +184,7 @@
         <IncludePath Value="../libVideoEffect"/>
         <IncludePath Value="../libCudaEffect"/>
         <IncludePath Value="../include"/>
+        <IncludePath Value="../libViewer"/>
         <IncludePath Value="../libVideoThumbnail"/>
         <IncludePath Value="../libTheme"/>
         <IncludePath Value="../libextern/libRapidXML"/>

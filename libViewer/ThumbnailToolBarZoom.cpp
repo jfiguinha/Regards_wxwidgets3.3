@@ -58,7 +58,7 @@ void CThumbnailToolBarZoom::SetHoverZone(HoverZone zone)
 		return;
 
 	hoverZone = zone;
-	SetCursor(wxCursor(zone == HoverZone::None ? wxCURSOR_ARROW : wxCURSOR_HAND));
+	SetCursor(wxCursor(zone == HoverZone::NoOne ? wxCURSOR_ARROW : wxCURSOR_HAND));
 	needToRefresh = true;
 }
 
@@ -71,12 +71,12 @@ void CThumbnailToolBarZoom::OnMouseMove(wxMouseEvent& event)
 	else if (positionNext.Contains(pt))
 		SetHoverZone(HoverZone::Next);
 	else
-		SetHoverZone(HoverZone::None);
+		SetHoverZone(HoverZone::NoOne);
 }
 
 void CThumbnailToolBarZoom::OnMouseLeave(wxMouseEvent& event)
 {
-	SetHoverZone(HoverZone::None);
+	SetHoverZone(HoverZone::NoOne);
 }
 
 void CThumbnailToolBarZoom::OnLButtonDown(wxMouseEvent& event)
@@ -122,7 +122,7 @@ void CThumbnailToolBarZoom::OnLButtonDown(wxMouseEvent& event)
 		}
 
 		// Les zones changent avec le mode : on repart sans survol
-		hoverZone = HoverZone::None;
+		hoverZone = HoverZone::NoOne;
 		needToRefresh = true;
 	}
 }

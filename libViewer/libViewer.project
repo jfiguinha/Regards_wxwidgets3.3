@@ -100,7 +100,6 @@
     <File Name="CategoryWnd.cpp"/>
     <File Name="ListPicture.cpp"/>
     <File Name="ListFace.cpp"/>
-    <File Name="AnimationToolbar.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="include">
     <File Name="UIEventBatcher.h"/>
@@ -141,7 +140,6 @@
     <File Name="CategoryWnd.h"/>
     <File Name="ListPicture.h"/>
     <File Name="ListFace.h"/>
-    <File Name="AnimationToolbar.h"/>
     <File Name="ViewerFrame.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Thumbnail">
