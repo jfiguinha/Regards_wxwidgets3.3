@@ -60,7 +60,7 @@ namespace Regards::Viewer
     {
     public:
         CViewerFrame(const wxString& title, const wxPoint& pos, const wxSize& size,
-                     IMainInterface* mainInterface, const wxString& openfile = "");
+            IMainInterface* mainInterface, const wxString& openfile = "");
         ~CViewerFrame() override;
 
         // IStatusBarInterface
@@ -142,12 +142,15 @@ namespace Regards::Viewer
         void OnTimerEndLoadPicture(wxTimerEvent& event);
         void OnTimereventFileSysTimer(wxTimerEvent& event);
         void CheckAllProcessEnd(wxTimerEvent& event);
-        
+
         // Handlers filesystem
         void OnFileSystemModified(wxFileSystemWatcherEvent& event);
 
         // Helper : envoie un événement de mode fenêtre au sous-panneau central
         void PostWindowModeEvent(int modeId);
+
+        // Redonne le focus clavier à mainWindow_ après un changement plein écran / fenêtré
+        void RestoreKeyboardFocus();
 
         wxDECLARE_EVENT_TABLE();
 
@@ -156,13 +159,13 @@ namespace Regards::Viewer
         IMainInterface* mainInterface_ = nullptr;
 
         // Paramètres et thème (propriété exclusive de ViewerFrame)
-        CMainParam * viewerParam_;
-        CMainTheme * viewerTheme_;
+        CMainParam* viewerParam_;
+        CMainTheme* viewerTheme_;
 
         // Fenêtres enfants
-        
-        CMainWindow *   mainWindow_;
-        CWaitingWindow * mainWindowWaiting;
+
+        CMainWindow* mainWindow_;
+        CWaitingWindow* mainWindowWaiting;
         // Services
         std::unique_ptr<CModelManager>               modelManager_;
         std::unique_ptr<CFileWatcherService>         fileWatcherService_;

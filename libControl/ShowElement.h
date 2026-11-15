@@ -11,6 +11,7 @@
 #include <memory>
 #include <functional>
 #include <wx/timer.h>
+#include <wx/longlong.h>
 #include <LayerElement.h>
 #include <PreviewToolbar.h>
 #include "BitmapToolbar.h"
@@ -175,6 +176,7 @@ namespace Regards
             void OnFullscreenMouseTimer(wxTimerEvent& event);
             void UpdateEdgeZone(EdgeZone zone);
             void ShowFullscreenBars(bool show);
+            void SetMouseCursorHidden(bool hide);
             void SetBitmapToViewer(CImageLoadingFormat* bitmap, int eventType);
             // ---- Helper dispatch IViewerMode ----
             IViewerMode* ActiveViewer() const;   // renvoie bitmapWindow ou videoWindow selon isVideo
@@ -222,6 +224,12 @@ namespace Regards
             wxTimer fullscreenMouseTimer;
             EdgeZone currentZone = EdgeZone::Center;
             std::function<void(EdgeZone)> edgeZoneCallback;
+
+            // Plein écran : le curseur disparaît si la souris reste immobile 2 s sur l'image
+            static constexpr long cursorHideDelayMs = 2000;
+            wxPoint      lastMousePos;
+            wxLongLong   lastMoveTime = 0;
+            bool         cursorHidden = false;
             bool firstElement = true;
             bool showToolbarSup = false;
             bool play = false;

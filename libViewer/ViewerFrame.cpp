@@ -52,7 +52,7 @@ bool CViewerFrame::viewerMode_ = true;
 // static accessors
 // ---------------------------------------------------------------------------
 
-bool CViewerFrame::GetViewerMode()  { return viewerMode_; }
+bool CViewerFrame::GetViewerMode() { return viewerMode_; }
 void CViewerFrame::SetViewerMode(const bool& mode) { viewerMode_ = mode; }
 
 // ---------------------------------------------------------------------------
@@ -60,15 +60,15 @@ void CViewerFrame::SetViewerMode(const bool& mode) { viewerMode_ = mode; }
 // ---------------------------------------------------------------------------
 
 CViewerFrame::CViewerFrame(const wxString& title, const wxPoint& pos, const wxSize& size,
-                             IMainInterface* mainInterface, const wxString& openfile)
+    IMainInterface* mainInterface, const wxString& openfile)
     : wxFrame(nullptr, FRAMEVIEWER_ID, title, pos, size,
-              wxMAXIMIZE | wxFRAME_EX_METAL | wxDEFAULT_FRAME_STYLE)
+        wxMAXIMIZE | wxFRAME_EX_METAL | wxDEFAULT_FRAME_STYLE)
     , mainInterface_(mainInterface)
     , fileToOpen_(openfile)
 {
     mainInterface_->parent = this;
-    
-    
+
+
     SetIcon(wxICON(sample));
 
     // 1. Paramètres et thème
@@ -79,7 +79,7 @@ CViewerFrame::CViewerFrame(const wxString& title, const wxPoint& pos, const wxSi
     if (!modelManager_->VerifyAndUpdate())
     {
         wxMessageBox(wxT("IA model not found. Program can't be started."),
-                     wxT("Error"), wxICON_ERROR);
+            wxT("Error"), wxICON_ERROR);
         mainInterface_->Close();
         return;
     }
@@ -94,10 +94,10 @@ CViewerFrame::CViewerFrame(const wxString& title, const wxPoint& pos, const wxSi
     mainWindow_ = new CMainWindow(this, MAINVIEWERWINDOWID, this, fileToOpen_);
 
     // 5. Services
-    fileWatcherService_  = std::make_unique<CFileWatcherService>(this);
-    printService_        = std::make_unique<Regards::Control::CPrintService>(this);
-    scannerLauncher_     = std::make_unique<CScannerLauncher>();
-    navigationCtrl_      = std::make_unique<CViewerNavigationController>(this, mainWindow_);
+    fileWatcherService_ = std::make_unique<CFileWatcherService>(this);
+    printService_ = std::make_unique<Regards::Control::CPrintService>(this);
+    scannerLauncher_ = std::make_unique<CScannerLauncher>();
+    navigationCtrl_ = std::make_unique<CViewerNavigationController>(this, mainWindow_);
 
     // 6. Timers propres à la frame
     InitTimers();
@@ -124,11 +124,11 @@ CViewerFrame::~CViewerFrame()
 
     if (loadPictureStartTimer_ && loadPictureStartTimer_->IsRunning())
         loadPictureStartTimer_->Stop();
-        
+
     if (exitTimer && exitTimer->IsRunning())
         exitTimer->Stop();
 
-   viewerParam_->SaveFile();
+    viewerParam_->SaveFile();
 
 }
 
@@ -145,27 +145,27 @@ void CViewerFrame::InitParams()
 void CViewerFrame::InitTimers()
 {
     loadPictureStartTimer_ = std::make_unique<wxTimer>(this, TIMER_LOADPICTURESTART);
-    eventFileSysTimer_     = std::make_unique<wxTimer>(this, TIMER_EVENTFILEFS);
+    eventFileSysTimer_ = std::make_unique<wxTimer>(this, TIMER_EVENTFILEFS);
     exitTimer = std::make_unique<wxTimer>(this, wxTIMER_EXIT);
 }
 
 void CViewerFrame::InitMenuBar()
 {
-	const wxString labelPageMargins = CLibResource::LoadStringFromResource(L"labelPageMargins", 1); // L"Page margins";
-	const wxString labelPageMargins_link = CLibResource::LoadStringFromResource(L"labelPageMargins_link", 1);
-    const wxString labelDecreaseIconSize      = CLibResource::LoadStringFromResource(L"labelDecreaseIconSize", 1);
+    const wxString labelPageMargins = CLibResource::LoadStringFromResource(L"labelPageMargins", 1); // L"Page margins";
+    const wxString labelPageMargins_link = CLibResource::LoadStringFromResource(L"labelPageMargins_link", 1);
+    const wxString labelDecreaseIconSize = CLibResource::LoadStringFromResource(L"labelDecreaseIconSize", 1);
     const wxString labelDecreaseIconSize_link = CLibResource::LoadStringFromResource(L"labelDecreaseIconSize_link", 1);
-    const wxString labelEnlargeIconSize       = CLibResource::LoadStringFromResource(L"labelEnlargeIconSize", 1);
-    const wxString labelEnlargeIconSize_link  = CLibResource::LoadStringFromResource(L"labelEnlargeIconSize_link", 1);
-    const wxString labelConfiguration        = CLibResource::LoadStringFromResource(L"labelConfiguration", 1);
-    const wxString labelConfiguration_link   = CLibResource::LoadStringFromResource(L"labelConfiguration_link", 1);
-    const wxString labelFile                  = CLibResource::LoadStringFromResource(L"labelFile", 1);
-    const wxString labelSizeIcon              = CLibResource::LoadStringFromResource(L"labelSizeIcon", 1);
-    const wxString labelHelp                  = CLibResource::LoadStringFromResource(L"labelHelp", 1);
-    const wxString labelPageSetup             = CLibResource::LoadStringFromResource(L"labelPageSetup", 1);
-    const wxString labelPageSetup_link        = CLibResource::LoadStringFromResource(L"labelPageSetup_link", 1);
-    const wxString export_diaporama           = CLibResource::LoadStringFromResource(L"LBLEXPORTDIAPORAMA", 1);
-    const wxString lblScanner                 = CLibResource::LoadStringFromResource(L"LBLSCANNER", 1);
+    const wxString labelEnlargeIconSize = CLibResource::LoadStringFromResource(L"labelEnlargeIconSize", 1);
+    const wxString labelEnlargeIconSize_link = CLibResource::LoadStringFromResource(L"labelEnlargeIconSize_link", 1);
+    const wxString labelConfiguration = CLibResource::LoadStringFromResource(L"labelConfiguration", 1);
+    const wxString labelConfiguration_link = CLibResource::LoadStringFromResource(L"labelConfiguration_link", 1);
+    const wxString labelFile = CLibResource::LoadStringFromResource(L"labelFile", 1);
+    const wxString labelSizeIcon = CLibResource::LoadStringFromResource(L"labelSizeIcon", 1);
+    const wxString labelHelp = CLibResource::LoadStringFromResource(L"labelHelp", 1);
+    const wxString labelPageSetup = CLibResource::LoadStringFromResource(L"labelPageSetup", 1);
+    const wxString labelPageSetup_link = CLibResource::LoadStringFromResource(L"labelPageSetup_link", 1);
+    const wxString export_diaporama = CLibResource::LoadStringFromResource(L"LBLEXPORTDIAPORAMA", 1);
+    const wxString lblScanner = CLibResource::LoadStringFromResource(L"LBLSCANNER", 1);
 
     auto* menuFile = new wxMenu();
 #ifdef WIN32
@@ -202,10 +202,10 @@ void CViewerFrame::InitMenuBar()
     menuHelp->Append(wxID_HELP);
 
     auto* menuBar = new wxMenuBar();
-    menuBar->Append(menuFile,     labelFile);
+    menuBar->Append(menuFile, labelFile);
     menuBar->Append(menuSizeIcon, labelSizeIcon);
-    menuBar->Append(menuTools,    "Tools");
-    menuBar->Append(menuHelp,     labelHelp);
+    menuBar->Append(menuTools, "Tools");
+    menuBar->Append(menuHelp, labelHelp);
 
     wxFrameBase::SetMenuBar(menuBar);
     wxWindow::SetLabel(wxT("Regards Viewer"));
@@ -214,28 +214,34 @@ void CViewerFrame::InitMenuBar()
 void CViewerFrame::BindEvents()
 {
     Connect(wxEVT_CLOSE_WINDOW, wxCloseEventHandler(CViewerFrame::OnClose));
-	Connect(wxEVENT_CLOSESCANNER, wxCommandEventHandler(CViewerFrame::HideScanner));
-	Connect(wxEVENT_PICTUREENDLOADING, wxCommandEventHandler(CViewerFrame::OnPictureEndLoading));
-	Connect(wxID_PRINT, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnPrint));
-	Connect(ID_EXPORT, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnExport));
+    Connect(wxEVENT_CLOSESCANNER, wxCommandEventHandler(CViewerFrame::HideScanner));
+    Connect(wxEVENT_PICTUREENDLOADING, wxCommandEventHandler(CViewerFrame::OnPictureEndLoading));
+    Connect(wxID_PRINT, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnPrint));
+    Connect(ID_EXPORT, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnExport));
 #ifdef WIN32
-	Connect(ID_ASSOCIATE, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnAssociate));
+    Connect(ID_ASSOCIATE, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnAssociate));
     Connect(ID_ECONOMY, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnEconomyMode));
 #endif
-	Connect(ID_SCANNER, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnScanner));
+    Connect(ID_SCANNER, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnScanner));
     Connect(wxID_EDIT, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnEdit));
-    Connect(ID_DIAPORAMA, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnExportDiaporama));  
-	Connect(wxEVT_FULLSCREEN,  wxCommandEventHandler(CViewerFrame::OnWindowFullScreen));
-    
-	Connect(TIMER_EVENTFILEFS, wxEVT_TIMER, wxTimerEventHandler(CViewerFrame::OnTimereventFileSysTimer), nullptr, this);
+    Connect(ID_DIAPORAMA, wxEVT_MENU, wxCommandEventHandler(CViewerFrame::OnExportDiaporama));
+    Connect(wxEVT_FULLSCREEN, wxCommandEventHandler(CViewerFrame::OnWindowFullScreen));
+
+    Connect(TIMER_EVENTFILEFS, wxEVT_TIMER, wxTimerEventHandler(CViewerFrame::OnTimereventFileSysTimer), nullptr, this);
     Connect(TIMER_LOADPICTURESTART, wxEVT_TIMER, wxTimerEventHandler(CViewerFrame::OnOpenFile), nullptr, this);
     Connect(TIMER_LOADPICTURE, wxEVT_TIMER, wxTimerEventHandler(CViewerFrame::OnTimerLoadPicture), nullptr, this);
+    // Filet de sécurité de la navigation clavier : 1 s après un changement d'image, autorise
+    // à nouveau la navigation même si wxEVENT_PICTUREENDLOADING n'est jamais émis (vidéo, animation).
+    Connect(TIMER_LOADPICTUREEND, wxEVT_TIMER, wxTimerEventHandler(CViewerFrame::OnTimerEndLoadPicture), nullptr, this);
     Connect(wxTIMER_EXIT, wxEVT_TIMER, wxTimerEventHandler(CViewerFrame::CheckAllProcessEnd), nullptr, this);
-    
-	mainWindow_->Bind(wxEVT_CHAR_HOOK, &CViewerFrame::OnKeyDown, this);
-	mainWindow_->Bind(wxEVT_KEY_UP, &CViewerFrame::OnKeyUp, this);
-       
-}   
+
+    // Bind sur la frame (et non sur mainWindow_) : en plein écran les panneaux sont masqués,
+    // le focus peut tomber sur la frame elle-même et ne passerait alors plus par mainWindow_.
+    // wxEVT_CHAR_HOOK est propagé des fenêtres enfants vers la frame.
+    Bind(wxEVT_CHAR_HOOK, &CViewerFrame::OnKeyDown, this);
+    Bind(wxEVT_KEY_UP, &CViewerFrame::OnKeyUp, this);
+
+}
 
 // ---------------------------------------------------------------------------
 // IStatusBarInterface
@@ -276,6 +282,7 @@ void CViewerFrame::SetFullscreen()
 #else
     this->ShowFullScreen(true);
 #endif
+    RestoreKeyboardFocus();
 }
 
 void CViewerFrame::SetScreen()
@@ -287,9 +294,21 @@ void CViewerFrame::SetScreen()
 #else
     this->ShowFullScreen(false);
 #endif
+    RestoreKeyboardFocus();
 }
 
-void CViewerFrame::PrintPreview(const wxString &filename)
+void CViewerFrame::RestoreKeyboardFocus()
+{
+    // Les panneaux masqués / réaffichés lors du changement de mode peuvent avoir pris le focus
+    // clavier : on le redonne à la fenêtre principale une fois la transition terminée.
+    CallAfter([this]()
+        {
+            if (mainWindow_ != nullptr)
+                mainWindow_->SetFocus();
+        });
+}
+
+void CViewerFrame::PrintPreview(const wxString& filename)
 {
     printService_->ShowImagePreview(filename);
 }
@@ -301,69 +320,69 @@ void CViewerFrame::PrintImagePreview(cv::Mat& picture)
 
 void CViewerFrame::CheckAllProcessEnd(wxTimerEvent& event)
 {
-	nbTime++;
+    nbTime++;
 
     //printf("Get Nb Main Windows %d \n", CMasterWindow::listProcessWindow.size());
-    
 
-	if (nbTime < 50)
-	{
-		for (CMasterWindow* window : CMasterWindow::listProcessWindow)
-		{
-			if (window != nullptr)
-			{
+
+    if (nbTime < 50)
+    {
+        for (CMasterWindow* window : CMasterWindow::listProcessWindow)
+        {
+            if (window != nullptr)
+            {
                 //printf("CheckAllProcessEnd %s \n", window->GetWaitingMessage().utf8_string().c_str());
-                
-				if (!window->GetProcessEnd())
-				{
-                    wxTheApp->Yield();
-                    
-                    //printf("CheckAllProcessEnd %s not end \n", window->GetWaitingMessage().utf8_string().c_str());
-                    
-					const wxString message = window->GetWaitingMessage();
-					mainWindowWaiting->SetTexte(message);
-					exitTimer->Start(1000, wxTIMER_ONE_SHOT);
-					return;
-				}
-			}
-		}
-	}
 
-	onExit = true;
-	Exit();
+                if (!window->GetProcessEnd())
+                {
+                    wxTheApp->Yield();
+
+                    //printf("CheckAllProcessEnd %s not end \n", window->GetWaitingMessage().utf8_string().c_str());
+
+                    const wxString message = window->GetWaitingMessage();
+                    mainWindowWaiting->SetTexte(message);
+                    exitTimer->Start(1000, wxTIMER_ONE_SHOT);
+                    return;
+                }
+            }
+        }
+    }
+
+    onExit = true;
+    Exit();
 }
 
 void CViewerFrame::Exit()
 {
-	if (!onExit)
-	{
-		nbTime = 0;
-		CWindowMain::SetEndProgram();
-        if(eventFileSysTimer_ != nullptr)
+    if (!onExit)
+    {
+        nbTime = 0;
+        CWindowMain::SetEndProgram();
+        if (eventFileSysTimer_ != nullptr)
             eventFileSysTimer_->Stop();
-            
-        if(loadPictureStartTimer_ != nullptr)
+
+        if (loadPictureStartTimer_ != nullptr)
             loadPictureStartTimer_->Stop();
-            
-        if(mainWindow_ != nullptr)
+
+        if (mainWindow_ != nullptr)
             mainWindow_->Show(false);
-        
-		mainWindowWaiting = new CWaitingWindow(this, wxID_ANY);
-        if(mainWindowWaiting != nullptr)
+
+        mainWindowWaiting = new CWaitingWindow(this, wxID_ANY);
+        if (mainWindowWaiting != nullptr)
         {
             mainWindowWaiting->Show(true);
             mainWindowWaiting->SetSize(0, 0, mainWindow_->GetWindowWidth(), mainWindow_->GetWindowHeight());
-            mainWindowWaiting->Refresh();      
+            mainWindowWaiting->Refresh();
         }
-        
-        if(exitTimer != nullptr)
-            exitTimer->Start(10, wxTIMER_ONE_SHOT);
-	}
-	else
-	{
-		CMainThemeInit::SaveTheme();
 
-		onExit = true;
+        if (exitTimer != nullptr)
+            exitTimer->Start(10, wxTIMER_ONE_SHOT);
+    }
+    else
+    {
+        CMainThemeInit::SaveTheme();
+
+        onExit = true;
 
         if (mainWindow_)
             mainWindow_->SaveParameter();
@@ -384,14 +403,14 @@ void CViewerFrame::Exit()
         if (regardsParam)
             regardsParam->SaveFile();
 
-        if(viewerParam_)
+        if (viewerParam_)
             viewerParam_->SaveFile();
 
         if (mainInterface_ != nullptr)
             mainInterface_->Close();
 
         exit(0);
-	}
+    }
 }
 
 bool CViewerFrame::AddFSEntry(const wxString& dirPath)
@@ -429,10 +448,10 @@ void CViewerFrame::PostWindowModeEvent(int modeId)
     }
 }
 
-void CViewerFrame::OnWindowFace(wxCommandEvent&)    { PostWindowModeEvent(WINDOW_FACE);     }
-void CViewerFrame::OnWindowFolder(wxCommandEvent&)  { PostWindowModeEvent(WINDOW_EXPLORER); }
-void CViewerFrame::OnWindowViewer(wxCommandEvent&)  { PostWindowModeEvent(WINDOW_VIEWER);   }
-void CViewerFrame::OnWindowPicture(wxCommandEvent&) { PostWindowModeEvent(WINDOW_PICTURE);  }
+void CViewerFrame::OnWindowFace(wxCommandEvent&) { PostWindowModeEvent(WINDOW_FACE); }
+void CViewerFrame::OnWindowFolder(wxCommandEvent&) { PostWindowModeEvent(WINDOW_EXPLORER); }
+void CViewerFrame::OnWindowViewer(wxCommandEvent&) { PostWindowModeEvent(WINDOW_VIEWER); }
+void CViewerFrame::OnWindowPicture(wxCommandEvent&) { PostWindowModeEvent(WINDOW_PICTURE); }
 
 void CViewerFrame::OnWindowFullScreen(wxCommandEvent&)
 {
@@ -446,8 +465,9 @@ void CViewerFrame::OnWindowFullScreen(wxCommandEvent&)
 
 void CViewerFrame::OnKeyDown(wxKeyEvent& event)
 {
-    navigationCtrl_->OnKeyDown(event);
+    // L'état plein écran doit être à jour AVANT le traitement de la touche
     navigationCtrl_->SetFullscreen(fullscreen_);
+    navigationCtrl_->OnKeyDown(event);
 }
 
 void CViewerFrame::OnKeyUp(wxKeyEvent& event)
@@ -622,7 +642,7 @@ void CViewerFrame::OnConfiguration(wxCommandEvent&)
 
 void CViewerFrame::OnEraseDatabase(wxCommandEvent&)
 {
-    const wxString msg  = CLibResource::LoadStringFromResource(L"EraseDatabase", 1);
+    const wxString msg = CLibResource::LoadStringFromResource(L"EraseDatabase", 1);
     const wxString info = CLibResource::LoadStringFromResource(L"labelInformations", 1);
     if (wxMessageBox(msg, info, wxYES_NO | wxICON_WARNING) == wxYES)
     {
@@ -710,7 +730,7 @@ void CViewerFrame::OpenPictureFile()
     if (fileToOpen_.IsEmpty())
     {
         dirpath = wxStandardPaths::Get()
-                      .GetUserDir(wxStandardPaths::Dir_Pictures);
+            .GetUserDir(wxStandardPaths::Dir_Pictures);
 
         wxDir dir(dirpath);
 
@@ -718,43 +738,43 @@ void CViewerFrame::OpenPictureFile()
 
         std::function<void(const wxString&)> scanDirectory;
         scanDirectory = [&](const wxString& path)
-        {
-            wxDir localDir(path);
-
-            if (!localDir.IsOpened())
-                return;
-
-            wxString filename;
-            bool cont = localDir.GetFirst(&filename);
-
-            while (cont)
             {
-                wxString fullPath =
-                    path + wxFILE_SEP_PATH + filename;
+                wxDir localDir(path);
 
-                if (wxDirExists(fullPath))
-                {
-                    scanDirectory(fullPath);
-                }
-                else
-                {
-                    // filtre rapide par extension
-                    wxFileName fn(fullPath);
+                if (!localDir.IsOpened())
+                    return;
 
-                    if (libPicture.TestImageFormat(fullPath) != 0)
+                wxString filename;
+                bool cont = localDir.GetFirst(&filename);
+
+                while (cont)
+                {
+                    wxString fullPath =
+                        path + wxFILE_SEP_PATH + filename;
+
+                    if (wxDirExists(fullPath))
                     {
-                        if (bestImage.IsEmpty() ||
-                            fullPath.CmpNoCase(bestImage) < 0)
-                        {
-                            bestImage = fullPath;
-                        }
+                        scanDirectory(fullPath);
                     }
-                    
-                }
+                    else
+                    {
+                        // filtre rapide par extension
+                        wxFileName fn(fullPath);
 
-                cont = localDir.GetNext(&filename);
-            }
-        };
+                        if (libPicture.TestImageFormat(fullPath) != 0)
+                        {
+                            if (bestImage.IsEmpty() ||
+                                fullPath.CmpNoCase(bestImage) < 0)
+                            {
+                                bestImage = fullPath;
+                            }
+                        }
+
+                    }
+
+                    cont = localDir.GetNext(&filename);
+                }
+            };
 
         scanDirectory(dirpath);
 
@@ -770,7 +790,7 @@ void CViewerFrame::OpenPictureFile()
         evt.SetClientData(file);
 
         mainWindow_->GetEventHandler()
-                  ->AddPendingEvent(evt);
+            ->AddPendingEvent(evt);
 
         if (dirpath.IsEmpty())
             mainWindow_->SetPictureMode();
@@ -784,20 +804,20 @@ void CViewerFrame::OpenPictureFile()
 // ---------------------------------------------------------------------------
 
 wxBEGIN_EVENT_TABLE(CViewerFrame, wxFrame)
-    EVT_MENU(ID_Hello,         CViewerFrame::OnHello)
-    EVT_MENU(wxID_HELP,        CViewerFrame::OnHelp)
-    EVT_MENU(ID_Configuration, CViewerFrame::OnConfiguration)
-    EVT_MENU(ID_SIZEICONLESS,  CViewerFrame::OnIconSizeLess)
-    EVT_MENU(ID_SIZEICONMORE,  CViewerFrame::OnIconSizeMore)
-    EVT_MENU(ID_ERASEDATABASE, CViewerFrame::OnEraseDatabase)
-    EVT_MENU(ID_WINDOWFACE,    CViewerFrame::OnWindowFace)
-    EVT_MENU(ID_WINDOWFOLDER,  CViewerFrame::OnWindowFolder)
-    EVT_MENU(ID_WINDOWVIEWER,  CViewerFrame::OnWindowViewer)
-    EVT_MENU(ID_WINDOWPICTURE, CViewerFrame::OnWindowPicture)
-    EVT_MENU(wxID_ABOUT,       CViewerFrame::OnAbout)
-    EVT_MENU(WXPRINT_PAGE_SETUP, CViewerFrame::OnPageSetup)
-    EVT_MENU(wxID_EXIT,        CViewerFrame::OnExit)
+EVT_MENU(ID_Hello, CViewerFrame::OnHello)
+EVT_MENU(wxID_HELP, CViewerFrame::OnHelp)
+EVT_MENU(ID_Configuration, CViewerFrame::OnConfiguration)
+EVT_MENU(ID_SIZEICONLESS, CViewerFrame::OnIconSizeLess)
+EVT_MENU(ID_SIZEICONMORE, CViewerFrame::OnIconSizeMore)
+EVT_MENU(ID_ERASEDATABASE, CViewerFrame::OnEraseDatabase)
+EVT_MENU(ID_WINDOWFACE, CViewerFrame::OnWindowFace)
+EVT_MENU(ID_WINDOWFOLDER, CViewerFrame::OnWindowFolder)
+EVT_MENU(ID_WINDOWVIEWER, CViewerFrame::OnWindowViewer)
+EVT_MENU(ID_WINDOWPICTURE, CViewerFrame::OnWindowPicture)
+EVT_MENU(wxID_ABOUT, CViewerFrame::OnAbout)
+EVT_MENU(WXPRINT_PAGE_SETUP, CViewerFrame::OnPageSetup)
+EVT_MENU(wxID_EXIT, CViewerFrame::OnExit)
 #ifdef __WXMAC__
-    EVT_MENU(WXPRINT_PAGE_MARGINS, CViewerFrame::OnPageMargins)
+EVT_MENU(WXPRINT_PAGE_MARGINS, CViewerFrame::OnPageMargins)
 #endif
 wxEND_EVENT_TABLE()

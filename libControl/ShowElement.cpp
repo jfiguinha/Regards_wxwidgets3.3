@@ -231,12 +231,15 @@ void CShowElement::SetFullscreen(const bool& fs)
         currentZone = EdgeZone::Center;
         scrollbar->Show(true);
         bitmapWindowRender->Show(true);
+        lastMousePos = wxGetMousePosition();
+        lastMoveTime = wxGetLocalTimeMillis();
         fullscreenMouseTimer.Start(100);
     }
     else
     {
         // Sortie : arrêt du survol et masquage des barres éventuellement affichées au survol
         fullscreenMouseTimer.Stop();
+        SetMouseCursorHidden(false);
         currentZone = EdgeZone::Center;
         if (pictureToolbar && pictureToolbar->IsShown())
         {
@@ -379,12 +382,30 @@ void CShowElement::OnFullscreenMouseTimer(wxTimerEvent& /*event*/)
     if (!fullscreen || !bitmapWindowRender)
         return;
 
-    const wxPoint mouse = bitmapWindowRender->ScreenToClient(wxGetMousePosition());
+    const wxPoint screenMouse = wxGetMousePosition();
+    const wxPoint mouse = bitmapWindowRender->ScreenToClient(screenMouse);
     const wxSize  size  = bitmapWindowRender->GetClientSize();
+    const bool insideRender = mouse.x >= 0 && mouse.x < size.x && mouse.y >= 0 && mouse.y < size.y;
+
+    // Curseur : réaffiché dès que la souris bouge, masqué après 2 s d'immobilité sur l'image
+    const wxLongLong now = wxGetLocalTimeMillis();
+    if (screenMouse != lastMousePos)
+    {
+        lastMousePos = screenMouse;
+        lastMoveTime = now;
+        SetMouseCursorHidden(false);
+    }
+    else if (insideRender && (now - lastMoveTime).ToLong() >= cursorHideDelayMs)
+    {
+        SetMouseCursorHidden(true);
+    }
 
     // Souris hors du rendu : sur une barre affichée (on conserve l'état) ou hors fenêtre
-    if (mouse.x < 0 || mouse.x >= size.x || mouse.y < 0 || mouse.y >= size.y)
+    if (!insideRender)
+    {
+        SetMouseCursorHidden(false);
         return;
+    }
 
     const int band = FromDIP(60);
     EdgeZone zone = EdgeZone::Center;
@@ -394,6 +415,16 @@ void CShowElement::OnFullscreenMouseTimer(wxTimerEvent& /*event*/)
         zone = EdgeZone::Bottom;
 
     UpdateEdgeZone(zone);
+}
+
+void CShowElement::SetMouseCursorHidden(bool hide)
+{
+    if (cursorHidden == hide)
+        return;
+
+    cursorHidden = hide;
+    if (bitmapWindowRender)
+        bitmapWindowRender->SetCursor(hide ? wxCursor(wxCURSOR_BLANK) : wxNullCursor);
 }
 
 void CShowElement::UpdateEdgeZone(EdgeZone zone)
