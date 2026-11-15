@@ -25,12 +25,10 @@ namespace Regards::Window
         wxWindow* parent,
         const CThemeToolbar& themeClickInfosToolbar,
         const wxString& title,
-        bool vertical,
-        bool showCloseButton)
+        bool vertical)
         : wxPanel(parent),
         title_(title),
         vertical_(vertical),
-        showCloseButton_(showCloseButton),
         background_(themeClickInfosToolbar.button.lineColorBottom), //HEADER_BACKGROUND
         foreground_(themeClickInfosToolbar.button.actifTop), //HEADER_FOREGROUND
         accent_(themeClickInfosToolbar.button.actifBottom), //ACCENT_COLOUR
@@ -96,30 +94,7 @@ namespace Regards::Window
             buttonSize);
     }
 
-    wxRect CModernPanelHeader::GetCloseRect() const
-    {
-        // Panneau ferme : seul le bouton de reouverture reste affiche
-        if (!showCloseButton_ || collapsed_)
-            return wxRect();
 
-        const int buttonSize = FromDIP(28);
-        const int margin = FromDIP(4);
-
-        if (vertical_)
-        {
-            return wxRect(
-                (GetClientSize().x - buttonSize) / 2,
-                margin,
-                buttonSize,
-                buttonSize);
-        }
-
-        return wxRect(
-            GetClientSize().x - 2 * buttonSize - margin,
-            (GetClientSize().y - buttonSize) / 2,
-            buttonSize,
-            buttonSize);
-    }
     void CModernPanelHeader::OnPaint(wxPaintEvent&)
     {
         wxAutoBufferedPaintDC dc(this);
@@ -178,13 +153,6 @@ namespace Regards::Window
             dc.DrawRoundedRectangle(collapseRect, FromDIP(5));
         }
 
-        const wxRect closeRect = GetCloseRect();
-        if (!closeRect.IsEmpty() && hoverClose_)
-        {
-            dc.SetBrush(wxBrush(wxColour(180, 55, 55)));
-            dc.DrawRoundedRectangle(closeRect, FromDIP(5));
-        }
-
         // =========================================================
         // INITIALISATION DE L'ANTIALIASING VIA wxGraphicsContext
         // =========================================================
@@ -240,26 +208,6 @@ namespace Regards::Window
             }
             gc->StrokePath(path);
 
-            // 2. Dessin de la croix du bouton Fermer (si visible)
-            /*
-            if (showCloseButton_ && !collapsed_ && !closeRect.IsEmpty())
-            {
-                const double x = closeRect.x + closeRect.width / 2.0;
-                const double y = closeRect.y + closeRect.height / 2.0;
-                const double offset = FromDIP(4);
-
-                wxGraphicsPath closePath = gc->CreatePath();
-
-                // Diagonale 1 : \
-                closePath.MoveToPoint(x - offset, y - offset);
-                closePath.AddLineToPoint(x + offset, y + offset);
-
-                // Diagonale 2 : /
-                closePath.MoveToPoint(x + offset, y - offset);
-                closePath.AddLineToPoint(x - offset, y + offset);
-
-                gc->StrokePath(closePath);
-            }*/
         }
 
         // --- Ligne de bordure (Accent) ---
@@ -278,20 +226,14 @@ namespace Regards::Window
         const bool newCollapse =
             GetCollapseRect().Contains(pos);
 
-        const bool newClose =
-            showCloseButton_ &&
-            GetCloseRect().Contains(pos);
-
-        if (newCollapse != hoverCollapse_ ||
-            newClose != hoverClose_)
+        if (newCollapse != hoverCollapse_)
         {
             hoverCollapse_ = newCollapse;
-            hoverClose_ = newClose;
             Refresh(false);
         }
 
         SetCursor(wxCursor(
-            hoverCollapse_ || hoverClose_
+            hoverCollapse_
             ? wxCURSOR_HAND
             : wxCURSOR_ARROW));
 
@@ -301,7 +243,6 @@ namespace Regards::Window
     void CModernPanelHeader::OnMouseLeave(wxMouseEvent&)
     {
         hoverCollapse_ = false;
-        hoverClose_ = false;
 
         SetCursor(wxCursor(wxCURSOR_ARROW));
         Refresh(false);
@@ -322,15 +263,6 @@ namespace Regards::Window
 
             return;
         }
-
-        if (showCloseButton_ &&
-            GetCloseRect().Contains(pos))
-        {
-            if (OnClose)
-                OnClose();
-
-            return;
-        }
     }
 
     // =========================================================
@@ -345,8 +277,7 @@ namespace Regards::Window
         wxWindowID id,
         const wxString& title,
         bool visible,
-        bool vertical,
-        bool showCloseButton)
+        bool vertical)
         : CWindowMain(windowName, parent, id),
         isPanelVisible_(visible),
         isVertical_(vertical),
@@ -358,8 +289,7 @@ namespace Regards::Window
             this,
             themeClickInfosToolbar,
             title,
-            vertical,
-            showCloseButton);
+            vertical);
 
         // visible = true : panneau ouvert ; false : demarre ferme (barre d'en-tete seule)
         isCollapsed_ = !visible;
@@ -386,11 +316,6 @@ namespace Regards::Window
         header_->OnCollapse = [this]()
             {
                 OnHeaderCollapse();
-            };
-
-        header_->OnClose = [this]()
-            {
-                OnHeaderClose();
             };
 
         Connect(wxID_ANY, wxEVENT_SHOWPANE,
@@ -677,8 +602,7 @@ namespace Regards::Window
             idPanel,
             panelLabel,
             isVisible,
-            isVertical,
-            true);
+            isVertical);
 
         panel->refreshButton_ = refreshButton;
 
@@ -726,13 +650,5 @@ namespace Regards::Window
     {
         // L'en-tete a deja bascule son propre etat : on aligne le panneau dessus
         SetCollapsed(!isCollapsed_);
-    }
-
-    void CModernPanel::OnHeaderClose()
-    {
-        ClosePane(panelId_);
-
-        if (OnClose)
-            OnClose();
     }
 }

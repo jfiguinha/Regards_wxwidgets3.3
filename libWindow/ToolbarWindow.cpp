@@ -340,15 +340,21 @@ void CToolbarWindow::SetAllDisable()
 void CToolbarWindow::DrawBackground(wxDC* dc, const wxRect& rc)
 {
 	const wxDirection dir = isVertical ? wxEAST : wxNORTH;
-	dc->GradientFillLinear(rc, themeToolbar.colorTop, themeToolbar.colorBottom, dir);
+	dc->GradientFillLinear(rc, themeToolbar.colorTop, themeToolbar.colorTop, dir);
+}
 
-	if (showLine)
-	{
-		wxPen penTop(themeTexte.rectTop, themeTexte.GetRectangleSize(), wxPENSTYLE_SOLID);
-		dc->SetPen(penTop);
-		dc->DrawLine(0, GetWindowHeight(), GetWindowWidth(), GetWindowHeight());
-		dc->SetPen(wxNullPen);
-	}
+void CToolbarWindow::SetShowLine(bool show)
+{
+	if (showLine == show)
+		return;
+
+	showLine = show;
+	Refresh(false);
+}
+
+bool CToolbarWindow::IsShowLine() const
+{
+	return showLine;
 }
 
 
@@ -365,6 +371,18 @@ void CToolbarWindow::DrawBackground(wxDC* dc)
 	{
 		wxMemoryDC memDC(background);
 		DrawBackground(&memDC, GetWindowRect());
+
+		// Ligne de bordure (comme CModernPanelHeader) : bas si horizontal, droite si vertical
+		if (showLine)
+		{
+			memDC.SetPen(wxPen(themeToolbar.colorBottom, FromDIP(1)));
+			if (isVertical)
+				memDC.DrawLine(winW - 1, 0, winW - 1, winH);
+			else
+				memDC.DrawLine(0, winH - 1, winW, winH - 1);
+			memDC.SetPen(wxNullPen);
+		}
+
 		memDC.SelectObject(wxNullBitmap);
 	}
 

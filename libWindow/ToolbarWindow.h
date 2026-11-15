@@ -19,6 +19,9 @@ namespace Regards::Window
 		int GetNavigatorHeight();
 		int GetNavigatorWidth();
 		bool IsMouseOver();
+		// Ligne de bordure (bas en horizontal, droite en vertical) - desactivee par defaut
+		void SetShowLine(bool show);
+		bool IsShowLine() const;
 		void UpdateScreenRatio() override;
 
 	protected:

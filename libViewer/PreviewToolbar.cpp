@@ -54,7 +54,7 @@ CPreviewToolbar::CPreviewToolbar(wxWindow* parent, wxWindowID id, const CThemeTo
 	flipHorizontal = CreateButton(L"IDB_FLIPHORZ", L"LBLFLIPH", WM_FLIPHORIZONTAL, false);
 
 	this->toolbarInterface = toolbarInterface;
-
+	showLine = true;
 	fullscreen->SetVisible(false);
 }
 
