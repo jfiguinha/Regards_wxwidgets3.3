@@ -200,8 +200,56 @@ CLayerList* CShowElement::GetLayerList()
 // ============================================================================
 void CShowElement::SetFullscreen(const bool& fs)
 {
+    if (fs == fullscreen)
+    {
+        bitmapWindow->SetFullscreen(fs);
+        return;
+    }
+
+    if (fs)
+        showToolbarBeforeFullscreen = showToolbar;
+
     fullscreen = fs;
     bitmapWindow->SetFullscreen(fs);
+
+    if (fs)
+    {
+        // Plein écran : seul bitmapWindowRender (encapsulé dans scrollbar) est visible
+        if (pictureToolbar && pictureToolbar->IsShown())
+        {
+            bitmapWindow->FixArrowNavigation(false);
+            pictureToolbar->Show(false);
+        }
+        if (videoSlider)
+            videoSlider->Show(false);
+
+        showToolbar = false;   // ResizeImage masque alors aussi les barres de défilement
+        scrollbar->Show(true);
+        bitmapWindowRender->Show(true);
+    }
+    else
+    {
+        // Retour en mode fenêtré : restauration de l'état d'avant plein écran
+        showToolbar = showToolbarBeforeFullscreen;
+        if (showToolbar)
+        {
+            if (mediaMode == MediaMode::Video)
+            {
+                if (videoSlider)
+                    videoSlider->Show(true);
+            }
+            else if (mediaMode == MediaMode::Bitmap || mediaMode == MediaMode::Animation)
+            {
+                if (pictureToolbar && !pictureToolbar->IsShown())
+                {
+                    bitmapWindow->FixArrowNavigation(true);
+                    pictureToolbar->Show(true);
+                }
+            }
+        }
+    }
+
+    Resize();
 }
 
 void CShowElement::UpdateScreenRatio()
@@ -311,7 +359,8 @@ void CShowElement::ResizeVideo(int w, int h)
 // ============================================================================
 void CShowElement::ShowToolbar()
 {
-    if (showToolbar)
+    // Plein écran : les barres ne doivent pas réapparaître
+    if (fullscreen || showToolbar)
         return;
 
     showToolbar = true;
@@ -377,11 +426,12 @@ void CShowElement::SetMedia(const MediaMode& mode)
     if (pictureToolbar)
         pictureToolbar->SetMedia(mode);
 
-    const bool toolbarVisible = (mode == MediaMode::Bitmap || mode == MediaMode::Animation);
+    // En plein écran, aucune barre n'est affichée quel que soit le média
+    const bool toolbarVisible = !fullscreen && (mode == MediaMode::Bitmap || mode == MediaMode::Animation);
     if (pictureToolbar)
         pictureToolbar->Show(toolbarVisible);
     if (videoSlider)
-        videoSlider->Show(mode == MediaMode::Video);
+        videoSlider->Show(!fullscreen && mode == MediaMode::Video);
     
 
     if (mediaMode == MediaMode::Video)
@@ -437,7 +487,7 @@ void CShowElement::OnSetPosition(wxCommandEvent& event)
 
 void CShowElement::OnViewerDblClick(wxCommandEvent& /*event*/)
 {
-    if (!pictureToolbar) return;
+    if (!pictureToolbar || fullscreen) return;
     pictureToolbar->IsShown() ? HideToolbar() : ShowToolbar();
 }
 
@@ -790,6 +840,10 @@ void CShowElement::MoveSlider(const int64_t& position)
 
 void CShowElement::ShowSliderToolbar(bool show)
 {
+    // Plein écran : le slider vidéo reste masqué
+    if (fullscreen && show)
+        return;
+
     const bool shown = videoSlider->IsShown();
     if (show != shown)
     {

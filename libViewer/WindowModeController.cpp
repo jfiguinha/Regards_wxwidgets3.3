@@ -233,8 +233,19 @@ bool CWindowModeController::FullscreenMode()
     previewWindow->SetFullscreen(true);
     if (!isFullscreen)
     {
+        // Mémorise l'état courant de chaque panneau pour le retour en mode fenêtré
+        savedPanes.left   = windowManager->GetWindowIsShow(Pos::wxLEFT);
+        savedPanes.right  = windowManager->GetWindowIsShow(Pos::wxRIGHT);
+        savedPanes.top    = windowManager->GetWindowIsShow(Pos::wxTOP);
+        savedPanes.bottom = windowManager->GetWindowIsShow(Pos::wxBOTTOM);
+
         isFullscreen = true;
+
+        // Seule la partie centrale (wxCENTRAL) reste visible
         windowManager->HideWindow(Pos::wxLEFT);
+        windowManager->HideWindow(Pos::wxRIGHT);
+        windowManager->HideWindow(Pos::wxTOP);
+        windowManager->HideWindow(Pos::wxBOTTOM);
         windowManager->Resize();
     }
     return true;
@@ -253,11 +264,21 @@ bool CWindowModeController::ScreenMode()
     previewWindow->SetFullscreen(false);
     if (isFullscreen)
     {
-        oldWindowMode = -1;
-        isFullscreen  = false;
-        wxCommandEvent event(wxEVENT_SETMODEVIEWER);
-        event.SetInt(windowMode);
-        wxPostEvent(parent, event);
+        isFullscreen = false;
+
+        // Restauration directe de l'état d'avant plein écran
+        // (plus de repost de wxEVENT_SETMODEVIEWER : il recalculait la
+        // disposition depuis la config au lieu de conserver l'état réel).
+        auto restore = [this](Pos pos, bool wasShown)
+        {
+            if (wasShown && !windowManager->GetWindowIsShow(pos))
+                windowManager->ShowWindow(pos);
+        };
+        restore(Pos::wxLEFT,   savedPanes.left);
+        restore(Pos::wxRIGHT,  savedPanes.right);
+        restore(Pos::wxBOTTOM, savedPanes.bottom);
+        restore(Pos::wxTOP,    savedPanes.top);
+        windowManager->Resize();
     }
     else
     {
@@ -281,14 +302,11 @@ bool CWindowModeController::IsCompatibleFullscreen() const
 
 void CWindowModeController::HideToolbar()
 {
-    showToolbar = false;
+    // Plein écran : tout est déjà masqué, l'état d'avant plein écran est conservé
     if (isFullscreen)
-    {
-        windowManager->HideWindow(Pos::wxTOP);
-        windowManager->HideWindow(Pos::wxBOTTOM);
-        windowManager->HideWindow(Pos::wxRIGHT);
-        windowManager->Resize();
-    }
+        return;
+
+    showToolbar = false;
 
     wxWindow* window = parent->FindWindowById(PREVIEWVIEWERID);
     if (window != nullptr)
@@ -300,6 +318,13 @@ void CWindowModeController::HideToolbar()
 
 void CWindowModeController::HideTopWindow()
 {
+    // Plein écran : on ne touche pas à l'affichage, on met à jour l'état à restaurer
+    if (isFullscreen)
+    {
+        savedPanes.top = false;
+        return;
+    }
+
     const int showVideoThumbnail = windowManager->GetWindowIsShow(Pos::wxTOP);
     if (showVideoThumbnail)
     {
@@ -310,6 +335,12 @@ void CWindowModeController::HideTopWindow()
 
 void CWindowModeController::ShowTopWindow()
 {
+    // Plein écran : le bandeau vidéo ne doit pas réapparaître, il sera restauré au retour
+    if (isFullscreen)
+    {
+        savedPanes.top = true;
+        return;
+    }
 
     const int showVideoThumbnail = windowManager->GetWindowIsShow(Pos::wxTOP);
     if (!showVideoThumbnail)
@@ -321,21 +352,14 @@ void CWindowModeController::ShowTopWindow()
 
 void CWindowModeController::ShowToolbar()
 {
+    // Plein écran : aucune barre / panneau ne doit être réaffiché
+    if (isFullscreen)
+        return;
+
     showToolbar = true;
 
     if (windowMode == WINDOW_VIEWER)
         windowManager->ShowWindow(Pos::wxBOTTOM);
-
-    if (isFullscreen)
-    {
-        if (windowMode == WINDOW_VIEWER)
-            windowManager->ShowWindow(Pos::wxRIGHT);
-
-        windowManager->ShowWindow(Pos::wxCENTRAL);
-
-        if ((isAnimation || isVideo) && windowMode == WINDOW_VIEWER)
-            windowManager->ShowWindow(Pos::wxTOP);
-    }
 
     windowManager->Resize();
 
@@ -401,8 +425,9 @@ void CWindowModeController::SaveParameter(const wxString &lastFile)
     const int showThumbnail     = windowManager->GetPaneState(Pos::wxBOTTOM);
     const int showInfos         = windowManager->GetPaneState(Pos::wxRIGHT);
 
-    if (showFolder)         config->SetPositionLeftPanel(left);
-    if (showInfos)          config->SetPositionRightPanel(right);
+    // En plein écran les panneaux sont masqués : on ne mémorise pas leur taille
+    if (showFolder && !isFullscreen) config->SetPositionLeftPanel(left);
+    if (showInfos  && !isFullscreen) config->SetPositionRightPanel(right);
 
     config->SetLastShowPicture(lastFile);
     config->SetShowInfos(showInfos);

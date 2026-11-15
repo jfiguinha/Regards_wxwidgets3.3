@@ -76,5 +76,17 @@ namespace Regards::Viewer
         bool showToolbar   = true;
         bool windowInit    = true;
         int  faceDetection = 0;
+
+        // État des 4 panneaux périphériques avant l'entrée en plein écran.
+        // En plein écran seul wxCENTRAL reste visible ; ces valeurs servent
+        // à restaurer exactement la disposition au retour en mode fenêtré.
+        struct SavedPaneState
+        {
+            bool left   = false;
+            bool right  = false;
+            bool top    = false;
+            bool bottom = false;
+        };
+        SavedPaneState savedPanes;
     };
 }

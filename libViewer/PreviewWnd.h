@@ -106,6 +106,7 @@ namespace Regards
 			bool showToolbar;
 			bool fullscreen;
 			bool isDiaporama;
+			bool showToolbarBeforeFullscreen = true; // état de la barre avant le plein écran
 
 			wxString oldfilename;
 			CThemeBitmapWindow themeBitmap;

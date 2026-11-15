@@ -205,6 +205,7 @@ namespace Regards
             bool transitionEnd = true;
             bool fullscreen = false;
             bool showToolbar = true;
+            bool showToolbarBeforeFullscreen = true;   // état des barres avant plein écran
             bool firstElement = true;
             bool showToolbarSup = false;
             bool play = false;

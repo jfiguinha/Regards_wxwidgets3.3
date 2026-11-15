@@ -46,7 +46,9 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 					if (mainWindow->IsFullscreen())
 						mainWindow->SetScreen();
 					else
+					{
 						mainWindow->SetFullscreen();
+					}
 				}
 				});
 		}
@@ -285,6 +287,10 @@ void CPreviewWnd::SetEffect(const bool& effect)
 
 void CPreviewWnd::HideToolbar(wxCommandEvent& event)
 {
+	// Plein écran : barres déjà masquées, l'état d'avant est conservé
+	if (fullscreen)
+		return;
+
 	showToolbar = false;
 
 	if (!isEffect)
@@ -344,6 +350,10 @@ void CPreviewWnd::HideValidationToolbar()
 
 void CPreviewWnd::ShowToolbar(wxCommandEvent& event)
 {
+	// Plein écran : aucune barre ne doit réapparaître
+	if (fullscreen)
+		return;
+
 	showToolbar = true;
 	if (!isEffect)
 	{
@@ -382,15 +392,39 @@ bool CPreviewWnd::IsToolbarVisible()
 	return false;
 }
 
-void CPreviewWnd::SetFullscreen(const bool& fullscreen)
+void CPreviewWnd::SetFullscreen(const bool& fs)
 {
-	this->fullscreen = fullscreen;
-	showElement->SetFullscreen(fullscreen);
+	if (fs == fullscreen)
+	{
+		showElement->SetFullscreen(fs);
+		return;
+	}
 
-	if (fullscreen)
+	if (fs)
+		showToolbarBeforeFullscreen = showToolbar;
+
+	this->fullscreen = fs;
+	showElement->SetFullscreen(fs);
+
+	if (fs)
+	{
+		// Plein écran : seul showElement (bitmapWindowRender dans CScrollbarWnd) est visible
 		previewToolbar->SetFullscreen();
+		previewToolbar->Show(false);
+		filtreToolbar->Show(false);
+		bitmapInfos->Show(false);
+	}
 	else
+	{
+		// Retour en mode fenêtré : restauration de l'état d'avant plein écran
 		previewToolbar->SetScreen();
+		showToolbar = showToolbarBeforeFullscreen;
+		bitmapInfos->Show(showToolbar);
+		if (isEffect)
+			filtreToolbar->Show(true);
+		else
+			previewToolbar->Show(showToolbar);
+	}
 
 	Resize();
 }
@@ -444,7 +478,7 @@ bool CPreviewWnd::SetBitmap(CImageLoadingFormat* bitmap, const bool& isThumbnail
 				showElement->Show(true);
 			}
 
-			if (showToolbar && !bitmapInfos->IsShown())
+			if (showToolbar && !fullscreen && !bitmapInfos->IsShown())
 				bitmapInfos->Show(true);
 
 			bitmapInfos->SetFilename(filename);
@@ -505,7 +539,7 @@ bool CPreviewWnd::SetVideo(const wxString& filename, const bool& play)
 			
 			int width = 0, height = 0;
 			//Initialisation du player Video
-			if (showToolbar && !bitmapInfos->IsShown())
+			if (showToolbar && !fullscreen && !bitmapInfos->IsShown())
 				bitmapInfos->Show(true);
 
 			bitmapInfos->SetFilename(filename);

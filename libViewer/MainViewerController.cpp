@@ -88,6 +88,10 @@ bool CMainViewerController::SetScreen()
 
 void CMainViewerController::ShowToolbar()
 {
+    // Plein écran : la zone centrale est seule affichée, pas de bascule de toolbar
+    if (fullscreen)
+        return;
+
     showToolbar = !showToolbar;
     if (centralWnd == nullptr)
         return;
