@@ -456,6 +456,7 @@ void CBitmapWndRender::SetKey(const int& iKey)
 {
 	//
 	this->iKey = iKey;
+	/*
 	switch (toolOption)
 	{
 	case MOVEPICTURE:
@@ -467,6 +468,7 @@ void CBitmapWndRender::SetKey(const int& iKey)
 		break;
 	}
 	}
+	*/
 }
 
 int CBitmapWndRender::GetKey()
