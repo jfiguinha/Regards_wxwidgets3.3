@@ -157,6 +157,10 @@ CShowElement::CShowElement(wxWindow* parent,
     Connect(wxEVENT_SHRINK, wxCommandEventHandler(CShowElement::OnShrink));
     Connect(wxEVENT_CLOSE, wxCommandEventHandler(CShowElement::OnClose));
 
+    // Timer de survol des bords (actif uniquement en plein écran)
+    fullscreenMouseTimer.SetOwner(this, wxNewId());
+    Bind(wxEVT_TIMER, &CShowElement::OnFullscreenMouseTimer, this, fullscreenMouseTimer.GetId());
+
     tempImage = std::make_unique<CImageLoadingFormat>();
 }
 
@@ -224,11 +228,24 @@ void CShowElement::SetFullscreen(const bool& fs)
             videoSlider->Show(false);
 
         showToolbar = false;   // ResizeImage masque alors aussi les barres de défilement
+        currentZone = EdgeZone::Center;
         scrollbar->Show(true);
         bitmapWindowRender->Show(true);
+        fullscreenMouseTimer.Start(100);
     }
     else
     {
+        // Sortie : arrêt du survol et masquage des barres éventuellement affichées au survol
+        fullscreenMouseTimer.Stop();
+        currentZone = EdgeZone::Center;
+        if (pictureToolbar && pictureToolbar->IsShown())
+        {
+            bitmapWindow->FixArrowNavigation(false);
+            pictureToolbar->Show(false);
+        }
+        if (videoSlider)
+            videoSlider->Show(false);
+
         // Retour en mode fenêtré : restauration de l'état d'avant plein écran
         showToolbar = showToolbarBeforeFullscreen;
         if (showToolbar)
@@ -298,7 +315,7 @@ void CShowElement::AnimationStart()
 
 void CShowElement::ResizeImage(int w, int h)
 {
-    if (!showToolbar && fullscreen)
+    if (fullscreen)
     {
         scrollbar->HideHorizontalScroll();
         scrollbar->HideVerticalScroll();
@@ -352,6 +369,67 @@ void CShowElement::ResizeVideo(int w, int h)
         videoSlider->SetSize(0, contentH + posHeightSup, w, videoSlider->GetHeight(), TRUE);
         videoSlider->Refresh();
     }
+}
+
+// ============================================================================
+// Plein écran : barres affichées quand la souris est en haut / en bas de l'image
+// ============================================================================
+void CShowElement::OnFullscreenMouseTimer(wxTimerEvent& /*event*/)
+{
+    if (!fullscreen || !bitmapWindowRender)
+        return;
+
+    const wxPoint mouse = bitmapWindowRender->ScreenToClient(wxGetMousePosition());
+    const wxSize  size  = bitmapWindowRender->GetClientSize();
+
+    // Souris hors du rendu : sur une barre affichée (on conserve l'état) ou hors fenêtre
+    if (mouse.x < 0 || mouse.x >= size.x || mouse.y < 0 || mouse.y >= size.y)
+        return;
+
+    const int band = FromDIP(60);
+    EdgeZone zone = EdgeZone::Center;
+    if (mouse.y < band)
+        zone = EdgeZone::Top;
+    else if (mouse.y >= size.y - band)
+        zone = EdgeZone::Bottom;
+
+    UpdateEdgeZone(zone);
+}
+
+void CShowElement::UpdateEdgeZone(EdgeZone zone)
+{
+    if (zone == currentZone)
+        return;
+
+    const bool bottomChanged = (zone == EdgeZone::Bottom) != (currentZone == EdgeZone::Bottom);
+    currentZone = zone;
+
+    if (bottomChanged)
+        ShowFullscreenBars(zone == EdgeZone::Bottom);
+
+    // Barres du parent (CPreviewWnd) : infos en haut, toolbar en bas
+    if (edgeZoneCallback)
+        edgeZoneCallback(zone);
+}
+
+void CShowElement::ShowFullscreenBars(bool show)
+{
+    showToolbar = show;
+
+    if (mediaMode == MediaMode::Video)
+    {
+        if (videoSlider && videoSlider->IsShown() != show)
+            videoSlider->Show(show);
+    }
+    else if (mediaMode == MediaMode::Bitmap || mediaMode == MediaMode::Animation)
+    {
+        if (pictureToolbar && pictureToolbar->IsShown() != show)
+        {
+            bitmapWindow->FixArrowNavigation(show);
+            pictureToolbar->Show(show);
+        }
+    }
+    Resize();
 }
 
 // ============================================================================
@@ -426,12 +504,16 @@ void CShowElement::SetMedia(const MediaMode& mode)
     if (pictureToolbar)
         pictureToolbar->SetMedia(mode);
 
-    // En plein écran, aucune barre n'est affichée quel que soit le média
-    const bool toolbarVisible = !fullscreen && (mode == MediaMode::Bitmap || mode == MediaMode::Animation);
+    // En plein écran, les barres ne sont visibles que si la souris est en bas de l'image
+    const bool barsAllowed = !fullscreen || currentZone == EdgeZone::Bottom;
+    if (fullscreen)
+        showToolbar = barsAllowed;
+
+    const bool toolbarVisible = barsAllowed && (mode == MediaMode::Bitmap || mode == MediaMode::Animation);
     if (pictureToolbar)
         pictureToolbar->Show(toolbarVisible);
     if (videoSlider)
-        videoSlider->Show(!fullscreen && mode == MediaMode::Video);
+        videoSlider->Show(barsAllowed && mode == MediaMode::Video);
     
 
     if (mediaMode == MediaMode::Video)
@@ -840,8 +922,8 @@ void CShowElement::MoveSlider(const int64_t& position)
 
 void CShowElement::ShowSliderToolbar(bool show)
 {
-    // Plein écran : le slider vidéo reste masqué
-    if (fullscreen && show)
+    // Plein écran : le slider vidéo n'apparaît que si la souris est en bas de l'image
+    if (fullscreen && show && currentZone != EdgeZone::Bottom)
         return;
 
     const bool shown = videoSlider->IsShown();

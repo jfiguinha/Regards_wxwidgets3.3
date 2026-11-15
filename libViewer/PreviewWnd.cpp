@@ -72,6 +72,7 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 	}
 
 	showElement->Show(true);
+	showElement->SetEdgeZoneCallback([this](EdgeZone zone) { OnEdgeZone(zone); });
 	filtreToolbar->Show(false);
 	bitmapInfos->Show(true);
 	previewToolbar->Show(true);
@@ -88,6 +89,31 @@ CPreviewWnd::CPreviewWnd(wxWindow* parent, wxWindowID id, const bool& horizontal
 	Connect(wxEVENT_FILTRECANCEL, wxCommandEventHandler(CPreviewWnd::OnFiltreCancel));
 	Connect(wxEVENT_SHOWTOOLBARFILTRE, wxCommandEventHandler(CPreviewWnd::OnShowToolbar));
 	Connect(wxEVENT_ANIMATIONSTART, wxCommandEventHandler(CPreviewWnd::StartAnimation));
+}
+
+void CPreviewWnd::OnEdgeZone(EdgeZone zone)
+{
+	// Plein écran : infos en haut si la souris est en haut, toolbar en bas si elle est en bas,
+	// tout est masqué quand la souris est au centre de l'image
+	if (!fullscreen || isEffect)
+		return;
+
+	const bool topVisible = (zone == EdgeZone::Top);
+	const bool bottomVisible = (zone == EdgeZone::Bottom);
+	bool changed = false;
+
+	if (bitmapInfos->IsShown() != topVisible)
+	{
+		bitmapInfos->Show(topVisible);
+		changed = true;
+	}
+	if (previewToolbar->IsShown() != bottomVisible)
+	{
+		previewToolbar->Show(bottomVisible);
+		changed = true;
+	}
+	if (changed)
+		Resize();
 }
 
 void CPreviewWnd::StartAnimation(wxCommandEvent& event)
@@ -188,11 +214,13 @@ void CPreviewWnd::Resize()
 {
 	if (previewToolbar != nullptr && filtreToolbar != nullptr)
 	{
-		if (previewToolbar->IsShown() || filtreToolbar->IsShown())
+		// bitmapInfos seul peut être visible (plein écran, souris en haut de l'image)
+		const bool bottomBarShown = previewToolbar->IsShown() || filtreToolbar->IsShown();
+		if (bottomBarShown || bitmapInfos->IsShown())
 		{
 			wxRect rcAffichageBitmap;
 			int bitmapInfosHeight = bitmapInfos->GetHeight();
-			int toolbarHeightSize = previewToolbar->GetHeight();
+			int toolbarHeightSize = bottomBarShown ? previewToolbar->GetHeight() : 0;
 
 			if (!showElement->IsShown())
 				bitmapInfosHeight = 0;

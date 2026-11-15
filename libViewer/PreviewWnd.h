@@ -20,6 +20,7 @@ namespace Regards
 	{
 		class CShowElement;
 		class CFiltreToolbar;
+		enum class EdgeZone : int;
 	}
 
 	using namespace Control;
@@ -87,6 +88,7 @@ namespace Regards
 			void StartAnimation(wxCommandEvent& event);
 			void HideExportButton(wxCommandEvent& event);
 			void ShowExportButton(wxCommandEvent& event);
+			void OnEdgeZone(EdgeZone zone);   // plein écran : survol des bords haut / bas
 
 
 			CShowElement* showElement = nullptr;

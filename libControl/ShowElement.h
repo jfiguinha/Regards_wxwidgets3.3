@@ -9,6 +9,8 @@
 #include "VideoInterface.h"
 #include <FiltreUpdate.h>
 #include <memory>
+#include <functional>
+#include <wx/timer.h>
 #include <LayerElement.h>
 #include <PreviewToolbar.h>
 #include "BitmapToolbar.h"
@@ -40,6 +42,9 @@ namespace Regards
             virtual void Rotate270() = 0;
         };
 
+        // Zone de l'image survolée par la souris en plein écran
+        enum class EdgeZone : int { Center, Top, Bottom };
+
         class CShowElement : public CWindowMain,
             public CSliderInterface,
             public IVideoInterface,
@@ -69,6 +74,9 @@ namespace Regards
             void FlipHorizontal();
 
             CLayerList* GetLayerList();
+
+            // Plein écran : notifie le parent quand la souris entre / sort des bords haut et bas
+            void SetEdgeZoneCallback(std::function<void(EdgeZone)> callback) { edgeZoneCallback = std::move(callback); }
 
             void AnimationStart();
             // Image
@@ -164,6 +172,9 @@ namespace Regards
             void ShowSliderToolbar(bool show);
             void ShowSlider(bool show);
             void InitControl();
+            void OnFullscreenMouseTimer(wxTimerEvent& event);
+            void UpdateEdgeZone(EdgeZone zone);
+            void ShowFullscreenBars(bool show);
             void SetBitmapToViewer(CImageLoadingFormat* bitmap, int eventType);
             // ---- Helper dispatch IViewerMode ----
             IViewerMode* ActiveViewer() const;   // renvoie bitmapWindow ou videoWindow selon isVideo
@@ -206,6 +217,11 @@ namespace Regards
             bool fullscreen = false;
             bool showToolbar = true;
             bool showToolbarBeforeFullscreen = true;   // état des barres avant plein écran
+
+            // Plein écran : affichage des barres au survol des bords haut / bas
+            wxTimer fullscreenMouseTimer;
+            EdgeZone currentZone = EdgeZone::Center;
+            std::function<void(EdgeZone)> edgeZoneCallback;
             bool firstElement = true;
             bool showToolbarSup = false;
             bool play = false;
