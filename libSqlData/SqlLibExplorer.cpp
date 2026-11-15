@@ -505,6 +505,34 @@ bool CSqlLibExplorer::CheckVersion(const wxString& lpFilename)
 			hr = ExecuteSQLWithNoResult(SQL_DROP_OPENCLKERNEL_TABLE);
 			version = "2.73.0.0";
 		}
+		if (version == "2.73.0.0")
+		{
+			sqlVersion.DeleteVersion();
+			sqlVersion.InsertVersion("2.74.0.0");
+
+			vector<wxString> skinModeArray = { "Regards.viewer.dark.theme", "Regards.viewer.light.theme" };
+			vector<wxString> userModeArray = { "Regards.dark.theme", "Regards.light.theme" };
+			int i = 0;
+
+			for (wxString skinMode : skinModeArray)
+			{
+				wxFileName resourceTheme(
+					CFileUtility::GetResourcesFolderPath() +
+					wxFILE_SEP_PATH +
+					"theme",
+					skinMode);	// Process each skin mode
+
+				wxFileName userTheme(
+					CFileUtility::GetDocumentFolderPath(),
+					userModeArray[i++]);
+
+				wxCopyFile(
+					resourceTheme.GetFullPath(),
+					userTheme.GetFullPath());
+			}
+
+			version = "2.74.0.0";
+		}
 	}
 	return hr;
 }
