@@ -9,6 +9,13 @@
 
 using namespace Regards::Window;
 
+#define PLAYBUTTONID 1
+#define PAUSEBUTTONID 2
+#define SPEAKERBUTTONID 3
+#define ZOOMBUTTONID 4
+#define SCREENFORMATID 5
+#define REPEATID 6
+
 namespace Regards::Video
 {
 	class CSliderVideoToolbar : public CToolbarWindow, public CSliderInterface
@@ -36,6 +43,7 @@ namespace Regards::Video
 
 	private:
 		void EventManager(const int& id) override;
+		void EventManagerDoubleClick(const int& id) override;
 		void ShowVolumePopup();
 		void ShowZoomPopup();
 		wxRect GetButtonRect(CToolbarButton* targetButton) const;
@@ -53,6 +61,7 @@ namespace Regards::Video
 		std::unique_ptr<CToolbarButton> btnZoom;
 		std::unique_ptr<CToolbarButton> btnScreenFormat;
 
+		bool isMute = false;
 		bool isPlay = false;
 		bool repeatActif = false;
 		int zoomIndex = 0;

@@ -61,9 +61,6 @@
     <ClCompile Include="ffplaycore.cpp">
       <Filter>Video\Core</Filter>
     </ClCompile>
-    <ClCompile Include="SliderVideo.cpp">
-      <Filter>Video\Core</Filter>
-    </ClCompile>
     <ClCompile Include="VideoControl_soft.cpp">
       <Filter>Video\Core</Filter>
     </ClCompile>
@@ -208,9 +205,6 @@
       <Filter>Video\Core</Filter>
     </ClInclude>
     <ClInclude Include="ffplaycore.h">
-      <Filter>Video\Core</Filter>
-    </ClInclude>
-    <ClInclude Include="SliderVideo.h">
       <Filter>Video\Core</Filter>
     </ClInclude>
     <ClInclude Include="VideoControl_soft.h">

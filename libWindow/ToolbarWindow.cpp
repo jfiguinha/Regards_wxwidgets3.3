@@ -33,6 +33,7 @@ CToolbarWindow::CToolbarWindow(wxWindow* parent, wxWindowID id, const CThemeTool
 	Connect(wxEVT_LEFT_UP, wxMouseEventHandler(CToolbarWindow::OnLButtonUp));
 	Connect(wxEVT_ENTER_WINDOW, wxMouseEventHandler(CToolbarWindow::OnMouseHover));
 	Connect(wxEVT_LEAVE_WINDOW, wxMouseEventHandler(CToolbarWindow::OnMouseLeave));
+	Connect(wxEVT_LEFT_DCLICK, wxMouseEventHandler(CToolbarWindow::OnLButtonDClick));
 	Connect(wxEVT_MOUSE_CAPTURE_LOST, wxMouseEventHandler(CToolbarWindow::OnMouseCaptureLost));
 	Connect(TIMER_PUSHID, wxEVT_TIMER, wxTimerEventHandler(CToolbarWindow::OnTimerPushButton), nullptr, this);
 	Connect(wxEVT_ERASE_BACKGROUND, wxEraseEventHandler(CToolbarWindow::OnEraseBackground));
@@ -193,6 +194,39 @@ void CToolbarWindow::DrawButton(wxDC* dc, CToolbarElement* nav)
 	{
 		dc->DrawBitmap(pictureBuffer, nav->GetXPos(), nav->GetYPos());
 	}
+}
+
+void CToolbarWindow::OnLButtonDClick(wxMouseEvent& event)
+{
+	SetFocus();
+	const int xPos = event.GetX();
+	const int yPos = event.GetY();
+	bool repeatable = false;
+	bool needToRedraw = false;
+
+	for (auto& nav : navElement)
+	{
+		if (!nav->IsVisible()) continue;
+
+		if (nav->FindElement(xPos, yPos))
+		{
+			nav->DoubleClickElement(this, xPos, yPos);
+			nav->SetPush(true);
+			needToRedraw = true;
+			navPush = nav;
+		}
+		else
+		{
+			nav->SetPush(false);
+			needToRedraw = true;
+		}
+	}
+
+	if (!repeatable && navPush)
+		EventManagerDoubleClick(navPush->GetCommandId());
+
+	if (needToRedraw)
+		needToRefresh = true;
 }
 
 void CToolbarWindow::OnLButtonDown(wxMouseEvent& event)

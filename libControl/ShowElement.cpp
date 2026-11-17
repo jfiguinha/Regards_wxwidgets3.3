@@ -11,7 +11,6 @@
 #include <SqlPhotos.h>
 #include <DeepLearning.h>
 #include "BitmapWndViewer.h"
-#include "SliderVideo.h"
 #include "VideoControl_soft.h"
 #include <BitmapWnd3d.h>
 #include <SavePicture.h>

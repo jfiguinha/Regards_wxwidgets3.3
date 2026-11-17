@@ -1,6 +1,5 @@
 #include <header.h>
 #include "SliderVideoToolbar.h"
-#include "SliderVideo.h" // Pour les IDs : PLAYBUTTONID, PAUSEBUTTONID, etc.
 #include <ConvertUtility.h>
 
 
@@ -173,6 +172,42 @@ void CSliderVideoToolbar::EventManager(const int& id)
 	}
 }
 
+void CSliderVideoToolbar::EventManagerDoubleClick(const int& id)
+{
+	switch (id)
+	{
+	case SPEAKERBUTTONID:
+		isMute = !isMute;
+
+		if (popup)
+		{
+			if (!isMute)
+				popup->SetVolume(100);
+			else
+				popup->SetVolume(0);
+			sliderEvent->SlidePosChange(popup->GetVolume(), "VOLUME");
+		}
+		else
+		{
+			if (!isMute)
+				sliderEvent->SlidePosChange(100, "VOLUME");
+			else
+				sliderEvent->SlidePosChange(0, "VOLUME");
+
+		}
+			
+		break;
+
+	case ZOOMBUTTONID:
+		if (sliderEvent != nullptr)
+			sliderEvent->SlidePosChange(0, "SHRINK");
+		break;
+
+	default:
+		break;
+	}
+}
+
 wxRect CSliderVideoToolbar::GetButtonRect(CToolbarButton* targetButton) const
 {
 	if (targetButton == nullptr)
@@ -241,3 +276,5 @@ void CSliderVideoToolbar::ShowZoomPopup()
 	popup->Position(wxPoint(xOffset, yOffset), wxSize(0, 0));
 	popup->Popup();
 }
+
+

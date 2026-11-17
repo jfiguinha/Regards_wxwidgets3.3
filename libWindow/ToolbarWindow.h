@@ -26,6 +26,10 @@ namespace Regards::Window
 
 	protected:
 		virtual void EventManager(const int& id) = 0;
+		virtual void EventManagerDoubleClick(const int& id)
+		{
+
+		}
 
 		void on_paint(wxPaintEvent& event);
 		void OnMouseMove(wxMouseEvent& event);
@@ -35,7 +39,7 @@ namespace Regards::Window
 		void OnMouseHover(wxMouseEvent& event);
 		void OnMouseCaptureLost(wxMouseEvent& event);
 		void OnTimerPushButton(wxTimerEvent& event);
-
+		void OnLButtonDClick(wxMouseEvent& event);
 		void OnEraseBackground(wxEraseEvent& event) override
 		{};
 

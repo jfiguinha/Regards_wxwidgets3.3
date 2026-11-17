@@ -893,7 +893,6 @@
     <ClInclude Include="PrintEngine.h" />
     <ClInclude Include="PrintService.h" />
     <ClInclude Include="ShowElement.h" />
-    <ClInclude Include="SliderVideo.h" />
     <ClInclude Include="SliderVideoToolbar.h" />
     <ClInclude Include="ThumbnailCalque.h" />
     <ClInclude Include="ThumbnailCalqueWnd.h" />
@@ -954,7 +953,6 @@
     <ClCompile Include="PrintEngine.cpp" />
     <ClCompile Include="PrintService.cpp" />
     <ClCompile Include="ShowElement.cpp" />
-    <ClCompile Include="SliderVideo.cpp" />
     <ClCompile Include="SliderVideoToolbar.cpp" />
     <ClCompile Include="ThumbnailCalque.cpp" />
     <ClCompile Include="ThumbnailCalqueWnd.cpp" />
