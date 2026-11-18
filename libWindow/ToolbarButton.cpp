@@ -68,7 +68,12 @@ int CToolbarButton::GetBitmapHeight()
 
 void CToolbarButton::SetButtonResourceId(const wxString& resourceId)
 {
-	this->resourceId = resourceId;
+	if (resourceId != this->resourceId)
+	{
+		this->resourceId = resourceId;
+		button = CLibResource::CreatePictureFromSVG(resourceId, buttonWidth, buttonHeight);
+	}	
+
 }
 
 int CToolbarButton::GetWidth()

@@ -1,8 +1,8 @@
 #include <header.h>
 #include "SliderVideoToolbar.h"
 #include <ConvertUtility.h>
-
-
+#include <RegardsConfigParam.h>
+#include <ParamInit.h>
 using namespace Regards::Video;
 
 CSliderVideoToolbar::CSliderVideoToolbar(wxWindow* parent, wxWindowID id, CSliderInterface* sliderEvent,
@@ -181,6 +181,7 @@ void CSliderVideoToolbar::EventManagerDoubleClick(const int& id)
 
 		if (popup)
 		{
+			btnSpeaker->SetButtonResourceId(isMute ? "IDB_VOLUME_SPEAKER_VIDEO" : "IDB_VOLUME_UP_VIDEO");
 			if (!isMute)
 				popup->SetVolume(100);
 			else
@@ -195,7 +196,7 @@ void CSliderVideoToolbar::EventManagerDoubleClick(const int& id)
 				sliderEvent->SlidePosChange(0, "VOLUME");
 
 		}
-			
+		this->Refresh();
 		break;
 
 	case ZOOMBUTTONID:
@@ -222,6 +223,11 @@ void CSliderVideoToolbar::ShowVolumePopup()
 	if (sliderEvent == nullptr)
 		return;
 
+	int soundVolume = 0;
+	CRegardsConfigParam* config = CParamInit::getInstance();
+	if (config != nullptr)
+		soundVolume = config->GetSoundVolume();
+
 	Regards::UI::ModernTheme m_theme;
 	m_theme.background = themeToolbar.colorBack;
 	m_theme.secondaryText = themeToolbar.slider.colorInactifReplacement;
@@ -229,10 +235,12 @@ void CSliderVideoToolbar::ShowVolumePopup()
 	const wxRect btnRect = GetButtonRect(btnSpeaker.get());
 	const wxPoint screenPos = ClientToScreen(wxPoint(btnRect.x, btnRect.y));
 
-	popup = new Regards::UI::CVolumePopupModern(this, sliderEvent->GetVolume(), m_theme, 100,
+	popup = new Regards::UI::CVolumePopupModern(this, soundVolume, m_theme, 100,
 		[this](int newVolume) {
 			if (sliderEvent != nullptr)
 				sliderEvent->SlidePosChange(newVolume, "VOLUME");
+
+			btnSpeaker->SetButtonResourceId(newVolume == 0 ? "IDB_VOLUME_SPEAKER_VIDEO" : "IDB_VOLUME_UP_VIDEO");
 		});
 
 	const int popupHeight = popup->GetSize().y;
