@@ -59,8 +59,6 @@
       <File Name="ffmpeg.h"/>
       <File Name="ffmfcpimpl.h"/>
       <File Name="ffplaycore.h"/>
-      <File Name="SliderVideo.h"/>
-      <File Name="SliderVideo.cpp"/>
       <File Name="VideoControlInterface.h"/>
       <File Name="VideoControl_soft.h"/>
       <File Name="VideoControl_soft.cpp"/>
